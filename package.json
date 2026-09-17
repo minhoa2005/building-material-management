@@ -1,0 +1,17 @@
+{
+  "name": "sep490-web",
+  "private": true,
+  "workspaces": [
+    "client",
+    "be"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others -n client,server \"npm:dev:client\" \"npm:dev:server\"",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=be",
+    "build": "npm run build --workspace=client"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
