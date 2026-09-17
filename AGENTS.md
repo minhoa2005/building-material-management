@@ -2,52 +2,32 @@
 
 ## Mục đích
 
-Workspace này nằm tại `D:\Ky_9\SEP490\src` và là mã nguồn cho ứng dụng web full-stack của SEP490.
+Workspace tại `D:\Ky_9\SEP490\src` chứa API backend của SEP490.
 
 ## Hiện trạng
 
-- Workspace đã được khởi tạo bằng npm workspaces ở thư mục gốc.
-- `client/` chứa ứng dụng Vite vanilla JavaScript, Tailwind CSS và cấu hình Axios.
-- `be/` chứa API Express ESM, middleware cookie/JSON và kết nối Mongoose tùy chọn.
-- Dependency được quản lý bằng `package-lock.json` ở thư mục gốc.
-- `be/.env.example` là mẫu cấu hình; không có file `.env` hoặc thông tin xác thực thật trong repository.
-- Spec thiết kế: `docs/superpowers/specs/2026-09-17-vite-express-starter-design.md`.
-- Kế hoạch triển khai: `docs/superpowers/plans/2026-09-17-vite-express-starter.md`.
+- Ứng dụng dùng Express.js với JavaScript ESM.
+- `src/` chứa API, middleware, cấu hình cơ sở dữ liệu và các thành phần backend.
+- `package.json` và `package-lock.json` ở thư mục gốc quản lý dependency.
+- `.env.example` là mẫu cấu hình; không đưa thông tin xác thực thật vào repository.
+- MongoDB là tùy chọn và được cấu hình qua `MONGODB_URI`.
 
-## Kiến trúc
+## API
 
-Hai ứng dụng được quản lý riêng bằng npm workspaces.
+- `GET /api/health` kiểm tra tình trạng API.
+- Cổng mặc định là `3000`; có thể đổi bằng biến môi trường `PORT`.
+- Nếu không có `MONGODB_URI`, API vẫn chạy và bỏ qua kết nối cơ sở dữ liệu.
 
-### Frontend (`client/`)
+## Lệnh
 
-- Vite với vanilla JavaScript, không dùng TypeScript hoặc React.
-- Tailwind CSS.
-- Axios để gọi API qua tiền tố `/api`.
-- Day.js cho xử lý ngày giờ.
-- Lucide cho icon SVG.
-- Dev server chạy ở cổng `5173` và proxy `/api` sang backend tại `localhost:3000`.
+- `npm install`: cài dependency.
+- `npm run dev`: chạy backend với nodemon.
+- `npm start`: chạy backend.
 
-### Backend (`be/`)
-
-- Express.js dùng JavaScript ESM.
-- dotenv để nạp biến môi trường.
-- cookie-parser để đọc cookie từ request.
-- Mongoose để kết nối MongoDB khi có `MONGODB_URI`.
-- API kiểm tra tình trạng là `GET /api/health`.
-- Cổng mặc định là `3000`.
-
-### Lệnh
-
-- `npm install`: cài dependency cho các workspace.
-- `npm run dev`: chạy frontend và backend cùng lúc.
-- `npm run dev:client`: chỉ chạy frontend.
-- `npm run dev:server`: chỉ chạy backend.
-- `npm run build`: build frontend cho production.
-
-Sao chép `be/.env.example` thành `be/.env` để cấu hình MongoDB local. Có thể để trống hoặc bỏ `MONGODB_URI`; khi đó API vẫn chạy và bỏ qua kết nối cơ sở dữ liệu.
+Sao chép `.env.example` thành `.env` để cấu hình cục bộ.
 
 ## Quy tắc làm việc
 
 - Không tự commit.
 - Không đưa bí mật hoặc thông tin xác thực thật vào repository; dùng file `.env` cục bộ và cập nhật `.env.example` nếu thêm biến môi trường.
-- Giữ frontend và backend tách biệt trong `client/` và `be/`, trừ khi người dùng yêu cầu đổi cấu trúc.
+- Giữ mã nguồn backend trong `src/` và cấu hình npm ở thư mục gốc.

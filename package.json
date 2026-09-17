@@ -1,17 +1,19 @@
 {
-  "name": "sep490-web",
+  "name": "sep490-api",
   "private": true,
-  "workspaces": [
-    "client",
-    "be"
-  ],
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently --kill-others -n client,server \"npm:dev:client\" \"npm:dev:server\"",
-    "dev:client": "npm run dev --workspace=client",
-    "dev:server": "npm run dev --workspace=be",
-    "build": "npm run build --workspace=client"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.1"
   },
   "devDependencies": {
-    "concurrently": "^10.0.5"
+    "nodemon": "^3.1.14"
   }
 }
