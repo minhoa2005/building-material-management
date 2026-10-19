@@ -9,7 +9,8 @@ export const errorHandler = (err, _req, res, next) => {
   if (!(error instanceof ApiError)) {
     const statusCode = error.statusCode || (error.name === 'ValidationError' ? 400 : 500);
     const message = error.message || 'Internal server error';
-    error = new ApiError(statusCode, message, false, err.stack);
+    error = new ApiError(statusCode, message);
+    error.stack = err.stack;
   }
 
   const { statusCode, message } = error;
