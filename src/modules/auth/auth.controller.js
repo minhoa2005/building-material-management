@@ -6,3 +6,8 @@ export const login = catchAsync(async (req, res) => {
   const result = await authService.loginUser(req.body.username, req.body.password);
   formatApiResponse(res, { message: 'Login successful', data: result });
 });
+
+export const getMe = catchAsync(async (req, res) => {
+  const result = await authService.getCurrentUser(req.user._id);
+  formatApiResponse(res, { data: result });
+});
