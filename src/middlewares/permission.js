@@ -9,15 +9,15 @@ const checkPermission = (requiredPermission, requiredRoles) => {
         new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
       );
     }
-    if (requiredRoles && requiredRoles.length > 0) {
-      if (!requiredRoles.includes(userPermissions.roleIds.code)) {
-        return next(
-          new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
-        );
-      }
+    if (!requiredRoles.includes(userPermissions.roleIds[0].code)) {
+      return next(
+        new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
+      );
     }
     const checkPermission = await Permission.find({
-      _id: { $in: userPermissions.roleIds.map((role) => role.permissionIds) },
+      _id: {
+        $in: userPermissions.roleIds.flatMap((role) => role.permissionIds),
+      },
     });
     const hasPermission = checkPermission.some(
       (permission) => requiredPermission === permission.code,
@@ -27,6 +27,7 @@ const checkPermission = (requiredPermission, requiredRoles) => {
         new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
       );
     }
+    console.log("User Permissions:", userPermissions.roleIds[0].permissionIds);
     next();
   };
 };

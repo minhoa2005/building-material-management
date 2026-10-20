@@ -12,7 +12,7 @@ router.use(authorize(["ADMIN", "OWNER"]));
 
 router.get(
   "/",
-  checkPermission("access_control:read", ["OWNER"]),
+  checkPermission("access_control:read", ["OWNER", "ADMIN"]),
   roleController.listRoles,
 );
 router.put(
