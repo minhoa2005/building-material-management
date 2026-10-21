@@ -3,31 +3,27 @@ import { ApiError } from "../shared/utils/ApiError.js";
 
 const checkPermission = (requiredPermission, requiredRoles) => {
   return async (req, res, next) => {
-    const userPermissions = req.user;
-    if (!userPermissions || userPermissions.length === 0) {
+    const user = req.user;
+    const permissions = user.permissions;
+    if (!user || user.length === 0) {
       return next(
         new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
       );
     }
-    if (!requiredRoles.includes(userPermissions.roleIds[0].code)) {
+    if (!requiredRoles.includes(user.roles)) {
       return next(
         new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
       );
     }
-    const checkPermission = await Permission.find({
-      _id: {
-        $in: userPermissions.roleIds.flatMap((role) => role.permissionIds),
-      },
-    });
-    const hasPermission = checkPermission.some(
-      (permission) => requiredPermission === permission.code,
+    const hasPermission = permissions.some(
+      (permission) => permission === requiredPermission,
     );
     if (!hasPermission) {
       return next(
         new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
       );
     }
-    console.log("User Permissions:", userPermissions.roleIds[0].permissionIds);
+    console.log("User Permissions:", user.roleIds[0].permissionIds);
     next();
   };
 };
