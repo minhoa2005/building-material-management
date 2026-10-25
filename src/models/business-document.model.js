@@ -13,7 +13,7 @@ import {
   rules,
   discriminators,
 } from "./model-utils.js";
-import { DOCUMENT_KINDS } from "./constants.js";
+import { DOCUMENT_KINDS, SALES_ORDER_STATUSES, CONFIRMATION_STATUSES } from "./constants.js";
 
 const header = (fields) => ({
   type: new Schema(fields, embeddedOptions),
@@ -43,6 +43,27 @@ rules(transferRequestHeader, function validateTransferWarehouses() {
   }
 });
 
+const paymentHeader = new Schema({
+  salesOrderId: ref("BusinessDocument"),
+  deliveredOrderVersion: integer(1),
+  fullPaymentReceived: {
+    type: Boolean,
+    required: true,
+    validate: { validator: (value) => value === true, message: "Full external payment receipt must be confirmed" },
+  },
+  externalReceiptReference: text(300, { required: false }),
+  receiptEvidenceId: ref("Evidence", false),
+  confirmationNote: text(2000, { required: false }),
+  confirmedBy: ref("User"),
+  confirmedAt: date(true, { default: Date.now }),
+  operationId: ref("BusinessOperation"),
+}, embeddedOptions);
+rules(paymentHeader, function requireReceiptSupport() {
+  if (!this.externalReceiptReference && !this.receiptEvidenceId && !this.confirmationNote) {
+    this.invalidate("externalReceiptReference", "A receipt reference, evidence or confirmation note is required");
+  }
+});
+
 const documentSchema = new Schema(
   {
     documentNo: text(50, { unique: true }),
@@ -61,6 +82,33 @@ documentSchema.index(
   { "header.dispatchId": 1 },
   { partialFilterExpression: { documentKind: "MWTR" } },
 );
+documentSchema.index({ "header.externalReferenceId": 1 }, {
+  unique: true, partialFilterExpression: { documentKind: "SALES_ORDER" },
+});
+// The operation is unique within each confirmation subtype, as in the SQL tables.
+documentSchema.index({ documentKind: 1, "header.operationId": 1 }, {
+  unique: true, partialFilterExpression: { "header.operationId": { $type: "objectId" } },
+});
+documentSchema.index({ "header.salesOrderId": 1, "header.deliveredOrderVersion": 1 }, {
+  unique: true, partialFilterExpression: { documentKind: "PAYMENT_CONFIRMATION" },
+});
+documentSchema.index({ "header.salesOrderId": 1 }, {
+  partialFilterExpression: { documentKind: "ISSUE_REQUEST" },
+});
+documentSchema.index({ "header.salesOrderId": 1, "header.deliveredAt": 1 }, {
+  partialFilterExpression: { documentKind: "DELIVERY_CONFIRMATION" },
+});
+documentSchema.index({ "header.stocktakeId": 1 }, {
+  partialFilterExpression: { documentKind: "ST_RESOLUTION" },
+});
+rules(documentSchema, function validateWorkflowStatus() {
+  const allowed = this.documentKind === "SALES_ORDER" ? SALES_ORDER_STATUSES
+    : ["DELIVERY_CONFIRMATION", "PAYMENT_CONFIRMATION"].includes(this.documentKind)
+      ? CONFIRMATION_STATUSES : null;
+  if (allowed && !allowed.includes(this.workflowStatus)) {
+    this.invalidate("workflowStatus", "Invalid status for this document kind");
+  }
+});
 
 // Typed headers share the document identity, lifecycle and collection. Empty
 // document kinds need no additional header collection or duplicate documentNo.
@@ -121,9 +169,17 @@ const shapes = {
       confirmedBy: ref("User"),
     }),
   },
+  SALES_ORDER: {
+    header: header({
+      externalReferenceId: ref("ExternalReference"),
+      customerId: ref("Party"),
+      neededOn: date(),
+      deliveryAddressSnapshot: text(500),
+    }),
+  },
   ISSUE_REQUEST: {
     header: header({
-      customerId: ref("Party"),
+      salesOrderId: ref("BusinessDocument"),
       requestedWarehouseId: ref("Warehouse"),
       neededOn: date(),
       deliveryAddressSnapshot: text(500),
@@ -137,6 +193,18 @@ const shapes = {
     }),
   },
   GI_SALE: { header: issueHeader("SALE") },
+  DELIVERY_CONFIRMATION: {
+    header: header({
+      salesOrderId: ref("BusinessDocument"),
+      ...warehouse(),
+      recipientName: text(160),
+      deliveredAt: date(),
+      confirmedBy: ref("User"),
+      confirmedAt: date(true, { default: Date.now }),
+      operationId: ref("BusinessOperation"),
+    }),
+  },
+  PAYMENT_CONFIRMATION: { header: { type: paymentHeader, required: true } },
   DEFECT_CASE: { header: header({ discoveredAt: date(), reason: text(1000) }) },
   DISPOSITION: {},
   SCRAP: {},
@@ -150,6 +218,23 @@ const shapes = {
     }),
   },
   ADJUSTMENT: {},
+  FAILED_DELIVERY: {
+    header: header({
+      ...warehouse(),
+      failureEvidenceId: ref("Evidence"),
+      reason: text(2000),
+    }),
+  },
+  GR_FAILED_DELIVERY: { header: receiptHeader("FAILED_DELIVERY") },
+  ST_RESOLUTION: {
+    header: header({
+      stocktakeId: ref("BusinessDocument"),
+      planVersion: integer(1),
+      approvalId: ref("Approval", false),
+      closureBatchId: ref("PostingBatch", false),
+    }),
+  },
+  RECLASS: {},
   CUSTOMER_RETURN: {
     header: header({
       ...warehouse(),

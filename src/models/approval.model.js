@@ -50,7 +50,8 @@ approvalSchema.index(
   { unique: true },
 );
 rules(approvalSchema, function preventSelfApproval() {
-  if (sameId(this.requestedBy, this.decidedBy))
+  // The service must still verify Sales, ordinary CR, inspection and assessment.
+  if (sameId(this.requestedBy, this.decidedBy) && this.decisionKind !== "STANDARD_ACCEPTANCE")
     this.invalidate("decidedBy", "Requester and approver must differ");
 });
 appendOnly(approvalSchema);

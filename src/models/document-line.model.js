@@ -14,7 +14,7 @@ import {
   rules,
   discriminators,
 } from "./model-utils.js";
-import { LINE_KINDS, QUALITY_CODES } from "./constants.js";
+import { LINE_KINDS, QUALITY_CODES, PACKAGING_CONDITIONS } from "./constants.js";
 
 const details = (fields) => ({
   type: new Schema(fields, embeddedOptions),
@@ -55,6 +55,38 @@ rules(returnDetails, function validateReturnSource() {
   }
 });
 
+const resolutionDetails = new Schema({
+  countId: ref("CountAttempt"),
+  holdId: ref("DefectHold", false),
+  actionKind: code(["DELTA", "RECLASS", "RELOCATE"]),
+  fromBalanceId: ref("StockBalance", false),
+  toBalanceId: ref("StockBalance", false),
+  deltaQty: decimal({ signed: true, nonzero: true, required: false }),
+  executedBy: ref("User", false),
+  executedAt: date(false),
+  executionEvidenceId: ref("Evidence", false),
+}, embeddedOptions);
+rules(resolutionDetails, function validateResolutionAction() {
+  if (this.actionKind === "DELTA") {
+    const delta = this.deltaQty == null ? null : exact(this.deltaQty);
+    if (!delta?.isFinite() || delta.isZero()) {
+      this.invalidate("deltaQty", "DELTA requires a nonzero signed quantity");
+    } else if (delta.gt(0) ? this.fromBalanceId != null || this.toBalanceId == null
+      : this.fromBalanceId == null || this.toBalanceId != null) {
+      this.invalidate("fromBalanceId", "DELTA endpoints must match the delta sign");
+    }
+  } else if (["RECLASS", "RELOCATE"].includes(this.actionKind)) {
+    if (this.deltaQty != null || !this.fromBalanceId || !this.toBalanceId
+      || sameId(this.fromBalanceId, this.toBalanceId)) {
+      this.invalidate("toBalanceId", "RECLASS/RELOCATE require distinct endpoints and no delta");
+    }
+  }
+  const execution = [this.executedBy, this.executedAt, this.executionEvidenceId];
+  if (execution.some((value) => value != null) && !execution.every((value) => value != null)) {
+    this.invalidate("executionEvidenceId", "Execution requires actor, time and evidence together");
+  }
+});
+
 const lineSchema = new Schema(
   {
     documentId: ref("BusinessDocument"),
@@ -73,12 +105,29 @@ const lineSchema = new Schema(
 lineSchema.index({ documentId: 1, lineNo: 1 }, { unique: true });
 lineSchema.index({ lotId: 1 });
 lineSchema.index(
-  { "details.externalLineId": 1, "details.releaseKey": 1 },
+  { "details.salesOrderLineId": 1, "details.releaseKey": 1 },
   {
     unique: true,
     partialFilterExpression: { lineKind: "ISSUE_REQUEST" },
   },
 );
+lineSchema.index({ "details.externalLineId": 1 }, {
+  unique: true, partialFilterExpression: { lineKind: "SALES_ORDER" },
+});
+lineSchema.index({ documentId: 1, "details.salesIssueLineId": 1 }, {
+  unique: true, partialFilterExpression: { lineKind: "DELIVERY_CONFIRMATION" },
+});
+for (const [kind, field] of [
+  ["ISSUE_REQUEST", "salesOrderLineId"],
+  ["OUTBOUND_DELIVERY", "issueRequestLineId"],
+  ["SALES_GOODS_ISSUE", "outboundDeliveryLineId"],
+  ["DELIVERY_CONFIRMATION", "salesIssueLineId"],
+  ["FAILED_DELIVERY_RECEIPT", "salesIssueLineId"],
+]) {
+  lineSchema.index({ [`details.${field}`]: 1 }, {
+    name: `${kind.toLowerCase()}_source`, partialFilterExpression: { lineKind: kind },
+  });
+}
 lineSchema.index(
   { "details.dispatchLineId": 1 },
   {
@@ -98,20 +147,53 @@ rules(lineSchema, function validateLineQuantities() {
     }
   }
   if (
-    this.lineKind === "ADJUSTMENT" &&
+    (this.lineKind === "ADJUSTMENT" ||
+      (this.lineKind === "ST_RESOLUTION" && this.details?.actionKind === "DELTA")) &&
     this.details?.deltaQty &&
     this.qtyBase &&
     !exact(this.details.deltaQty).abs().eq(exact(this.qtyBase))
   ) {
     this.invalidate(
       "qtyBase",
-      "Adjustment base quantity must be the absolute signed delta",
+      "Base quantity must be the absolute signed delta",
     );
   }
 });
 
 const shapes = {
   STANDARD: {},
+  SALES_ORDER: {
+    details: details({
+      externalReferenceId: ref("ExternalReference"),
+      externalLineId: ref("ExternalReferenceLine"),
+      requiredTone: text(60, { required: false }),
+      requiredCalibre: text(60, { required: false }),
+    }),
+  },
+  OUTBOUND_DELIVERY: {
+    details: details({ issueRequestLineId: ref("DocumentLine") }),
+  },
+  SALES_GOODS_ISSUE: {
+    details: details({ outboundDeliveryLineId: ref("DocumentLine") }),
+  },
+  DELIVERY_CONFIRMATION: {
+    details: details({
+      salesIssueLineId: ref("DocumentLine"),
+      photoEvidenceId: ref("Evidence"),
+    }),
+  },
+  FAILED_DELIVERY: {
+    details: details({ salesIssueLineId: ref("DocumentLine") }),
+  },
+  FAILED_DELIVERY_RECEIPT: {
+    details: details({
+      failedDeliveryLineId: ref("DocumentLine"),
+      salesIssueLineId: ref("DocumentLine"),
+      inspectionLineId: ref("DocumentLine"),
+      claimId: ref("ReturnSourceClaim", false),
+    }),
+  },
+  ST_RESOLUTION: { details: { type: resolutionDetails, required: true } },
   INSPECTION: {
     details: details({
       inspectedSourceLineId: ref("DocumentLine"),
@@ -119,6 +201,7 @@ const shapes = {
       ownershipDecision: code(["ACCEPT", "CUSTODY", "REJECT"]),
       inspectedBy: ref("User"),
       inspectedAt: date(),
+      packagingCondition: code(PACKAGING_CONDITIONS, { default: "UNKNOWN" }),
     }),
   },
   TRANSFER_RECEIPT: {
@@ -129,7 +212,7 @@ const shapes = {
   },
   ISSUE_REQUEST: {
     details: details({
-      externalLineId: ref("ExternalReferenceLine"),
+      salesOrderLineId: ref("DocumentLine"),
       releaseKey: text(60),
       requiredTone: text(60, { required: false }),
       requiredCalibre: text(60, { required: false }),
@@ -150,7 +233,10 @@ const shapes = {
       originLineId: ref("DocumentLine"),
       ownerPartyId: ref("Party"),
       agreedQty: decimal(),
-      authorizationId: ref("Approval", false),
+      agreementVersion: integer(1),
+      agreementVerifiedBy: ref("User"),
+      agreementVerifiedAt: date(),
+      agreementEvidenceId: ref("Evidence"),
     }),
   },
   SUPPLIER_ACK: {

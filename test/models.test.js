@@ -30,17 +30,19 @@ test('central entry point reuses models and every ObjectId reference resolves', 
   assert.equal(again.User, models.User);
   assert.equal(again.BusinessDocument, models.BusinessDocument);
   const names = new Set(mongoose.modelNames());
+  const inspectReferences = (schema, prefix) => schema.eachPath((pathName, path) => {
+    const target = path.options.ref || path.caster?.options.ref || path.$embeddedSchemaType?.options.ref;
+    if (target) assert.ok(names.has(target), `${prefix}.${pathName} references unknown ${target}`);
+    if (path.schema) inspectReferences(path.schema, `${prefix}.${pathName}`);
+  });
   for (const name of names) {
-    mongoose.model(name).schema.eachPath((pathName, path) => {
-      const target = path.options.ref || path.caster?.options.ref || path.$embeddedSchemaType?.options.ref;
-      if (target) assert.ok(names.has(target), `${name}.${pathName} references unknown ${target}`);
-    });
+    inspectReferences(mongoose.model(name).schema, name);
   }
   assert.equal(models.User.schema.path('passwordHash').options.select, false);
   assert.deepEqual(models.ROLE_CODES, ['OWNER', 'SALES', 'WAREHOUSE', 'ACCOUNTANT', 'ADMIN']);
 });
 
-test('all 28 document kinds select their typed schemas in one collection', async () => {
+test('all 35 document kinds select their typed schemas in one collection', async () => {
   const warehouseId = id();
   const headers = {
     REPLENISHMENT: { warehouseId, neededOn: when, triggerReason: 'Low stock' },
@@ -52,9 +54,15 @@ test('all 28 document kinds select their typed schemas in one collection', async
     TRANSFER_DISPATCH: { requestId: id(), dispatchedBy: id(), dispatchedAt: when },
     MWTR: { dispatchId: id(), receivedBy: id(), receivedAt: when },
     HANDOVER: { relatedDocumentId: id(), recipientName: 'Customer', handedOverAt: when, confirmedBy: id() },
-    ISSUE_REQUEST: { customerId: id(), requestedWarehouseId: warehouseId, neededOn: when, deliveryAddressSnapshot: 'Address' },
+    SALES_ORDER: { externalReferenceId: id(), customerId: id(), neededOn: when, deliveryAddressSnapshot: 'Address' },
+    ISSUE_REQUEST: { salesOrderId: id(), requestedWarehouseId: warehouseId, neededOn: when, deliveryAddressSnapshot: 'Address' },
     OUTBOUND_DELIVERY: { issueRequestId: id(), warehouseId, plannedOn: when },
     GI_SALE: { warehouseId },
+    DELIVERY_CONFIRMATION: { salesOrderId: id(), warehouseId, recipientName: 'Customer', deliveredAt: when, confirmedBy: id(), operationId: id() },
+    PAYMENT_CONFIRMATION: { salesOrderId: id(), deliveredOrderVersion: 1, fullPaymentReceived: true, confirmationNote: 'External receipt checked', confirmedBy: id(), operationId: id() },
+    FAILED_DELIVERY: { warehouseId, failureEvidenceId: id(), reason: 'Customer unavailable' },
+    GR_FAILED_DELIVERY: { warehouseId },
+    ST_RESOLUTION: { stocktakeId: id(), planVersion: 1 },
     DEFECT_CASE: { discoveredAt: when, reason: 'Damaged' },
     STOCKTAKE: { warehouseId, scopeLocationIds: [id()] },
     CUSTOMER_RETURN: { customerId: id(), warehouseId },
@@ -62,7 +70,7 @@ test('all 28 document kinds select their typed schemas in one collection', async
     SUPPLIER_RETURN: { supplierId: id(), warehouseId },
     GI_SUPPLIER_RETURN: { warehouseId },
   };
-  assert.equal(models.DOCUMENT_KINDS.length, 28);
+  assert.equal(models.DOCUMENT_KINDS.length, 35);
   for (const kind of models.DOCUMENT_KINDS) {
     const doc = document(kind, headers[kind]);
     await doc.validate();
@@ -79,19 +87,27 @@ test('all 28 document kinds select their typed schemas in one collection', async
   await invalid(document('PO', { warehouseId, supplierId: id(), unrelated: true }), 'header');
 });
 
-test('all 11 line kinds retain typed detail fields and a shared line identity', async () => {
+test('all 18 line kinds retain typed detail fields and a shared line identity', async () => {
   const details = {
+    SALES_ORDER: { externalReferenceId: id(), externalLineId: id() },
+    OUTBOUND_DELIVERY: { issueRequestLineId: id() },
+    SALES_GOODS_ISSUE: { outboundDeliveryLineId: id() },
+    DELIVERY_CONFIRMATION: { salesIssueLineId: id(), photoEvidenceId: id() },
+    FAILED_DELIVERY: { salesIssueLineId: id() },
+    FAILED_DELIVERY_RECEIPT: { failedDeliveryLineId: id(), salesIssueLineId: id(), inspectionLineId: id() },
+    ST_RESOLUTION: { countId: id(), actionKind: 'RECLASS', fromBalanceId: id(), toBalanceId: id() },
     INSPECTION: { inspectedSourceLineId: id(), qualityCode: 'GOOD', ownershipDecision: 'ACCEPT', inspectedBy: id(), inspectedAt: when },
     TRANSFER_RECEIPT: { dispatchLineId: id(), qualityCode: 'GOOD' },
-    ISSUE_REQUEST: { externalLineId: id(), releaseKey: 'release-1' },
+    ISSUE_REQUEST: { salesOrderLineId: id(), releaseKey: 'release-1' },
     WAREHOUSE_TASK: { fromLocationId: id(), toLocationId: id(), qualityCode: 'GOOD' },
     DISPOSITION: { defectLineId: id(), outcome: 'SCRAP' },
     CUSTOMER_RETURN: { originalIssueLineId: id(), reason: 'Return' },
-    SUPPLIER_RETURN: { originLineId: id(), ownerPartyId: id(), agreedQty: '12' },
+    SUPPLIER_RETURN: { originLineId: id(), ownerPartyId: id(), agreedQty: '12', agreementVersion: 1, agreementVerifiedBy: id(), agreementVerifiedAt: when, agreementEvidenceId: id() },
     SUPPLIER_ACK: { dispatchLineId: id(), outcome: 'ACCEPTED', acknowledgedAt: when },
     DISCREPANCY: { sourceLineId: id(), discrepancyKind: 'SHORT' },
     ADJUSTMENT: { countId: id(), deltaQty: '-12' },
   };
+  assert.equal(models.LINE_KINDS.length, 18);
   for (const kind of models.LINE_KINDS) {
     const doc = line({ lineKind: kind, ...(details[kind] && { details: details[kind] }) });
     await doc.validate();
@@ -149,6 +165,8 @@ test('approval forbids self-approval and duplicate line decisions', async () => 
   });
   await approval({ lines: [{ lineId: id(), approvedQty: '0', outcome: 'REJECT' }] }).validate();
   await invalid(approval({ decidedBy: actor }), 'decidedBy');
+  await approval({ decidedBy: actor, decisionKind: 'STANDARD_ACCEPTANCE' }).validate();
+  await invalid(approval({ decidedBy: actor, decisionKind: 'EXCEPTION_APPROVAL' }), 'decidedBy');
   const lineId = id();
   await invalid(approval({ lines: [
     { lineId, approvedQty: '2', outcome: 'ACCEPT' }, { lineId, approvedQty: '2', outcome: 'ACCEPT' },
@@ -190,7 +208,7 @@ test('schema declares unique/idempotency/reconciliation indexes without nullable
     assert.ok(hasIndex(models.StockAccount, { [field]: 1 }, (o) => o.unique && o.partialFilterExpression[field].$type === 'objectId'));
   }
   assert.ok(hasIndex(models.PostingBatch, { reversalOf: 1 }, (o) => o.unique && o.partialFilterExpression.reversalOf.$type === 'objectId'));
-  assert.ok(hasIndex(models.DocumentLine, { 'details.externalLineId': 1, 'details.releaseKey': 1 },
+  assert.ok(hasIndex(models.DocumentLine, { 'details.salesOrderLineId': 1, 'details.releaseKey': 1 },
     (o) => o.unique && o.partialFilterExpression.lineKind === 'ISSUE_REQUEST'));
   assert.ok(hasIndex(models.LocationLock, { locationId: 1 }, unique));
   assert.ok(hasIndex(models.StocktakeSnapshot, { stocktakeId: 1, balanceId: 1 }, unique));
@@ -200,7 +218,9 @@ test('schema declares unique/idempotency/reconciliation indexes without nullable
 
 test('append-only history rejects normal query, document and bulk mutation before DB access', async () => {
   for (const Model of [models.ProductUomVersion, models.Approval, models.Evidence,
-    models.PostingBatch, models.StockMovement, models.StocktakeSnapshot, models.CountAttempt, models.AuditEvent]) {
+    models.PostingBatch, models.StockMovement, models.StocktakeSnapshot, models.CountAttempt, models.AuditEvent,
+    models.BusinessOperation, models.SalesOrderCancellation, models.CustomerReturnAssessment,
+    models.DemandReopening, models.OdCommitmentTransfer]) {
     await assert.rejects(Model.updateOne({}, { $set: { note: 'changed' } }).exec(), /append-only/);
     await assert.rejects(Model.deleteMany({}).exec(), /append-only/);
     await assert.rejects(Model.bulkWrite([{ deleteOne: { filter: { _id: id() } } }]), /append-only/);

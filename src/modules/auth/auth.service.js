@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User, Role } from "../../models/index.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
+import { generateRefreshToken } from "../../config/jwt.js";
+import { setCookie } from "../../config/cookie.js";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "wmsd_default_super_secret_jwt_key_2026";
@@ -51,7 +53,10 @@ export const loginUser = async (username, password) => {
     expiresIn: JWT_EXPIRES_IN,
   });
 
+  const refreshToken = generateRefreshToken(user._id);
+
   return {
+    refreshToken,
     accessToken,
     user: {
       id: user._id,
@@ -84,7 +89,6 @@ export const getCurrentUser = async (userId) => {
       if (p.code) permissionSet.add(p.code);
     });
   });
-
   return {
     id: user._id,
     username: user.username,
@@ -93,5 +97,51 @@ export const getCurrentUser = async (userId) => {
     roles: roleCodes,
     primaryRole,
     permissions: Array.from(permissionSet),
+  };
+};
+
+export const refreshToken = async (userId) => {
+  const user = await User.findById(userId).populate({
+    path: "roleIds",
+    populate: { path: "permissionIds" },
+  });
+  if (!user || !user.isActive) {
+    throw new ApiError(401, "Người dùng không tồn tại hoặc đã bị vô hiệu hóa");
+  }
+  const roleCodes = (user.roleIds || []).map((r) => r.code);
+  const primaryRole = roleCodes[0] || "admin";
+
+  // Aggregate permission codes from all assigned roles
+  const permissionSet = new Set();
+  (user.roleIds || []).forEach((r) => {
+    (r.permissionIds || []).forEach((p) => {
+      if (p.code) permissionSet.add(p.code);
+    });
+  });
+  const permissions = Array.from(permissionSet);
+
+  const tokenPayload = {
+    userId: user._id,
+    username: user.username,
+    fullName: user.fullName,
+    roles: roleCodes,
+    permissions,
+  };
+
+  const accessToken = jwt.sign(tokenPayload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
+  });
+
+  return {
+    accessToken,
+    user: {
+      id: user._id,
+      username: user.username,
+      fullName: user.fullName,
+      phone: user.phone,
+      roles: roleCodes,
+      primaryRole,
+      permissions,
+    },
   };
 };

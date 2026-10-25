@@ -31,7 +31,12 @@ export {
   LocationLock,
   StocktakeSnapshot,
   CountAttempt,
+  DefectHold,
 } from "./stocktake.model.js";
+export { BusinessOperation, SalesOrderCancellation } from "./business-operation.model.js";
+export {
+  CustomerReturnAssessment, ReturnSourceClaim, DemandReopening, OdCommitmentTransfer,
+} from "./return.model.js";
 export { AuditEvent, OutboxEvent } from "./event.model.js";
 export {
   ROLE_CODES,
@@ -39,4 +44,7 @@ export {
   QUALITY_STATUSES,
   DOCUMENT_KINDS,
   LINE_KINDS,
+  PACKAGING_CONDITIONS,
+  SALES_ORDER_STATUSES,
+  CONFIRMATION_STATUSES,
 } from "./constants.js";

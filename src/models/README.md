@@ -13,10 +13,11 @@ names are camelCase; timestamps use UTC Date values.
 
 ## Source and mapping decisions
 
-Based on the user-provided `WMSD_SQL_schema.sql` and
-`de_xuat_database_design_EN.md` (18 October 2026). The SQL is a relational design
-reference; persistence stays MongoDB. All 63 SQL tables are represented below,
-using 30 collections rather than creating a collection for every join/subtype.
+Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.1.0
+(25 October 2026). The SQL is a relational design reference; persistence stays
+MongoDB. All 82 SQL tables have a representation below, using 37 collections,
+35 document discriminators and 18 line discriminators. Representation does not
+mean that all foreign keys or business workflows are enforced by these schemas.
 
 | SQL tables | MongoDB model / representation |
 | --- | --- |
@@ -27,15 +28,22 @@ using 30 collections rather than creating a collection for every join/subtype.
 | uom, product, product_uom_version, product_warehouse_policy, lot | Uom, Product, ProductUomVersion, ProductWarehousePolicy, Lot |
 | quality_status | QUALITY_STATUSES / QUALITY_CODES; finite code catalogue |
 | document, document_external_reference | BusinessDocument; externalReferenceIds holds unique references |
-| replenishment_request, purchase_order, arrival, goods_receipt | REPLENISHMENT, PO, ARRIVAL, GR_PURCHASE / GR_CUSTOMER_RETURN typed document headers |
+| replenishment_request, purchase_order, arrival, goods_receipt | REPLENISHMENT, PO, ARRIVAL, GR_PURCHASE / GR_CUSTOMER_RETURN / GR_FAILED_DELIVERY typed document headers |
 | transfer_request, transfer_dispatch, transfer_receipt, handover | TRANSFER_REQUEST, TRANSFER_DISPATCH, MWTR, HANDOVER typed headers |
 | issue_request, outbound_delivery, goods_issue, warehouse_task | ISSUE_REQUEST, OUTBOUND_DELIVERY, GI_SALE / GI_SUPPLIER_RETURN, TO typed headers |
+| sales_order, customer_delivery, external_payment_confirmation | SALES_ORDER, DELIVERY_CONFIRMATION, PAYMENT_CONFIRMATION typed headers |
+| business_operation, sales_order_cancellation | BusinessOperation, SalesOrderCancellation; separate append-only collections |
 | defect_case, customer_return, supplier_return | DEFECT_CASE, CUSTOMER_RETURN, SUPPLIER_RETURN typed headers |
 | stocktake, stocktake_scope | STOCKTAKE typed header; header.scopeLocationIds stores unique scope IDs |
 | document_line | DocumentLine; independently addressable lines with their own ObjectId |
 | inspection_line, transfer_receipt_line, issue_request_line, warehouse_task_line | INSPECTION, TRANSFER_RECEIPT, ISSUE_REQUEST, WAREHOUSE_TASK typed line details |
+| sales_order_line, outbound_delivery_line, sales_goods_issue_line, customer_delivery_line | SALES_ORDER, OUTBOUND_DELIVERY, SALES_GOODS_ISSUE, DELIVERY_CONFIRMATION typed line details |
 | disposition_line, customer_return_line, supplier_return_line | DISPOSITION, CUSTOMER_RETURN, SUPPLIER_RETURN typed line details |
 | supplier_ack_line, discrepancy_line, adjustment_line | SUPPLIER_ACK, DISCREPANCY, ADJUSTMENT typed line details |
+| customer_return_assessment | CustomerReturnAssessment; separate append-only versioned assessments |
+| failed_delivery, failed_delivery_line, failed_delivery_receipt_line | FAILED_DELIVERY typed header; FAILED_DELIVERY and FAILED_DELIVERY_RECEIPT typed line details |
+| return_source_claim, demand_reopening, od_commitment_transfer | ReturnSourceClaim, DemandReopening, OdCommitmentTransfer; separate collections |
+| defect_hold, stocktake_resolution, stocktake_resolution_line | DefectHold collection; ST_RESOLUTION typed header and line details |
 | document_link, line_link | DocumentLink, LineLink |
 | approval, approval_line | Approval with bounded lines belonging to one decision |
 | evidence | Evidence; private object key, hash, MIME type and uploader |
@@ -52,6 +60,14 @@ the constructor selects the appropriate typed schema. Document lines use
 `document_lines` collection. They remain separate from documents because many
 source, approval, ledger and return records refer to individual lines. No
 unbounded ledger, audit or count history is embedded in a document.
+
+The parent SQL subtype IDs (`sales_order_id` on a sales order line,
+`issue_request_id` on a WIR line, `delivery_id` on a POD line, etc.) are the
+existing `DocumentLine.documentId`, not duplicate fields inside `details`.
+Redundant ancestor IDs used in SQL composite foreign keys are resolved from
+typed headers/source lines. Services must verify that those references belong
+to the same chain. SQL code-based foreign keys (UOM, roles, permissions) use
+ObjectId references to the corresponding catalogue models.
 
 ```js
 const po = new BusinessDocument({
@@ -92,14 +108,80 @@ const inspection = new DocumentLine({
   Optional unique references use partial ObjectId indexes so absent/null values
   do not collide. Only one STORE party and one live lock per location are allowed.
 - ProductUomVersion, Approval, Evidence, PostingBatch, StockMovement,
-  StocktakeSnapshot, CountAttempt and AuditEvent reject Mongoose update/delete
+  StocktakeSnapshot, CountAttempt, AuditEvent, BusinessOperation,
+  SalesOrderCancellation, CustomerReturnAssessment, DemandReopening and
+  OdCommitmentTransfer reject Mongoose update/delete
   operations and re-saving existing records. Insert corrections/new versions.
-  Outbox delivery attempts and active reservations remain mutable.
+  Outbox delivery attempts, active reservations, ReturnSourceClaim.status and
+  DefectHold.status remain mutable. Claim/hold source facts are immutable paths.
+
+## Revision 3.1 contracts
+
+- SALES_ORDER.header requires externalReferenceId, customerId, neededOn and
+  deliveryAddressSnapshot. Source reference and source line are each unique
+  within the SO subtype. ISSUE_REQUEST.header requires salesOrderId;
+  ISSUE_REQUEST line details require salesOrderLineId and releaseKey. Release
+  uniqueness is `(salesOrderLineId, releaseKey)`, including across WIR documents.
+- OD line details reference issueRequestLineId; SALES_GOODS_ISSUE line details
+  reference outboundDeliveryLineId. DELIVERY_CONFIRMATION line details require
+  salesIssueLineId and photoEvidenceId, unique per `(documentId, salesIssueLineId)`.
+  POD headers record salesOrderId, warehouseId, recipientName, deliveredAt,
+  confirmedBy/confirmedAt and operationId. Photo ownership, actual image content,
+  upload success, assigned Warehouse actor and posted GI coverage are service checks.
+- PAYMENT_CONFIRMATION.header requires salesOrderId, deliveredOrderVersion,
+  fullPaymentReceived=true, confirmedBy/confirmedAt and operationId. At least one
+  of externalReceiptReference, receiptEvidenceId or confirmationNote is required.
+  `(salesOrderId, deliveredOrderVersion)` is unique within this subtype. Each
+  confirmation subtype also has a unique operationId. VOIDED confirmations keep
+  their data and uniqueness; re-confirmation uses a new SO version/operation.
+- SO workflowStatus is DRAFT/OPEN/IN_PROGRESS/PARTIALLY_DELIVERED/DELIVERED/
+  COMPLETED/CANCELLED. POD/PAY-CFM status is DRAFT/CONFIRMED/VOIDED. Other
+  document kinds keep their existing extensible workflow status field.
+- BusinessOperation stores stable operation/idempotency keys, a SHA-256
+  payloadHash, documentVersion, performedBy/performedAt and optional reason.
+  It records non-stock operations independently of PostingBatch. Cancellation
+  facts reference an operation and positive cancelledQtyBase, with actor/reason.
+- ExternalReference requires a unique nonblank correlationId; referenceDate and
+  provider sourceVersion are optional. Do not invent a provider revision.
+- Inspection details record packagingCondition (SEALED/OPENED/TORN/UNKNOWN,
+  default UNKNOWN) independently of quality/ownership. Supplier-return details
+  require agreementVersion, agreementVerifiedBy/At and agreementEvidenceId;
+  there is no Owner authorizationId field for BF-08.
+- CustomerReturnAssessment stores an immutable, numbered assessment for a return
+  line and document version. Installed/customer-damaged/overdue conditions imply
+  INELIGIBLE; otherwise missing conditions imply PENDING; fully known eligible
+  conditions imply CASE_REVIEW. Known deadlines require deadlineReference.
+  CASE_REVIEW is not acceptance. Approval permits the SQL self-decision exception
+  only for decisionKind=STANDARD_ACCEPTANCE; the service must still verify Sales,
+  ordinary CR conditions, Warehouse inspection and latest assessment. Owner
+  EXCEPTION_APPROVAL requires a different requester. No assessment applies to FD.
+- FAILED_DELIVERY.header needs warehouseId, failureEvidenceId and reason. Its
+  lines require salesIssueLineId. GR_FAILED_DELIVERY uses receiptKind=FAILED_DELIVERY;
+  FAILED_DELIVERY_RECEIPT line details need failedDeliveryLineId, salesIssueLineId,
+  inspectionLineId and optional claimId. ReturnSourceClaim permits exactly one
+  sales issue/historical external source; FD always requires a sales issue.
+  Claims reserve source allowance, not stock; status is OPEN/CONSUMED/RELEASED.
+- DemandReopening has a unique receiptLineId and stores the original SO/WIR/OD
+  line chain, positive reopenedQty, sourceVersion and postingBatchId.
+  OdCommitmentTransfer.reopeningReceiptLineId is a DocumentLine reference and
+  logically joins DemandReopening.receiptLineId, not DemandReopening._id.
+  Transfers require distinct fromOdLineId/toOdLineId, qtyBase, both versions and
+  operationId. Ordinary customer returns do not reopen demand.
+- DefectHold stores balance, defect document, optional stocktake, quantity,
+  evidence and actor/time; status is ACTIVE/RESOLVED. As in SQL available_stock,
+  any ACTIVE hold excludes that balance from new allocation, without changing
+  its quantity or quality. The available-stock aggregation is a service concern.
+- ST_RESOLUTION.header stores stocktakeId, planVersion and optional approvalId/
+  closureBatchId. Its line details require countId and actionKind. DELTA has one
+  endpoint matching its nonzero deltaQty sign, and qtyBase=abs(deltaQty).
+  RECLASS/RELOCATE have two distinct endpoints and no deltaQty. Execution actor,
+  time and evidence are all present or all absent. RECLASS2 plus shortage2 is
+  separate from shortage4; a quality-only correction never creates ADJUSTMENT0.
 
 ## Service/database responsibilities
 
 These schemas validate documents through `validate()` / `save()` and define
-indexes; they do not implement the seven business flows or database foreign
+indexes; they do not implement the eight business flows or database foreign
 keys. Query updates, direct collection access and bulk operations can bypass
 document validation. Use validated documents in the transaction service, never
 accept arbitrary client-provided update operators. Apply and verify indexes as
@@ -115,6 +197,15 @@ and atomic posting of batch, movements, balances, reservations, status, audit
 and outbox. Increment/filter document and balance versions atomically. Enforce
 append-only history through database access controls as well as Mongoose guards.
 
+In particular, source caps and concurrent POD/CR/FD claims need a common
+conditional write guard on the source line in a MongoDB transaction. Consume a
+claim, post the receipt, update net SO/WIR/OD progress/version, write reopening,
+audit and outbox atomically. The same transaction rule applies to stocktake
+closure: recheck latest plan/count/Owner decision, post delta/transfers, resolve
+holds and release locks only on successful closure. These services are not
+implemented by model definitions. Transactions require a replica set or sharded
+cluster. Mongoose refs and indexes do not enforce compound foreign keys.
+
 The two SQL views (`inventory_ledger`, `available_stock`) require reporting
 aggregations/services; they are not collections and are not implemented here.
 An uncounted item has no CountAttempt; a real zero count is an explicit record.
@@ -123,3 +214,27 @@ absolute value. Model tests run without connecting to MongoDB via `npm test`.
 Set `MONGODB_TEST_URI` to opt into the MongoDB integration checks. They override
 the database name with a random `sep490_model_verification_<ObjectId>` database
 and drop only that temporary database afterward.
+
+## Existing database upgrade
+
+Imports do not migrate data or remove old indexes. Before deploying this model
+revision against existing data:
+
+1. Back up and audit existing ExternalReference, WIR and supplier-return records.
+   Assign stable unique correlationIds; preserve known referenceDate/sourceVersion
+   without fabricating missing source evidence.
+2. Establish verified SO documents/lines for existing WIR sources, then replace
+   WIR header.customerId with header.salesOrderId and line details.externalLineId
+   with details.salesOrderLineId. Keep the existing WIR document/line identities
+   used by reservations and ledger history. Missing provenance needs reconciliation.
+3. Reconcile supplier-return agreement facts from real evidence and remove the
+   retired details.authorizationId. For stored inspection details, persist UNKNOWN
+   packagingCondition where it was never observed. Do not infer packaging damage
+   from quality. Existing documents are not revalidated merely by reading them.
+4. After WIR data conversion, explicitly remove the obsolete unique index
+   `details.externalLineId_1_details.releaseKey_1` from `document_lines` if present.
+   Otherwise all new WIR lines with a missing externalLineId can collide on releaseKey.
+   Audit duplicates and apply/verify new indexes with a controlled deployment.
+   Do not run syncIndexes blindly against a database containing unrelated indexes.
+
+No production data, index removal, or automatic migration runs from these models.

@@ -3,6 +3,7 @@ import {
   options,
   model,
   ref,
+  code,
   integer,
   decimal,
   date,
@@ -48,3 +49,19 @@ appendOnly(countSchema);
 export const LocationLock = model("LocationLock", lockSchema);
 export const StocktakeSnapshot = model("StocktakeSnapshot", snapshotSchema);
 export const CountAttempt = model("CountAttempt", countSchema);
+
+// An ACTIVE hold blocks allocation of the balance without changing its quality
+// or quantity. Resolution/posting/unlock must be coordinated by the service.
+const holdSchema = new Schema({
+  defectDocumentId: ref("BusinessDocument", true, { immutable: true }),
+  balanceId: ref("StockBalance", true, { immutable: true }),
+  stocktakeId: ref("BusinessDocument", false, { immutable: true }),
+  qtyBase: decimal({ positive: true, immutable: true }),
+  evidenceId: ref("Evidence", true, { immutable: true }),
+  recordedBy: ref("User", true, { immutable: true }),
+  recordedAt: date(true, { default: Date.now, immutable: true }),
+  status: code(["ACTIVE", "RESOLVED"]),
+}, options("defect_holds"));
+holdSchema.index({ balanceId: 1 }, { partialFilterExpression: { status: "ACTIVE" } });
+
+export const DefectHold = model("DefectHold", holdSchema);
