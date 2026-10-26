@@ -1,13 +1,22 @@
 import 'dotenv/config';
+import mongoose from 'mongoose';
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
-import { seedRolesAndUsers } from './seeds/user.seed.js';
+import { runSeeds } from './seeds/index.js';
 
 async function startServer() {
   await connectDatabase();
-  await seedRolesAndUsers().catch((err) => {
-    console.error('Failed to seed default roles and users:', err);
-  });
+
+  // Tự động kiểm tra DB và insert dữ liệu mặc định còn thiếu (permission, role, kho, user).
+  // Tắt bằng SEED_ON_STARTUP=false.
+  const seedOnStartup = process.env.SEED_ON_STARTUP !== 'false';
+  if (seedOnStartup && mongoose.connection.readyState === 1) {
+    await runSeeds({
+      syncRolePermissions: process.env.SEED_SYNC_ROLE_PERMISSIONS === 'true',
+    }).catch((err) => {
+      console.error('Failed to seed default data:', err);
+    });
+  }
 
   const port = Number(process.env.PORT) || 3000;
   app.listen(port, () => {

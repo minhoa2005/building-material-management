@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
+    "seed": "node src/seeds/run.js",
+    "seed:sync-permissions": "node src/seeds/run.js --sync-permissions",
     "test": "node --test"
   },
   "dependencies": {
