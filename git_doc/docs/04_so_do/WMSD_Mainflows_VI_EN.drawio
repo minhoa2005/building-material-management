@@ -1,0 +1,1353 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="drawio" version="26.0.0" data-baseline="3.0.0" data-updated="2026-10-22" data-source="docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md; docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md">
+  <diagram id="BF-01-VI" name="BF-01 VI">
+    <mxGraphModel dx="1640" dy="2220" grid="1" gridSize="10" page="1" pageWidth="1640" pageHeight="2220" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf01-title" value="&lt;b&gt;BF-01 — Bổ sung hàng, đặt mua và nhập kho&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1560" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1560" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-owner" value="Chủ cửa hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-sales" value="Nhân viên bán hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-acct" value="Kế toán" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="1210" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-rr_sales" value="&lt;b&gt;1. Báo nhu cầu thiếu của khách&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;RR · UC-03/103&lt;/font&gt;" vertex="1" parent="bf01-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-03/103&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-rr_wh" value="&lt;b&gt;1. Báo nhu cầu tồn sau kiểm nguồn&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;RR · UC-03/103&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-03/103&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-review" value="&lt;b&gt;2. Duyệt / trả sửa / từ chối RR&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-04 · requester ≠ approver&lt;/font&gt;" vertex="1" parent="bf01-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-04&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-po" value="&lt;b&gt;3. Lập PO, ghi NCC xác nhận&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;PO · UC-07&lt;/font&gt;" vertex="1" parent="bf01-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-07&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-inspect" value="&lt;b&gt;4. Nhận từng đợt, kiểm và tách lượng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ARR / INS · UC-10/26&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-10/26&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-gr" value="&lt;b&gt;5. Post đúng lượng nhận sở hữu&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GR-P · UC-26&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-26&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-putaway" value="&lt;b&gt;6. Xếp hàng và xác nhận vị trí&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TO-PUTAWAY · UC-32/33&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-32/33&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-reconcile" value="&lt;b&gt;7. Đối chiếu PO–GR; theo dõi còn thiếu&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-07/108&lt;/font&gt;" vertex="1" parent="bf01-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-07/108&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-close" value="&lt;b&gt;8. Chấp thuận chốt phần không giao&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-04/07 · không nhập giả / no fake GR&lt;/font&gt;" vertex="1" parent="bf01-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-04/07&quot;]">
+          <mxGeometry x="30" y="1365" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-edge-0" edge="1" parent="1" source="bf01-rr_sales" target="bf01-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.4;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="362.0" />
+              <mxPoint x="202.0" y="362.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-1" edge="1" parent="1" source="bf01-rr_wh" target="bf01-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.6;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="370.0" />
+              <mxPoint x="268.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-2" edge="1" parent="1" source="bf01-review" target="bf01-po" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="555.0" />
+              <mxPoint x="1405.0" y="555.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-3" edge="1" parent="1" source="bf01-po" target="bf01-inspect" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1405.0" y="740.0" />
+              <mxPoint x="1015.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-4" edge="1" parent="1" source="bf01-inspect" target="bf01-gr" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-edge-5" edge="1" parent="1" source="bf01-gr" target="bf01-putaway" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-edge-6" edge="1" parent="1" source="bf01-putaway" target="bf01-reconcile" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="1295.0" />
+              <mxPoint x="1405.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-7" edge="1" parent="1" source="bf01-reconcile" target="bf01-close" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1405.0" y="1480.0" />
+              <mxPoint x="235.0" y="1480.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1700" width="1560" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-01-A1: Nhu cầu đã có nguồn đáp ứng&lt;br&gt;BF-01-A2: Owner từ chối hoặc trả sửa&lt;br&gt;BF-01-A3: NCC chỉ giao một phần/hủy phần còn lại&lt;br&gt;BF-01-E1: Giao thừa, sai hàng/lô/màu&lt;br&gt;BF-01-E2: Không có lượng nào được nhận&lt;br&gt;BF-01-A4: Bao bì rách/thùng mở; nhận hàng thay thế&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1760" width="1560" height="370" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-02-VI" name="BF-02 VI">
+    <mxGraphModel dx="860" dy="1770" grid="1" gridSize="10" page="1" pageWidth="860" pageHeight="1770" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf02-title" value="&lt;b&gt;BF-02 — Phát hiện, cách ly và xử lý hàng lỗi&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="780" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1165" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-lane-owner" value="Chủ cửa hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1165" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-record" value="&lt;b&gt;1. Ghi hồ sơ lỗi, nguồn và bằng chứng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;DC · UC-65&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-65&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-isolate" value="&lt;b&gt;2. Chặn cấp hàng, cách ly ngay&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-65 · không chờ duyệt / no approval wait&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-65&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-inspect" value="&lt;b&gt;3. Kiểm tình trạng, chủ hàng, đề xuất&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;INS / DISP · UC-65&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-65&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-review" value="&lt;b&gt;4. Duyệt phương án theo dòng/lượng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-66&lt;/font&gt;" vertex="1" parent="bf02-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-66&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-execute" value="&lt;b&gt;5. Thực hiện phần đã duyệt&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-67 · SCRAP / regrade / BF-08&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-67&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-close" value="&lt;b&gt;6. Đối chiếu mọi lượng; đóng hồ sơ&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;Trả NCC chỉ trừ ở GI-SR / no double issue&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-edge-0" edge="1" parent="1" source="bf02-record" target="bf02-isolate" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-edge-1" edge="1" parent="1" source="bf02-isolate" target="bf02-inspect" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-edge-2" edge="1" parent="1" source="bf02-inspect" target="bf02-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="740.0" />
+              <mxPoint x="625.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf02-edge-3" edge="1" parent="1" source="bf02-review" target="bf02-execute" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="925.0" />
+              <mxPoint x="235.0" y="925.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf02-edge-4" edge="1" parent="1" source="bf02-execute" target="bf02-close" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1330" width="780" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-02-E1: Phát hiện lỗi trên hàng đã giữ/đang soạn&lt;br&gt;BF-02-A1: Chưa rõ chủ hàng/nguyên nhân&lt;br&gt;BF-02-A2: Owner từ chối/trả bổ sung hoặc chỉ duyệt một phần&lt;br&gt;BF-02-E2: Chuyển trả NCC/hủy thực tế chưa diễn ra&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1390" width="780" height="290" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-03-VI" name="BF-03 VI">
+    <mxGraphModel dx="860" dy="1320" grid="1" gridSize="10" page="1" pageWidth="860" pageHeight="1320" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf03-title" value="&lt;b&gt;BF-03 — Chuyển vị trí trong cùng kho&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="780" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="780" height="795" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-select" value="&lt;b&gt;1. Chọn nguồn/đích cùng kho, kiểm khóa&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-36 · lot / quality / owner&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-36&quot;]">
+          <mxGeometry x="30" y="70" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-task" value="&lt;b&gt;2. Lập nhiệm vụ, giữ liên kết giữ hàng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TO-RELOCATE · UC-36&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-36&quot;]">
+          <mxGeometry x="30" y="255" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-move" value="&lt;b&gt;3. Di chuyển, đếm và xác nhận thực tế&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-37 · partial / remaining&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-37&quot;]">
+          <mxGeometry x="30" y="440" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-confirm" value="&lt;b&gt;4. Ghi hai vế, chuyển reservation&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-37 · nguồn −q / đích +q&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-37&quot;]">
+          <mxGeometry x="30" y="625" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-edge-0" edge="1" parent="1" source="bf03-select" target="bf03-task" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-edge-1" edge="1" parent="1" source="bf03-task" target="bf03-move" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-edge-2" edge="1" parent="1" source="bf03-move" target="bf03-confirm" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="960" width="780" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-03-A1: Chuyển hàng đã giữ cho đơn&lt;br&gt;BF-03-E1: Khác kho, vị trí bị khóa hoặc lượng nguồn không đủ&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1020" width="780" height="210" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-04-VI" name="BF-04 VI">
+    <mxGraphModel dx="1250" dy="1955" grid="1" gridSize="10" page="1" pageWidth="1250" pageHeight="1955" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf04-title" value="&lt;b&gt;BF-04 — Điều chuyển giữa các kho và xử lý chênh lệch&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-lane-wh_from" value="Nhân viên kho đi" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-lane-owner" value="Chủ cửa hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-lane-wh_to" value="Nhân viên kho nhận" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-request" value="&lt;b&gt;1. Lập đề nghị chuyển vật lý&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TR · UC-40&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_from" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-40&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-review" value="&lt;b&gt;2. Duyệt đúng nguồn/đích và lượng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-41 · không tự duyệt / no self-approval&lt;/font&gt;" vertex="1" parent="bf04-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-41&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-dispatch" value="&lt;b&gt;3. Soạn, bàn giao và post xuất&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TD / HO · UC-43 · source −q / transit +q&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_from" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-43&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-receipt" value="&lt;b&gt;4. Kiểm độc lập, nhận thực tế theo quality&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;MWTR · UC-104 · transit −q / destination +q&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_to" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-104&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-putaway" value="&lt;b&gt;5. Xếp hàng, giữ liên kết nhu cầu&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-33/104&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_to" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-33/104&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-variance" value="&lt;b&gt;6. Duyệt xử lý nếu còn sai lệch&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;VAR · UC-44 · không lệch: bỏ qua / skip if matched&lt;/font&gt;" vertex="1" parent="bf04-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-44&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-resolve" value="&lt;b&gt;7. Xử lý nếu có; đối chiếu và đóng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-43/104 · mọi lượng có kết quả&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_to" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-43/104&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-edge-0" edge="1" parent="1" source="bf04-request" target="bf04-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-1" edge="1" parent="1" source="bf04-review" target="bf04-dispatch" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="555.0" />
+              <mxPoint x="235.0" y="555.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-2" edge="1" parent="1" source="bf04-dispatch" target="bf04-receipt" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="740.0" />
+              <mxPoint x="1015.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-3" edge="1" parent="1" source="bf04-receipt" target="bf04-putaway" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-edge-4" edge="1" parent="1" source="bf04-putaway" target="bf04-variance" value="Có sai lệch" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="1110.0" />
+              <mxPoint x="625.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-5" edge="1" parent="1" source="bf04-variance" target="bf04-resolve" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1295.0" />
+              <mxPoint x="1015.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-6" edge="1" parent="1" source="bf04-putaway" target="bf04-resolve" value="Khớp" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="1170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-04-A1: Xuất trực tiếp kho khác&lt;br&gt;BF-04-E1: TR bị từ chối, tồn nguồn giảm hoặc chưa có người nhận độc lập&lt;br&gt;BF-04-E2: Nhận thiếu/hỏng hoặc nhiều chuyến&lt;br&gt;BF-04-E3: Nhận thừa/sai lô hoặc thất lạc đã xác minh&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="1170" height="290" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-05-VI" name="BF-05 VI">
+    <mxGraphModel dx="860" dy="1995" grid="1" gridSize="10" page="1" pageWidth="860" pageHeight="1995" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf05-title" value="&lt;b&gt;BF-05 — Kiểm kê, đối chiếu và điều chỉnh&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="780" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-lane-owner" value="Chủ cửa hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-plan" value="&lt;b&gt;1. Lập phiên, phạm vi, người đếm&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ST · UC-86&lt;/font&gt;" vertex="1" parent="bf05-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-86&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-freeze" value="&lt;b&gt;2. Giải quyết task; khóa và snapshot&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-87/105 · immutable cutoff / count sheet&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-87/105&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-count" value="&lt;b&gt;3. Đếm, lưu từng lần đếm lại&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-87 · blank ≠ 0&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-87&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-reconcile" value="&lt;b&gt;4. Đối chiếu và giải trình&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-88 · không lệch: đóng/mở khóa / close if matched&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-88&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-request" value="&lt;b&gt;5. Lập delta có dấu và bằng chứng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ADJ · UC-91 · không ADJ0 / no ADJ0&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-91&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-review" value="&lt;b&gt;6. Duyệt / trả đếm lại / từ chối&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-92 · giữ khóa khi chưa giải quyết&lt;/font&gt;" vertex="1" parent="bf05-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-92&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-clear" value="&lt;b&gt;7. Clear Difference một lần, mở khóa&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-93 · chỉ delta đã duyệt / approved delta only&lt;/font&gt;" vertex="1" parent="bf05-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-93&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-0" edge="1" parent="1" source="bf05-plan" target="bf05-freeze" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf05-edge-1" edge="1" parent="1" source="bf05-freeze" target="bf05-count" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-2" edge="1" parent="1" source="bf05-count" target="bf05-reconcile" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-3" edge="1" parent="1" source="bf05-reconcile" target="bf05-request" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-4" edge="1" parent="1" source="bf05-request" target="bf05-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1110.0" />
+              <mxPoint x="235.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf05-edge-5" edge="1" parent="1" source="bf05-review" target="bf05-clear" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="780" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-05-E1: Task dở dang hoặc khóa kiểm kê chồng lấn&lt;br&gt;BF-05-A1: Chưa đếm, đếm 0 hoặc tìm thấy hàng mới&lt;br&gt;BF-05-A2: Lệch chất lượng hoặc lệch lượng chưa có căn cứ&lt;br&gt;BF-05-A3: Không chênh hoặc Owner trả/từ chối&lt;br&gt;BF-05-E2: Đứt kết nối hoặc lỗi khi Clear Difference&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="780" height="330" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-06-VI" name="BF-06 VI">
+    <mxGraphModel dx="1250" dy="2220" grid="1" gridSize="10" page="1" pageWidth="1250" pageHeight="2220" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf06-title" value="&lt;b&gt;BF-06 — Đơn bán, xuất kho, giao hàng và hoàn thành&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-lane-sales" value="Nhân viên bán hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-lane-acct" value="Kế toán" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-so" value="&lt;b&gt;1. Nhập lại đơn bán từ nguồn xác minh&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;SO / source evidence · UC-45–48&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-45\u201348&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-wir" value="&lt;b&gt;2. Lập WIR gắn đúng SO và từng dòng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;WIR · UC-109 · cumulative ceiling&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-109&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-od" value="&lt;b&gt;3. Chốt đợt xuất, nguồn và chấp thuận khách&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;OD · UC-51/103&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-51/103&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pick" value="&lt;b&gt;4. Giữ hàng, soạn và đếm vào staging&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TO-PICK · UC-54/55 · total unchanged&lt;/font&gt;" vertex="1" parent="bf06-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-54/55&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pgi" value="&lt;b&gt;5. Thực bàn giao và post xuất một lần&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GI-S / HO · UC-58 · stock −q&lt;/font&gt;" vertex="1" parent="bf06-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-58&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pod" value="&lt;b&gt;6. Xác nhận khách nhận kèm ảnh hợp lệ&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;POD · UC-110 · full positive remainder → DELIVERED&lt;/font&gt;" vertex="1" parent="bf06-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eee6f5;strokeColor=#9673a6;strokeWidth=1.5;" data-uc-references="[&quot;UC-110&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pay" value="&lt;b&gt;7. Xác nhận đã nhận đủ tiền bên ngoài&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;PAY-CFM · UC-111 · DELIVERED → COMPLETED&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eee6f5;strokeColor=#9673a6;strokeWidth=1.5;" data-uc-references="[&quot;UC-111&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-reconcile" value="&lt;b&gt;8. Đối chiếu, lưu tham chiếu bên ngoài&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-108 · không thay Sales xác nhận / no Sales substitution&lt;/font&gt;" vertex="1" parent="bf06-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-108&quot;]">
+          <mxGeometry x="30" y="1365" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-0" edge="1" parent="1" source="bf06-so" target="bf06-wir" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-1" edge="1" parent="1" source="bf06-wir" target="bf06-od" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-2" edge="1" parent="1" source="bf06-od" target="bf06-pick" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="740.0" />
+              <mxPoint x="625.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf06-edge-3" edge="1" parent="1" source="bf06-pick" target="bf06-pgi" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-4" edge="1" parent="1" source="bf06-pgi" target="bf06-pod" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-5" edge="1" parent="1" source="bf06-pod" target="bf06-pay" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1295.0" />
+              <mxPoint x="235.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf06-edge-6" edge="1" parent="1" source="bf06-pay" target="bf06-reconcile" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="1480.0" />
+              <mxPoint x="1015.0" y="1480.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf06-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1700" width="1170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-06-E1: Đơn nguồn chưa xác minh, trùng bản sao SO/WIR, thiếu liên kết SO hoặc tranh chấp giữ hàng&lt;br&gt;BF-06-A1: Giao một phần, chờ hàng hoặc đổi lô qua các đợt xuất&lt;br&gt;BF-06-E2: Soạn thiếu/hỏng hoặc hàng không đúng yêu cầu&lt;br&gt;BF-06-A2: Hủy/trễ bàn giao trước PGI&lt;br&gt;BF-06-E3: Sau PGI: thiếu ảnh, giao một phần, khách từ chối hoặc trả hàng&lt;br&gt;BF-06-A3: Chưa nhận tiền, mới nhận một phần, thông tin tiền chưa rõ hoặc biết trả trước khi DELIVERED&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại.&lt;br&gt;WIR có thể hoàn tất sau xuất; SO chờ POD rồi PAY-CFM. Carrier handover ≠ customer receipt. Hủy toàn bộ chưa giao → CANCELLED; xác nhận/đính chính không đổi tồn." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1760" width="1170" height="370" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-07-VI" name="BF-07 VI">
+    <mxGraphModel dx="1640" dy="1995" grid="1" gridSize="10" page="1" pageWidth="1640" pageHeight="1995" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf07-title" value="&lt;b&gt;BF-07 — Khách trả hàng và phân loại nhận lại&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1560" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1560" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-sales" value="Nhân viên bán hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-owner" value="Chủ cửa hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-acct" value="Kế toán" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="1210" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-request" value="&lt;b&gt;1. Lập yêu cầu và kiểm điều kiện nguồn&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;CR · UC-70 / UC-108 historical source&lt;/font&gt;" vertex="1" parent="bf07-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-70&quot;, &quot;UC-108&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-custody" value="&lt;b&gt;2. Nhận giữ hộ chờ kiểm tra&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;CUS-IN · UC-72 · owned stock unchanged&lt;/font&gt;" vertex="1" parent="bf07-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-72&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-inspect" value="&lt;b&gt;3. Kiểm, tách lượng và đánh giá D6&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;INS / assessment · UC-72&lt;/font&gt;" vertex="1" parent="bf07-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-72&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-review" value="&lt;b&gt;4. Quyết định sau kiểm theo dòng/lượng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-71 · not for PENDING / INELIGIBLE&lt;/font&gt;" vertex="1" parent="bf07-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-71&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-receipt" value="&lt;b&gt;5. Nhập phần nhận / bàn giao phần từ chối&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GR-CR or CUS-OUT · UC-73&lt;/font&gt;" vertex="1" parent="bf07-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-73&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-notify" value="&lt;b&gt;6. Thông báo kết quả và lượng còn mở&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-70/73&lt;/font&gt;" vertex="1" parent="bf07-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-70/73&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-external" value="&lt;b&gt;7. Lưu kết quả tài chính bên ngoài&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-108 · finance / warehouse completion independent&lt;/font&gt;" vertex="1" parent="bf07-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-108&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-edge-0" edge="1" parent="1" source="bf07-request" target="bf07-custody" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-1" edge="1" parent="1" source="bf07-custody" target="bf07-inspect" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-edge-2" edge="1" parent="1" source="bf07-inspect" target="bf07-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="740.0" />
+              <mxPoint x="1015.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-3" edge="1" parent="1" source="bf07-review" target="bf07-receipt" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="925.0" />
+              <mxPoint x="625.0" y="925.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-4" edge="1" parent="1" source="bf07-receipt" target="bf07-notify" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1110.0" />
+              <mxPoint x="235.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-5" edge="1" parent="1" source="bf07-notify" target="bf07-external" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="1295.0" />
+              <mxPoint x="1405.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="1560" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-07-A1: Nguồn lịch sử chưa có GI WMS&lt;br&gt;BF-07-E1: Vi phạm D6 hoặc điều kiện chưa rõ&lt;br&gt;BF-07-A2: Trả hỗn hợp, Owner chỉ nhận một phần&lt;br&gt;BF-07-E2: Đánh giá thay đổi sau duyệt hoặc nhận vượt nguồn&lt;br&gt;BF-07-A3: Khách rút yêu cầu/không nhận lại ngay&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại.&lt;br&gt;Kết thúc kho không phải chờ hoàn tất tài chính bên ngoài." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="1560" height="330" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-08-VI" name="BF-08 VI">
+    <mxGraphModel dx="1250" dy="1995" grid="1" gridSize="10" page="1" pageWidth="1250" pageHeight="1995" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf08-title" value="&lt;b&gt;BF-08 — Trả NCC và đối chiếu lượng giao nhận&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-subtitle" value="Thiết kế hiện hành · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_VI.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-lane-wh" value="Nhân viên kho" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-lane-acct" value="Kế toán" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-lane-owner" value="Chủ cửa hàng" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-request" value="&lt;b&gt;1. Đề nghị trả, cách ly/giữ đúng lượng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;SR · UC-81&lt;/font&gt;" vertex="1" parent="bf08-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-81&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-agreement" value="&lt;b&gt;2. Ghi NCC đồng ý, lịch và lượng&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-107 · before dispatch&lt;/font&gt;" vertex="1" parent="bf08-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-107&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-review" value="&lt;b&gt;3. Duyệt trước xuất / dùng quyết định BF-02&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-106 · version / kind / quantity&lt;/font&gt;" vertex="1" parent="bf08-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-106&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-dispatch" value="&lt;b&gt;4. Soạn, bàn giao và post trả thực tế&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GI-SR / CUS-OUT · UC-82&lt;/font&gt;" vertex="1" parent="bf08-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-82&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-ack" value="&lt;b&gt;5. Ghi NCC xác nhận nhận, đối chiếu&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ACK / VAR · UC-107 · after dispatch&lt;/font&gt;" vertex="1" parent="bf08-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-107&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-variance" value="&lt;b&gt;6. Duyệt xử lý sai lệch nếu có&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-106 · preserve actual GI&lt;/font&gt;" vertex="1" parent="bf08-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-106&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-close" value="&lt;b&gt;7. Đóng khi mọi lượng được đối chiếu&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-83 · no second deduction&lt;/font&gt;" vertex="1" parent="bf08-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-83&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-edge-0" edge="1" parent="1" source="bf08-request" target="bf08-agreement" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-1" edge="1" parent="1" source="bf08-agreement" target="bf08-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="555.0" />
+              <mxPoint x="1015.0" y="555.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-2" edge="1" parent="1" source="bf08-review" target="bf08-dispatch" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="740.0" />
+              <mxPoint x="235.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-3" edge="1" parent="1" source="bf08-dispatch" target="bf08-ack" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="925.0" />
+              <mxPoint x="625.0" y="925.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-4" edge="1" parent="1" source="bf08-ack" target="bf08-variance" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1110.0" />
+              <mxPoint x="1015.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-5" edge="1" parent="1" source="bf08-variance" target="bf08-close" value="Được duyệt" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-legend" value="Xanh dương: thao tác / chứng từ · Vàng: quyết định · Xanh lá: tác động kho / xác nhận task · Tím: xác nhận không đổi tồn" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="1170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-branches" value="&lt;b&gt;Nhánh thay thế/ngoại lệ — xem mục 4 và đặc tả UC cùng mã&lt;/b&gt;&lt;br&gt;BF-08-A1: NCC chưa đồng ý/từ chối/chỉ đồng ý một phần&lt;br&gt;BF-08-A2: Có quyết định BF-02 hợp lệ&lt;br&gt;BF-08-E1: Soạn không đủ hoặc hàng là custody NCC&lt;br&gt;BF-08-E2: NCC nhận thiếu/hỏng/từ chối sau xuất&lt;br&gt;BF-08-A3: NCC đổi hàng/bồi thường ngoài WMS&lt;br&gt;&lt;br&gt;EX-01–05: quyền/kho, version/nguồn, unknown commit/retry, freeze, evidence/output. Từ chối/chờ/sửa giữ hồ sơ phù hợp; không tự post lại." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="1170" height="330" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-01-EN" name="BF-01 EN">
+    <mxGraphModel dx="1640" dy="2220" grid="1" gridSize="10" page="1" pageWidth="1640" pageHeight="2220" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf01-title" value="&lt;b&gt;BF-01 — Replenishment, purchasing and goods receipt&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1560" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1560" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-owner" value="Store Owner" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-sales" value="Sales Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-lane-acct" value="Accountant" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="1210" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-rr_sales" value="&lt;b&gt;1. Record customer shortage&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;RR · UC-03/103&lt;/font&gt;" vertex="1" parent="bf01-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-03/103&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-rr_wh" value="&lt;b&gt;1. Record uncovered reserve need&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;RR · UC-03/103&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-03/103&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-review" value="&lt;b&gt;2. Approve / revise / reject RR&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-04 · requester ≠ approver&lt;/font&gt;" vertex="1" parent="bf01-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-04&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-po" value="&lt;b&gt;3. Create PO; record supplier response&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;PO · UC-07&lt;/font&gt;" vertex="1" parent="bf01-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-07&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-inspect" value="&lt;b&gt;4. Receive each delivery; inspect/split&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ARR / INS · UC-10/26&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-10/26&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-gr" value="&lt;b&gt;5. Post accepted ownership once&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GR-P · UC-26&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-26&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-putaway" value="&lt;b&gt;6. Put away; confirm actual placement&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TO-PUTAWAY · UC-32/33&lt;/font&gt;" vertex="1" parent="bf01-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-32/33&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-reconcile" value="&lt;b&gt;7. Reconcile PO–GR and outstanding&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-07/108&lt;/font&gt;" vertex="1" parent="bf01-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-07/108&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-close" value="&lt;b&gt;8. Authorize closure of short remainder&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-04/07 · no fictitious GR&lt;/font&gt;" vertex="1" parent="bf01-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-04/07&quot;]">
+          <mxGeometry x="30" y="1365" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-edge-0" edge="1" parent="1" source="bf01-rr_sales" target="bf01-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.4;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="362.0" />
+              <mxPoint x="202.0" y="362.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-1" edge="1" parent="1" source="bf01-rr_wh" target="bf01-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.6;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="370.0" />
+              <mxPoint x="268.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-2" edge="1" parent="1" source="bf01-review" target="bf01-po" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="555.0" />
+              <mxPoint x="1405.0" y="555.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-3" edge="1" parent="1" source="bf01-po" target="bf01-inspect" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1405.0" y="740.0" />
+              <mxPoint x="1015.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-4" edge="1" parent="1" source="bf01-inspect" target="bf01-gr" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-edge-5" edge="1" parent="1" source="bf01-gr" target="bf01-putaway" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-edge-6" edge="1" parent="1" source="bf01-putaway" target="bf01-reconcile" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="1295.0" />
+              <mxPoint x="1405.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-edge-7" edge="1" parent="1" source="bf01-reconcile" target="bf01-close" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1405.0" y="1480.0" />
+              <mxPoint x="235.0" y="1480.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf01-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1700" width="1560" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf01-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-01-A1: Demand already covered&lt;br&gt;BF-01-A2: Owner rejects or requests revision&lt;br&gt;BF-01-A3: Supplier partial fulfilment&lt;br&gt;BF-01-E1: Over or wrong delivery&lt;br&gt;BF-01-E2: Zero accepted quantity&lt;br&gt;BF-01-A4: Torn/open boxes; replacements&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1760" width="1560" height="370" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-02-EN" name="BF-02 EN">
+    <mxGraphModel dx="860" dy="1770" grid="1" gridSize="10" page="1" pageWidth="860" pageHeight="1770" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf02-title" value="&lt;b&gt;BF-02 — Defect detection, isolation and disposition&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="780" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1165" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-lane-owner" value="Store Owner" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1165" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-record" value="&lt;b&gt;1. Record defect source and evidence&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;DC · UC-65&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-65&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-isolate" value="&lt;b&gt;2. Immediately block allocation / isolate&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-65 · no approval wait&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-65&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-inspect" value="&lt;b&gt;3. Inspect quality/ownership; propose&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;INS / DISP · UC-65&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-65&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-review" value="&lt;b&gt;4. Review versioned disposition quantity&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-66&lt;/font&gt;" vertex="1" parent="bf02-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-66&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-execute" value="&lt;b&gt;5. Execute only approved disposition&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-67 · SCRAP / regrade / BF-08&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-67&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-close" value="&lt;b&gt;6. Account for quantities; close case&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;supplier return deducts at GI-SR only&lt;/font&gt;" vertex="1" parent="bf02-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-edge-0" edge="1" parent="1" source="bf02-record" target="bf02-isolate" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-edge-1" edge="1" parent="1" source="bf02-isolate" target="bf02-inspect" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-edge-2" edge="1" parent="1" source="bf02-inspect" target="bf02-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="740.0" />
+              <mxPoint x="625.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf02-edge-3" edge="1" parent="1" source="bf02-review" target="bf02-execute" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="925.0" />
+              <mxPoint x="235.0" y="925.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf02-edge-4" edge="1" parent="1" source="bf02-execute" target="bf02-close" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1330" width="780" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf02-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-02-E1: Defect in reserved or picked stock&lt;br&gt;BF-02-A1: Ownership or cause unclear&lt;br&gt;BF-02-A2: Rejected or partial disposition&lt;br&gt;BF-02-E2: Return or destruction not executed&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1390" width="780" height="290" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-03-EN" name="BF-03 EN">
+    <mxGraphModel dx="860" dy="1320" grid="1" gridSize="10" page="1" pageWidth="860" pageHeight="1320" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf03-title" value="&lt;b&gt;BF-03 — Same-warehouse relocation&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="780" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="780" height="795" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-select" value="&lt;b&gt;1. Select same-warehouse bins; check lock&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-36 · lot / quality / owner&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-36&quot;]">
+          <mxGeometry x="30" y="70" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-task" value="&lt;b&gt;2. Create task; retain reservations&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TO-RELOCATE · UC-36&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-36&quot;]">
+          <mxGeometry x="30" y="255" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-move" value="&lt;b&gt;3. Physically move/count actual quantity&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-37 · partial / remaining&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-37&quot;]">
+          <mxGeometry x="30" y="440" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-confirm" value="&lt;b&gt;4. Commit both legs and reservation&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-37 · source −q / destination +q&lt;/font&gt;" vertex="1" parent="bf03-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-37&quot;]">
+          <mxGeometry x="30" y="625" width="720" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-edge-0" edge="1" parent="1" source="bf03-select" target="bf03-task" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-edge-1" edge="1" parent="1" source="bf03-task" target="bf03-move" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-edge-2" edge="1" parent="1" source="bf03-move" target="bf03-confirm" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="960" width="780" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf03-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-03-A1: Relocating stock already reserved for an order&lt;br&gt;BF-03-E1: Different warehouse, frozen location or insufficient source quantity&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1020" width="780" height="210" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-04-EN" name="BF-04 EN">
+    <mxGraphModel dx="1250" dy="1955" grid="1" gridSize="10" page="1" pageWidth="1250" pageHeight="1955" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf04-title" value="&lt;b&gt;BF-04 — Inter-warehouse transfer and discrepancies&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-lane-wh_from" value="Source Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-lane-owner" value="Store Owner" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-lane-wh_to" value="Destination Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-request" value="&lt;b&gt;1. Request physical warehouse transfer&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TR · UC-40&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_from" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-40&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-review" value="&lt;b&gt;2. Approve source/destination and quantity&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-41 · no self-approval&lt;/font&gt;" vertex="1" parent="bf04-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-41&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-dispatch" value="&lt;b&gt;3. Pick, hand over and post dispatch&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TD / HO · UC-43 · source −q / transit +q&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_from" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-43&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-receipt" value="&lt;b&gt;4. Independently inspect actual receipt&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;MWTR · UC-104 · transit −q / destination +q&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_to" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-104&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-putaway" value="&lt;b&gt;5. Put away; preserve demand allocation&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-33/104&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_to" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-33/104&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-variance" value="&lt;b&gt;6. Review unresolved differences if any&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;VAR · UC-44 · skip if matched&lt;/font&gt;" vertex="1" parent="bf04-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-44&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-resolve" value="&lt;b&gt;7. Resolve if needed; reconcile and close&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-43/104 · all quantities accounted for&lt;/font&gt;" vertex="1" parent="bf04-lane-wh_to" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-43/104&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-edge-0" edge="1" parent="1" source="bf04-request" target="bf04-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-1" edge="1" parent="1" source="bf04-review" target="bf04-dispatch" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="555.0" />
+              <mxPoint x="235.0" y="555.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-2" edge="1" parent="1" source="bf04-dispatch" target="bf04-receipt" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="740.0" />
+              <mxPoint x="1015.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-3" edge="1" parent="1" source="bf04-receipt" target="bf04-putaway" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-edge-4" edge="1" parent="1" source="bf04-putaway" target="bf04-variance" value="Difference" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="1110.0" />
+              <mxPoint x="625.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-5" edge="1" parent="1" source="bf04-variance" target="bf04-resolve" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1295.0" />
+              <mxPoint x="1015.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf04-edge-6" edge="1" parent="1" source="bf04-putaway" target="bf04-resolve" value="Matched" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="1170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf04-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-04-A1: Direct issue from another warehouse&lt;br&gt;BF-04-E1: Rejected TR or unavailable resources&lt;br&gt;BF-04-E2: Partial or damaged receipt&lt;br&gt;BF-04-E3: Excess, wrong lot or evidenced loss&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="1170" height="290" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-05-EN" name="BF-05 EN">
+    <mxGraphModel dx="860" dy="1995" grid="1" gridSize="10" page="1" pageWidth="860" pageHeight="1995" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf05-title" value="&lt;b&gt;BF-05 — Stocktake, reconciliation and adjustment&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="780" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-lane-owner" value="Store Owner" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-plan" value="&lt;b&gt;1. Plan session, scope and counters&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ST · UC-86&lt;/font&gt;" vertex="1" parent="bf05-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-86&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-freeze" value="&lt;b&gt;2. Resolve tasks; freeze and snapshot&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-87/105 · immutable cutoff / count sheet&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-87/105&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-count" value="&lt;b&gt;3. Count; append recount attempts&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-87 · blank ≠ 0&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-87&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-reconcile" value="&lt;b&gt;4. Reconcile quantity / quality / identity&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-88 · if matched: close and unlock&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-88&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-request" value="&lt;b&gt;5. Request evidenced signed delta&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ADJ · UC-91 · no ADJ0&lt;/font&gt;" vertex="1" parent="bf05-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-91&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-review" value="&lt;b&gt;6. Approve / return for recount / reject&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-92 · keep frozen until resolved&lt;/font&gt;" vertex="1" parent="bf05-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-92&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-clear" value="&lt;b&gt;7. Clear Difference once; unlock resolved scope&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-93 · approved delta only&lt;/font&gt;" vertex="1" parent="bf05-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-93&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-0" edge="1" parent="1" source="bf05-plan" target="bf05-freeze" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf05-edge-1" edge="1" parent="1" source="bf05-freeze" target="bf05-count" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-2" edge="1" parent="1" source="bf05-count" target="bf05-reconcile" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-3" edge="1" parent="1" source="bf05-reconcile" target="bf05-request" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-edge-4" edge="1" parent="1" source="bf05-request" target="bf05-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1110.0" />
+              <mxPoint x="235.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf05-edge-5" edge="1" parent="1" source="bf05-review" target="bf05-clear" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="780" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf05-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-05-E1: Open tasks or overlapping freeze&lt;br&gt;BF-05-A1: Blank, zero or newly found stock&lt;br&gt;BF-05-A2: Quality variance or unexplained count&lt;br&gt;BF-05-A3: No variance or returned adjustment&lt;br&gt;BF-05-E2: Interrupted clearing&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="780" height="330" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-06-EN" name="BF-06 EN">
+    <mxGraphModel dx="1250" dy="2220" grid="1" gridSize="10" page="1" pageWidth="1250" pageHeight="2220" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf06-title" value="&lt;b&gt;BF-06 — Copied SO, dispatch, delivery and completion&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-lane-sales" value="Sales Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-lane-acct" value="Accountant" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1535" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-so" value="&lt;b&gt;1. Copy a verified external Sales Order&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;SO / source evidence · UC-45–48&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-45\u201348&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-wir" value="&lt;b&gt;2. Create WIR linked to saved SO/lines&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;WIR · UC-109 · cumulative ceiling&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-109&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-od" value="&lt;b&gt;3. Plan warehouse release / customer consent&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;OD · UC-51/103&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-51/103&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pick" value="&lt;b&gt;4. Reserve; pick/count into staging&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;TO-PICK · UC-54/55 · total unchanged&lt;/font&gt;" vertex="1" parent="bf06-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-54/55&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pgi" value="&lt;b&gt;5. Actually hand over and post PGI once&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GI-S / HO · UC-58 · stock −q&lt;/font&gt;" vertex="1" parent="bf06-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-58&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pod" value="&lt;b&gt;6. Confirm customer receipt with valid photo&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;POD · UC-110 · full positive remainder → DELIVERED&lt;/font&gt;" vertex="1" parent="bf06-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eee6f5;strokeColor=#9673a6;strokeWidth=1.5;" data-uc-references="[&quot;UC-110&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-pay" value="&lt;b&gt;7. Confirm full money receipt outside WMSD&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;PAY-CFM · UC-111 · DELIVERED → COMPLETED&lt;/font&gt;" vertex="1" parent="bf06-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eee6f5;strokeColor=#9673a6;strokeWidth=1.5;" data-uc-references="[&quot;UC-111&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-reconcile" value="&lt;b&gt;8. Reconcile and record external references&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-108 · no confirmation on behalf of Sales&lt;/font&gt;" vertex="1" parent="bf06-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-108&quot;]">
+          <mxGeometry x="30" y="1365" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-0" edge="1" parent="1" source="bf06-so" target="bf06-wir" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-1" edge="1" parent="1" source="bf06-wir" target="bf06-od" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-2" edge="1" parent="1" source="bf06-od" target="bf06-pick" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="740.0" />
+              <mxPoint x="625.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf06-edge-3" edge="1" parent="1" source="bf06-pick" target="bf06-pgi" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-4" edge="1" parent="1" source="bf06-pgi" target="bf06-pod" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-edge-5" edge="1" parent="1" source="bf06-pod" target="bf06-pay" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1295.0" />
+              <mxPoint x="235.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf06-edge-6" edge="1" parent="1" source="bf06-pay" target="bf06-reconcile" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="1480.0" />
+              <mxPoint x="1015.0" y="1480.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf06-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1700" width="1170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf06-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-06-E1: Unverified external order, duplicate SO/WIR copy, missing SO link or stock race&lt;br&gt;BF-06-A1: Partial, delayed or substituted fulfilment across releases&lt;br&gt;BF-06-E2: Picking discrepancy&lt;br&gt;BF-06-A2: Cancelled or delayed handover before PGI&lt;br&gt;BF-06-E3: After PGI: missing photo, partial/refused delivery or return&lt;br&gt;BF-06-A3: External payment pending, partial, unclear or known early before DELIVERED&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically.&lt;br&gt;WIR may complete on issue; SO still waits for POD then PAY-CFM. Carrier handover ≠ customer receipt. Fully cancelled before delivery → CANCELLED; confirmation/correction changes no stock." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1760" width="1170" height="370" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-07-EN" name="BF-07 EN">
+    <mxGraphModel dx="1640" dy="1995" grid="1" gridSize="10" page="1" pageWidth="1640" pageHeight="1995" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf07-title" value="&lt;b&gt;BF-07 — Customer return and classified receipt&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1560" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1560" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-sales" value="Sales Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-owner" value="Store Owner" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-lane-acct" value="Accountant" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="1210" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-request" value="&lt;b&gt;1. Register return and commercial/source terms&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;CR · UC-70 / UC-108 historical source&lt;/font&gt;" vertex="1" parent="bf07-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-70&quot;, &quot;UC-108&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-custody" value="&lt;b&gt;2. Receive as customer custody pending inspection&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;CUS-IN · UC-72 · owned stock unchanged&lt;/font&gt;" vertex="1" parent="bf07-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-72&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-inspect" value="&lt;b&gt;3. Inspect/split quantities; assess D6&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;INS / assessment · UC-72&lt;/font&gt;" vertex="1" parent="bf07-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-72&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-review" value="&lt;b&gt;4. Decide acceptance after inspection&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-71 · not for PENDING / INELIGIBLE&lt;/font&gt;" vertex="1" parent="bf07-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-71&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-receipt" value="&lt;b&gt;5. Receive accepted / hand back rejected&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GR-CR or CUS-OUT · UC-73&lt;/font&gt;" vertex="1" parent="bf07-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-73&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-notify" value="&lt;b&gt;6. Communicate outcomes and open quantities&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-70/73&lt;/font&gt;" vertex="1" parent="bf07-lane-sales" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-70/73&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-external" value="&lt;b&gt;7. Record external financial outcome references&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-108 · finance / warehouse completion independent&lt;/font&gt;" vertex="1" parent="bf07-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-108&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-edge-0" edge="1" parent="1" source="bf07-request" target="bf07-custody" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-1" edge="1" parent="1" source="bf07-custody" target="bf07-inspect" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-edge-2" edge="1" parent="1" source="bf07-inspect" target="bf07-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="740.0" />
+              <mxPoint x="1015.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-3" edge="1" parent="1" source="bf07-review" target="bf07-receipt" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="925.0" />
+              <mxPoint x="625.0" y="925.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-4" edge="1" parent="1" source="bf07-receipt" target="bf07-notify" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1110.0" />
+              <mxPoint x="235.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-edge-5" edge="1" parent="1" source="bf07-notify" target="bf07-external" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="1295.0" />
+              <mxPoint x="1405.0" y="1295.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf07-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="1560" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf07-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-07-A1: Historical sale without WMS GI&lt;br&gt;BF-07-E1: Ineligible or unknown D6 conditions&lt;br&gt;BF-07-A2: Mixed return or partial acceptance&lt;br&gt;BF-07-E2: Changed assessment or excess return&lt;br&gt;BF-07-A3: Withdrawn request or delayed handback&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically.&lt;br&gt;Warehouse completion is independent of external financial completion." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="1560" height="330" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="BF-08-EN" name="BF-08 EN">
+    <mxGraphModel dx="1250" dy="1995" grid="1" gridSize="10" page="1" pageWidth="1250" pageHeight="1995" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bf08-title" value="&lt;b&gt;BF-08 — Supplier return and quantity reconciliation&lt;/b&gt;" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=25;">
+          <mxGeometry x="40" y="20" width="1170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-subtitle" value="Current design · 3.0.0 · 22/10/2026 · de_xuat_quy_trinh_2_EN.md · 111 UC / 33 BR" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=13;fontColor=#62748a;">
+          <mxGeometry x="40" y="85" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-lane-wh" value="Warehouse Staff" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="40" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-lane-acct" value="Accountant" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="430" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-lane-owner" value="Store Owner" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;swimlane;horizontal=1;startSize=50;container=1;pointerEvents=0;fillColor=#f8fafc;swimlaneFillColor=#f8fafc;strokeColor=#cbd5e1;fontSize=16;fontStyle=1;">
+          <mxGeometry x="820" y="145" width="390" height="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-request" value="&lt;b&gt;1. Propose return; isolate/reserve quantity&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;SR · UC-81&lt;/font&gt;" vertex="1" parent="bf08-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-81&quot;]">
+          <mxGeometry x="30" y="70" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-agreement" value="&lt;b&gt;2. Record supplier agreement / quantity / schedule&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-107 · before dispatch&lt;/font&gt;" vertex="1" parent="bf08-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-107&quot;]">
+          <mxGeometry x="30" y="255" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-review" value="&lt;b&gt;3. Authorize dispatch / reuse valid BF-02 decision&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-106 · version / kind / quantity&lt;/font&gt;" vertex="1" parent="bf08-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-106&quot;]">
+          <mxGeometry x="30" y="440" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-dispatch" value="&lt;b&gt;4. Pick, hand over and post actual return&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;GI-SR / CUS-OUT · UC-82&lt;/font&gt;" vertex="1" parent="bf08-lane-wh" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#e8f4ed;strokeColor=#438463;strokeWidth=1.5;" data-uc-references="[&quot;UC-82&quot;]">
+          <mxGeometry x="30" y="625" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-ack" value="&lt;b&gt;5. Record receipt ACK; compare dispatched quantity&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;ACK / VAR · UC-107 · after dispatch&lt;/font&gt;" vertex="1" parent="bf08-lane-acct" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-107&quot;]">
+          <mxGeometry x="30" y="810" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-variance" value="&lt;b&gt;6. Review variance resolution if needed&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-106 · preserve actual GI&lt;/font&gt;" vertex="1" parent="bf08-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;" data-uc-references="[&quot;UC-106&quot;]">
+          <mxGeometry x="30" y="995" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-close" value="&lt;b&gt;7. Close only when quantities are accounted for&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#52667e&quot;&gt;UC-83 · no second deduction&lt;/font&gt;" vertex="1" parent="bf08-lane-owner" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;arcSize=10;align=center;spacing=12;verticalAlign=middle;fontSize=15;fillColor=#eaf1fb;strokeColor=#6b88ac;strokeWidth=1.5;" data-uc-references="[&quot;UC-83&quot;]">
+          <mxGeometry x="30" y="1180" width="330" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-edge-0" edge="1" parent="1" source="bf08-request" target="bf08-agreement" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="370.0" />
+              <mxPoint x="625.0" y="370.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-1" edge="1" parent="1" source="bf08-agreement" target="bf08-review" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="555.0" />
+              <mxPoint x="1015.0" y="555.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-2" edge="1" parent="1" source="bf08-review" target="bf08-dispatch" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1015.0" y="740.0" />
+              <mxPoint x="235.0" y="740.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-3" edge="1" parent="1" source="bf08-dispatch" target="bf08-ack" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235.0" y="925.0" />
+              <mxPoint x="625.0" y="925.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-4" edge="1" parent="1" source="bf08-ack" target="bf08-variance" value="" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="625.0" y="1110.0" />
+              <mxPoint x="1015.0" y="1110.0" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bf08-edge-5" edge="1" parent="1" source="bf08-variance" target="bf08-close" value="Approved" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;whiteSpace=nowrap;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6f8199;strokeWidth=1.6;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-legend" value="Blue: action/document · Yellow: decision · Green: stock/task confirmation · Purple: confirmation with no inventory effect" vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;text;align=left;fontSize=12;fontColor=#52667e;">
+          <mxGeometry x="40" y="1515" width="1170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="bf08-branches" value="&lt;b&gt;Alternates/exceptions — see matching Section 4 branches and UC contracts&lt;/b&gt;&lt;br&gt;BF-08-A1: Pending, refused or partial supplier agreement&lt;br&gt;BF-08-A2: Reuse valid BF-02 decision&lt;br&gt;BF-08-E1: Short pick or supplier custody&lt;br&gt;BF-08-E2: Supplier receipt mismatch&lt;br&gt;BF-08-A3: Replacement or external settlement&lt;br&gt;&lt;br&gt;EX-01–05: role/warehouse, source/version, unknown commit/retry, freeze, evidence/output. Reject/wait/revise preserves the relevant case; never repost automatically." vertex="1" parent="1" style="whiteSpace=wrap;html=1;fontFamily=Arial;fontColor=#24354b;rounded=1;fillColor=#f3f5f8;strokeColor=#d6dde6;align=left;verticalAlign=top;spacing=14;fontSize=13;">
+          <mxGeometry x="40" y="1575" width="1170" height="330" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

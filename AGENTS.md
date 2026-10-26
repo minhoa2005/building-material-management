@@ -6,7 +6,3 @@ Khi thay đổi API, quyền, dữ liệu hoặc nghiệp vụ có liên quan gi
 
 Không tự commit.
 
-## Cập nhật main trước khi code
-
-Trước khi bắt đầu code, hãy kiểm tra branch hiện tại và working tree. Bảo toàn mọi thay đổi chưa commit; không ghi đè hoặc làm mất chúng. Fetch origin/main và cập nhật local main theo kiểu fast-forward nếu có thể. Sau đó kiểm tra các commit mới trên main và xác định cách đồng bộ branch làm việc với main theo quy ước của repo để giảm nguy cơ conflict. Nếu working tree không sạch, remote/main không truy cập được, hoặc fast-forward không thể thực hiện an toàn, dừng trước khi code và báo rõ tình trạng; không tự ý reset, force push hay commit.
-

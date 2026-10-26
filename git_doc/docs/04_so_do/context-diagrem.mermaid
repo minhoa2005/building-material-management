@@ -1,0 +1,17 @@
+%% WMSD context - baseline 3.1.0 - 2026-10-25
+%% Five roles; API-02 provider undecided; no direct MISA/payment integration.
+flowchart LR
+  S[Sales Staff] -->|Copied SO and WIR, net demand, ordinary CR decision, PAY-CFM| W((WMSD))
+  W -->|Availability, source options, delivery and reopened demand, completion status| S
+  K[Warehouse Staff] -->|Draft GI and TO execution, PGI, photo POD, CR or FD intake, count and hold evidence| W
+  W -->|Scoped tasks and sources, inspection results, B1 plans and count sheets| K
+  A[Accountant] -->|PO, verified supplier agreement, ACK reconciliation and SR closure, external references| W
+  W -->|Actual receipt and issue quantities, unresolved returns, separate financial follow-up| A
+  O[Store Owner] -->|RR and TR decisions, eligible CR exceptions, scoped dispositions, B1 review and closure| W
+  W -->|Scoped requests and exceptions, stocktake execution evidence, reports| O
+  AD[Administrator] -->|Accounts, permissions and technical configuration| W
+  W -->|Administration results| AD
+  W -->|Post-commit notifications| E[SMTP API-01]
+  E -->|Delivery results| W
+  W -->|Private evidence and delivery photo upload| F[Controlled storage API-02]
+  F -->|Asset reference and upload result| W
