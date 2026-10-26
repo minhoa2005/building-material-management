@@ -3,44 +3,45 @@
 14 thực thể: 7 thực thể danh mục/quản trị và 7 thực thể nghiệp vụ. Sơ đồ thể hiện góc nhìn tổng quan, với các bảng dòng và bảng trung gian được rút gọn thành nhóm thuộc tính hoặc quan hệ. Đối chiếu thiết kế chi tiết tại [SQL schema](../WMSD_SQL_schema.sql).
 
 ```mermaid
-%% 14 conceptual entities: original ERD after README merges + identified master data.
+%% 14 conceptual entities for reporting.
 %% attr is only a Mermaid syntax placeholder, not a physical data type.
 %% Items retain source-linked lines and quantities. SO -> GI is traced THROUGH WIR/OD.
-%% Each SalesOrder requires one CUSTOMER Partner; each PurchaseOrder requires one SUPPLIER Partner.
+%% Each SalesOrder requires one CUSTOMER Party; each PurchaseOrder requires one SUPPLIER Party.
 erDiagram
     direction LR
     Warehouse ||--o{ Location : "containing"
     User }o--o{ Warehouse : "accessing"
-    Product ||--|{ ProductConversion : "using"
-    Product ||--o{ ProductLot : "identifying"
-    ProductLot ||--o{ Inventory : "distinguishing"
-    Location |o--o{ Inventory : "holding"
-    Inventory |o--o{ StockMovement : "decreasing"
-    Inventory |o--o{ StockMovement : "increasing"
-    ProductLot ||--o{ StockMovement : "tracing"
+    Uom ||--o{ Product : "base unit"
+    Product }o--o{ Uom : "converting"
+    Product ||--o{ Lot : "identifying"
+    Lot ||--o{ StockBalance : "distinguishing"
+    Location |o--o{ StockBalance : "holding"
+    StockBalance |o--o{ StockMovement : "decreasing"
+    StockBalance |o--o{ StockMovement : "increasing"
+    Lot ||--o{ StockMovement : "tracing"
     User ||--o{ StockMovement : "posting"
-    Partner ||--o{ PurchaseOrder : "supplying"
+    Party ||--o{ PurchaseOrder : "supplying"
     Warehouse ||--o{ PurchaseOrder : "expecting"
     PurchaseOrder }o--o{ Product : "ordering"
     PurchaseOrder |o--o{ GoodsReceipt : "receiving"
     Warehouse ||--o{ GoodsReceipt : "receiving"
-    GoodsReceipt }o--o{ ProductLot : "receiving"
+    GoodsReceipt }o--o{ Lot : "receiving"
     GoodsReceipt }o--o{ Location : "using"
     GoodsReceipt |o--o{ StockMovement : "recording"
-    Partner ||--o{ SalesOrder : "ordering"
+    Party ||--o{ SalesOrder : "ordering"
     SalesOrder }o--o{ Product : "ordering"
     SalesOrder |o--o{ GoodsIssue : "fulfilling"
     Warehouse ||--o{ GoodsIssue : "issuing"
-    GoodsIssue }o--o{ ProductLot : "issuing"
+    GoodsIssue }o--o{ Lot : "issuing"
     GoodsIssue }o--o{ Location : "using"
     GoodsIssue |o--o{ StockMovement : "recording"
-    Warehouse ||--o{ StockCount : "hosting"
-    StockCount }o--o{ Location : "scoping"
-    StockCount }o--o{ ProductLot : "counting"
-    StockCount |o--o{ StockMovement : "resolving"
+    Warehouse ||--o{ Stocktake : "hosting"
+    Stocktake }o--o{ Location : "scoping"
+    Stocktake }o--o{ Lot : "counting"
+    Stocktake |o--o{ StockMovement : "resolving"
     User ||--o{ SalesOrder : "creating"
     User ||--o{ PurchaseOrder : "creating"
-    User ||--o{ StockCount : "planning"
+    User ||--o{ Stocktake : "planning"
 
     User {
         attr Username
@@ -70,21 +71,19 @@ erDiagram
         attr Status
     }
 
-    ProductConversion {
-        attr Unit
-        attr BasePerUnit
-        attr Version
-        attr EffectiveFrom
+    Uom {
+        attr Code
+        attr Name
     }
 
-    ProductLot {
+    Lot {
         attr ManufacturerLotNo
         attr ToneCode
         attr CalibreCode
         attr ProductionDate
     }
 
-    Partner {
+    Party {
         attr Code
         attr Name
         attr PartnerType
@@ -92,7 +91,7 @@ erDiagram
         attr Status
     }
 
-    Inventory {
+    StockBalance {
         attr StockBucket
         attr Quality
         attr Quantity
@@ -156,7 +155,7 @@ erDiagram
         attr Status
     }
 
-    StockCount {
+    Stocktake {
         attr CountNo
         attr Scope
         attr FrozenAt
@@ -172,6 +171,7 @@ erDiagram
 
 `attr` chỉ là token cú pháp Mermaid, không phải kiểu dữ liệu. [Bản HTML](erd.html) không hiển thị cột này.
 
-`Unit`, `BasePerUnit`, `Version`, `EffectiveFrom` tương ứng với `uom_code`, `base_per_unit`, `version`, `valid_from` trong `product_uom_version`. Mỗi SalesOrder bắt buộc gắn một Partner loại CUSTOMER.
+Mỗi SalesOrder bắt buộc gắn một Party loại CUSTOMER. Quan hệ quy đổi giữa Product và Uom được thể hiện tổng quát; hệ số và lịch sử phiên bản được lưu trong `ProductUomVersion` ở thiết kế chi tiết.
 
 Quan hệ SalesOrder–GoodsIssue là truy vết qua SO → WIR → OD → GI-S. Các thực thể điều chuyển, trả hàng, giao nhận và xác nhận thanh toán không có ô riêng trong góc nhìn này; quan hệ trên hình có thể tổng hợp qua nhiều bảng, không nhất thiết là FK trực tiếp.
+Tên trong sơ đồ được đối chiếu với model MongoDB hiện tại: `Party`, `Lot`, `Uom` và `StockBalance`. `PurchaseOrder`, `GoodsReceipt`, `SalesOrder`, `GoodsIssue` và `Stocktake` là các khái niệm nghiệp vụ trong sơ đồ; backend biểu diễn chúng bằng các loại `BusinessDocument`, không phải model hay collection riêng. `StockBalance` chỉ đại diện phần số dư trong khái niệm tồn kho tổng hợp; tài khoản tồn, giữ hàng và các thành phần liên quan được lưu riêng.
