@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "seed": "node src/seeds/run.js",
     "seed:sync-permissions": "node src/seeds/run.js --sync-permissions",
+    "migrate:replenishment": "node src/migrations/run-replenishment-3.3.js",
     "test": "node --test"
   },
   "dependencies": {

@@ -38,6 +38,8 @@ export {
   CustomerReturnAssessment, ReturnSourceClaim, DemandReopening, OdCommitmentTransfer,
 } from "./return.model.js";
 export { AuditEvent, OutboxEvent } from "./event.model.js";
+export { Notification, notificationDedupKey } from "./notification.model.js";
+export { ReplenishmentPlanningGuard } from "./replenishment.model.js";
 export {
   ROLE_CODES,
   QUALITY_CODES,
@@ -47,4 +49,7 @@ export {
   PACKAGING_CONDITIONS,
   SALES_ORDER_STATUSES,
   CONFIRMATION_STATUSES,
+  REPLENISHMENT_TRIGGER_TYPES,
+  REPLENISHMENT_RELATIONS,
+  NOTIFICATION_TYPES,
 } from "./constants.js";

@@ -17,7 +17,7 @@ test('MongoDB indexes, discriminator persistence and append-only history', {
     });
     const exportedModels = Object.values(models).filter((value) => value?.modelName);
     for (const Model of exportedModels) await Model.createIndexes();
-    assert.equal(new Set(exportedModels.map((Model) => Model.collection.name)).size, 37);
+    assert.equal(new Set(exportedModels.map((Model) => Model.collection.name)).size, 39);
 
     await t.test('natural keys and singleton STORE are enforced by MongoDB', async () => {
       const user = { username: 'owner', fullName: 'Owner', passwordHash: 'hash' };
@@ -155,6 +155,26 @@ test('MongoDB indexes, discriminator persistence and append-only history', {
       hold.status = 'RESOLVED';
       await hold.save();
       assert.equal(await models.DefectHold.countDocuments({ balanceId: hold.balanceId, status: 'ACTIVE' }), 0);
+    });
+
+    await t.test('RR actor-scoped commands, notifications and planning guards keep unique identities', async () => {
+      const actor = id();
+      const header = { warehouseId: id(), neededOn: new Date(), triggerReason: 'Restock after review', creationKey: 'rr-command' };
+      await models.BusinessDocument.create({ documentKind: 'REPLENISHMENT', documentNo: 'RR-KEY-1', createdBy: actor, header });
+      await duplicate(() => models.BusinessDocument.create({ documentKind: 'REPLENISHMENT', documentNo: 'RR-KEY-2', createdBy: actor, header }));
+      await models.BusinessDocument.create({ documentKind: 'REPLENISHMENT', documentNo: 'RR-KEY-3', createdBy: id(), header });
+      const guard = { warehouseId: header.warehouseId, productId: id(), version: 0 };
+      await models.ReplenishmentPlanningGuard.create(guard);
+      await duplicate(() => models.ReplenishmentPlanningGuard.create(guard));
+      const fields = { recipientId: actor, type: 'LOW_STOCK_AFTER_STOCKTAKE', warehouseId: header.warehouseId,
+        sourceDocumentId: id(), sourceDocumentVersion: 2, eventKey: 'count-closed:2', evaluatedAt: new Date(), title: 'Count complete', message: 'Open for current stock' };
+      const notification = await models.Notification.create(fields);
+      await duplicate(() => models.Notification.create(fields));
+      const peer = await models.Notification.create({ ...fields, recipientId: id() });
+      notification.readAt = new Date();
+      await notification.save();
+      assert.equal((await models.Notification.findById(peer._id)).readAt, null);
+      assert.ok((await models.Notification.findById(notification._id)).readAt);
     });
 
     await t.test('count/recount history is distinct and cannot be rewritten through Mongoose', async () => {

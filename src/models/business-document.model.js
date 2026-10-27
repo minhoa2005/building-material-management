@@ -20,6 +20,19 @@ const header = (fields) => ({
   required: true,
 });
 const warehouse = () => ({ warehouseId: ref("Warehouse") });
+const replenishmentHeader = new Schema({
+  ...warehouse(),
+  neededOn: date(),
+  triggerReason: text(200),
+  creationKey: text(160),
+  submittedBy: ref("User", false),
+  submittedAt: date(false),
+}, embeddedOptions);
+rules(replenishmentHeader, function validateReplenishmentSubmission() {
+  if (Boolean(this.submittedBy) !== Boolean(this.submittedAt)) {
+    this.invalidate("submittedAt", "Submission requires actor and time together");
+  }
+});
 const financialStatus = () => text(20, { default: "NOT_RECORDED" });
 const receiptHeader = (kind) =>
   header({ ...warehouse(), receiptKind: code([kind], { default: kind }) });
@@ -78,6 +91,11 @@ const documentSchema = new Schema(
   options("business_documents", { discriminatorKey: "documentKind" }),
 );
 documentSchema.index({ documentKind: 1, workflowStatus: 1, createdAt: 1 });
+// Creation keys are scoped to the real actor; the service also compares payloadHash.
+documentSchema.index({ createdBy: 1, "header.creationKey": 1 }, {
+  unique: true,
+  partialFilterExpression: { documentKind: "REPLENISHMENT", "header.creationKey": { $type: "string" } },
+});
 documentSchema.index(
   { "header.dispatchId": 1 },
   { partialFilterExpression: { documentKind: "MWTR" } },
@@ -114,11 +132,7 @@ rules(documentSchema, function validateWorkflowStatus() {
 // document kinds need no additional header collection or duplicate documentNo.
 const shapes = {
   REPLENISHMENT: {
-    header: header({
-      ...warehouse(),
-      neededOn: date(),
-      triggerReason: text(200),
-    }),
+    header: { type: replenishmentHeader, required: true },
   },
   PO: {
     header: header({

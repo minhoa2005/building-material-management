@@ -124,7 +124,7 @@ Date
 
 
 Definition and Acronyms
-SO = copied external Sales Order; POD = photo Proof of Delivery; PAY-CFM = external payment-receipt confirmation; WIR = Warehouse Issue Request; OD = Outbound Delivery; PGI = Post Goods Issue; TD = Transfer Dispatch; MWTR = destination transfer receipt; FD/GR-FD = failed-delivery case/actual return receipt; RECLASS = total-preserving quality/location posting at B1 closure. Custody is physically held stock owned by another party. Warehouse Staff is the canonical application-role name.
+RR = Replenishment Request; SO = copied external Sales Order; POD = photo Proof of Delivery; PAY-CFM = external payment-receipt confirmation; WIR = Warehouse Issue Request; OD = Outbound Delivery; PGI = Post Goods Issue; TD = Transfer Dispatch; MWTR = destination transfer receipt; FD/GR-FD = failed-delivery case/actual return receipt; RECLASS = total-preserving quality/location posting at B1 closure. Custody is physically held stock owned by another party. Warehouse Staff is the canonical application-role name.
 Acronym
 	Definition
 	WMSD
@@ -210,8 +210,6 @@ Observed activities (As-is; external personnel here are business participants, n
 | Entry and device | Survey selects Accountant/one shared operator and immediate entry using a phone. D2 instead retains separate departmental entry/personal accounts; D3 retains five roles without new purchasing/delivery roles. Responsive phone use is required, without inferring native/offline software. |
 
 Design decisions D1–D8 in change_logs.md distinguish selected To-be controls from survey evidence. Custody, staging/put-away, compatible FIFO, versioned decisions, atomic posting and idempotency are proposed controls; this report does not assert they are already deployed.
-Legacy As-is figures in the original Word file are not embedded in this text extract and may depict an earlier baseline. The evidence table above replaces contradictory claims such as no coded locations, no recount/review, or unrestricted movement during the selected stocktake design.
-
 III. Existing Solutions
 
 
@@ -294,23 +292,23 @@ Gap ID
 	An individual quantity cannot be followed across receiving, storage, movement, issue and return.
 	Section Summary. KiotViet and MISA eShop already offer established retail and inventory functions. The nine GAPs describe the store's unresolved physical controls and fragmented records. WMSD addresses tile-specific inspection, traceable stock events, exception resolution and count accountability, together with source-linked warehouse issue fulfilment and external-document reconciliation. Financial accounting and sales payment/debt management remain outside WMSD.
 IV. Proposed Solution
-The selected solution implements nine features across eight linked processes, aligned to process baseline 3.1.0 and synchronized on 25 October 2026 with Report 2/3, detailed/data design and reference SQL. There are 111 UC IDs (97 active/14 retired), five roles and BR-01–33. Current Mermaid and related PNG/HTML exports are updated in the follow-up; only draw.io files remain excluded. Original meeting/survey evidence retains its historical content.
+The proposed solution supports nine features across eight linked warehouse processes, with five application roles, 97 active use cases and BR-01–33. Sales/Warehouse creates source-linked replenishment requests through one editable prefilled form; a different Owner approves before Accountant creates the purchase order. Saved sales orders and committed stocktakes provide shortage warnings and scoped in-app notifications.
 
 | Gap | Feature | Proposed operational handling |
 |---|---|---|
-| GAP-01 | FE-01 — Purchase Delivery and Partial Receiving | Sales/Warehouse demand and finite thresholds; Owner-approved replenishment; Accountant PO and supplier confirmation; multiple receipts and outstanding quantities. |
-| GAP-02 | FE-02 — Master Data and Tile Traceability | Product, lot/tone/verified calibre, versioned BOX/PIECE/m² factors, parties and controlled minimum quantities. Selling-price maintenance is excluded. |
+| GAP-01 | FE-01 — Purchase Delivery and Partial Receiving | Select uncovered saved-SO or committed-stocktake needs, open one editable prefilled RR form, add products with their own source or reason, and save a draft or submit. Owner approval precedes Accountant PO/supplier confirmation; support multiple receipts and outstanding quantities. |
+| GAP-02 | FE-02 — Master Data and Tile Traceability | Product, lot/tone/verified calibre, versioned BOX/PIECE/m² factors, parties and warehouse minimum/target quantities. The target is at least the minimum and defaults to it. Selling-price maintenance is excluded. |
 | GAP-03 | FE-03 — Goods Receiving Quality Control | Per-quantity inspection, packaging observation, ownership/custody, good/pending/defective/rejected outcomes, discrepancy evidence and eligible receipt. |
 | GAP-04 | FE-04 — Bin-level Inventory and Location Movement | Coded warehouses/locations, stock by owner/lot/quality, put-away and same-warehouse movements that preserve total and reservations without Owner approval. |
 | GAP-05 | FE-05 — Warehouse Transfer and Discrepancy Management | Approved TR → draft TD before picking → TO execution if staging → actual TD/HO → independent MWTR/put-away. Preserve allocations and resolve request remainder/transit/variances/tasks before whole-TR closure. |
-| GAP-06 | FE-06 — Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → linked WIR/OD → draft GI-S before picking/TO → actual PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. GR-FD reopens exact original net demand without duplicate replacement OD commitments. No pricing/invoice/payment execution. |
+| GAP-06 | FE-06 — Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → source/shortage check → linked WIR/OD → draft GI-S, picking and PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. For uncovered quantity, offer the RR form directly from saved SO lines before WIR. GR-FD reopens original net demand without duplicating commitments; commercial pricing and payment execution remain external. |
 | GAP-07 | FE-07 — Defective Goods and Physical Returns | Immediate defect hold; Sales ordinary CR acceptance or eligible Owner exception after Warehouse inspection; GI-linked failed-delivery GR-FD with net reopening; Accountant agreement/reconciliation/closure and Warehouse actual supplier return without Owner. External finance references remain separate. |
-| GAP-08 | FE-08 — Stocktake and Inventory Adjustment | Owner plans monthly/targeted sessions; atomic freeze/snapshot and count sheets; direct substantiated explanation or append-only recount; B1 immediate hold, Warehouse resolution/execution and Owner UC-92/93 actual delta plus RECLASS/location batch before unlock. No ADJ=0. |
-| GAP-09 | FE-09 — Access Administration, Audit and Operational Reporting | Five roles, personal accounts and warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. |
+| GAP-08 | FE-08 — Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-92/93 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. |
+| GAP-09 | FE-09 — Access Administration, Audit and Operational Reporting | Five roles, personal accounts and warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. In-app notifications have per-recipient read/unread status; opening a warning reevaluates current stock and supply within current access rights. |
 
 BF-01 — Replenishment, purchasing and goods receipt
-Main flow: Sales/Warehouse raises uncovered demand; Owner reviews; Accountant creates PO/confirmation; Warehouse records each arrival, inspection and accepted GR, then creates/confirms put-away TO.
-Alternate/exception outcomes: Separate accepted ownership, custody and immediate rejection. Rejected goods do not pass through owned GR/put-away. Partial supply and replacements preserve actual source/evidence; no GR0 or double receipt.
+Main flow: Sales/Warehouse selects shortage lines from a saved SO, stocktake warning or chosen source, then opens a form prefilled with product, warehouse, suggested quantity and textual reasons. Users may edit quantity/date/reasons and add products with a valid source or separate need reason, keeping one receiving warehouse and need date per RR. Only Save draft or Submit persists the RR; a different Owner reviews before Accountant PO. Warehouse records actual arrival/inspection/accepted GR and confirms put-away TO.
+Alternate/exception outcomes: Opening/cancelling the form or choosing Later creates no RR or pending coverage. Before saving, recalculate current stock and compatible, timely incoming/other-warehouse supply, subtracting pending RR coverage once. Changed data retains the entered form for review; extra products never inherit an unrelated SO-line link. During receiving, separate accepted ownership, custody and immediate rejection; partial supply/replacements preserve their sources, without GR0 or double receipt.
 
 BF-02 — Defect detection, isolation and disposition
 Main flow: Warehouse records evidence and blocks affected allocation immediately. Outside frozen stocktake, Owner approves scoped scrap/regrade/release; Warehouse executes. Supplier return routes directly to BF-08 without Owner authorization.
@@ -329,7 +327,7 @@ Main flow: Owner plans; Warehouse resolves open tasks, atomically freezes/snapsh
 Alternate/exception outcomes: Record defect hold/evidence immediately without changing balance under freeze. Warehouse proposes/confirms execution, Owner UC-92 approves and UC-93 posts actual nonzero delta plus total-preserving RECLASS/location. Book50/count48GOOD+2broken means RECLASS2/total50; count46GOOD+2broken means delta−2 plus RECLASS2/total48. No ADJ0, false shortage or ordinary freeze bypass. Failure/open holds/tasks prevent unlock.
 
 BF-06 — Copied SO, issue, customer delivery and completion
-Main flow: Sales copies verified external SO and creates linked WIR/OD; Warehouse drafts GI-S before picking, confirms actual TO execution and posts PGI at handover; Warehouse photo POD establishes customer receipt/DELIVERED; Sales full external receipt PAY-CFM establishes COMPLETED.
+Main flow: Sales saves a verified external SO, then checks compatible available stock, feasible sources at other warehouses, incoming supply due before the need date and existing RRs. If quantity remains uncovered, ask whether to create an RR for selected shortage lines; the form opens without creating a request. The SO then proceeds through linked WIR/OD, draft GI-S/picking/PGI, Warehouse photo POD/DELIVERED and Sales full external receipt PAY-CFM/COMPLETED.
 Alternate/exception outcomes: Preserve original SO/WIR, net fulfilment and versioned OD commitments. Valid PGI less valid GR-FD stays within source allowance; effective POD + posted GR-FD + OPEN FD claims ≤ valid PGI per GI line. Partial delivery remains PARTIALLY_DELIVERED; missing photo or early/partial payment cannot complete. Only unexecuted or received-back, not-redelivered quantity may be cancelled; unresolved off-site quantity cannot. GR-FD/changed delivery invalidates stale completion authority.
 
 BF-07 — Post-receipt customer return and failed-delivery intake
@@ -343,21 +341,19 @@ Alternate/exception outcomes: No Owner dispatch, variance or closure approval an
 
 Shared failure handling: enforce role/sub-operation/warehouse/source/version and proper decision_kind on the server. Owner approvals require distinct requester; C2 explicitly permits Sales ordinary acceptance of own inspected CR. Transfer receiver is independent of dispatcher. Failed batches roll back fully; unknown commit requires stable operation-key lookup before retry. Photo/upload/email retry cannot post stock again.
 
-Figure policy: current Mermaid contexts/flows/ERDs and related BF-04 PNG/reduced-ERD HTML exports are updated at baseline 3.1.0. Only draw.io files remain unchanged at their recorded versions and must not override current text; historical diagrams retain their historical labels. External Word/Google Docs require separate publication.
-
 V. Project Scope & Limitations
 1. Major Features
 | ID | Major feature | Capability | Gap |
 |---|---|---|---|
-| FE-01 | Purchase Delivery and Partial Receiving | Sales/Warehouse demand and finite thresholds; Owner-approved replenishment; Accountant PO and supplier confirmation; multiple receipts and outstanding quantities. | GAP-01 |
-| FE-02 | Master Data and Tile Traceability | Product, lot/tone/verified calibre, versioned BOX/PIECE/m² factors, parties and controlled minimum quantities. Selling-price maintenance is excluded. | GAP-02 |
+| FE-01 | Purchase Delivery and Partial Receiving | Select uncovered saved-SO or committed-stocktake needs, open one editable prefilled RR form, add products with their own source or reason, and save a draft or submit. Owner approval precedes Accountant PO/supplier confirmation; support multiple receipts and outstanding quantities. | GAP-01 |
+| FE-02 | Master Data and Tile Traceability | Product, lot/tone/verified calibre, versioned BOX/PIECE/m² factors, parties and warehouse minimum/target quantities. The target is at least the minimum and defaults to it. Selling-price maintenance is excluded. | GAP-02 |
 | FE-03 | Goods Receiving Quality Control | Per-quantity inspection, packaging observation, ownership/custody, good/pending/defective/rejected outcomes, discrepancy evidence and eligible receipt. | GAP-03 |
 | FE-04 | Bin-level Inventory and Location Movement | Coded warehouses/locations, stock by owner/lot/quality, put-away and same-warehouse movements that preserve total and reservations without Owner approval. | GAP-04 |
 | FE-05 | Warehouse Transfer and Discrepancy Management | Approved TR → draft TD before picking → TO execution if staging → actual TD/HO → independent MWTR/put-away. Preserve allocations and resolve request remainder/transit/variances/tasks before whole-TR closure. | GAP-05 |
-| FE-06 | Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → linked WIR/OD → draft GI-S before picking/TO → actual PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. GR-FD reopens exact original net demand without duplicate replacement OD commitments. No pricing/invoice/payment execution. | GAP-06 |
+| FE-06 | Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → source/shortage check → linked WIR/OD → draft GI-S, picking and PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. For uncovered quantity, offer the RR form directly from saved SO lines before WIR. GR-FD reopens original net demand without duplicating commitments; commercial pricing and payment execution remain external. | GAP-06 |
 | FE-07 | Defective Goods and Physical Returns | Immediate defect hold; Sales ordinary CR acceptance or eligible Owner exception after Warehouse inspection; GI-linked failed-delivery GR-FD with net reopening; Accountant agreement/reconciliation/closure and Warehouse actual supplier return without Owner. External finance references remain separate. | GAP-07 |
-| FE-08 | Stocktake and Inventory Adjustment | Owner plans monthly/targeted sessions; atomic freeze/snapshot and count sheets; direct substantiated explanation or append-only recount; B1 immediate hold, Warehouse resolution/execution and Owner UC-92/93 actual delta plus RECLASS/location batch before unlock. No ADJ=0. | GAP-08 |
-| FE-09 | Access Administration, Audit and Operational Reporting | Five roles, personal accounts and warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. | GAP-09 |
+| FE-08 | Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-92/93 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. | GAP-08 |
+| FE-09 | Access Administration, Audit and Operational Reporting | Five roles, personal accounts and warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. In-app notifications have per-recipient read/unread status; opening a warning reevaluates current stock and supply within current access rights. | GAP-09 |
 
 2. Limitations & Exclusions
 | ID | Excluded item | Boundary |
@@ -369,10 +365,10 @@ V. Project Scope & Limitations
 | LI-05 | Complex approval/delegation | Only scoped Owner decisions with distinct requester; Sales ordinary inspected CR acceptance may share creator. BF-08 has no Owner approval. No extra role, dynamic delegation, tendering or multilevel approval. |
 | LI-06 | Quotation, promotion, loyalty and CRM | Customer records support delivery/contact/source matching only; commercial campaigns and CRM remain external. |
 | LI-07 | Omnichannel integration | Paper/Zalo/phone requests are verified and recorded as source evidence before staff copies SO and creates linked WIR; no automatic channel sync or public storefront. |
-| LI-08 | Forecasting and automatic purchasing | Finite minimum-stock alerts and compatible-source suggestions are allowed. No demand forecasting, auto-created PO, automatic physical posting or pricing recommendations. |
+| LI-08 | Forecasting and automatic purchasing | Minimum/target stock warnings, compatible-source suggestions, in-app notifications and user-confirmed RR forms are in scope. No background-created RR, demand forecasting, automatic PO, physical posting or pricing recommendations. |
 | LI-09 | HRM and payroll | Accounts support authorized operations only; no attendance, recruitment or payroll. |
 | LI-10 | General business-policy editor | No arbitrary policy, workflow or approval-chain editor. Controlled finite thresholds/conversion versions do not confer general rule-authoring rights. |
 
-Verification limits: the survey is one response, not an inventory of all warehouse names/staff or a signed-off return period. MongoDB is runtime; the T-SQL design is a reference artifact. Document synchronization is not proof that posting services or physical controls have been implemented.
+The survey provides one response and does not establish every warehouse name, staffing assignment or a signed-off return period. Warehouse and return parameters require verified business data. MongoDB is the application database; relational SQL describes data relationships for design analysis.
 
 Report 1 (Project Introduction)

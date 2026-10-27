@@ -20,7 +20,7 @@ test('atomic full seed against a MongoDB replica set', { skip: !process.env.MONG
   await t.test('empty DB gets all collections/kinds and a second run preserves existing data', async () => temporaryDatabase(async (db) => {
     const result = await runSeeds();
     assert.equal(result.seeded, true);
-    assert.equal(Object.keys(result.counts).length, 37);
+    assert.equal(Object.keys(result.counts).length, 39);
     assert.deepEqual(new Set(await BusinessDocument.distinct('documentKind')), new Set(DOCUMENT_KINDS));
     const before = await StockMovement.countDocuments();
     const owner = await Role.findOne({ code: 'OWNER' });
@@ -32,7 +32,7 @@ test('atomic full seed against a MongoDB replica set', { skip: !process.env.MONG
     for (const [name, count] of Object.entries(result.counts)) {
       assert.equal(await mongoose.model(name).countDocuments(), count, name);
     }
-    assert.equal((await db.listCollections({}, { nameOnly: true }).toArray()).filter(({ name }) => !name.startsWith('system.')).length, 37);
+    assert.equal((await db.listCollections({}, { nameOnly: true }).toArray()).filter(({ name }) => !name.startsWith('system.')).length, 39);
   }));
   await t.test('an unrelated existing document blocks every seed insert', async () => temporaryDatabase(async (db) => {
     await db.collection('legacy_records').insertOne({ sentinel: true });

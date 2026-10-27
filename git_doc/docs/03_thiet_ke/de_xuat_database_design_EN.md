@@ -2,7 +2,7 @@
 
 SQL Server/T-SQL is a relational reference model for design analysis. MongoDB remains runtime; this DDL is not a MongoDB migration and does not implement business services.
 
-Updated 25 October 2026 against process 3.1.0 (A1/B1/C2 and Owner-free BF-08), the survey, D1–D8 and current BF-06 in [Process Proposal 2 — EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md). Reference SQL: [WMSD_SQL_schema.sql](WMSD_SQL_schema.sql). History: [change_logs.md](../../change_logs.md).
+Updated 27 October 2026, baseline3.3.0: apply source-backed replenishment and Notification proposal1.4.0 while retaining A1/B1/C2/Owner-free BF-08. Reference SQL has 85 tables/2 views; MongoDB has 39 collections/35 document kinds/19 line kinds. See [process EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), [SQL](WMSD_SQL_schema.sql) and [history](../../change_logs.md).
 
 | Version | Date | Revision |
 |---|---|---|
@@ -14,20 +14,22 @@ Updated 25 October 2026 against process 3.1.0 (A1/B1/C2 and Owner-free BF-08), t
 
 | 3.1.1 | 25 October 2026 | Update Mermaid ERDs into A1/B1/C2-BF-08 views; only draw.io files stay unchanged. Reference DDL and business baseline 3.1.0 unchanged. |
 
+| 3.3.0 | 27/10/2026 | User-selected replenishment, source snapshots, Notification and planning guard; 85 tables/2 views, R-01–30 and T01–T69. |
+
 ## 1. Status, evidence and scope
 
 ### 1.1 Sources and precedence
 
 | ID | Source | Use |
 |---|---|---|
-| S1 | [Process Proposal 2 — EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), 3.1.0 on 24 October; documentation synchronized 25 October 2026 | Current business source: eight BFs, five roles, 111 UCs (97 active/14 retired), BR-01–33; no live MISA integration. |
-| S2 | [Report 1 text](../01_bao_cao/WMSD_Report1_Fix.docx.txt), synchronized 25 October 2026 | One-store context, at least three reported warehouses, eight BF flows and current copied-SO/POD/PAY-CFM scope; As-is is not deployed To-be. |
-| S3 | [Report 3 text](../01_bao_cao/WMSD_Report3_Fix.docx.txt), baseline 3.1.0, synchronized 25 October 2026 | 111 UC IDs (97 active/14 retired), BR-01–33, SC-01–31; SO UC-45–48, WIR/POD/PAY-CFM UC-109–111. MongoDB runtime. |
+| S1 | [Process Proposal 2 — EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), baseline3.3.0, synchronized27 October2026 | Current business source: eight BFs, five roles, 111 UCs (97 active/14 retired), BR-01–33; no live MISA integration. |
+| S2 | [Report 1 text](../01_bao_cao/WMSD_Report1_Fix.docx.txt), synchronized27 October2026 | One-store context, at least three reported warehouses, eight BF flows and current copied-SO/POD/PAY-CFM scope; As-is is not deployed To-be. |
+| S3 | [Report 3 text](../01_bao_cao/WMSD_Report3_Fix.docx.txt), baseline3.3.0, synchronized27 October2026 | 111 UC IDs (97 active/14 retired), BR-01–33, SC-01–31; SO UC-45–48, WIR/POD/PAY-CFM UC-109–111. MongoDB runtime. |
 | S4 | [WMSD_Bangach.drawio](../04_so_do/WMSD_Bangach.drawio), 21 historically labelled pages | Prior alternatives only; old System/WMSD lanes, prices and inter-warehouse TO do not define current behavior. |
 | S5 | [SAP WM I](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_I_en_v4.1.pdf), [II](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_II_en_v4.1.pdf), [III](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_III_en_v4.1.pdf), [IV](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_IV_en_v4.1.pdf) | Local **v4.1** set: I GR p.10, TO pp.18/21; II STO p.6, GI p.12, GR p.18, TO pp.26/29; III picking pp.14/19, shipping p.25; IV snapshot/count/recount/clearing pp.4/12/14/21/27. Do not reuse v4.2 page references from the older proposal. |
 | S6 | [Process compilation](../06_tham_khao/quy_trinh/Tổng%20hợp%20quy%20trình.pdf), four pages | Handover documents and business context. Debt, payments and fleet management are not automatically added to the MVP. |
 | S7 | [Reference links](../06_tham_khao/link_tham_khao.md) | Official MISA, Odoo and Microsoft guidance for concept comparison; WMSD-specific decisions are stated separately. |
-| S8 | [Database drawing](WMSD_database_design.drawio), 10 pages | Preserved 3.0.0 snapshot: 73 tables/173 FKs/2 views on 22 October. Diagrams excluded; 3.1.0 DDL has 82 tables/2 views and is not claimed to match the old drawing. |
+| S8 | [Database drawing](WMSD_database_design.drawio), 10 pages | Preserved 3.0.0 snapshot: 73 tables/173 FKs/2 views on 22 October. Diagrams excluded; 3.3.0 DDL has 85 tables/2 views and is not claimed to match the old drawing. |
 | S9 | [VI/EN mainflows](../04_so_do/WMSD_Mainflows_VI_EN.drawio), 16 pages | Preserved 3.0.0 snapshot, not updated to 3.1.0; layout reference only. Current process text takes precedence. |
 
 Priority: current instruction → S1/D1–D8 and the [change log](../../change_logs.md) → Report 1/3 at the same baseline → design/S8/S9 → survey and reference evidence. S4 is historical and cannot override current decisions. The current catalogue has 111 UCs (97 active/14 retired). SQL is the reference model; MongoDB remains runtime.
@@ -115,7 +117,7 @@ In this model, PK means primary key, FK means foreign key, UNIQUE enforces disti
 | `party` | party_id, UNIQUE code, kind, contact | STORE/SUPPLIER/CUSTOMER/CARRIER; one STORE in MVP; not login accounts |
 | `uom`, `product` | uom_code; product_id, UNIQUE sku, base_uom FK, whole_base_units | Tiles use PIECE; do not hard-code all products as tiles |
 | `product_uom_version` | conversion_id, product, UoM, version, base_per_unit | UNIQUE(product,UoM,version); used versions are immutable |
-| `product_warehouse_policy` | PK(product,warehouse), minimum_qty | Fixed replenishment threshold, not a general policy editor |
+| `product_warehouse_policy` | policy_id UNIQUE, PK(product,warehouse), minimum_qty, target_qty, version, updated_by | Fixed replenishment threshold, not a general policy editor |
 | `lot` | lot_id, product, manufacturer_lot, tone, calibre, identification_status | No stock total on lot; UNKNOWN cannot be allocated for sale |
 | `quality_status` | quality_code | PENDING, GOOD, DAMAGED, BLOCKED; IN_TRANSIT is not quality |
 
@@ -141,7 +143,7 @@ Header tables below use **`document_id` as both PK and FK to `document`**. Typed
 
 | Group | Tables and important attributes |
 |---|---|
-| BF-01 | `replenishment_request`: warehouse, needed_on, trigger_reason. `purchase_order`: supplier, receiving warehouse, expected date, supplier_confirmation. `arrival`: warehouse, optional supplier, arrived_at, delivery_reference. |
+| BF-01 | `replenishment_request`: warehouse, needed_on, trigger_reason, creation_key, submitted_by/at; typed replenishment_line sources/snapshots. `purchase_order`: supplier, receiving warehouse, expected date, supplier_confirmation. `arrival`: warehouse, optional supplier, arrived_at, delivery_reference. |
 | Shared inspection | `inspection_line`: inspected_source_line, quality, ownership_decision, inspector/time. Split quantities with different quality/ownership outcomes. |
 | Purchase/customer-return/failed-delivery receipt | `goods_receipt`: warehouse, PURCHASE/CUSTOMER_RETURN/FAILED_DELIVERY; GR-FD typed lines link inspection and original GI-S. |
 | BF-03 | warehouse_task kind RELOCATE; warehouse_task_line source/destination within the same warehouse, preserving lot/owner/quality; document/audit retain confirmation. |
@@ -213,6 +215,44 @@ SR: DRAFT → AGREEMENT_PENDING → READY → PARTIAL/COMPLETED; READY requires 
 
 External Invoice/Credit Note uses external_reference, external_reference_line and document_external_reference: kind/number/reference_date, purchase/GI-SR source, matched quantity, verifier/evidence and independent financial status. No monetary document execution or financial prerequisite for warehouse closure.
 
+### 3.4.4 Bổ sung hàng theo nguồn và Notification / Source-backed replenishment — 3.3.0
+
+The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
+
+1. After a valid SO save, evaluate compatible, timely, uncommitted local stock, feasible other-warehouse options and incoming PO/transfer supply. The SO line is the original demand; WIR is optional context, and SO/WIR/OD releases must not multiply demand.
+2. Evaluate low stock only after committed stocktake closure, updated balances and scope unlock, including zero-stock SKUs. Defer while relevant freezes remain. Warehouse prepares/confirms execution; Owner approves/posts differences through UC-92/93. A no-variance closure remains valid under BF-05. Owner closure triggers evaluation, not RR creation.
+3. Alert when available < minimum; target >= minimum and defaults to minimum. Subtract valid coverage and saved pending RRs once. Sales shortages and reserve needs remain separate; other-warehouse possibilities become commitments only through a selected, validated fulfilment option.
+4. Create request opens one prefilled form. Users edit, add source-backed or reasoned extra products, then Save draft or Submit. Opening/cancelling/Later persists no RR. Changed evaluations preserve entered fields for review; source references and reasons remain per line.
+5. Sales/Warehouse submits; a different Owner approves; Accountant creates the PO after approval. Closing a stocktake grants no new RR creation right to Owner. Link SO→RR or Stocktake→RR, SO-line→RR-line and RR→PO; no invented external/evidence document is required for a low-stock reason.
+6. Commit STOCKTAKE_CLOSED/SALES_ORDER_SAVED and source version to the outbox with the source command. After commit, the consumer evaluates and persists per-recipient Notifications. Stable dedupKey prevents duplicate delivery without resetting readAt or creating an RR. Active Warehouse staff with current warehouse/source access receive a count summary; SO notices remain scoped to authorized handlers.
+7. Notification stores historical message/source/recipient/evaluatedAt/readAt. Listing, unread counts and source access enforce current permissions. Reading is independent of resolving a shortage. Opening a warning or creating an RR reevaluates current stock and coverage. Later neither hides demand nor creates pending coverage. MVP has no StockAlert collection; assignment, snoozing, reasoned dismissal or alert-state history would require a later design.
+
+Example without sales demand: available18/min50/target50/incoming10 suggests22 but creates no RR. Opening the form persists nothing; Save draft records DRAFT22 with count source and reason; pending RR22 prevents another22. A previous Notification remains historical while the detail page shows current coverage.
+
+
+| Component | 3.3.0 contract |
+|---|---|
+| ProductWarehousePolicy | productId/warehouseId unique; Decimal128 minimumQty/targetQty; target defaults to minimum and must be >= minimum; version >=1 and optional updatedBy |
+| REPLENISHMENT header | creationKey, textual triggerReason; submittedBy/submittedAt together; unique (createdBy, creationKey) only for RR string keys |
+| REPLENISHMENT line | triggerType SALES_SHORTAGE/STOCKTAKE_LOW_STOCK/MANUAL_OTHER; direct SO-line/version or stocktake/version/policy/version; evaluationKey/evaluatedAt, coverage snapshots, positive suggestedQty, reasonNote, quantityAdjustmentReason when changed |
+| Source links | REPLENISHES_SALES_ORDER, REPLENISHES_DEMAND, RELATED_ISSUE_REQUEST, STOCKTAKE_REPLENISHMENT, REPLENISHMENT_PURCHASE; childDocumentId reverse index; service validates types/product/warehouse/quantity |
+| DemandSupplyAllocation | Canonical sales demand is SO line; resolve existing WIR allocations to the same obligation, never duplicate SO/WIR allocations for the same quantity |
+| ReplenishmentPlanningGuard | Unique warehouseId/productId with integer version; shared conditional writes in coverage-changing transactions, no copied stock totals |
+| Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
+| OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
+
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **85 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+
+
+**Unified prefilled RR form (approved proposal1.4.0, baseline3.3.0):** Select warning lines and choose Create request, or open the menu and choose a source/other need. Prefill verified product, warehouse, suggested quantity, reason and references. Users edit quantity, need date and reasons; source product/warehouse/references are fixed until the context is reselected and reevaluated. One RR has one receiving warehouse/need date; other groups require separate reviewed requests.
+
+- Opening/cancelling the form or choosing Later persists no RR, links or pending coverage. Save draft creates DRAFT; Submit validates then records SUBMITTED with the actual user. Editing an existing draft updates its ID/version. A different Owner approves; Accountant PO follows approval.
+- After successful SO save, check compatible timely local/other-warehouse/incoming sources and existing RRs. An uncovered quantity prompts: “The order was saved; some quantity has no suitable timely source. Create a replenishment request?” Users select lines and open the form. Handle both no supply and partial supply; covered demand links to its existing source/RR. Display feasible unselected source options before declaring no suitable source.
+- Evaluation pending/failed is not zero supply and does not fail the saved SO. Prompt once per demand-affecting save; refresh, retry or note-only edits do not reopen it. Warnings and Create request remain available on SO details.
+- Extra products are allowed: each needs its own valid source or MANUAL_OTHER reason. Products outside the SO never inherit its sales-line quantity link. Different sources/reasons may have separate lines; duplicate identical source lines must be merged/corrected.
+- Save/submit reevaluates source versions and coverage. Show old/new values and retain entered fields for reconfirmation, rather than overwriting quantities. Cancelled, unauthorized or no-longer-needed sources must be corrected/removed; never silently detach a source or reclassify it. Excess above a sales shortage is a separate other-need line.
+- Create contracts use action SAVE_DRAFT/SUBMIT, creationKey, warehouse/date/reasons and per-line source. No creation-method classification is stored. Permissions, Notification/readAt, guards and payload hashes retain their purpose; form opening/notification reading never posts stock. Reserve need dates without evidence are explicitly chosen by the user.
+
 ### 3.5 Inventory, reservations and ledger
 
 | Table | Keys/fields | Invariant |
@@ -258,7 +298,7 @@ Book50GOOD/count48GOOD+2broken: RECLASS2, total50, no shortage−2/ADJ0. Count46
 
 ### 3.7 Condensed ERD
 
-> The three Mermaid diagrams below are current 3.1.0 logical views updated on 25 October: A1, B1 and C2/BF-08. They do not draw every one of the 82 DDL tables; key PK/FK/attributes are shown for additions. Header/line contains relationships may pass through shared document/document_line, rather than replacing all physical FKs/service checks.
+> The three Mermaid diagrams below are current 3.1.0 logical views updated on 25 October: A1, B1 and C2/BF-08. They do not draw all 85 current DDL tables; key PK/FK/attributes are shown for additions. Header/line contains relationships may pass through shared document/document_line, rather than replacing all physical FKs/service checks.
 
 This diagram shows the main structure; the DDL contains the complete columns, FKs, join tables and subtypes.
 
@@ -641,3 +681,42 @@ Confirm before SRS sign-off: exact warehouse list/count and addresses (three or 
 - [Microsoft transfer order receiving](https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/configure-transfer-order-receiving-process) illustrates separation of transfer receipt and background processing; Dynamics financial configuration is not WMSD scope.
 
 Table names, the MWTR code, the document supertype, TD-line transit accounts and the transaction protocol are **design proposals in this document**, not verbatim SAP/MISA/Odoo/Microsoft data models. Tax/invoice references are not used to provide legal guidance in this warehouse proposal.
+
+
+## 8. Contract bổ sung 3.3.0 / Additional contracts
+
+
+| Proposed endpoint [TK] | Authorization and behavior |
+|---|---|
+| POST /api/replenishments/evaluate | replenishment_request:evaluate; current source/warehouse scope, returns decimal-string quantities, source versions and evaluationKey; no RR or stock writes |
+| POST /api/replenishments | replenishment_request:create; action SAVE_DRAFT/SUBMIT + source IDs/versions + stable creationKey + warehouse/neededOn/reasons; server recomputes snapshots, returns changed evaluations for review without overwriting entered fields, guards coverage and records payloadHash |
+| PUT /api/replenishments/:id [TK] | replenishment_request:update; documentVersion + operationKey + action SAVE_DRAFT/SUBMIT; keep RR ID and existing lineIds, validate line ownership/current state, add new lines without IDs; stale review preserves entered fields |
+| GET /api/notifications | notification:read; own recipient only AND current source/warehouse access, paginated; optional unread filter; no implicit marking read |
+| GET /api/notifications/unread-count | notification:read; same recipient/scope filter as list |
+| POST /api/notifications/:id/read | notification:mark_read; own accessible notification; idempotently set readAt without resetting it on retry |
+
+New operation catalogue entries: replenishment_request:evaluate, notification:read, notification:mark_read for OWNER/WAREHOUSE/SALES, still subject to individual recipient/source scope. No new create/approve grants, ADMIN bypass or notification creation endpoint. Proposed DTOs use existing success/message/data envelopes, ObjectId strings, decimal-string quantities, UTC ISO dates and Asia/Saigon presentation. No route, worker or live UI for these new contracts is implemented by schema/seed changes alone.
+
+| Rule | Requirement |
+|---|---|
+| R-27 | Direct SO-line or committed stocktake/policy source; both modes retain structured snapshots and free-text reason. |
+| R-28 | Explicit user creation; actor-scoped creationKey + payloadHash, source version and shared coverage guard; no stock effect. |
+| R-29 | Notification recipient/current scope, derived unique key, immutable message facts and independent readAt; live alerts are reevaluated. |
+| R-30 | Exact min/target/version policy and single-use coverage across pending RR→incoming→stock; no duplicate SO/WIR obligations. |
+
+
+| Case | Implementation acceptance requirement |
+|---|---|
+| T57 — Closure and notification | Evaluate only after committed closure/unlock; authorized offline Warehouse users can read their stored notice later. |
+| T58 — Prefill/Save draft/Submit/Later | Only user confirmation/save creates DRAFT with a real actor; changed quantity requires explanation; Later creates no pending coverage. |
+| T59 — Direct SO source | A saved SO without WIR can be the source; Editing retains SO-line references and the textual reason. |
+| T60 — Coverage duplication | SO/WIR/OD are one obligation; pending RR→PO→stock transfers coverage once; shared guards prevent concurrent duplicate replenishment. |
+| T61 — Retry/read state | At most one notice per event/type/recipient/warehouse; recipients have independent readAt and retries preserve it. |
+| T62 — Stale notice/changed rights | Opening reevaluates current data; revoked scope removes list/unread/source access; reading does not close the stock warning. |
+| T63 — Zero stock/freeze | Include zero-stock SKUs; provisional counts, rolled-back closure or remaining freeze must not cause a false post-count warning. |
+| T64 — Seed and upgrade | An empty DB receives all 39 collections/35 document kinds/19 line kinds; populated DBs are preserved and all current seed source references resolve. |
+| T65 | SO post-save assessment | No/partial suitable supply prompts only for uncovered quantity; covered demand links to existing source/RR; pending/failed evaluation is not zero supply. |
+| T66 | Form opening/cancellation and saving | Opening/Later/cancel creates no RR; Save draft or Submit persists one request; edits reuse saved ID/version. |
+| T67 | Extra product in source-backed RR | Each added line has its own source or other-need reason; a product outside SO never inherits its sales quantity link. |
+| T68 | Stale open form | Save returns changed evaluation/invalid lines, retaining entered quantity/date/reasons for reconfirmation. |
+| T69 | Strict current create contract | No creation-method field; source/UOM/reason/permission/version and idempotency still apply. |

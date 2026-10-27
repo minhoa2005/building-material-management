@@ -1,6 +1,6 @@
 # WMSD — Agent context BE
 
-> Phạm vi file: backend Node/MongoDB tại src/be. Dùng để code UC theo baseline 3.1.0, không phải tài liệu dịch ngược code thành SRS. **Không tự commit.**
+> Phạm vi file: backend Node/MongoDB tại src/be. Dùng để code UC theo baseline 3.3.0, không phải tài liệu dịch ngược code thành SRS. **Không tự commit.**
 
 Đọc cùng [FE context](../fe/context.md) khi thay API/permission/quantity/source contract. Hai file có phần nghiệp vụ chung để mỗi agent đọc độc lập, phần thiết kế triển khai và thẻ UC khác nhau theo vai trò.
 
@@ -12,22 +12,22 @@ WMSD (SEP490_G56) phục vụ cửa hàng gạch ốp lát Tân Thương: quản
 
 Đây là context để agent **thực hiện chức năng**: đọc phần quy tắc chung, phần kiến trúc của repo này và thẻ UC cần làm; lần theo UC liên quan để không phá chuỗi nguồn. Không coi tài liệu này là bằng chứng chức năng đã chạy. Mỗi thẻ UC gồm quyền, đầu vào, xử lý, hiệu ứng và hướng dẫn triển khai riêng cho repo.
 
-Baseline nghiệp vụ **3.1.0 (quyết định 24/10/2026, đồng bộ 25/10)**; hai bản quy trình revision 3.1.2, thiết kế chi tiết revision 3.1.1. Giữ 8 BF, 9 nhóm chức năng FE-01–09, 5 role, **111 UC = 97 ACTIVE + 14 RETIRED**, BR-01–33, SC-01–31 = 28 active/3 retired. “FE-xx” trong catalogue là nhóm chức năng, không có nghĩa chỉ giao cho frontend.
+Baseline nghiệp vụ **3.3.0 (quyết định 27/10/2026)**; quy trình và thiết kế được đồng bộ theo đề xuất bổ sung hàng/Notification/form1.4.0. Giữ 8 BF, 9 nhóm FE-01–09, 5 role, **111 UC = 97 ACTIVE + 14 RETIRED**, BR-01–33, SC-01–31 =28 active/3 retired. Lịch sử A1/B1/C2 của3.1.0 vẫn áp dụng.
 
 ### Nguồn và cách giải quyết mâu thuẫn
 
 | Nguồn | Phần agent cần dùng |
 |---|---|
-| [Quy trình VI](../../git_doc/docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) | mục 3–4 quyền/luồng, mục 8 BR, mục 11 nghiệm thu, mục 15 chứng từ/trạng thái, mục 17 A1/B1/C2 |
-| [Quy trình EN (đã đọc và đối chiếu)](../../git_doc/docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | mục 3–4 Eight To-be processes và EX-01–05, mục 6 permissions, mục 8 BR, mục 11 acceptance, mục 15/17 |
-| [Report 3](../../git_doc/docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | I.4.4 ma trận quyền; II đặc tả từng UC; III SC; IV NFR; V BR/MSG |
-| [Thiết kế chi tiết](../../git_doc/docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | mục 5–8 model/trạng thái/transaction/API; mục 11 R-01–26; mục 14 nghiệm thu; phụ lục 111 UC |
-| [Thiết kế dữ liệu VI](../../git_doc/docs/03_thiet_ke/de_xuat_database_design_VI.md) | mục 2 MongoDB; mục 3.4/3.6 A1/B1/C2; mục 4 ràng buộc; mục 6 T01–T56 |
-| [DDL tham chiếu](../../git_doc/docs/03_thiet_ke/WMSD_SQL_schema.sql) | 82 bảng/2 view để đối chiếu; không chạy như migration MongoDB |
-| [Report 1](../../git_doc/docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | bối cảnh, phạm vi, FE và giới hạn |
-| [Report 2](../../git_doc/docs/01_bao_cao/WMSD_Report2.docx.txt) | Software Configuration Management: nhánh theo việc, peer review, UC/task, kiểm tra trước merge |
-| [Hậu kiểm 25/10](../../git_doc/docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md) | quyết định đã đồng bộ; mục 6 là trạng thái Mermaid mới hơn mục 1–5 |
-| [README tài liệu](../../git_doc/README.md) | chỉ mục và thứ tự tài liệu hiện hành |
+| [Quy trình VI](git_doc/docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) | mục 3–4 quyền/luồng, mục 8 BR, mục 11 nghiệm thu, mục 15 chứng từ/trạng thái, mục 17 A1/B1/C2 |
+| [Quy trình EN (đã đọc và đối chiếu)](git_doc/docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | mục 3–4 Eight To-be processes và EX-01–05, mục 6 permissions, mục 8 BR, mục 11 acceptance, mục 15/17 |
+| [Report 3](git_doc/docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | I.4.4 ma trận quyền; II đặc tả từng UC; III SC; IV NFR; V BR/MSG |
+| [Thiết kế chi tiết](git_doc/docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | mục 5–8 model/trạng thái/transaction/API; mục 11 R-01–26; mục 14 nghiệm thu; phụ lục 111 UC |
+| [Thiết kế dữ liệu VI](git_doc/docs/03_thiet_ke/de_xuat_database_design_VI.md) | mục 2 MongoDB; mục 3.4/3.6 A1/B1/C2; mục 4 ràng buộc; mục 6 T01–T56 |
+| [DDL tham chiếu](git_doc/docs/03_thiet_ke/WMSD_SQL_schema.sql) | 85 bảng/2 view để đối chiếu; không chạy như migration MongoDB |
+| [Report 1](git_doc/docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | bối cảnh, phạm vi, FE và giới hạn |
+| [Report 2](git_doc/docs/01_bao_cao/WMSD_Report2.docx.txt) | Software Configuration Management: nhánh theo việc, peer review, UC/task, kiểm tra trước merge |
+| [Hậu kiểm 25/10](git_doc/docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md) | quyết định đã đồng bộ; mục 6 là trạng thái Mermaid mới hơn mục 1–5 |
+| [README tài liệu](git_doc/README.md) | chỉ mục và thứ tự tài liệu hiện hành |
 
 Quyền/nghiệp vụ hiện hành ưu tiên quy trình VI **và EN** cùng baseline, đối chiếu Report 3 và thiết kế chi tiết. Cấu trúc/syntax/contract đang chạy lấy từ code thực tế; các API gắn [TK] trong thiết kế là đề xuất. Nếu code lệch nghiệp vụ, ghi nhận độ lệch và sửa đúng phạm vi UC; không biến mock hoặc bug thành quy tắc. Nếu hai nguồn chuẩn thực sự bất đồng ở quyết định chưa chốt, nêu chính xác điểm bất đồng trước khi thực hiện phần phụ thuộc.
 
@@ -177,7 +177,7 @@ Trích bảng hiện hành ở quy trình VI mục 8.1; phần giải thích tri
 |---|---|---|
 | BR-01 | Lot identity phải phân biệt product/lot/tone/calibre; không gộp hàng khác tone để đủ lượng. | DR-01, UC-13/16/26/30/54/55/72 |
 | BR-02 | Quy đổi theo sản phẩm và phiên bản đóng gói; chốt hệ số ở dòng chứng từ. Với gạch nguyên viên, không tạo số viên phân số. Dùng diện tích theo quy cách sản phẩm; calibre là thuộc tính tương thích, không tự thay hệ số m². | DR-02, GB-03 |
-| BR-03 | Nhu cầu bổ sung từ Sales/Warehouse hoặc cảnh báo; chỉ Owner duyệt; ngưỡng tồn là tham số được kiểm soát, không tự phát hành PO. | UC-03/04/103, BF-01 |
+| BR-03 | Sau lưu SO/chốt kiểm kê, hệ thống đánh giá nguồn và hỏi/cảnh báo nếu còn thiếu. User mở form điền sẵn; chỉ Lưu nháp/Gửi duyệt hợp lệ mới ghi RR có source/snapshot/lý do. Owner khác người gửi duyệt; không tự tạo PO. | UC-03/04/13/47/48/93/103 |
 | BR-04 | Không tính trùng nhu cầu đã có PO/điều chuyển/phân bổ; lượng dự kiến về chưa phải khả dụng hiện tại. | BF-01/04/06 |
 | BR-05 | Cấm tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê theo userId. Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm, theo C2; không tự duyệt ngoại lệ hoặc cấp quyền Owner. BF-08 không có approval Owner. | UC-04/41/66/71/92 |
 | BR-06 | Receipt/issue/return/adjustment chỉ post một lần, nguyên tử cùng ledger và balance. Không âm tồn khả dụng; retry trả lại kết quả cũ. | DR-09/10/13, GB-09/10/13 |
@@ -199,7 +199,7 @@ Trích bảng hiện hành ở quy trình VI mục 8.1; phần giải thích tri
 | BR-22 | Khóa giao dịch thường trong kiểm kê; defect hold/evidence không đổi balance được ghi ngay. B1 chỉ batch chốt đã duyệt post delta/RECLASS/vị trí; giữ khóa/hold đến hoàn tất. Chưa đếm khác 0; lưu recount. | UC-87/88/92/93 |
 | BR-23 | Chênh đủ căn cứ có thể lập phương án trực tiếp hoặc recount nếu chưa rõ. Warehouse đề xuất, Owner duyệt/post đúng version. Batch delta thực tế + RECLASS bảo toàn tổng không ghi giảm hai lần; quality-only không ADJ=0. | UC-88/91/92/93 |
 | BR-24 | Chứng từ đã post không sửa/xóa để xóa dấu vết. Sai sót cần đảo/điều chỉnh liên kết có thẩm quyền. Master inactive giữ nguyên lịch sử. | DR-14, GB-02/13, UC-97/100–102 |
-| BR-25 | Thông báo và upload không tạo lại giao dịch tồn; gửi mail thất bại không rollback PGI/receipt đã commit. | API-01, JOB-01, UC-58/26/110 |
+| BR-25 | Outbox sau commit sinh Notification đúng recipient/scope; đọc không đóng cảnh báo, mở tính lại; retry không post tồn hoặc tự tạo RR. | UC-03/47/48/93/103 |
 | BR-26 | Không suy ra tình trạng đã giao khách (DELIVERED) chỉ từ PGI/bàn giao cho nhà vận chuyển, và không suy ra hoàn thành đơn bán (COMPLETED) chỉ từ đã giao hàng; không suy ra hoàn tiền từ phiếu nhập trả; không suy ra tăng tồn từ NCC đồng ý đổi hàng. | BF-06/07/08, UC-58/110/111 |
 | BR-27 | Chỉ các vai trò được phép xem chứng cứ mới lấy được tệp; URL không mặc định công khai. | API-02 lưu chứng cứ, GB-NEW-02 |
 | BR-28 | Có source system, source document/line, version và correlation ID để chống nhập/ghi nhận trùng giữa WMS và hồ sơ MISA trên SO, WIR, OD, GI-S, `CR` và `EXT-REF`. | UC-47/109/51/58/70/108 |
@@ -208,6 +208,31 @@ Trích bảng hiện hành ở quy trình VI mục 8.1; phần giải thích tri
 | BR-31 | SO nguồn xác minh, WIR/OD liên kết dòng; cam kết không vượt SO sau hủy. Trần thực hiện dùng PGI hợp lệ trừ GR-FD đã post; giao lại dùng phần tái mở trên SO/WIR cũ, không cộng OD thay thế thành nhu cầu mới. | UC-45–48/51/58/73/109 |
 | BR-32 | POD cần GI-S POSTED, người/thời điểm/lượng/ảnh. POD hiệu lực + GR-FD đã post + FD giữ chỗ ≤ PGI hợp lệ mỗi dòng. Chỉ DELIVERED nếu phần active > 0 đã giao đủ; hủy toàn bộ giao 0 → CANCELLED. | UC-58/73/110 |
 | BR-33 | Chỉ Sales xác nhận nhận đủ tiền ngoài hệ thống sau DELIVERED để chuyển SO sang COMPLETED. Chưa đủ tiền hoặc trả trước khi chưa giao đủ không làm hoàn thành đơn. POD/PAY-CFM không đổi tồn; đính chính phải giữ lịch sử và tính lại tiến độ đơn. | BF-06, UC-48/110/111/108 |
+
+### 3.6 Bổ sung hàng và Notification — quyết định 3.3.0 (27/10/2026)
+
+Nguồn quyết định đã được người dùng yêu cầu áp dụng: [đề xuất 1.4.0](git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Các quy tắc mới thay phần thiếu nguồn SO trực tiếp/thông báo của baseline 3.1.0; giữ 8 BF, 5 role, 111 UC (97 active/14 retired). Model/seed đã hỗ trợ cấu trúc mới; chưa có route/consumer/UI thật cho luồng này.
+
+- Sau lưu SO hoặc chốt kiểm kê đã commit/unlock, tính coverage và cảnh báo. Thiếu bán dùng SO line đã lưu, WIR chỉ tùy chọn; kiểm stock các kho/PO đúng product/tone/calibre và hạn, chưa dành cho nhu cầu khác. Resolve allocation WIR về cùng SO line, không đếm hai lần.
+- User bấm Tạo yêu cầu để mở form điền sẵn; được chỉnh lượng/ngày/lý do, thêm dòng có nguồn hoặc lý do riêng, rồi Lưu nháp/Gửi duyệt. Mở/hủy form hoặc Để sau chưa tạo RR. Owner chốt chỉ kích hoạt đánh giá; Sales/Warehouse tạo/gửi, Owner khác người gửi duyệt.
+- ProductWarehousePolicy có targetQty >= minimumQty >=0, target mặc định minimum, version và updatedBy. Tồn thấp là available < minimum, xét toàn sản phẩm/kho gồm0; scope còn freeze phải hoãn. Trừ pending RR/cung đúng một lần; tách dự trữ khỏi thiếu bán.
+- REPLENISHMENT header có creationKey, submittedBy/submittedAt theo cặp; creationKey unique theo createdBy, payloadHash ở BusinessOperation. Dòng REPLENISHMENT có triggerType, SO-line/version hoặc stocktake/version/policy/version, evaluationKey/evaluatedAt, coverage snapshots, suggestedQty, reasonNote; chỉnh lượng phải có quantityAdjustmentReason. Số vượt thiếu bán tách lý do khác.
+- DocumentLink/LineLink dùng REPLENISHES_SALES_ORDER, REPLENISHES_DEMAND, RELATED_ISSUE_REQUEST, STOCKTAKE_REPLENISHMENT, REPLENISHMENT_PURCHASE. ReplenishmentPlanningGuard unique kho/sản phẩm lưu version; mọi command tác động coverage cần conditional-write protocol chung, schema đơn lẻ chưa chống race.
+- Outbox STOCKTAKE_CLOSED/SALES_ORDER_SAVED lưu documentVersion cùng transaction nguồn; consumer sau commit đánh giá và lưu Notification, không tạo RR. Notification có recipient/type/title/message/warehouse/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; retry không tạo trùng hay reset readAt. Warehouse active đúng kho nhận thông báo tổng hợp; SO chỉ báo người có quyền nguồn.
+- List, unread count và mở nguồn đều kiểm recipient + quyền nguồn/kho hiện hành. Đã đọc không phải đã giải quyết thiếu hàng; khi mở cảnh báo/tạo RR tính lại dữ liệu. Để sau không tạo pending coverage/ẩn cảnh báo. MVP không có StockAlert; chưa hỗ trợ assignment/snooze/dismissal lifecycle.
+- Contract [TK]: POST /api/replenishments/evaluate, POST /api/replenishments, GET /api/notifications, GET /api/notifications/unread-count, POST /api/notifications/:id/read. Envelope theo data hiện có, ObjectId/decimal strings/UTC ISO. Quyền evaluate + notification:read/mark_read chỉ OWNER/WAREHOUSE/SALES theo scope; Owner không được create RR chỉ vì có evaluate, ADMIN không bypass.
+- Seed có39 collections/35 document kinds/19 line kinds; có RR lưu từ form kiểm kê, RR SO chưa WIR có thêm dòng dự trữ riêng, SO chưa có nguồn đúng tone chưa tạo RR và hai recipient readAt độc lập. DB đã có dữ liệu không bị seed lại; SQL tham chiếu85 bảng/2 view.
+
+
+**Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.
+
+- Mở/hủy form hoặc chọn Để sau không lưu RR, links hay pending coverage. Lưu nháp mới ghi DRAFT; Gửi duyệt kiểm dữ liệu rồi ghi SUBMITTED theo quyền. Nháp đã lưu được cập nhật cùng ID/version. Owner khác người gửi duyệt; Accountant lập PO sau duyệt.
+- Sau lưu SO thành công, xét các kho, nguồn về đúng hạn/tương thích và RR đã có. Còn thiếu thì hỏi “Đơn đã lưu; còn thiếu lượng chưa có nguồn phù hợp đúng hạn. Bạn có muốn tạo yêu cầu bổ sung?” Người dùng chọn dòng rồi mở form. Áp dụng cho cả không có nguồn và chỉ đủ một phần; đủ RR/nguồn thì dẫn tới phương án đang có. Có phương án kho khác chưa chọn phải hiển thị trước, không kết luận không có nguồn.
+- Đánh giá lỗi/chậm hiển thị chưa kiểm tra được/đang kiểm tra, không coi nguồn bằng0 hoặc làm SO lưu thất bại. Hộp thoại theo lần lưu có thay đổi nhu cầu; refresh/retry/sửa ghi chú không liên quan không tự lặp. Cảnh báo và nút tạo vẫn có trên chi tiết SO.
+- Được thêm sản phẩm ngoài cảnh báo. Dòng thêm chọn nguồn đúng của chính nó hoặc MANUAL_OTHER kèm lý do; sản phẩm ngoài SO không gắn giả vào SO line ban đầu. Cùng sản phẩm khác nguồn/lý do có thể tách dòng; trùng đúng cùng nguồn cần gộp/sửa.
+- Khi lưu/gửi, BE kiểm lại source/version/coverage và trả số cũ–mới nếu thay đổi. Giữ nội dung người dùng nhập; chỉ lưu sau khi xác nhận dữ liệu hợp lệ. Nguồn hủy/hết quyền/hết nhu cầu phải sửa/xóa dòng; không âm thầm thay lượng hoặc đổi loại lý do. Phần vượt thiếu bán phải tách nhu cầu khác.
+- Contract tạo dùng action SAVE_DRAFT/SUBMIT, creationKey, kho/ngày/lý do và source từng dòng; không có trường phân loại cách tạo. Quyền, Notification/readAt, guard và payloadHash giữ nguyên mục đích; mở form/đọc thông báo không ghi tồn. Ngày cần sau kiểm kê không có căn cứ thì để người dùng chọn.
+
 
 ## 4. Trạng thái và lỗi dùng chung
 
@@ -308,7 +333,7 @@ Không tự sửa tất cả lỗi trong task một UC; nhưng không xây tiế
 
 ### 5.4 Mô hình dữ liệu và persistence contract thực
 
-Đọc src/models/README.md trước viết nghiệp vụ. 82 bảng SQL tham chiếu đã có representation trên **37 collections**, **35 document discriminators**, **18 line discriminators**; schema/index không thay transaction/service hoặc FK.
+Đọc src/models/README.md trước viết nghiệp vụ. 85 bảng SQL tham chiếu đã có representation trên **39 collections**, **35 document discriminators**, **19 line discriminators**; schema/index không thay transaction/service hoặc FK.
 
 | Nhóm | Model/file và lưu ý |
 |---|---|
@@ -349,6 +374,8 @@ SO/WIR/cancellation/POD/PAY-CFM dùng BusinessOperation, không tạo stock batc
 Reversal cần kiểm POD/claim/GR/fulfilled reopening/redelivery/tasks và trạng thái kho; không đảo gốc để làm nguồn âm. Receipt quality split, supplier custody, partial receipt/outstanding và repeated TO confirmations dùng line identity/operation riêng, không chỉ header totals.
 
 ### 5.6 Seeds, môi trường, migration và test
+
+`npm run migrate:replenishment` xem trước nâng cấp database đã có dữ liệu; thêm `-- --apply` để sao lưu BSON Extended JSON ngoài Git tại `~/.codex/backups/`, tạo index bổ sung và cập nhật data/quyền trong transaction. Script tại `src/migrations/` không seed lại, không drop index, giữ IDs/version/stock/approvals và chỉ bổ sung ba quyền mới cho role phù hợp. Policy thiếu target/version dùng minimum/1; RR cũ thiếu snapshot nguồn được chuyển thành dòng REPLENISHMENT/MANUAL_OTHER với lý do đã ghi, không bịa đánh giá hoặc người/thời điểm gửi. Chạy lại không đổi dữ liệu. Kiểm bằng `test/replenishment-migration.test.js`; integration vẫn cần MONGODB_TEST_URI riêng.
 
 npm run dev/start/seed/seed:sync-permissions/test là scripts thực; không có npm build/lint. index.js có thể runSeeds khi startup nếu SEED_ON_STARTUP khác false; sync quyền chỉ khi SEED_SYNC_ROLE_PERMISSIONS=true hoặc CLI flag. Import models/index.js không connect/seed/post; khởi động server có thể ghi DB. Không chạy server/seeder vào DB thật để “kiểm thử” một task tài liệu. Không log/copy .env, Mongo URI/Cloudinary/JWT credentials; chỉnh .env.example chỉ với placeholder nếu cần.
 
@@ -411,6 +438,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Nguồn đã covered không tạo RR trùng; Accountant không tạo.
 - **Truy vết:** Report 3 phần II, UC-03 (dòng 921 tại snapshot đọc); nhánh BF-01-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Một form điền sẵn từ nguồn; chọn/thêm dòng có căn cứ riêng, Lưu nháp/Gửi duyệt mới tạo RR. Giữ lý do và source refs; recheck phiên bản/coverage, trả dữ liệu mới để review mà giữ form.
 
 ### UC-04 — Approve or reject replenishment request
 
@@ -423,6 +451,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Requester đổi sang Owner vẫn không tự duyệt; approval stale chặn PO.
 - **Truy vết:** Report 3 phần II, UC-04 (dòng 936 tại snapshot đọc); nhánh BF-01-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Review cả source refs, suggestedQty, lượng thực đề nghị và giải trình; Owner khác submittedBy/requester. Đọc Notification không là approval.
 
 ### UC-05 — View purchase order list
 
@@ -531,6 +560,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/products` [đề xuất, chưa có route]; model/data: Product/ProductUomVersion/ProductWarehousePolicy/Uom.
 - **Điểm kiểm chứng:** Đổi conversion version không đổi qtyBase lịch sử; fractional PIECE bị chặn.
 - **Truy vết:** Report 3 phần II, UC-13 (dòng 1087 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Policy theo sản phẩm/kho có minimumQty/targetQty/version/updatedBy; target mặc định minimum, target >= minimum; không thêm autoCreateAfterStocktake.
 
 ### UC-14 — View lot list
 
@@ -911,6 +941,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/sales-orders` [đề xuất, chưa có route]; model/data: SALES_ORDER; ExternalReference/ExternalReferenceLine; BusinessOperation/SalesOrderCancellation.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
 - **Truy vết:** Report 3 phần II, UC-47 (dòng 1603 tại snapshot đọc); nhánh BF-06-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Sau lưu SO thành công, đánh giá nguồn và hỏi tạo RR nếu còn thiếu; chỉ mở form khi user chọn. Ghi sự kiện SALES_ORDER_SAVED có version để đánh giá thiếu và Notification theo scope; RR có thể dùng SO-line trước khi có WIR.
 
 ### UC-48 — Update or Cancel Unissued Sales Order Remainder
 
@@ -923,6 +954,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/sales-orders` [đề xuất, chưa có route]; model/data: SALES_ORDER; ExternalReference/ExternalReferenceLine; BusinessOperation/SalesOrderCancellation.
 - **Điểm kiểm chứng:** Hàng PGI chưa về không được cancel; GR-FD về chưa redeliver mới đủ điều kiện.
 - **Truy vết:** Report 3 phần II, UC-48 (dòng 1618 tại snapshot đọc); nhánh BF-06-A1, BF-06-A2, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** SO thay lượng/nguồn/ngày cần phải đánh giá lại nhu cầu và pending coverage; mở Notification cũ không dùng snapshot cũ để tạo RR.
 
 ### UC-49 — View Outbound Delivery List
 
@@ -1340,6 +1372,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Có bằng chứng cho shortage2 được plan trực tiếp, chưa rõ mới recount; quality variance không giả shortage.
 - **Truy vết:** Report 3 phần II, UC-88 (dòng 2252 tại snapshot đọc); nhánh BF-05-A1, BF-05-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Kết quả đang đếm/đối chiếu chưa là nguồn cảnh báo tồn thấp sau chốt. Hoàn tất nhánh không lệch cũng phát STOCKTAKE_CLOSED chỉ sau commit/unlock hợp lệ.
 
 ### UC-89 — View inventory adjustment request list
 
@@ -1400,6 +1433,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/stocktake-resolutions` [đề xuất, chưa có route]; model/data: ST_RESOLUTION/ADJUSTMENT/RECLASS; Approval/DefectHold/PostingBatch.
 - **Điểm kiểm chứng:** Book50/count46GOOD+2broken => delta-2+RECLASS2; lỗi giữ freeze/hold và rollback tất cả. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
 - **Truy vết:** Report 3 phần II, UC-93 (dòng 2332 tại snapshot đọc); nhánh BF-05-A3, BF-05-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Ghi STOCKTAKE_CLOSED + documentVersion cùng transaction chốt/unlock. Consumer sau commit báo Warehouse đúng kho, Owner không tự tạo RR; lỗi thông báo retry riêng.
 
 ### UC-94 — Sign in to the system
 
@@ -1520,6 +1554,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/inventory` / `src/modules/fulfilment-options` [đề xuất, chưa có route]; model/data: StockBalance/StockAccount/Reservation/DefectHold/DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Need80 main30 other50 compatible => đề xuất direct/transfer, không tự tạo PO50.
 - **Truy vết:** Report 3 phần II, UC-103 (dòng 1811 tại snapshot đọc); nhánh BF-01-A1, BF-02-E1, BF-04-A1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** Hiển thị nguồn/coverage và nút Tạo yêu cầu mở form điền sẵn. SO vừa lưu còn thiếu mới thì hỏi tạo RR, kể cả thiếu một phần; chưa rõ đánh giá không coi là nguồn0. Refresh/retry không tự lặp hộp thoại.
 
 ### UC-104 — Inspect and Post Transfer Receipt
 
@@ -1585,6 +1620,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Điểm đặt BE:** `src/modules/issue-requests` [đề xuất, chưa có route]; model/data: ISSUE_REQUEST/SALES_ORDER lines; releaseKey/BusinessOperation/OdCommitmentTransfer.
 - **Điểm kiểm chứng:** Không WIR thiếu saved SO, không duplicate releaseKey; FD claim chưa post không reopen.
 - **Truy vết:** Report 3 phần II, UC-109 (dòng 1826 tại snapshot đọc); nhánh BF-06-E1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Bổ sung 3.3.0:** WIR là release của SO gốc; RR đã tạo trực tiếp từ SO phải được tính khi kiểm thiếu từ WIR, không cộng SO/WIR allocations hoặc RR trùng lượng.
 
 ### UC-110 — Confirm Customer Delivery with Photo Evidence
 
@@ -1626,7 +1662,7 @@ Các ví dụ/T01–T56 là tiêu chí thiết kế, không phải lịch sử t
 
 Khi UC/BR/quyền/trạng thái/contract đổi theo quyết định được chấp thuận, cập nhật đúng context FE và BE cùng nguồn chuẩn liên quan, giữ IDs/retired history; ghi rõ decision mới thay baseline nào. Khi checkout thay, đọc lại code/test/config thay vì tin snapshot này vĩnh viễn. Không dùng context để tự mở rộng scope hoặc tự cấp quyền triển khai/commit.
 
-### Dấu vết nguồn tại lúc tạo (SHA-256 rút gọn)
+### Dấu vết nguồn tại lúc tạo — snapshot 26/10 (SHA-256 rút gọn)
 
 - Quy trình VI: `78e4dc84a57bc129`.
 - Quy trình EN (đã đọc và đối chiếu): `89262ed72d3492a2`.
@@ -1639,3 +1675,8 @@ Khi UC/BR/quyền/trạng thái/contract đổi theo quyết định được ch
 - Hậu kiểm 25/10: `a2c3b9d73ee895d2`.
 
 Các hash dùng nhận biết nguồn đã đổi, không thay kiểm thử. File được tạo ngày 26/10/2026 (Asia/Saigon), chỉ tổng hợp tài liệu và đọc code; không sửa code ứng dụng, dữ liệu, index hoặc cấu hình trong lượt tạo này.
+
+
+### Đồng bộ 27/10/2026 — 3.3.0
+
+Đã cập nhật quy tắc chung và UC liên quan theo đề xuất 1.4.0 được người dùng yêu cầu áp dụng. Schema/seed có cấu trúc mới; API đánh giá/tạo RR, notification consumer và UI vẫn là thiết kế cần triển khai. Hash snapshot26/10 phía trên là lịch sử, không xác nhận nội dung nguồn hiện tại. Không tự commit.

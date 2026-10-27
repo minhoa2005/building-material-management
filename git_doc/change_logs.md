@@ -1,3 +1,9 @@
+# Đồng bộ form tạo RR và Notification — 27/10/2026
+
+Baseline hiện hành 3.3.0 theo đề xuất1.4.0 được chấp thuận. Đã cập nhật model/seed/DTO/tài liệu/context cho một form điền sẵn, lựa chọn dòng và thêm sản phẩm, hỏi sau lưu SO còn thiếu, giữ form khi dữ liệu đổi, lưu nháp/gửi duyệt và source từng dòng. Không có phân loại cách tạo. API/consumer/UI vẫn cần triển khai; chưa thay database người dùng hoặc commit. Chi tiết [báo cáo đồng bộ](docs/07_ra_soat/CR-2026-10-27-REPLENISHMENT.md).
+
+---
+
 # Cập nhật Mermaid và bản xuất liên quan, chỉ loại trừ draw.io — 25/10/2026
 
 Theo yêu cầu bổ sung, phạm vi loại trừ chỉ còn **file draw.io**. Các mục nhật ký cũ về “giữ nguyên diagrams/Mermaid” bên dưới phản ánh lượt trước, không mô tả trạng thái hiện tại. Chi tiết tại [hậu kiểm mục 6](docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md#6-bổ-sung-mermaid--chỉ-loại-trừ-file-drawio).

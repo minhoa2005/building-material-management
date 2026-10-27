@@ -2,7 +2,7 @@
 
 Kho tài liệu của Warehouse Management System Development — SEP490_G56, cửa hàng gạch ốp lát Tân Thương.
 
-**Chuẩn nghiệp vụ hiện hành: baseline 3.1.0 ngày 24/10, đồng bộ tài liệu ngày 25/10/2026.** Một cửa hàng, từ 3 kho theo khảo sát; 8 BF; 5 vai trò; 111 UC (97 active/14 retired); BR-01–33; SC-01–31 (28 active/3 retired). Bản quy trình 3.1.2 cập nhật cả Mermaid; baseline nghiệp vụ giữ 3.1.0. Đây là thiết kế được chọn, không phải xác nhận mọi kiểm soát đã được triển khai hoặc nghiệm thu.
+**Chuẩn nghiệp vụ hiện hành: baseline 3.3.0, đồng bộ ngày 27/10/2026.** Áp dụng một form RR điền sẵn, lời hỏi sau lưu SO, thêm sản phẩm có căn cứ riêng và Notification theo đề xuất 1.4.0; giữ 8 BF, 5 role, 111 UC (97 active/14 retired), BR-01–33, SC-01–31 (28 active/3 retired). Model/seed hỗ trợ cấu trúc mới; API/consumer/UI mới chưa triển khai.
 
 Luồng đơn: SO nhập lại từ nguồn ngoài đã xác minh → WIR liên kết → OD/soạn/PGI → Warehouse xác nhận POD có ảnh (DELIVERED) → Sales xác nhận đủ tiền ngoài hệ thống (PAY-CFM, COMPLETED). Giá bán, hóa đơn, thu/chuyển tiền và kế toán vẫn bên ngoài; không live MISA.
 
@@ -14,16 +14,20 @@ Thay đổi chính: A1 nhận hàng giao thất bại bằng GR-FD và tái mở
 | 3.1.0 | 25/10/2026 | Đồng bộ tài liệu theo quyết định 24/10; loại trừ diagrams. Xem [báo cáo hậu kiểm](docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md). |
 | Bổ sung Mermaid | 25/10/2026 | Theo yêu cầu tiếp theo, chỉ loại trừ file draw.io; cập nhật Mermaid nhúng, context và bản xuất PNG/HTML liên quan. |
 
+**Quyết định mới:** [đề xuất bổ sung hàng](docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md) và [CR/ma trận tác động](docs/07_ra_soat/CR-2026-10-27-REPLENISHMENT.md). Các mục lịch sử25/10 giữ mốc3.1.0; sơ đồ draw.io là snapshot lịch sử đã ghi phiên bản, không thay nguồn nghiệp vụ hiện hành.
+
 ## Bộ tài liệu hiện hành
+
+Đã áp dụng [đề xuất 1.4.0 — một form tạo RR được điền sẵn](docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md) và [quyết định nghiệp vụ](docs/03_thiet_ke/brainstorms/tao_rr_form_dien_san_2026-10-27.md) vào model/seed/contracts/context. Một form, nguồn từng dòng và lưu/gửi theo quyền; API/worker/UI chưa được triển khai bởi thay đổi cấu trúc này.
 
 | Tài liệu | Vai trò / trạng thái |
 |---|---|
-| [Quy trình VI](docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) / [EN](docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | Chuẩn nghiệp vụ 3.1.0, bản tài liệu 3.1.2; 8 BF, CR/FD, B1, C2, quyền/chứng từ/BR và Mermaid |
+| [Quy trình VI](docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) / [EN](docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | Chuẩn nghiệp vụ/tài liệu 3.3.0; 8 BF, CR/FD, B1, C2, quyền/chứng từ/BR và Mermaid |
 | [Report 1](docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | Bối cảnh, GAP, 9 FE, phạm vi và 8 To-be |
 | [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | Catalogue/permission/spec đủ 111 UC, màn hình, BR, NFR và lỗi |
-| [Thiết kế hệ thống chi tiết](docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | Bản tài liệu 3.1.1, baseline 3.1.0; API/trạng thái/transaction/MongoDB, GR-FD/B1 và truy vết 111 UC |
-| [Thiết kế database VI](docs/03_thiet_ke/de_xuat_database_design_VI.md) / [EN](docs/03_thiet_ke/de_xuat_database_design_EN.md) | Mô hình tham chiếu và MongoDB mapping; 26 quy tắc, 56 case nghiệm thu |
-| [SQL tham chiếu](docs/03_thiet_ke/WMSD_SQL_schema.sql) | 82 bảng, 2 view; T-SQL tham chiếu 3.1.0 có A1/B1/C2, chưa chạy SQL Server/MongoDB |
+| [Thiết kế hệ thống chi tiết](docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | Bản tài liệu/baseline 3.3.0; API/trạng thái/transaction/MongoDB, GR-FD/B1 và truy vết 111 UC |
+| [Thiết kế database VI](docs/03_thiet_ke/de_xuat_database_design_VI.md) / [EN](docs/03_thiet_ke/de_xuat_database_design_EN.md) | Mô hình tham chiếu và MongoDB mapping; 30 quy tắc, 64 case nghiệm thu |
+| [SQL tham chiếu](docs/03_thiet_ke/WMSD_SQL_schema.sql) | 85 bảng, 2 view; T-SQL tham chiếu 3.3.0 có A1/B1/C2, chưa chạy SQL Server/MongoDB |
 | [Nhật ký](change_logs.md) | Thay đổi, kiểm tra thực tế và giới hạn theo từng mốc |
 | [Report 2](docs/01_bao_cao/WMSD_Report2.docx.txt) | Kế hoạch còn lại 5 tuần 26/10–29/11/2026 (tuần 8–12); 5 người theo nhóm nghiệp vụ; 92,25 pd / 100 pd khả dụng; review thử tuần 13 chưa chốt ngày |
 | [Project Tracking](docs/01_bao_cao/Project_Tracking_Template.xlsx) | Điền trực tiếp 97 UC active theo format gốc; danghh chỉ bán/xuất hàng, bachhm nhận UC-20–22 danh mục khách hàng; giữ nguyên phông chữ và các sheet |

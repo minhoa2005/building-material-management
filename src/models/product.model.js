@@ -9,6 +9,8 @@ import {
   decimal,
   date,
   appendOnly,
+  rules,
+  exact,
 } from "./model-utils.js";
 
 const uomSchema = new Schema(
@@ -49,10 +51,18 @@ const policySchema = new Schema(
     productId: ref("Product"),
     warehouseId: ref("Warehouse"),
     minimumQty: decimal(),
+    targetQty: decimal({ default() { return this.minimumQty; } }),
+    version: integer(1, { default: 1 }),
+    updatedBy: ref("User", false),
   },
   options("product_warehouse_policies"),
 );
 policySchema.index({ productId: 1, warehouseId: 1 }, { unique: true });
+rules(policySchema, function validateReplenishmentTarget() {
+  if (this.targetQty != null && this.minimumQty != null && exact(this.targetQty).lt(exact(this.minimumQty))) {
+    this.invalidate("targetQty", "Target quantity must be at least the minimum quantity");
+  }
+});
 
 const lotSchema = new Schema(
   {

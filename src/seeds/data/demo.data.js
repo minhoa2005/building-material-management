@@ -70,6 +70,7 @@ export async function buildDemoData() {
   const products = [];
   const lots = [];
   const conversions = [];
+  const policies = new Map();
   for (const [index, size, factor] of [[1, '600x600', '4'], [2, '300x600', '8']]) {
     const product = add('Product', `${index}`, {
       sku: `GACH-DEMO-${index}`, name: `Gạch mẫu ${size}`, baseUomId: piece._id, nominalSize: size,
@@ -86,9 +87,14 @@ export async function buildDemoData() {
       calibre: `CAL-DEMO-${index}`, identificationStatus: 'VERIFIED', manufacturedOn: at(1),
     }));
     for (const warehouse of warehouses.values()) {
-      add('ProductWarehousePolicy', `${index}:${warehouse.code}`, {
-        productId: product._id, warehouseId: warehouse._id, minimumQty: '20',
-      });
+      const key = `${index}:${warehouse.code}`;
+      policies.set(key, add('ProductWarehousePolicy', key, {
+        productId: product._id, warehouseId: warehouse._id,
+        minimumQty: index === 1 && warehouse.code === 'WH02' ? '150' : '20',
+        targetQty: index === 1 && warehouse.code === 'WH02' ? '160' : '20',
+        version: 1, updatedBy: owner,
+      }));
+      add('ReplenishmentPlanningGuard', key, { warehouseId: warehouse._id, productId: product._id, version: 0 });
     }
   }
   add('Lot', 'unknown', {
@@ -198,14 +204,18 @@ export async function buildDemoData() {
   // BF-01: approved replenishment -> purchase -> arrival/inspection -> GR -> put-away.
   const rr = doc('RR', 'REPLENISHMENT', dispatcher, {
     warehouseId: wh('WH01'), neededOn: at(10), triggerReason: 'Bổ sung hàng demo',
+    creationKey: 'demo:rr:initial', submittedBy: dispatcher, submittedAt: at(9),
   }, 'APPROVED');
-  const rrLine = line('rr', rr, '120');
+  const rrLine = line('rr', rr, '120', 'REPLENISHMENT', {
+    triggerType: 'MANUAL_OTHER', reasonNote: 'Nhập lô hàng dự trữ ban đầu theo kế hoạch demo.',
+  });
+  operation('rr:create', rr, dispatcher, 'CREATE_REPLENISHMENT');
   approve('rr', rr, owner, 'REPLENISHMENT_APPROVAL', [rrLine]);
   const po = doc('PO', 'PO', accountant, {
     warehouseId: wh('WH01'), supplierId: supplier._id, expectedOn: at(10), supplierConfirmation: 'Xác nhận NCC demo',
   }, 'COMPLETED');
   const poLine = line('po', po, '120');
-  link(rrLine, poLine);
+  link(rrLine, poLine, models.REPLENISHMENT_RELATIONS.PURCHASE);
   const arrival = doc('ARRIVAL', 'ARRIVAL', dispatcher, {
     warehouseId: wh('WH01'), supplierId: supplier._id, arrivedAt: at(10), deliveryReference: 'DELIVERY-DEMO',
   }, 'COMPLETED');
@@ -240,7 +250,7 @@ export async function buildDemoData() {
     const soLine = line(`so:${key}`, so, qty, 'SALES_ORDER', {
       externalReferenceId: external._id, externalLineId: externalLine._id, requiredTone: 'T1', requiredCalibre: 'CAL-DEMO-1',
     });
-    if (status === 'CANCELLED') return { so, soLine };
+    if (['CANCELLED', 'OPEN'].includes(status)) return { so, soLine };
     const wir = doc(`WIR-${key}`, 'ISSUE_REQUEST', sales, {
       salesOrderId: so._id, requestedWarehouseId: wh('WH01'), neededOn: at(12), deliveryAddressSnapshot: 'Địa chỉ giao hàng mẫu',
     }, status === 'COMPLETED' ? 'COMPLETED' : 'PARTIAL', 12);
@@ -262,7 +272,7 @@ export async function buildDemoData() {
       demandLineId: wirLine._id, executionLineId: giLine._id, balanceId: balance('WH01:STAGING')._id,
       qtyBase: qty, status: 'CONSUMED',
     });
-    add('DemandSupplyAllocation', key, { demandLineId: wirLine._id, supplyLineId: grLine._id, qtyBase: qty, status: 'FULFILLED' });
+    add('DemandSupplyAllocation', key, { demandLineId: soLine._id, supplyLineId: grLine._id, qtyBase: qty, status: 'FULFILLED' });
     return { so, soLine, wir, wirLine, od, odLine, gi, giLine };
   };
   const delivered = saleChain('DONE', '12', 'COMPLETED');
@@ -464,15 +474,121 @@ export async function buildDemoData() {
   link(resolutionLine, line('adjustment', adjustment, '2', 'ADJUSTMENT', { countId: count._id, deltaQty: '-2' }, 1), 'PROPOSED_DELTA');
   add('DocumentLink', 'stocktake:resolution', { parentDocumentId: stocktake._id, childDocumentId: resolution._id, relationCode: 'RESOLUTION_PLAN' });
 
+  // A separate closed count: exact counts, released lock, then user-selected RR.
+  // Product 2 has a genuine zero count and no RR: the low-stock alert stays actionable.
+  const closedStocktake = doc('STOCKTAKE-CLOSED', 'STOCKTAKE', owner, {
+    warehouseId: wh('WH02'), cutoffAt: at(26), completedAt: at(26, 10),
+    scopeLocationIds: [locations.get('WH02:STORAGE')._id],
+  }, 'CLOSED', 26);
+  closedStocktake.version = 2;
+  // location_locks stores live locks only; this closed scope has none.
+  for (const productIndex of [0, 1]) {
+    const countedBalance = balance('WH02:STORAGE', 'GOOD', store, productIndex);
+    const countedSnapshot = add('StocktakeSnapshot', `closed:${productIndex}`, {
+      stocktakeId: closedStocktake._id, balanceId: countedBalance._id, bookQty: countedBalance.qtyBase,
+    });
+    add('CountAttempt', `closed:${productIndex}`, {
+      snapshotId: countedSnapshot._id, attemptNo: 1, countedQty: countedBalance.qtyBase,
+      countedBy: receiver, countedAt: at(26, 9),
+    });
+  }
+  const countedAvailable = balance('WH02:STORAGE').qtyBase.toString();
+  const stocktakeSuggested = exact('160').minus(countedAvailable).toFixed();
+  const stocktakeRr = doc('RR-STOCKTAKE', 'REPLENISHMENT', receiver, {
+    warehouseId: wh('WH02'), neededOn: at(29), creationKey: 'demo:rr:stocktake',
+    triggerReason: 'Bổ sung dự trữ sau kiểm kê DEMO-STOCKTAKE-CLOSED theo gợi ý đã xác nhận.',
+  }, 'DRAFT', 26);
+  line('rr:stocktake', stocktakeRr, stocktakeSuggested, 'REPLENISHMENT', {
+    triggerType: 'STOCKTAKE_LOW_STOCK', sourceStocktakeId: closedStocktake._id, sourceStocktakeVersion: 2,
+    policyId: policies.get('1:WH02')._id, policyVersion: 1,
+    evaluationKey: 'demo:closed-count:product1:v2', evaluatedAt: at(26, 11),
+    availableQtySnapshot: countedAvailable, minimumQtySnapshot: '150', targetQtySnapshot: '160',
+    incomingCoverageQtySnapshot: '0', pendingRequestCoverageQtySnapshot: '0', suggestedQty: stocktakeSuggested,
+    reasonNote: `Đếm khớp ${countedAvailable} viên, dưới ngưỡng 150; mục tiêu 160, chưa có nguồn bổ sung.`,
+  });
+  operation('rr:stocktake:create', stocktakeRr, receiver, 'CREATE_REPLENISHMENT');
+  add('DocumentLink', 'stocktake:rr', {
+    parentDocumentId: closedStocktake._id, childDocumentId: stocktakeRr._id,
+    relationCode: models.REPLENISHMENT_RELATIONS.STOCKTAKE,
+  });
+
+  // Saved SO without WIR: the user saved a prefilled form, adjusted quantity and added a separate reserve line.
+  const shortage = saleChain('SHORTAGE', '240', 'OPEN');
+  shortage.so.occurredAt = at(27);
+  shortage.so.header.neededOn = at(29);
+  const localAvailable = balance('WH01:STORAGE').qtyBase.toString();
+  const salesSuggested = exact('240').minus(localAvailable).minus(countedAvailable).toFixed();
+  const requestedSalesQty = exact(salesSuggested).minus('4').toFixed();
+  const salesRr = doc('RR-SALES', 'REPLENISHMENT', sales, {
+    warehouseId: wh('WH01'), neededOn: at(29), creationKey: 'demo:rr:sales',
+    triggerReason: 'Bổ sung một phần thiếu cho DEMO-SO-SHORTAGE và thêm mẫu gạch khác để dự trữ.',
+  }, 'DRAFT', 27);
+  const salesRrLine = line('rr:sales', salesRr, requestedSalesQty, 'REPLENISHMENT', {
+    triggerType: 'SALES_SHORTAGE', sourceSalesOrderLineId: shortage.soLine._id, sourceSalesOrderVersion: 1,
+    evaluationKey: 'demo:so-shortage:v1', evaluatedAt: at(27, 9), remainingDemandQtySnapshot: '240',
+    reservedForDemandQtySnapshot: '0', availableQtySnapshot: localAvailable, onHandCoverageQtySnapshot: localAvailable,
+    otherWarehouseCoverageQtySnapshot: countedAvailable, incomingCoverageQtySnapshot: '0',
+    pendingRequestCoverageQtySnapshot: '0', suggestedQty: salesSuggested,
+    reasonNote: 'Cần 240 viên; xét kho chính và phương án lấy từ WH02 đúng tone/calibre, chỉ mua phần còn thiếu.',
+    quantityAdjustmentReason: 'Đề nghị trước một phần; 4 viên còn lại chờ Sales xác nhận với khách (demo).',
+  });
+  line('rr:sales:extra', salesRr, '5', 'REPLENISHMENT', {
+    triggerType: 'MANUAL_OTHER', reasonNote: 'Mua dự trữ mẫu gạch khác ngoài đơn bán, người dùng thêm trên cùng form.',
+  }, 1);
+  operation('rr:sales:create', salesRr, sales, 'CREATE_REPLENISHMENT');
+  add('DocumentLink', 'so:rr', {
+    parentDocumentId: shortage.so._id, childDocumentId: salesRr._id,
+    relationCode: models.REPLENISHMENT_RELATIONS.SALES_ORDER,
+  });
+  add('LineLink', 'so:rr', {
+    sourceLineId: shortage.soLine._id, targetLineId: salesRrLine._id,
+    relationCode: models.REPLENISHMENT_RELATIONS.DEMAND, linkedQty: requestedSalesQty,
+  });
+
+  // A saved SO has no compatible source tone. The user chose Later: no RR/WIR is seeded.
+  const noSupply = saleChain('NO-SUPPLY', '30', 'OPEN');
+  noSupply.so.occurredAt = at(27);
+  noSupply.so.header.neededOn = at(29);
+  noSupply.soLine.details.requiredTone = 'T-NO-SUPPLY-DEMO';
+  const noSupplyEventKey = 'demo:sales:no-supply:v1';
+  add('Notification', 'sales:no-supply', {
+    recipientId: sales, type: 'SALES_SHORTAGE', title: 'Đơn DEMO-SO-NO-SUPPLY chưa có nguồn phù hợp',
+    message: 'Đơn đã lưu; chưa có nguồn đúng tone đáp ứng 30 viên trước ngày cần. Mở để kiểm tra và chọn Tạo yêu cầu hoặc Để sau.',
+    warehouseId: wh('WH01'), sourceDocumentId: noSupply.so._id, sourceDocumentVersion: 1,
+    eventKey: noSupplyEventKey, evaluatedAt: at(27, 9), readAt: null,
+  });
+
+  const stocktakeEventKey = 'demo:stocktake:closed:v2';
+  for (const recipientId of [dispatcher, receiver]) {
+    add('Notification', `stocktake:${recipientId}`, {
+      recipientId, type: 'LOW_STOCK_AFTER_STOCKTAKE', title: 'Kho WH02 có 2 mặt hàng dưới ngưỡng sau kiểm kê',
+      message: 'DEMO-STOCKTAKE-CLOSED: mặt hàng 1 có 118 viên dưới ngưỡng 150; mặt hàng 2 có 0 viên dưới ngưỡng 20. Mở để tính lại nguồn bổ sung.',
+      warehouseId: wh('WH02'), sourceDocumentId: closedStocktake._id, sourceDocumentVersion: 2,
+      eventKey: stocktakeEventKey, evaluatedAt: at(26, 11),
+      readAt: String(recipientId) === String(receiver) ? at(26, 12) : null,
+    });
+  }
+  add('Notification', 'sales:shortage', {
+    recipientId: sales, type: 'SALES_SHORTAGE', title: 'Đơn DEMO-SO-SHORTAGE cần bổ sung hàng',
+    message: `Sau khi xét kho chính và WH02, đơn còn thiếu ${salesSuggested} viên. Mở để tính lại trước khi tạo RR.`,
+    warehouseId: wh('WH01'), sourceDocumentId: shortage.so._id, sourceDocumentVersion: 1,
+    eventKey: 'demo:sales:shortage:v1', evaluatedAt: at(27, 9), readAt: null,
+  });
+
   // Delivered outbox fixtures cannot trigger real notification jobs.
   for (const document of groups.get('BusinessDocument').documents) {
     add('AuditEvent', document.documentNo, {
       documentId: document._id, actorId: document.createdBy, action: 'DEMO_SEEDED',
       eventAt: document.occurredAt, details: 'Bản ghi mẫu tổng hợp, không phải thao tác thực tế.',
     });
+    const isClosedCount = document._id.equals(closedStocktake._id);
+    const isShortageSale = document._id.equals(shortage.so._id);
+    const isNoSupplySale = document._id.equals(noSupply.so._id);
     add('OutboxEvent', document.documentNo, {
-      documentId: document._id, eventType: 'DEMO_SEEDED', eventKey: `demo:${document.documentNo}`,
-      deliveredAt: at(26), attempts: 0,
+      documentId: document._id, documentVersion: document.version,
+      eventType: isClosedCount ? 'STOCKTAKE_CLOSED' : (isShortageSale || isNoSupplySale) ? 'SALES_ORDER_SAVED' : 'DEMO_SEEDED',
+      eventKey: isClosedCount ? stocktakeEventKey : isShortageSale ? 'demo:sales:shortage:v1' : isNoSupplySale ? noSupplyEventKey : `demo:${document.documentNo}`,
+      deliveredAt: at(27, 10), attempts: 0,
     });
   }
   return [...groups.values()];

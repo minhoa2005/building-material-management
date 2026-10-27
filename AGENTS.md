@@ -6,3 +6,5 @@ Khi thay đổi API, quyền, dữ liệu hoặc nghiệp vụ có liên quan gi
 
 Không tự commit.
 
+Các file trong `git_doc/docs/01_bao_cao/` là bản đối chiếu và nộp. Chỉ cập nhật nội dung trong các mục có sẵn; không tự thêm banner phiên bản, dòng/bảng lịch sử chỉnh sửa, khối REVISION, phụ lục cập nhật hoặc ghi chú đồng bộ/triển khai ở cuối report. Yêu cầu mới phải đưa vào đúng phần nghiệp vụ, phạm vi, dữ liệu, use case, màn hình hoặc kế hoạch/kiểm thử tương ứng. Giữ bảng Change Log có sẵn, không tự thêm bản ghi.
+
