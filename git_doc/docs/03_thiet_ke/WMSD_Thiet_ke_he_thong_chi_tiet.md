@@ -1,6 +1,6 @@
 # Thiết kế hệ thống WMSD
 
-Phiên bản tài liệu 3.3.0 • Baseline nghiệp vụ 3.3.0 • Đồng bộ ngày 27/10/2026 • Phạm vi lưu trữ: MongoDB runtime
+Phiên bản tài liệu 3.3.0 • Baseline nghiệp vụ 3.3.0 • Đồng bộ ngày 28/10/2026 • Phạm vi lưu trữ: MongoDB runtime
 
 Tài liệu này thay thế nội dung thiết kế 1.0 ngày 16/10/2026 làm căn cứ triển khai trong repo. Nguồn hiện hành là [quy trình VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), [EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), [Report 1](../01_bao_cao/WMSD_Report1_Fix.docx.txt), [Report 3](../01_bao_cao/WMSD_Report3_Fix.docx.txt) và [thiết kế dữ liệu](de_xuat_database_design_VI.md). Bộ quy trình có 8 BF, 5 vai trò, 111 UC (97 active/14 retired), BR-01–33 và 31 màn hình (28 active/3 retired). Đây là thiết kế được chọn, chưa phải xác nhận mọi kiểm soát đã được cửa hàng triển khai.
 
@@ -21,8 +21,27 @@ Chuỗi bán hàng thống nhất: SO nhập lại từ nguồn ngoài đã xác
 - Giá bán, thương lượng, hóa đơn, thu/chuyển tiền, công nợ, hoàn tiền và kế toán thực hiện bên ngoài. SO là bản sao phục vụ thực hiện đơn; PAY-CFM chỉ ghi nhận xác nhận đủ tiền ngoài hệ thống.
 - Không live MISA, không vai trò mua hàng/giao hàng mới, không nhập hộ/ủy quyền động, không tự đặt PO hoặc tối ưu tuyến xe.
 - UC-23–25, UC-42, UC-59–62, UC-74–78, UC-106 là 14 mã retired: giữ lịch sử, không có quyền, màn hình hay API thực thi.
-- [DDL 3.3.0](WMSD_SQL_schema.sql) có 85 bảng/2 view tham chiếu. [Sơ đồ database](WMSD_database_design.drawio) và [mainflow song ngữ](../04_so_do/WMSD_Mainflows_VI_EN.drawio) giữ snapshot 3.0.0, ngoài phạm vi chỉnh sửa; không dùng hình cũ làm chuẩn quyền/luồng mới.
+- [DDL 3.3.0](WMSD_SQL_schema.sql) có 84 bảng/2 view tham chiếu. [Sơ đồ database](WMSD_database_design.drawio) và [mainflow song ngữ](../04_so_do/WMSD_Mainflows_VI_EN.drawio) giữ snapshot 3.0.0, ngoài phạm vi chỉnh sửa; không dùng hình cũ làm chuẩn quyền/luồng mới.
 - Report 2 đã đồng bộ phạm vi/kế hoạch kiểm thử; effort và lịch giữ số liệu kế hoạch gốc, chưa tái ước lượng. Các bản Word/Google Docs bên ngoài repo cần phát hành từ bộ nội dung mới; chỉnh file .docx.txt không tự cập nhật các bản đó.
+
+
+### Phân quyền một user một role — 28/10/2026
+
+Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
+
+```mermaid
+erDiagram
+  APP_ROLE ||--o{ APP_USER : assigned_to
+  APP_ROLE {
+    varchar role_code PK
+  }
+  APP_USER {
+    bigint user_id PK
+    varchar role_code FK
+  }
+```
+
+MongoDB lưu User.roleId đơn bắt buộc, có index không unique; warehouseIds giữ nguyên. Dữ liệu cũ phải qua migration dry-run/chọn role/backup trước khi chạy BE mới. Response roles=[role] và primaryRole=role chỉ là trường tương thích FE, không lưu Mongo.
 
 ## 2. Vai trò, quyền và phạm vi bản ghi
 
@@ -34,7 +53,7 @@ Chuỗi bán hàng thống nhất: SO nhập lại từ nguồn ngoài đã xác
 | Accountant | Lập PO sau RR duyệt; xác minh thỏa thuận NCC, ghi ACK/đối chiếu sai lệch và đóng phần kho SR bằng UC-83/107 không Owner. UC-108 lưu Invoice/Credit Note ngoài và tài chính độc lập; không post tồn hoặc thay Sales UC-111. |
 | Administrator | Tài khoản, phân quyền và cấu hình kỹ thuật. Không tự có quyền duyệt nghiệp vụ, ghi tăng/giảm kho hoặc sửa nhật ký. |
 
-Quyền được kiểm tra phía server theo role + operation/sub-operation + kho/bản ghi + trạng thái/version + danh tính thực tế. Không lấy creator/approver/confirmer từ dữ liệu client làm danh tính xác thực. Người nhiều role vẫn không được tự duyệt quyết định Owner; C2 Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm; người nhận điều chuyển khác người xuất. Nếu chủ được bố trí kiểm nhận độc lập phải được phân công rõ, không mặc định kế thừa quyền Warehouse.
+Quyền được kiểm tra phía server theo role + operation/sub-operation + kho/bản ghi + trạng thái/version + danh tính thực tế. Không lấy creator/approver/confirmer từ dữ liệu client làm danh tính xác thực. Mỗi user có đúng một role và vẫn không được tự duyệt quyết định Owner kể cả sau khi đổi role; C2 Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm; người nhận điều chuyển khác người xuất. Nếu chủ được bố trí kiểm nhận độc lập phải được phân công rõ, không mặc định kế thừa quyền Warehouse.
 
 Quyền master giữ đúng Report 3: UC-13 Owner quản lý sản phẩm/quy cách/ngưỡng hữu hạn; UC-16 Owner create/update, Warehouse create only; UC-19 Accountant create/update, Owner activate/deactivate. Admin không tự có quyền nghiệp vụ. Quyền xem không cho phép sửa/xác nhận; cùng scope áp cho tìm kiếm, URL chi tiết, xuất báo cáo và tải bằng chứng.
 
@@ -81,7 +100,7 @@ Các nhánh A/E 3.1.0 và EX-01–05 được định nghĩa đầy đủ tại 
 
 | Mô hình quan hệ dùng để phân tích | Collection/embedding dự kiến trên MongoDB |
 |---|---|
-| app_user, app_role, permission, user_warehouse | users, roles, permissions; quan hệ bằng ObjectId reference/role IDs |
+| app_user, app_role, permission, user_warehouse | users, roles, permissions; User.roleId bắt buộc tham chiếu Role; warehouseIds là mảng ObjectId |
 | warehouse, location, party, product, uom, lot | warehouses, locations, parties, products, lots; snapshot thuộc tính quan trọng vào dòng chứng từ |
 | document + typed header + document_line | business_documents phân loại documentType, hoặc collection theo bounded context cùng documentId; embed header/lines nếu cùng vòng đời và giới hạn kích thước |
 | sales_order + line + cancellations | sales_orders với dòng hàng và tham chiếu nguồn; cancellation_events lưu từng lần hủy có kiểm soát; unique source và version trên đơn |
@@ -172,7 +191,7 @@ Ví dụ không có đơn bán: available18/min50/target50/incoming10 → gợi 
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **85 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
 
 
 **Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.

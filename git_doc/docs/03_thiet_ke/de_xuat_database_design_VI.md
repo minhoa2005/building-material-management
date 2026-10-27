@@ -2,7 +2,7 @@
 
 SQL Server/T-SQL trong tài liệu là mô hình quan hệ để phân tích thiết kế; hệ thống thực tế dùng MongoDB. DDL không phải migration cho MongoDB và chưa cung cấp service nghiệp vụ.
 
-Cập nhật 27/10/2026, baseline3.3.0: áp dụng bổ sung hàng theo nguồn và Notification/form1.4.0, giữ A1/B1/C2/BF-08. SQL tham chiếu85 bảng/2 view; MongoDB runtime39 collection/35 document kinds/19 line kinds. Xem [quy trình VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), [SQL](WMSD_SQL_schema.sql) và [nhật ký](../../change_logs.md).
+Cập nhật 28/10/2026, baseline3.3.0 và quyết định mỗi user một role: áp dụng bổ sung hàng theo nguồn và Notification/form1.4.0, giữ A1/B1/C2/BF-08. SQL tham chiếu84 bảng/2 view; MongoDB runtime39 collection/35 document kinds/19 line kinds. Xem [quy trình VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), [SQL](WMSD_SQL_schema.sql) và [nhật ký](../../change_logs.md).
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
@@ -29,7 +29,7 @@ Cập nhật 27/10/2026, baseline3.3.0: áp dụng bổ sung hàng theo nguồn 
 | S5 | [SAP WM I](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_I_en_v4.1.pdf), [II](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_II_en_v4.1.pdf), [III](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_III_en_v4.1.pdf), [IV](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_IV_en_v4.1.pdf) | Bộ **v4.1** trong repo: I GR tr.10, TO tr.18/21; II STO tr.6, GI tr.12, GR tr.18, TO tr.26/29; III picking tr.14/19, ship tr.25; IV snapshot/đếm/đếm lại/clear tr.4/12/14/21/27. Không tái dùng số trang v4.2 từ đề xuất cũ. |
 | S6 | [Tổng hợp quy trình](../06_tham_khao/quy_trinh/Tổng%20hợp%20quy%20trình.pdf), 4 trang | Tham khảo chứng từ giao nhận và bối cảnh; phần công nợ/thanh toán/xe không tự trở thành phạm vi MVP. |
 | S7 | [Các link tham khảo](../06_tham_khao/link_tham_khao.md) | Dùng hướng dẫn chính thức MISA, Odoo, Microsoft để đối chiếu khái niệm; các quyết định riêng của WMSD được mô tả dưới đây. |
-| S8 | [Sơ đồ database](WMSD_database_design.drawio), 10 trang | Snapshot 3.0.0: 73 bảng/173 FK/2 view tại 22/10; giữ nguyên theo phạm vi loại trừ diagrams. DDL 3.3.0 có 85 bảng/2 view; không tuyên bố hình đồng bộ DDL mới. |
+| S8 | [Sơ đồ database](WMSD_database_design.drawio), 10 trang | Snapshot 3.0.0: 73 bảng/173 FK/2 view tại 22/10; giữ nguyên theo phạm vi loại trừ diagrams. DDL 3.3.0 có 84 bảng/2 view; không tuyên bố hình đồng bộ DDL mới. |
 | S9 | [Mainflow VI/EN](../04_so_do/WMSD_Mainflows_VI_EN.drawio), 16 trang | Snapshot 3.0.0, chưa sửa theo 3.1.0; chỉ dùng tham khảo bố cục. Quy trình văn bản hiện hành chi phối. |
 
 Thứ tự áp dụng: yêu cầu hiện tại → S1/D1–D8 và [change log](../../change_logs.md) → Report 1/3 cùng baseline → thiết kế/S8/S9 → khảo sát và nguồn tham khảo. S4 là sơ đồ lịch sử, không ghi đè quyết định hiện hành. Hiện có 111 UC (97 active/14 retired). SQL là mô hình tham chiếu, MongoDB là lưu trữ thực tế.
@@ -70,7 +70,7 @@ Bảng dưới đây mô tả cách ánh xạ các khái niệm của mô hình 
 
 | Mô hình quan hệ dùng để phân tích | Collection/embedding dự kiến trên MongoDB |
 |---|---|
-| app_user, app_role, permission, user_warehouse | users, roles, permissions; quan hệ bằng ObjectId reference/role IDs |
+| app_user, app_role, permission, user_warehouse | users, roles, permissions; User.roleId bắt buộc tham chiếu Role; warehouseIds là mảng ObjectId |
 | warehouse, location, party, product, uom, lot | warehouses, locations, parties, products, lots; snapshot thuộc tính quan trọng vào dòng chứng từ |
 | document + typed header + document_line | business_documents phân loại documentType, hoặc collection theo bounded context cùng documentId; embed header/lines nếu cùng vòng đời và giới hạn kích thước |
 | sales_order + line + cancellations | sales_orders với dòng hàng và tham chiếu nguồn; cancellation_events lưu từng lần hủy có kiểm soát; unique source và version trên đơn |
@@ -92,6 +92,25 @@ Không biến từng bảng SQL thành một MongoDB collection. Chỉ embed d�
 
 Tạo unique indexes cho số chứng từ, mã chống ghi lặp, mã thao tác và các thành phần xác định số dư. Xác nhận collation, partial index cho bản ghi active, index báo cáo/truy vết và chiến lược shard theo tải thực; không thêm sharding chỉ vì MongoDB hỗ trợ.
 
+
+### Phân quyền một user một role — 28/10/2026
+
+Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
+
+```mermaid
+erDiagram
+  APP_ROLE ||--o{ APP_USER : assigned_to
+  APP_ROLE {
+    varchar role_code PK
+  }
+  APP_USER {
+    bigint user_id PK
+    varchar role_code FK
+  }
+```
+
+MongoDB lưu User.roleId đơn bắt buộc, có index không unique; warehouseIds giữ nguyên. Dữ liệu cũ phải qua migration dry-run/chọn role/backup trước khi chạy BE mới. Response roles=[role] và primaryRole=role chỉ là trường tương thích FE, không lưu Mongo.
+
 ## 3. Mô hình dữ liệu quan hệ tham chiếu (SQL)
 
 ### 3.1 Chuẩn hóa và quy ước kiểu SQL
@@ -109,8 +128,8 @@ Trong mô hình này, PK là khóa chính, FK là khóa ngoại, UNIQUE bảo đ
 
 | Bảng | Khóa và trường chính | Quy tắc |
 |---|---|---|
-| `app_user` | PK user_id; username UNIQUE, display_name, credential_hash, active | Hash mật khẩu/credential, không lưu plaintext |
-| `app_role`, `user_role` | Role code; PK ghép user-role | Năm role; một user nhiều role vẫn chịu cấm tự duyệt |
+| `app_user` | PK user_id; username UNIQUE, display_name, credential_hash, role_code NOT NULL FK, active | Mỗi user đúng một role; hash mật khẩu, không lưu plaintext |
+| `app_role` | PK role_code; được tham chiếu trực tiếp từ app_user.role_code | Năm role; Role 1–N User, không có bảng nối user_role |
 | `permission`, `role_permission` | Permission code; role-permission PK | Quyền theo thao tác; Admin không tự có nghiệp vụ |
 | `warehouse`, `user_warehouse` | warehouse_id; code UNIQUE; user-warehouse PK | Phạm vi kho được giao |
 | `location` | location_id, warehouse_id FK, code, kind, allocatable, active | UNIQUE(warehouse,code); chỉ STORAGE có thể allocatable |
@@ -241,7 +260,7 @@ Ví dụ không có đơn bán: available18/min50/target50/incoming10 → gợi 
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **85 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
 
 
 **Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.
@@ -298,7 +317,7 @@ Book50GOOD/count48GOOD+2vỡ: RECLASS2, tổng50, không thiếu−2/ADJ0. Count
 
 ### 3.7 ERD rút gọn
 
-> Ba Mermaid dưới đây là các góc nhìn logic hiện hành 3.1.0, cập nhật 25/10: A1, B1 và C2/BF-08. Không vẽ đủ85 bảng DDL hiện tại; PK/FK/thuộc tính trọng yếu chỉ hiển thị cho phần mới. Các cạnh contains theo header/dòng có thể đi qua document/document_line dùng chung; không thay cho toàn bộ FK/kiểm service.
+> Ba Mermaid dưới đây là các góc nhìn logic hiện hành 3.1.0, cập nhật 25/10: A1, B1 và C2/BF-08. Không vẽ đủ84 bảng DDL hiện tại; PK/FK/thuộc tính trọng yếu chỉ hiển thị cho phần mới. Các cạnh contains theo header/dòng có thể đi qua document/document_line dùng chung; không thay cho toàn bộ FK/kiểm service.
 
 Sơ đồ này thể hiện cấu trúc chính; toàn bộ cột, FK, bảng nối và subtype nằm trong DDL.
 

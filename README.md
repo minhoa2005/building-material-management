@@ -169,3 +169,41 @@ seeding still skips populated databases.
 - `PATCH /api/users/:id/status`: Toggle user active/locked status
 - `GET /api/roles`: List all system roles and permissions
 - `PUT /api/roles/:code/permissions`: Update role permissions matrix
+
+## Single-role migration
+
+Authorization decision, 28 October 2026: every user (including inactive users) has one required scalar `roleId` referencing `Role`. Many users can share that role. `warehouseIds` remains independent. SQL is still a reference design: 84 tables / 2 views, direct `app_user.role_code` FK, no `user_role` table.
+
+The existing write contract is `roleCode: "SALES"` (one of the five uppercase catalogue codes); an update replaces the old role. User create/update bodies reject unknown fields, including `roles`, `roleIds` and direct `roleId` inputs. Login, refresh, me and account reads expose lowercase `role`, plus derived compatibility aliases `roles: [role]` and `primaryRole: role`. Access JWTs contain that one role and its permissions; server authorization reloads the current populated role from MongoDB on every authenticated request. Permissions must also belong to the finite role/operation catalogue; ADMIN cannot use business permissions even if a bad historical grant exists.
+
+FE screens are unchanged and still offer multi-role selection; these response aliases support existing login/account reads, not a completed UI migration. The FE create form currently sends its first selected `roleCode`, while the new backend always persists exactly one role.
+
+Inspect the target privately through `MONGODB_URI`; this change does not run against a live database automatically:
+
+```powershell
+npm run migrate:single-role
+npm run migrate:single-role -- --dry-run --assignments C:/private/single-role-assignments.json
+```
+
+The default is read-only and disables automatic collection/index creation. A nonzero exit status and `blocked` user IDs mean explicit role choices are still needed. A single valid old `roleIds` entry converts automatically. Multiple/empty/malformed/dangling references, legacy `role`, and conflicting old/new fields require a reviewed JSON object using actual user IDs and an existing uppercase role code:
+
+```json
+{
+  "0123456789abcdef01234567": "SALES",
+  "89abcdef0123456701234567": "WAREHOUSE"
+}
+```
+
+Unknown user IDs, duplicate normalized IDs, invalid role codes and invalid role catalogue records fail preflight. A valid existing scalar role is preserved unless explicitly reassigned. No array ordering or role priority is used to select a role.
+
+For an approved deployment, stop **all account/role writes**, keep the old backend stopped, review a successful dry run with all blocked users resolved, and then run:
+
+```powershell
+npm run migrate:single-role -- --apply --assignments C:/private/single-role-assignments.json
+```
+
+Apply backs up complete `users` and `roles` plus collection/index metadata as EJSON under the OS user's `.codex/backups/` directory before database writes. Backups include credential hashes: keep them and assignment files outside Git. MongoDB Atlas or a replica set is required for snapshot backup and transaction support. Backup failure blocks writes. A change in role assignments during backup aborts the migration. All user role updates and removal of `roleIds`/legacy `role` run in one transaction; timestamps, passwords, account status, warehouse assignments and historical actor references remain untouched.
+
+The non-unique `roleId` index is ensured after the data transaction; index DDL is not transactional. If index creation fails after the data commit, keep the backend stopped and rerun the command to finish the index. Repeat application makes zero user updates. Start the new backend after migration/index verification; login/refresh/me must report one matching role. Existing access tokens cannot retain rights from the previous role.
+
+To roll back before reopening writes, stop the new backend, restore the backed-up users and their previous metadata/indexes to the same verified database, and restart the matching old backend. Never restore only roles or delete users: business documents retain references to the original user IDs. Run migration tests with `node --test`; MongoDB tests use unique disposable database names from `MONGODB_TEST_URI` and never target the URI's existing database.

@@ -32,7 +32,7 @@ Warehouse Staff is the canonical existing warehouse application role. Put-away/p
 
 I. Overall Requirements
 1. Context Diagram
-Exactly five roles: Sales copies verified external SO, manages linked WIR/OD and customer-return demand and confirms full external payment receipt (UC-111); assigned Warehouse records physical operations and photo POD (UC-110); Accountant records approved PO, supplier agreements/ACK and external accounting references; Owner makes scoped decisions and clears differences; Administrator manages technical accounts/permissions without business-posting rights.
+Exactly five roles, with exactly one role assigned to each user: Sales copies verified external SO, manages linked WIR/OD and customer-return demand and confirms full external payment receipt (UC-111); assigned Warehouse records physical operations and photo POD (UC-110); Accountant records approved PO, supplier agreements/ACK and external accounting references; Owner makes scoped decisions and clears differences; Administrator manages technical accounts/permissions without business-posting rights.
 MISA, Customer, Supplier and Carrier are staff-mediated business parties/systems, not direct API/login actors. Commercial selling/prices/invoices/refunds/payment execution/debt/accounting remain external. WMSD SO is a manually copied source record; POD/PAY-CFM track fulfilment without executing payment. No automatic channel/MISA integration. D2/D3 retain personal departmental entry and five roles despite survey-reported shared entry/delegation.
 API-01 SMTP sends post-commit warehouse notifications. API-02 controlled storage supports private evidence upload/retrieval; provider selection remains open, Cloudinary is not an assumed deployed dependency.
 
@@ -325,6 +325,7 @@ Accept each branch by its BF-xx-A/E ID above and EX-01–05. These are implement
 
 3. Conceptual Data Model
 3.1 Entity Relationship Diagram
+Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
 The three Mermaid ERDs below show logical views for A1, B1 and C2/BF-08, including key PK/FK/attributes and selected relationships. Logical header/line relationships may pass through shared document/document_line. MongoDB may embed bounded lifecycle records rather than using one collection per concept.
 
 A1 — GI/POD, GR-FD and net demand
@@ -524,7 +525,7 @@ erDiagram
 | Warehouse / Location | Configured physical warehouse and coded receiving/storage/staging/quarantine/custody position; active/scope/freeze; no nonempty deactivation. | UC-27–29, UC-36–44, UC-104 |
 | Product / Conversion Version / Warehouse Policy | Unique SKU, whole-piece granularity and positive versioned BOX/PIECE/m² factors. Product/warehouse policy stores minimumQty, targetQty, version and updatedBy; target >= minimum >=0 and defaults to minimum. Transaction lines retain conversion and policy/evaluation facts. | UC-11–13, UC-26, UC-55, UC-87 |
 | Lot | Product/manufacturer lot/tone/actual calibre; VERIFIED/UNKNOWN; transacted identity immutable. | UC-14–16, UC-26, UC-30–31 |
-| Party / User / Assignment | Business party distinct from login; personal accounts, five roles, operation and warehouse scope. | UC-17–22, UC-94–98 |
+| Party / User / Assignment | Business party distinct from login; personal accounts with exactly one of five roles, operation and warehouse scope. | UC-17–22, UC-94–98 |
 | Document / Line / Link | Versioned document/kind/status, homogeneous quantity and real source links/ceilings; posted history immutable. | UC-03–10, UC-47–58, UC-70–73, UC-81–93 |
 | Approval / Line | Typed decision/version/actor/line/quantity. Sales STANDARD_ACCEPTANCE of own ordinary inspected CR allowed; Owner exceptions and other approvals require distinct requester. No SR approval. | UC-04, UC-41, UC-66, UC-71, UC-92 |
 | Replenishment / PO | RR header stores receiving warehouse, need date, textual reason, real creator, creationKey and sender/time when submitted. Each line stores its own reason category, SO-line/version or committed stocktake/policy version, suggested/requested quantity, coverage snapshots and adjustment explanation. Other-need products have their own reason, not an unrelated SO-line link. Saved drafts retain document/line identities; Owner decision precedes Accountant PO, partial receiving and outstanding closure. | UC-01–10, UC-103 |
@@ -570,7 +571,7 @@ BR-01–33 in V.1 are the single current rule catalogue. Historical DR/GB codes 
 
 4. User Requirements
 4.1 Actors
-Exactly five application roles operate within their assigned permissions and record/warehouse scope. Warehouse Staff is the canonical name for the existing Inventory Staff role, not an additional role. Each department records and confirms its own work using personal accounts (D2). Purchasing and delivery personnel may be external business participants but receive no new application role (D3). Survey-reported delegation does not automatically confer software approval rights.
+Exactly five application roles operate within their assigned permissions and record/warehouse scope. Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions. Warehouse Staff is the canonical name for the existing Inventory Staff role, not an additional role. Each department records and confirms its own work using personal accounts (D2). Purchasing and delivery personnel may be external business participants but receive no new application role (D3). Survey-reported delegation does not automatically confer software approval rights.
 #
 	Actor
 	Description
@@ -691,7 +692,7 @@ The use-case inventory contains 111 traceable IDs: 97 ACTIVE and 14 RETIRED. UC-
 | UC-95 | View account list | FE-09 | ACTIVE | Search and filter accounts by name, role, and active status. |
 | UC-96 | View account details | FE-09 | ACTIVE | Display the selected account's information, assigned role, and status. |
 | UC-97 | Maintain Staff Account | FE-09 | ACTIVE | Create, update, activate or deactivate staff accounts; role assignment remains separately controlled. |
-| UC-98 | Assign roles and operation permissions | FE-09 | ACTIVE | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Multiple roles do not permit self-approval. |
+| UC-98 | Assign roles and operation permissions | FE-09 | ACTIVE | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change. |
 | UC-99 | View Operational Reports | FE-09 | ACTIVE | Run authorized physical/available/reserved/custody/transit, outstanding receipt/issue, customer-received quantities, DELIVERED pending receipt, COMPLETED/cancelled orders, defect, transfer, return and stocktake reports; no revenue/profit reports. |
 | UC-100 | View stock movement log | FE-09 | ACTIVE | Filter movements by product, lot, location, transaction type, and time. |
 | UC-101 | View stock movement details | FE-09 | ACTIVE | Display source document, before/after quantity, operator, time, and reason. |
@@ -715,7 +716,7 @@ Sales Staff: UC-01, UC-02, UC-03, UC-11, UC-12, UC-20, UC-21, UC-22, UC-30, UC-3
 Administrator: UC-94, UC-95, UC-96, UC-97, UC-98.
 
 4.4 Permission Matrix
-Operation/sub-operation rights require assigned warehouse, document state/version and actual user identity. Owner decision requester must differ even across roles; C2 permits Sales own ordinary inspected CR acceptance. BF-08 has no Owner approval; transfer receiver differs from dispatcher. Departments record their own work. Co-inspection/external contact grants no extra right. View never implies mutation.
+Operation/sub-operation rights require assigned warehouse, document state/version and actual user identity. Each user has exactly one role; the Owner decision requester must differ even after role reassignment; C2 permits Sales own ordinary inspected CR acceptance. BF-08 has no Owner approval; transfer receiver differs from dispatcher. Departments record their own work. Co-inspection/external contact grants no extra right. View never implies mutation.
 | UC | Operation | Store Owner | Accountant | Warehouse Staff | Sales Staff | Administrator |
 |---|---|---|---|---|---|---|
 | UC-01 | View replenishment request list | View | View | Own / assigned scope | Own / assigned scope | — |
@@ -2429,13 +2430,13 @@ UC-98: Assign roles and operation permissions
 Status: ACTIVE. Feature: FE-09.
 Primary actors and operations: Administrator — Maintain existing role / operation / warehouse scope.
 Screen(s): SC-02.
-Description: Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Multiple roles do not permit self-approval.
+Description: Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change.
 Preconditions / required inputs: Administrator role/operation/warehouse assignment right.
 Normal flow:
-1. Assign only OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN.
+1. Assign exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN per user; replacing a role removes the previous assignment.
 2. Select fixed permitted operations and warehouses.
 3. Audit changes and enforce on later requests.
-Alternate/exception flows: No retired UC/new role/arbitrary policy; multi-role user still cannot self-approve.
+Alternate/exception flows: No retired UC/new role/arbitrary policy; a user cannot approve their own Owner decision, including after reassignment to OWNER.
 Shared failures: applicable EX-01 permission/identity, EX-02 version/source concurrency, EX-03 unknown-commit retry, EX-04 freeze, EX-05 evidence/output failure use I.2.9 state/recovery. Read-only export does not itself require posting key.
 Postconditions / exact inventory effect: Access configuration saved; no business/stock posting.
 
@@ -2826,7 +2827,7 @@ Actual boxes/loose pieces, visible conversion, warehouse/location/lot identity, 
 2.2 Performance
 No signed-off numeric response SLA, concurrency count, volume or availability percentage supplied. Verify scoped list/report behavior on representative store-approved datasets; agree numeric targets before acceptance.
 2.3 Security
-Active personal accounts, five fixed roles and server-side operation/warehouse/record/evidence scope, including direct requests/exports. Distinct requester for Owner approvals and independent transfer dispatcher/receiver; C2 Sales own ordinary CR acceptance is explicitly allowed, BF-08 Owner approval is absent. Administrator no default business rights. Protect credentials/server secrets, private evidence retrieval and administrative audit; changed access never rewrites past decisions.
+Active personal accounts, exactly one of five fixed roles per user and server-side operation/warehouse/record/evidence scope, including direct requests/exports. Distinct requester for Owner approvals and independent transfer dispatcher/receiver; C2 Sales own ordinary CR acceptance is explicitly allowed, BF-08 Owner approval is absent. Administrator no default business rights. Protect credentials/server secrets, private evidence retrieval and administrative audit; changed access never rewrites past decisions.
 2.4 Reliability and Data Integrity
 Integrity controls include a shared source guard across POD/FD/CR claims and receipts; atomic GR-FD stock/net reopening/version and replacement OD commitment; B1 balance-neutral holds, current approved plan plus Warehouse execution, delta/RECLASS batch and no early unlock. Retired UC-106 has no execution permission/route.
 Atomically commit source/version, batch, movements, balance, reservations, status, audit and outbox. Stable operation/idempotency key and hash prevent duplicate stock effects; changed payload conflicts. Unknown commit resolved by lookup; transient retry uses same identity. Concurrent holds/receipts/returns respect eligible source ceilings. All in-scope quantity/quality/ownership/location changes and backdated corrections coordinate with stocktake activation/freeze; only authorized clearing changes counted balance before unlock. Interrupted session retains freeze/history. Snapshot, count attempts, posted documents/assessments remain immutable; corrections append links.

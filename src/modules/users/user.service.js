@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { User, Role } from '../../models/index.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
+import { userRoleDto } from '../../shared/utils/userRole.js';
 
 export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', status = 'all' }) => {
   const query = {};
@@ -21,7 +22,7 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
     const roleDoc = await Role.findOne({ code: role.toUpperCase() });
     if (roleDoc) {
       roleFilterId = roleDoc._id;
-      query.roleIds = roleFilterId;
+      query.roleId = roleFilterId;
     } else {
       return { items: [], total: 0, page: Number(page), limit: Number(limit) };
     }
@@ -33,7 +34,7 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
 
   const [items, total] = await Promise.all([
     User.find(query)
-      .populate('roleIds')
+      .populate('roleId')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
@@ -42,14 +43,12 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
   ]);
 
   const mapped = items.map((u) => {
-    const roles = (u.roleIds || []).map((r) => r.code.toLowerCase());
     return {
       id: u._id.toString(),
       username: u.username,
       fullName: u.fullName,
       phone: u.phone,
-      roles,
-      role: roles[0] || 'admin',
+      ...userRoleDto(u),
       status: u.isActive ? 'active' : 'inactive',
       createdAt: u.createdAt,
       lastLogin: u.updatedAt,
@@ -60,19 +59,17 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
 };
 
 export const getUserById = async (id) => {
-  const user = await User.findById(id).populate('roleIds').lean();
+  const user = await User.findById(id).populate('roleId').lean();
   if (!user) {
     throw new ApiError(404, 'Không tìm thấy người dùng');
   }
 
-  const roles = (user.roleIds || []).map((r) => r.code.toLowerCase());
   return {
     id: user._id.toString(),
     username: user.username,
     fullName: user.fullName,
     phone: user.phone,
-    roles,
-    role: roles[0] || 'admin',
+    ...userRoleDto(user),
     status: user.isActive ? 'active' : 'inactive',
     createdAt: user.createdAt,
     lastLogin: user.updatedAt,
@@ -96,7 +93,7 @@ export const createUser = async ({ username, fullName, password, roleCode, phone
     username: normalizedUsername,
     fullName: fullName.trim(),
     passwordHash,
-    roleIds: [roleDoc._id],
+    roleId: roleDoc._id,
     phone,
     isActive,
   });
@@ -119,7 +116,7 @@ export const updateUser = async (id, updates) => {
     if (!roleDoc) {
       throw new ApiError(400, 'Vai trò không hợp lệ');
     }
-    user.roleIds = [roleDoc._id];
+    user.roleId = roleDoc._id;
   }
 
   if (updates.password) {

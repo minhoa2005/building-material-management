@@ -35,7 +35,7 @@ export async function buildDemoData() {
     users.set(account.username, add('User', account.username, {
       username: account.username, fullName: account.fullName, phone: account.phone,
       passwordHash: await bcrypt.hash(account.password, 10),
-      roleIds: [roles.get(account.roleCode)._id],
+      roleId: roles.get(account.roleCode)._id,
       warehouseIds: account.warehouseCodes.map((code) => warehouses.get(code)._id),
     }));
   }

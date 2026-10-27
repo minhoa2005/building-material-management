@@ -749,13 +749,13 @@ UC-98: Assign roles and operation permissions
 Status: ACTIVE. Feature: FE-09.
 Primary actors and operations: Administrator — Maintain existing role / operation / warehouse scope.
 Screen(s): SC-02.
-Description: Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Multiple roles do not permit self-approval.
+Description: Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change.
 Preconditions / required inputs: Administrator role/operation/warehouse assignment right.
 Normal flow:
-1. Assign only OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN.
+1. Assign exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN per user; replacing a role removes the previous assignment.
 2. Select fixed permitted operations and warehouses.
 3. Audit changes and enforce on later requests.
-Alternate/exception flows: No retired UC/new role/arbitrary policy; multi-role user still cannot self-approve.
+Alternate/exception flows: No retired UC/new role/arbitrary policy; a user cannot approve their own Owner decision, including after reassignment to OWNER.
 Shared failures: applicable EX-01 permission/identity, EX-02 version/source concurrency, EX-03 unknown-commit retry, EX-04 freeze, EX-05 evidence/output failure use I.2.9 state/recovery. Read-only export does not itself require posting key.
 Postconditions / exact inventory effect: Access configuration saved; no business/stock posting.
 

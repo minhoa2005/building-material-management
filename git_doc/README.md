@@ -16,6 +16,8 @@ Thay đổi chính: A1 nhận hàng giao thất bại bằng GR-FD và tái mở
 
 **Quyết định mới:** [đề xuất bổ sung hàng](docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md) và [CR/ma trận tác động](docs/07_ra_soat/CR-2026-10-27-REPLENISHMENT.md). Các mục lịch sử25/10 giữ mốc3.1.0; sơ đồ draw.io là snapshot lịch sử đã ghi phiên bản, không thay nguồn nghiệp vụ hiện hành.
 
+Quyết định phân quyền 28/10/2026: Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp hoặc chuyển role trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử. SQL hiện có 84 bảng/2 view; Mongo giữ 39 collections. Xem [hướng dẫn migration và contract](../README.md#single-role-migration).
+
 ## Bộ tài liệu hiện hành
 
 Đã áp dụng [đề xuất 1.4.0 — một form tạo RR được điền sẵn](docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md) và [quyết định nghiệp vụ](docs/03_thiet_ke/brainstorms/tao_rr_form_dien_san_2026-10-27.md) vào model/seed/contracts/context. Một form, nguồn từng dòng và lưu/gửi theo quyền; API/worker/UI chưa được triển khai bởi thay đổi cấu trúc này.
@@ -27,7 +29,7 @@ Thay đổi chính: A1 nhận hàng giao thất bại bằng GR-FD và tái mở
 | [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | Catalogue/permission/spec đủ 111 UC, màn hình, BR, NFR và lỗi |
 | [Thiết kế hệ thống chi tiết](docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | Bản tài liệu/baseline 3.3.0; API/trạng thái/transaction/MongoDB, GR-FD/B1 và truy vết 111 UC |
 | [Thiết kế database VI](docs/03_thiet_ke/de_xuat_database_design_VI.md) / [EN](docs/03_thiet_ke/de_xuat_database_design_EN.md) | Mô hình tham chiếu và MongoDB mapping; 30 quy tắc, 64 case nghiệm thu |
-| [SQL tham chiếu](docs/03_thiet_ke/WMSD_SQL_schema.sql) | 85 bảng, 2 view; T-SQL tham chiếu 3.3.0 có A1/B1/C2, chưa chạy SQL Server/MongoDB |
+| [SQL tham chiếu](docs/03_thiet_ke/WMSD_SQL_schema.sql) | 84 bảng, 2 view; T-SQL tham chiếu 3.3.0 có A1/B1/C2, chưa chạy SQL Server/MongoDB |
 | [Nhật ký](change_logs.md) | Thay đổi, kiểm tra thực tế và giới hạn theo từng mốc |
 | [Report 2](docs/01_bao_cao/WMSD_Report2.docx.txt) | Kế hoạch còn lại 5 tuần 26/10–29/11/2026 (tuần 8–12); 5 người theo nhóm nghiệp vụ; 92,25 pd / 100 pd khả dụng; review thử tuần 13 chưa chốt ngày |
 | [Project Tracking](docs/01_bao_cao/Project_Tracking_Template.xlsx) | Điền trực tiếp 97 UC active theo format gốc; danghh chỉ bán/xuất hàng, bachhm nhận UC-20–22 danh mục khách hàng; giữ nguyên phông chữ và các sheet |

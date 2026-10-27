@@ -23,7 +23,7 @@ Baseline nghiệp vụ **3.3.0 (quyết định 27/10/2026)**; quy trình và th
 | [Report 3](git_doc/docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | I.4.4 ma trận quyền; II đặc tả từng UC; III SC; IV NFR; V BR/MSG |
 | [Thiết kế chi tiết](git_doc/docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | mục 5–8 model/trạng thái/transaction/API; mục 11 R-01–26; mục 14 nghiệm thu; phụ lục 111 UC |
 | [Thiết kế dữ liệu VI](git_doc/docs/03_thiet_ke/de_xuat_database_design_VI.md) | mục 2 MongoDB; mục 3.4/3.6 A1/B1/C2; mục 4 ràng buộc; mục 6 T01–T56 |
-| [DDL tham chiếu](git_doc/docs/03_thiet_ke/WMSD_SQL_schema.sql) | 85 bảng/2 view để đối chiếu; không chạy như migration MongoDB |
+| [DDL tham chiếu](git_doc/docs/03_thiet_ke/WMSD_SQL_schema.sql) | 84 bảng/2 view để đối chiếu; không chạy như migration MongoDB |
 | [Report 1](git_doc/docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | bối cảnh, phạm vi, FE và giới hạn |
 | [Report 2](git_doc/docs/01_bao_cao/WMSD_Report2.docx.txt) | Software Configuration Management: nhánh theo việc, peer review, UC/task, kiểm tra trước merge |
 | [Hậu kiểm 25/10](git_doc/docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md) | quyết định đã đồng bộ; mục 6 là trạng thái Mermaid mới hơn mục 1–5 |
@@ -56,6 +56,8 @@ Không dùng đề xuất 7 quy trình, tài liệu đánh giá cũ hoặc draw.
 
 ## 2. Ngôn ngữ nghiệp vụ và quyền
 
+Quyết định 28/10/2026: Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
+
 | Khái niệm | Quy tắc khi code |
 |---|---|
 | Warehouse / location | Kho vật lý khác receiving/storage/staging/quarantine/custody location trong cùng kho. |
@@ -80,7 +82,7 @@ Không dùng đề xuất 7 quy trình, tài liệu đánh giá cũ hoặc draw.
 
 Kiểm quyền = active user + role + operation/sub-operation + warehouse/record/evidence scope + state/version + danh tính thực. Quyền View không suy ra mutate; URL trực tiếp/export/download áp cùng scope. Owner/Accountant hỗ trợ kiểm thực tế không kế thừa quyền GR. Mỗi thao tác lưu actual userId từ session.
 
-Người duyệt Owner khác người đề xuất dù một người có nhiều role; người nhận điều chuyển khác dispatcher. Ngoại lệ duy nhất đã chọn C2: Sales được STANDARD_ACCEPTANCE cho chính CR thường mình lập, sau Warehouse inspection. Không dùng quy tắc cấm tự duyệt để vô hiệu C2, cũng không mở C2 sang Owner EXCEPTION_APPROVAL.
+Mỗi user có đúng một role; người duyệt Owner khác người đề xuất kể cả sau khi đổi role; người nhận điều chuyển khác dispatcher. Ngoại lệ duy nhất đã chọn C2: Sales được STANDARD_ACCEPTANCE cho chính CR thường mình lập, sau Warehouse inspection. Không dùng quy tắc cấm tự duyệt để vô hiệu C2, cũng không mở C2 sang Owner EXCEPTION_APPROVAL.
 
 Master data: UC-13 Owner; UC-16 Owner create/update, Warehouse create only; UC-19 Accountant create/update, Owner activate/deactivate; UC-22 Sales; UC-29 Owner. UC-99 giới hạn theo nhóm báo cáo, không chỉ một cờ report:read.
 
@@ -221,7 +223,7 @@ Nguồn quyết định đã được người dùng yêu cầu áp dụng: [đ�
 - Outbox STOCKTAKE_CLOSED/SALES_ORDER_SAVED lưu documentVersion cùng transaction nguồn; consumer sau commit đánh giá và lưu Notification, không tạo RR. Notification có recipient/type/title/message/warehouse/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; retry không tạo trùng hay reset readAt. Warehouse active đúng kho nhận thông báo tổng hợp; SO chỉ báo người có quyền nguồn.
 - List, unread count và mở nguồn đều kiểm recipient + quyền nguồn/kho hiện hành. Đã đọc không phải đã giải quyết thiếu hàng; khi mở cảnh báo/tạo RR tính lại dữ liệu. Để sau không tạo pending coverage/ẩn cảnh báo. MVP không có StockAlert; chưa hỗ trợ assignment/snooze/dismissal lifecycle.
 - Contract [TK]: POST /api/replenishments/evaluate, POST /api/replenishments, GET /api/notifications, GET /api/notifications/unread-count, POST /api/notifications/:id/read. Envelope theo data hiện có, ObjectId/decimal strings/UTC ISO. Quyền evaluate + notification:read/mark_read chỉ OWNER/WAREHOUSE/SALES theo scope; Owner không được create RR chỉ vì có evaluate, ADMIN không bypass.
-- Seed có39 collections/35 document kinds/19 line kinds; có RR lưu từ form kiểm kê, RR SO chưa WIR có thêm dòng dự trữ riêng, SO chưa có nguồn đúng tone chưa tạo RR và hai recipient readAt độc lập. DB đã có dữ liệu không bị seed lại; SQL tham chiếu85 bảng/2 view.
+- Seed có39 collections/35 document kinds/19 line kinds; có RR lưu từ form kiểm kê, RR SO chưa WIR có thêm dòng dự trữ riêng, SO chưa có nguồn đúng tone chưa tạo RR và hai recipient readAt độc lập. DB đã có dữ liệu không bị seed lại; SQL tham chiếu84 bảng/2 view.
 
 
 **Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.
@@ -317,15 +319,15 @@ BE fallback port code3000; README nói3333 và Vite proxy3333. Cấu hình PORT3
 
 ### 5.3 Auth/permission: nền có sẵn nhưng có lỗi cần biết
 
-authenticate kiểm Bearer hoặc claim_access_token cookie, jwt.verify rồi load User active/populate roleIds→permissionIds. authorize kiểm role.code case-insensitive. Luôn gọi authenticate trước authorize/permission; dùng userId thật từ req.user. Backend role code chuẩn uppercase; login/refresh trả uppercase trong khi getMe/users có lowercase. Normalize DTO cùng FE, không dựa casing ngẫu nhiên hoặc fallback admin.
+authenticate kiểm Bearer hoặc claim_access_token cookie, jwt.verify rồi load User active/populate roleId→permissionIds. authorize kiểm role.code case-insensitive. Luôn gọi authenticate trước authorize/permission; dùng userId thật từ req.user. Role catalogue/roleCode chuẩn uppercase; login/refresh/me/users thống nhất role lowercase và alias roles=[role], primaryRole=role. Thiếu role hợp lệ bị từ chối, không fallback admin.
 
-Permission catalogue thực ở src/seeds/data/permissions.data.js, dạng resource:action, map UC và role mặc định. Đây là lớp role+operation; service vẫn phải kiểm assigned warehouse/source/identity/approval version/caps. roleIds/warehouseIds là arrays, không dùng User.role cũ. Không tin JWT permission snapshot thay kiểm active/current quyền phía server cho command nhạy cảm.
+Permission catalogue thực ở src/seeds/data/permissions.data.js, dạng resource:action, map UC và role mặc định. Đây là lớp role+operation; service vẫn phải kiểm assigned warehouse/source/identity/approval version/caps. roleId là ObjectId đơn bắt buộc; warehouseIds vẫn là mảng, không dùng roleIds hoặc User.role cũ. Không tin JWT permission snapshot thay kiểm active/current quyền phía server cho command nhạy cảm.
 
 **Các độ lệch xác minh bằng đọc code; context này chỉ ghi nhận, chưa sửa:**
 
-1. middlewares/permission.js dùng user trước const user=req.user; requiredRoles.map khi users routes không truyền roles; permission.push trong khi biến khai báo permissions. Không copy hoặc coi middleware đã enforce đúng. Cần sửa+test trong task auth/permission hoặc trước khi reuse cho business routes.
+1. middlewares/permission.js hiện đã sửa các lỗi user-before-declaration/requiredRoles.map/permission.push ghi trong snapshot cũ; xử lý role/permission ref bị thiếu và không log permission list. Không suy middleware operation thay được record/warehouse scope.
 2. users/roles routes còn allow OWNER ở outer authorize và một số read gate khác baseline UC-95–98 Admin-only. role.service tự tạo Permission khi gặp code lạ; cần whitelist catalogue/role-operation compatibility và audit, cấm retired/arbitrary quyền. Giao diện hay seed không thay kiểm server.
-3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode hiện gán một roleIds. Cần thiết kế assignment đúng UC-98 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
+3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode gán/thay đúng một roleId. Cần thiết kế assignment đúng UC-98 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
 4. upload route hiện chưa authenticate/parent scope và trả Cloudinary secure_url; middleware chỉ kiểm MIME khai báo image/*, giới hạn5MB kỹ thuật. Chưa đạt private Evidence/hash/ownership/authorized download của API-02/POD. Mức5MB có trong implementation, không phải cửa hàng đã chốt mọi hạn mức.
 5. JWT có secret fallback hardcode và refresh helper hiện chỉ ký/verify, chưa thấy rotation/reuse detection/revocation hoặc logout endpoint. Không đưa fallback vào cấu hình triển khai hoặc khẳng định comment FE đã đúng. CORS origin:true/cookie strict cần kiểm cùng deployment khi làm auth, không suy là kiểm soát production hoàn tất.
 
@@ -333,11 +335,11 @@ Không tự sửa tất cả lỗi trong task một UC; nhưng không xây tiế
 
 ### 5.4 Mô hình dữ liệu và persistence contract thực
 
-Đọc src/models/README.md trước viết nghiệp vụ. 85 bảng SQL tham chiếu đã có representation trên **39 collections**, **35 document discriminators**, **19 line discriminators**; schema/index không thay transaction/service hoặc FK.
+Đọc src/models/README.md trước viết nghiệp vụ. 84 bảng SQL tham chiếu đã có representation trên **39 collections**, **35 document discriminators**, **19 line discriminators**; schema/index không thay transaction/service hoặc FK.
 
 | Nhóm | Model/file và lưu ý |
 |---|---|
-| Account/master | access,user,warehouse,party,product.model.js; User.roleIds/warehouseIds; STORE Party singleton. |
+| Account/master | access,user,warehouse,party,product.model.js; User.roleId đơn/warehouseIds mảng; STORE Party singleton. |
 | Document | BusinessDocument trong business_documents, discriminator documentKind, typed header; DocumentLine collection riêng, lineKind và typed details. Parent ID là documentId, không lặp subtype ID vào details. |
 | Links/source | DocumentLink/LineLink, ExternalReference/ExternalReferenceLine; source order/line/release unique. |
 | Stock | StockAccount, StockBalance, PostingBatch, StockMovement, Reservation, DemandSupplyAllocation trong inventory.model.js. |
@@ -379,7 +381,7 @@ Reversal cần kiểm POD/claim/GR/fulfilled reopening/redelivery/tasks và tr�
 
 npm run dev/start/seed/seed:sync-permissions/test là scripts thực; không có npm build/lint. index.js có thể runSeeds khi startup nếu SEED_ON_STARTUP khác false; sync quyền chỉ khi SEED_SYNC_ROLE_PERMISSIONS=true hoặc CLI flag. Import models/index.js không connect/seed/post; khởi động server có thể ghi DB. Không chạy server/seeder vào DB thật để “kiểm thử” một task tài liệu. Không log/copy .env, Mongo URI/Cloudinary/JWT credentials; chỉnh .env.example chỉ với placeholder nếu cần.
 
-DB cũ cần migration kiểm chứng, không dựa schema mới tự nâng cấp: User.role→roleIds; unique ExternalReference.correlationId; WIR customer/external line→saved SO/salesOrderLine; SR bỏ authorizationId cũ và giữ agreement thật; UNKNOWN packaging không suy từ damage. Index details.externalLineId_1_details.releaseKey_1 cũ chỉ bỏ sau audit/migration và quyền triển khai. Không syncIndexes/drop DB/index mù quáng hoặc tạo nguồn chứng minh giả.
+DB cũ cần migration kiểm chứng, không dựa schema mới tự nâng cấp: User.roleIds/User.role→roleId đơn bằng migrate:single-role; unique ExternalReference.correlationId; WIR customer/external line→saved SO/salesOrderLine; SR bỏ authorizationId cũ và giữ agreement thật; UNKNOWN packaging không suy từ damage. Index details.externalLineId_1_details.releaseKey_1 cũ chỉ bỏ sau audit/migration và quyền triển khai. Không syncIndexes/drop DB/index mù quáng hoặc tạo nguồn chứng minh giả.
 
 Tests hiện test/models.test.js, models.revision-3.1.test.js, users_roles.test.js và models.integration.test.js; unit chủ yếu schema/service mocks. Integration opt-in MONGODB_TEST_URI, ép random DB sep490_model_verification_<ObjectId> và chỉ drop DB tạm này. Chạy npm test phù hợp sau đổi model/service; không tự bật integration trên production URI.
 
@@ -447,7 +449,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Mã quyền trong seed hiện tại:** `replenishment_request:approve`→OWNER.
 - **Đầu vào/điều kiện:** RR pending/current version, decision và từng line/approvedQty/reason.
 - **Logic/kết quả:** Owner khác requester approve/reject/return đúng version; reject chặn PO, revision cần review mới. Quyết định không post tồn.
-- **Thiết kế BE:** Append Approval gắn document/version/line/qty/actor; chặn self-approval kể cả multi-role.
+- **Thiết kế BE:** Append Approval gắn document/version/line/qty/actor; chặn self-approval theo userId kể cả sau khi đổi role.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Requester đổi sang Owner vẫn không tự duyệt; approval stale chặn PO.
 - **Truy vết:** Report 3 phần II, UC-04 (dòng 936 tại snapshot đọc); nhánh BF-01-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
@@ -1465,7 +1467,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Quyền theo Report 3:** Administrator — View.
 - **Mã quyền trong seed hiện tại:** `user:read`→ADMIN.
 - **Đầu vào/điều kiện:** Admin: account ID.
-- **Logic/kết quả:** Account detail staff roles/status/permitted operations/warehouse scope; preserve historical identity.
+- **Logic/kết quả:** Account detail staff single role/status/permitted operations/warehouse scope; preserve historical identity.
 - **Thiết kế BE:** Direct getById permission equal list, safe DTO and ObjectId validation.
 - **Điểm đặt BE:** `src/modules/users` / `src/modules/roles` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission/warehouseIds; AuditEvent.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
@@ -1488,11 +1490,11 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-02.**
 - **Quyền theo Report 3:** Administrator — Maintain existing role / operation / warehouse scope.
 - **Mã quyền trong seed hiện tại:** `access_control:read`→ADMIN; `access_control:create`→ADMIN; `access_control:update`→ADMIN.
-- **Đầu vào/điều kiện:** Admin: existing role codes/operation catalogue/warehouseIds và account/role version.
-- **Logic/kết quả:** Gán đúng 5 role/finite operations/assigned warehouses, audit changes, future requests enforce; no retired/arbitrary permissions; multi-role vẫn SoD.
+- **Đầu vào/điều kiện:** Admin: one existing roleCode/operation catalogue/warehouseIds và account/role version.
+- **Logic/kết quả:** Gán đúng một trong 5 role/finite operations/assigned warehouses, audit changes, future requests enforce; no retired/arbitrary permissions; mỗi user đúng một role, vẫn kiểm SoD theo userId.
 - **Thiết kế BE:** Extend missing assignment path; whitelist PERMISSION_CATALOGUE, validate role-operation restrictions/warehouse existence and audit; no Permission.create arbitrary code.
 - **Điểm đặt BE:** `src/modules/users` / `src/modules/roles` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission/warehouseIds; AuditEvent.
-- **Điểm kiểm chứng:** Không gán retired/arbitrary permission hoặc dùng multi-role lách SoD.
+- **Điểm kiểm chứng:** Từ chối quyền retired/arbitrary, gán nhiều role và đổi role để lách SoD.
 - **Truy vết:** Report 3 phần II, UC-98 (dòng 2425 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 
 ### UC-99 — View Operational Reports
@@ -1680,3 +1682,7 @@ Các hash dùng nhận biết nguồn đã đổi, không thay kiểm thử. Fil
 ### Đồng bộ 27/10/2026 — 3.3.0
 
 Đã cập nhật quy tắc chung và UC liên quan theo đề xuất 1.4.0 được người dùng yêu cầu áp dụng. Schema/seed có cấu trúc mới; API đánh giá/tạo RR, notification consumer và UI vẫn là thiết kế cần triển khai. Hash snapshot26/10 phía trên là lịch sử, không xác nhận nội dung nguồn hiện tại. Không tự commit.
+
+### Đồng bộ phân quyền 28/10/2026
+
+Model/BE dùng roleId đơn; API role lowercase và aliases roles=[role], primaryRole=role. Payload gán nhiều role bị từ chối. FE còn màn hình chọn nhiều role và cần sửa riêng; aliases chỉ tương thích đăng nhập/đọc. Chuẩn bị migration mặc định dry-run, ánh xạ userId→roleCode cho ca mơ hồ, backup và transaction trước apply; chưa chạy trên database đang dùng. Duy trì 84 bảng SQL tham chiếu, 39 collections Mongo, năm role và nguyên IDs UC/BR. Không tự commit.

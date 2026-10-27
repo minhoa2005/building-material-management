@@ -2,7 +2,7 @@
 
 SQL Server/T-SQL is a relational reference model for design analysis. MongoDB remains runtime; this DDL is not a MongoDB migration and does not implement business services.
 
-Updated 27 October 2026, baseline3.3.0: apply source-backed replenishment and Notification proposal1.4.0 while retaining A1/B1/C2/Owner-free BF-08. Reference SQL has 85 tables/2 views; MongoDB has 39 collections/35 document kinds/19 line kinds. See [process EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), [SQL](WMSD_SQL_schema.sql) and [history](../../change_logs.md).
+Updated 27 October 2026, baseline3.3.0: apply source-backed replenishment and Notification proposal1.4.0 while retaining A1/B1/C2/Owner-free BF-08. Reference SQL has 84 tables/2 views; MongoDB has 39 collections/35 document kinds/19 line kinds. See [process EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), [SQL](WMSD_SQL_schema.sql) and [history](../../change_logs.md).
 
 | Version | Date | Revision |
 |---|---|---|
@@ -29,7 +29,7 @@ Updated 27 October 2026, baseline3.3.0: apply source-backed replenishment and No
 | S5 | [SAP WM I](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_I_en_v4.1.pdf), [II](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_II_en_v4.1.pdf), [III](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_III_en_v4.1.pdf), [IV](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_IV_en_v4.1.pdf) | Local **v4.1** set: I GR p.10, TO pp.18/21; II STO p.6, GI p.12, GR p.18, TO pp.26/29; III picking pp.14/19, shipping p.25; IV snapshot/count/recount/clearing pp.4/12/14/21/27. Do not reuse v4.2 page references from the older proposal. |
 | S6 | [Process compilation](../06_tham_khao/quy_trinh/Tổng%20hợp%20quy%20trình.pdf), four pages | Handover documents and business context. Debt, payments and fleet management are not automatically added to the MVP. |
 | S7 | [Reference links](../06_tham_khao/link_tham_khao.md) | Official MISA, Odoo and Microsoft guidance for concept comparison; WMSD-specific decisions are stated separately. |
-| S8 | [Database drawing](WMSD_database_design.drawio), 10 pages | Preserved 3.0.0 snapshot: 73 tables/173 FKs/2 views on 22 October. Diagrams excluded; 3.3.0 DDL has 85 tables/2 views and is not claimed to match the old drawing. |
+| S8 | [Database drawing](WMSD_database_design.drawio), 10 pages | Preserved 3.0.0 snapshot: 73 tables/173 FKs/2 views on 22 October. Diagrams excluded; 3.3.0 DDL has 84 tables/2 views and is not claimed to match the old drawing. |
 | S9 | [VI/EN mainflows](../04_so_do/WMSD_Mainflows_VI_EN.drawio), 16 pages | Preserved 3.0.0 snapshot, not updated to 3.1.0; layout reference only. Current process text takes precedence. |
 
 Priority: current instruction → S1/D1–D8 and the [change log](../../change_logs.md) → Report 1/3 at the same baseline → design/S8/S9 → survey and reference evidence. S4 is historical and cannot override current decisions. The current catalogue has 111 UCs (97 active/14 retired). SQL is the reference model; MongoDB remains runtime.
@@ -70,7 +70,7 @@ This table describes how relational design concepts map to MongoDB at the same b
 
 | Relational analysis model | Proposed MongoDB collection/embedding |
 |---|---|
-| app_user, app_role, permission, user_warehouse | users, roles, permissions; references/embedded assigned role IDs |
+| app_user, app_role, permission, user_warehouse | users, roles, permissions; required User.roleId reference; warehouseIds remains an ObjectId array |
 | warehouse, location, party, product, uom, lot | warehouses, locations, parties, products, lots; snapshot important attributes on transaction lines |
 | document + typed header + document_line | business_documents with documentType, or bounded-context collections sharing documentId; embed headers/lines when lifecycle and size are bounded |
 | sales_order + line + cancellations | sales_orders with lines/source references; append-only cancellation_events; unique source and order version |
@@ -92,6 +92,25 @@ Do not make every SQL table a MongoDB collection. Embed data only when it shares
 
 Create unique indexes for document numbers, idempotency keys, operation keys and balance dimensions. Confirm collation, partial indexes for active records, reporting/trace indexes and shard strategy against real workload; do not shard simply because MongoDB supports it.
 
+
+### Single-role authorization — 28 October 2026
+
+Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
+
+```mermaid
+erDiagram
+  APP_ROLE ||--o{ APP_USER : assigned_to
+  APP_ROLE {
+    varchar role_code PK
+  }
+  APP_USER {
+    bigint user_id PK
+    varchar role_code FK
+  }
+```
+
+MongoDB stores a required scalar User.roleId, indexed and non-unique. Existing users require an explicit dry-run/assignment/backup migration before the new backend starts. Compatibility response roles=[role] and primaryRole=role are derived, not stored.
+
 ## 3. Relational reference model (SQL)
 
 ### 3.1 SQL normalization and type conventions
@@ -110,7 +129,7 @@ In this model, PK means primary key, FK means foreign key, UNIQUE enforces disti
 | Table | Main keys/fields | Rule |
 |---|---|---|
 | `app_user` | user_id PK; username UNIQUE, display_name, credential_hash, active | Hash credentials; no plaintext |
-| `app_role`, `user_role` | Role code; composite user-role PK | Five roles; multiple roles do not bypass self-approval restrictions |
+| `app_role` | PK role_code; directly referenced by app_user.role_code | Five roles; Role 1–N User, no user_role join table |
 | `permission`, `role_permission` | Permission code; role-permission PK | Operation-specific permissions; Admin has no implicit warehouse authority |
 | `warehouse`, `user_warehouse` | warehouse_id, UNIQUE code; user-warehouse PK | Assigned warehouse scope |
 | `location` | location_id, warehouse FK, code, kind, allocatable, active | UNIQUE(warehouse,code); only STORAGE may be allocatable |
@@ -241,7 +260,7 @@ Example without sales demand: available18/min50/target50/incoming10 suggests22 b
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **85 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
 
 
 **Unified prefilled RR form (approved proposal1.4.0, baseline3.3.0):** Select warning lines and choose Create request, or open the menu and choose a source/other need. Prefill verified product, warehouse, suggested quantity, reason and references. Users edit quantity, need date and reasons; source product/warehouse/references are fixed until the context is reselected and reevaluated. One RR has one receiving warehouse/need date; other groups require separate reviewed requests.
@@ -298,7 +317,7 @@ Book50GOOD/count48GOOD+2broken: RECLASS2, total50, no shortage−2/ADJ0. Count46
 
 ### 3.7 Condensed ERD
 
-> The three Mermaid diagrams below are current 3.1.0 logical views updated on 25 October: A1, B1 and C2/BF-08. They do not draw all 85 current DDL tables; key PK/FK/attributes are shown for additions. Header/line contains relationships may pass through shared document/document_line, rather than replacing all physical FKs/service checks.
+> The three Mermaid diagrams below are current 3.1.0 logical views updated on 25 October: A1, B1 and C2/BF-08. They do not draw all 84 current DDL tables; key PK/FK/attributes are shown for additions. Header/line contains relationships may pass through shared document/document_line, rather than replacing all physical FKs/service checks.
 
 This diagram shows the main structure; the DDL contains the complete columns, FKs, join tables and subtypes.
 

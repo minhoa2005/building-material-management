@@ -146,6 +146,8 @@ The table retains the 17 October review findings. Process/database proposals, SQ
 
 Retain five application roles. Use **Warehouse Staff** consistently instead of Inventory Staff in English; this is a naming alignment, not a sixth role.
 
+Authorization decision, 28 October 2026: Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
+
 | Actor | To-be responsibility |
 |---|---|
 | Store Owner | Approves replenishment, inter-warehouse TR, defect destruction/regrade/release and stocktake plans; reviews customer-return exceptions only. Views reports. No approval of ordinary customer returns, relocation or BF-08. |
@@ -156,7 +158,7 @@ Retain five application roles. Use **Warehouse Staff** consistently instead of I
 
 Customer, Supplier and Carrier are business participants, potentially separate BPMN pools, with no default WMSD account. Source/destination Warehouse Staff are two warehouse responsibilities, not two application roles. Record actual users by userId, not just role labels.
 
-Approval and execution are distinct: confirming a completed shelf move is not self-approval of a business proposal. The same person cannot create and approve their own replenishment/transfer/adjustment request. Inter-warehouse receipt requires someone independent from dispatch. Where staffing is limited, the Owner may be explicitly assigned independent inspection; verify that arrangement, never assume enough people or share accounts.
+Approval and execution are distinct: confirming a completed shelf move is not self-approval of a business proposal. The same person cannot create and approve their own replenishment/transfer/adjustment request. Inter-warehouse receipt requires someone independent from dispatch. The Owner may assist physical observation, but an OWNER account cannot confirm receipt/post stock as WAREHOUSE. Assign a WAREHOUSE user independent from dispatch; never assume enough staff or share accounts.
 
 Authorization checks **role + operation + assigned warehouse + document state + creator/approver identity**. List access does not imply entry or approval.
 
@@ -564,7 +566,7 @@ V = scoped view; T = create/record; D = approve; X = execute/confirm as defined 
 | Record external outcomes | V | V related | V warehouse part | T | — |
 | Technical accounts/permissions | — | — | — | — | T |
 
-Cross-cutting constraints: same-user approval is prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans regardless of multiple roles. The user-selected exception lets Sales accept an ordinary CR they created after Warehouse inspection; it is not Owner approval and never authorizes exception cases. Only assigned Warehouse posts stock/POD/GR-FD; only Sales manages SO/WIR, reopened demand and PAY-CFM after DELIVERED. BF-08 has no Owner approval; Accountant reconciles/closes without Warehouse stock posting. Only approved B1 closure batches may change quality/location under freeze; rights changes cannot rewrite posted authority.
+Cross-cutting constraints: same-user approval is prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans including after reassignment of the user’s single role. The user-selected exception lets Sales accept an ordinary CR they created after Warehouse inspection; it is not Owner approval and never authorizes exception cases. Only assigned Warehouse posts stock/POD/GR-FD; only Sales manages SO/WIR, reopened demand and PAY-CFM after DELIVERED. BF-08 has no Owner approval; Accountant reconciles/closes without Warehouse stock posting. Only approved B1 closure batches may change quality/location under freeze; rights changes cannot rewrite posted authority.
 
 ## 7. Software context and figure corrections
 

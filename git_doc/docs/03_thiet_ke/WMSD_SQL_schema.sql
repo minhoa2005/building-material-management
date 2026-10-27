@@ -1,4 +1,4 @@
--- WMSD relational analysis/reference DDL, 2026-10-27. NOT a production schema.
+-- WMSD relational analysis/reference DDL, 2026-10-28. NOT a production schema.
 -- Revision 3.3.0: one prefilled RR form, direct SO-line/count sources,
 -- target/version policies, planning guards and per-recipient notifications.
 -- Runtime persistence remains MongoDB (NoSQL), per Report 3 and the system design.
@@ -19,22 +19,21 @@ GO
 CREATE SCHEMA wmsd;
 GO
 
-CREATE TABLE wmsd.app_user (
- user_id bigint IDENTITY(1,1) PRIMARY KEY,
- username varchar(100) NOT NULL UNIQUE,
- display_name varchar(160) NOT NULL,
- credential_hash varchar(255) NOT NULL,
- active bit NOT NULL DEFAULT 1
-);
+-- 28 October 2026: exactly one role per user; many users may share a role.
 CREATE TABLE wmsd.app_role (
  role_code varchar(30) PRIMARY KEY,
  CONSTRAINT ck_app_role_fixed CHECK(role_code IN ('OWNER','SALES','WAREHOUSE','ACCOUNTANT','ADMIN'))
 );
 INSERT INTO wmsd.app_role VALUES ('OWNER'),('SALES'),('WAREHOUSE'),('ACCOUNTANT'),('ADMIN');
-CREATE TABLE wmsd.user_role (
- user_id bigint NOT NULL REFERENCES wmsd.app_user, role_code varchar(30) NOT NULL REFERENCES wmsd.app_role,
- PRIMARY KEY(user_id, role_code)
+CREATE TABLE wmsd.app_user (
+ user_id bigint IDENTITY(1,1) PRIMARY KEY,
+ username varchar(100) NOT NULL UNIQUE,
+ display_name varchar(160) NOT NULL,
+ credential_hash varchar(255) NOT NULL,
+ role_code varchar(30) NOT NULL REFERENCES wmsd.app_role(role_code),
+ active bit NOT NULL DEFAULT 1
 );
+CREATE INDEX ix_app_user_role ON wmsd.app_user(role_code);
 CREATE TABLE wmsd.permission (permission_code varchar(80) PRIMARY KEY);
 CREATE TABLE wmsd.role_permission (
  role_code varchar(30) NOT NULL REFERENCES wmsd.app_role, permission_code varchar(80) NOT NULL REFERENCES wmsd.permission,

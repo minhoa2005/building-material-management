@@ -1,7 +1,7 @@
 /* Scope selected by the user: master data + retained original entities, one ERD. */
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const entities=[
- ['User','master','FullName|Email|Roles|AccountStatus','Tài khoản cá nhân; vai trò cố định và phạm vi kho được phân công.'],
+ ['User','master','FullName|Email|Role|AccountStatus','Tài khoản cá nhân; đúng một Role bắt buộc, nhiều user có thể cùng Role; phạm vi kho độc lập.'],
  ['Warehouse','master','Code|Name|Address|Status','Kho vật lý; các khu chức năng cùng địa điểm không phải các kho riêng.'],
  ['Location','master','Code|AreaCode|LocationType|CapacityLimit|Status','Vị trí thuộc một kho; AreaCode thay Zone trong bản rút gọn.'],
  ['Product','master','SKU|Name|NominalSize|Surface|Status','Danh mục sản phẩm; kích thước danh nghĩa khác calibre thực tế của lô.'],
@@ -63,16 +63,17 @@ function mermaid(){
 }
 function explanation(){return `# ERD rút gọn — master data và các bảng còn lại từ ERD gốc
 
-Ngày cập nhật: 25/10/2026. Bản tài liệu 3.1.1, baseline nghiệp vụ 3.1.0. Nguồn chuẩn: [Process Proposal 2 — EN, 3.1.0](../../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md). Phạm vi mới theo yêu cầu người dùng: sửa ERD gốc gồm 18 bảng, áp dụng kết luận gộp/bỏ và bổ sung master data; thể hiện trên **một ERD duy nhất**.
+Ngày cập nhật: 28/10/2026. Bản tài liệu 3.1.2, giữ góc nhìn A1/B1/C2 và áp dụng quyết định mỗi user một role. Nguồn chuẩn: [Process Proposal 2 — EN, 3.1.0](../../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md). Phạm vi mới theo yêu cầu người dùng: sửa ERD gốc gồm 18 bảng, áp dụng kết luận gộp/bỏ và bổ sung master data; thể hiện trên **một ERD duy nhất**.
 
 - [Xem ERD tổng thể](erd.html) — một canvas Crow-Foot, có nút phóng to/thu nhỏ, dùng offline.
 - [Mã Mermaid](erd.mmd) — nguồn để sao chép/chỉnh sửa.
-- [ERD trong Markdown](erd.md) — cùng sơ đồ và chú giải.
+- [ERD trong Markdown](erd.md) — góc nhìn đã có dùng tên thực thể runtime; giữ nguyên ngoài thuộc tính User.Role đơn.
 - [Nguồn mô hình](model.cjs) — 14 thực thể, 32 quan hệ; [lệnh dựng lại](build.cjs).
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
 | 3.1.0 | 24/10/2026 | Góc nhìn rút gọn 14 thực thể/32 quan hệ. |
+| 3.1.2 | 28/10/2026 | User.Role bắt buộc đơn; giữ 14 thực thể và 32 quan hệ; không vẽ Role thành ô riêng. |
 | 3.1.1 | 25/10/2026 | Đồng bộ nhóm thuộc tính A1/B1/C2 và dựng lại Mermaid/Markdown/HTML; giữ phạm vi 14 thực thể. |
 
 ## 1. Phạm vi chốt: 14 thực thể
@@ -112,7 +113,7 @@ ${entities.map(e=>`| ${e.id} | ${e.kind==='master'?'Danh mục/quản trị':'Ng
 4. **Inventory–Location:** ON_HAND có đúng một vị trí; TRANSIT không có vị trí vật lý và giữ TransitReference đến dispatch/dòng nguồn. StockBucket độc lập với Quality. Inventory chỉ chứa hàng thuộc cửa hàng; custody không vào đây.
 5. **Inventory–StockMovement:** decreasing/increasing chỉ số dư nguồn/đích. Sự kiện có một hoặc cả hai phía phù hợp; chuyển nội bộ có hai phía bảo toàn tổng. SourceAccount/DestinationAccount xác định vị trí/tài khoản transit và chất lượng. Ghi bằng chứng/đóng hồ sơ không trừ lần nữa.
 6. **StockCount:** Scope chọn kho/vị trí/lô/trạng thái. SnapshotItems bất biến; CountAttempts lưu mỗi lần đếm, chưa đếm khác 0; ResolutionPlans giữ phiên bản/quyết định/bằng chứng/batch. Chỉ plan được duyệt đúng phiên bản mới post delta/RECLASS. Book50 good, count48 good+2 broken → RECLASS2, không ADJ=0.
-7. **User:** creating/planning/posting ghi người thực hiện, không hàm ý mọi chứng từ đều có Owner approval. Quyền và phân tách nhiệm vụ vẫn theo 3.1.0; không suy quyền duyệt từ cạnh User.
+7. **User:** Mỗi user đúng một Role bắt buộc; nhiều user có thể cùng Role. SQL dùng app_user.role_code FK trực tiếp, Mongo dùng roleId ObjectId đơn. Kho được phân công vẫn M:N; đổi role không thay danh tính lịch sử. creating/planning/posting ghi người thực hiện, không hàm ý mọi chứng từ đều có Owner approval. Quyền và phân tách nhiệm vụ vẫn theo 3.1.0; không suy quyền duyệt từ cạnh User.
 8. **Partner:** SO có thể chỉ giữ snapshot giao nhận, nên liên kết Customer là 0..1. Nếu liên kết thì phải đúng loại; PO luôn gắn một Supplier. Nhãn cạnh dùng động từ -ing theo ảnh mẫu.
 
 ## 5. Các nhóm thuộc tính phải bảo toàn
@@ -147,7 +148,7 @@ Chạy node build.cjs để tạo Mermaid và tài liệu; chạy node build.cjs
 `;}
 function html(svg){return `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WMSD — ERD rút gọn 14 thực thể</title><style>
 *{box-sizing:border-box}body{margin:0;color:#171717;background:white;font:15px/1.6 Arial,sans-serif}main{padding:32px;max-width:1800px;margin:auto}h1{font-size:28px;line-height:1.3;margin:4px 0 16px}p{max-width:1150px}a{color:#164e89}.meta{font-size:12px;letter-spacing:.08em;color:#555}.note{border-left:3px solid #777;padding:8px 18px;margin:20px 0}.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 0;position:sticky;top:0;background:white;z-index:2;border-bottom:1px solid #ddd}.toolbar button{font:inherit;border:1px solid #aaa;background:white;padding:6px 12px;cursor:pointer}.diagram{overflow:auto;max-height:82vh;border:1px solid #ddd;margin:16px 0 32px;width:100%}.diagram svg{display:block;max-width:none!important;height:auto!important}.caption{font-size:13px;color:#555}details{margin:24px 0}summary{cursor:pointer;font-weight:bold}.table-scroll{overflow:auto}table{border-collapse:collapse;font-size:14px;width:100%}td,th{text-align:left;vertical-align:top;border-bottom:1px solid #ddd;padding:10px}th{background:#f5f5f5}td:first-child{white-space:nowrap}@media(max-width:600px){main{padding:16px}h1{font-size:23px}}@media print{@page{size:A3 landscape;margin:10mm}main{padding:0}.toolbar{display:none}.diagram{overflow:visible;max-height:none;border:0}.diagram svg{width:100%!important}details{display:none}}
-</style></head><body><main><div class="meta">WMSD · ERD KHÁI NIỆM · 25/10/2026 · BASELINE 3.1.0</div><h1>Master data và các bảng còn lại từ ERD gốc</h1><p><strong>Một ERD · 14 thực thể · 7 danh mục/quản trị + 7 nghiệp vụ.</strong> Các ô chỉ hiện thuộc tính chính; quan hệ Crow-Foot và động từ -ing theo ảnh mẫu.</p><p><a href="erd.mmd">Mã Mermaid</a> · <a href="erd.md">Bản Markdown</a> · <a href="README.md">Đối chiếu gộp/bỏ và cách đọc</a></p><div class="note">Gộp Zone vào Location, thay Supplier bằng Partner, thêm ProductConversion và ẩn bốn bảng Line dưới Items. SO–GI là truy vết <strong>qua WIR/OD</strong>. Đây là góc nhìn rút gọn; các chứng từ độc lập còn lại của tám quy trình không hiển thị thành ô riêng.</div><div class="toolbar"><button id="all" type="button">Toàn bộ</button><button id="fit" type="button">Vừa chiều ngang</button><button id="minus" type="button" aria-label="Thu nhỏ">−</button><output id="scale"></output><button id="plus" type="button" aria-label="Phóng to">+</button><button id="actual" type="button">100%</button><span class="caption">Dùng thanh cuộn để xem toàn sơ đồ.</span></div><div class="diagram" id="diagram">${svg}</div><p class="caption">Crow-Foot: || = đúng 1; o| = 0..1; o{ = 0..n; |{ = 1..n. M:N đi qua các dòng có số lượng ẩn trong Items. Xem README để đọc các nhánh nguồn tùy chọn và nguồn transit.</p><details><summary>Danh sách thực thể và thuộc tính</summary><div class="table-scroll"><table><thead><tr><th>Thực thể</th><th>Nhóm</th><th>Thuộc tính chính</th></tr></thead><tbody>${entities.map(n=>`<tr><td>${n.id}</td><td>${n.kind==='master'?'Danh mục/quản trị':'Nghiệp vụ'}</td><td>${n.fields.map(esc).join(', ')}</td></tr>`).join('')}</tbody></table></div></details></main><script>
+</style></head><body><main><div class="meta">WMSD · ERD KHÁI NIỆM · 28/10/2026 · MỖI USER MỘT ROLE</div><h1>Master data và các bảng còn lại từ ERD gốc</h1><p><strong>Một ERD · 14 thực thể · 7 danh mục/quản trị + 7 nghiệp vụ.</strong> Các ô chỉ hiện thuộc tính chính; quan hệ Crow-Foot và động từ -ing theo ảnh mẫu.</p><p><a href="erd.mmd">Mã Mermaid</a> · <a href="erd.md">Bản Markdown</a> · <a href="README.md">Đối chiếu gộp/bỏ và cách đọc</a></p><div class="note">Gộp Zone vào Location, thay Supplier bằng Partner, thêm ProductConversion và ẩn bốn bảng Line dưới Items. SO–GI là truy vết <strong>qua WIR/OD</strong>. Đây là góc nhìn rút gọn; các chứng từ độc lập còn lại của tám quy trình không hiển thị thành ô riêng.</div><div class="toolbar"><button id="all" type="button">Toàn bộ</button><button id="fit" type="button">Vừa chiều ngang</button><button id="minus" type="button" aria-label="Thu nhỏ">−</button><output id="scale"></output><button id="plus" type="button" aria-label="Phóng to">+</button><button id="actual" type="button">100%</button><span class="caption">Dùng thanh cuộn để xem toàn sơ đồ.</span></div><div class="diagram" id="diagram">${svg}</div><p class="caption">Crow-Foot: || = đúng 1; o| = 0..1; o{ = 0..n; |{ = 1..n. M:N đi qua các dòng có số lượng ẩn trong Items. Xem README để đọc các nhánh nguồn tùy chọn và nguồn transit.</p><details><summary>Danh sách thực thể và thuộc tính</summary><div class="table-scroll"><table><thead><tr><th>Thực thể</th><th>Nhóm</th><th>Thuộc tính chính</th></tr></thead><tbody>${entities.map(n=>`<tr><td>${n.id}</td><td>${n.kind==='master'?'Danh mục/quản trị':'Nghiệp vụ'}</td><td>${n.fields.map(esc).join(', ')}</td></tr>`).join('')}</tbody></table></div></details></main><script>
 const diagram=document.getElementById('diagram'),svg=diagram.querySelector('svg'),out=document.getElementById('scale');const original=svg.viewBox.baseVal.width;let zoom=1;function setZoom(value){zoom=Math.max(.1,Math.min(2,value));svg.style.width=(original*zoom)+'px';out.textContent=Math.round(zoom*100)+'%'}function fit(){setZoom((diagram.clientWidth-4)/original)}function fitAll(){setZoom(Math.min((diagram.clientWidth-4)/original,innerHeight*.74/svg.viewBox.baseVal.height))}document.getElementById('plus').onclick=()=>setZoom(zoom*1.2);document.getElementById('minus').onclick=()=>setZoom(zoom/1.2);document.getElementById('actual').onclick=()=>setZoom(1);document.getElementById('fit').onclick=fit;document.getElementById('all').onclick=fitAll;fitAll();
 </script></body></html>`;}
 function validate(){
@@ -197,7 +198,8 @@ async function render(mmd){
 async function main(){
  validate();const mmd=mermaid();
  fs.writeFileSync(path.join(__dirname,'erd.mmd'),mmd,'utf8');fs.writeFileSync(path.join(__dirname,'README.md'),explanation(),'utf8');
- fs.writeFileSync(path.join(__dirname,'erd.md'),'# ERD tổng thể rút gọn — 14 thực thể\n\n7 master data/quản trị + 7 bảng nghiệp vụ còn lại từ ERD gốc. [Cách đọc và giới hạn](README.md).\n\n```mermaid\n'+mmd+'```\n\n`attr` chỉ là token cú pháp Mermaid, không phải kiểu dữ liệu. [Bản HTML](erd.html) không hiển thị cột này.\n','utf8');
+ // erd.md is a separately maintained runtime-named view; preserve its existing entities.
+ if(!fs.existsSync(path.join(__dirname,'erd.md')))fs.writeFileSync(path.join(__dirname,'erd.md'),'# ERD tổng thể rút gọn — 14 thực thể\n\n7 master data/quản trị + 7 bảng nghiệp vụ còn lại từ ERD gốc. [Cách đọc và giới hạn](README.md).\n\n```mermaid\n'+mmd+'```\n\n`attr` chỉ là token cú pháp Mermaid, không phải kiểu dữ liệu. [Bản HTML](erd.html) không hiển thị cột này.\n','utf8');
  if(process.argv.includes('--render'))await render(mmd);
  console.log(`Generated ${entities.length} entities (7 master/admin), ${relations.length} relationships, one ERD.`);
 }

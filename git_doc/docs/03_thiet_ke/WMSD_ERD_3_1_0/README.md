@@ -1,15 +1,16 @@
 # ERD rút gọn — master data và các bảng còn lại từ ERD gốc
 
-Ngày cập nhật: 25/10/2026. Bản tài liệu 3.1.1, baseline nghiệp vụ 3.1.0. Nguồn chuẩn: [Process Proposal 2 — EN, 3.1.0](../../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md). Phạm vi mới theo yêu cầu người dùng: sửa ERD gốc gồm 18 bảng, áp dụng kết luận gộp/bỏ và bổ sung master data; thể hiện trên **một ERD duy nhất**.
+Ngày cập nhật: 28/10/2026. Bản tài liệu 3.1.2, giữ góc nhìn A1/B1/C2 và áp dụng quyết định mỗi user một role. Nguồn chuẩn: [Process Proposal 2 — EN, 3.1.0](../../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md). Phạm vi mới theo yêu cầu người dùng: sửa ERD gốc gồm 18 bảng, áp dụng kết luận gộp/bỏ và bổ sung master data; thể hiện trên **một ERD duy nhất**.
 
 - [Xem ERD tổng thể](erd.html) — một canvas Crow-Foot, có nút phóng to/thu nhỏ, dùng offline.
 - [Mã Mermaid](erd.mmd) — nguồn để sao chép/chỉnh sửa.
-- [ERD trong Markdown](erd.md) — cùng sơ đồ và chú giải.
+- [ERD trong Markdown](erd.md) — góc nhìn đã có dùng tên thực thể runtime; giữ nguyên ngoài thuộc tính User.Role đơn.
 - [Nguồn mô hình](model.cjs) — 14 thực thể, 32 quan hệ; [lệnh dựng lại](build.cjs).
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
 | 3.1.0 | 24/10/2026 | Góc nhìn rút gọn 14 thực thể/32 quan hệ. |
+| 3.1.2 | 28/10/2026 | User.Role bắt buộc đơn; giữ 14 thực thể và 32 quan hệ; không vẽ Role thành ô riêng. |
 | 3.1.1 | 25/10/2026 | Đồng bộ nhóm thuộc tính A1/B1/C2 và dựng lại Mermaid/Markdown/HTML; giữ phạm vi 14 thực thể. |
 
 ## 1. Phạm vi chốt: 14 thực thể
@@ -39,7 +40,7 @@ Quan hệ thay cho FK trên hình. Không hiển thị ID nội bộ, PK/FK, ki�
 
 | Thực thể | Nhóm | Thuộc tính chính | Chức năng |
 |---|---|---|---|
-| User | Danh mục/quản trị | FullName, Email, Roles, AccountStatus | Tài khoản cá nhân; vai trò cố định và phạm vi kho được phân công. |
+| User | Danh mục/quản trị | FullName, Email, Role, AccountStatus | Tài khoản cá nhân; đúng một Role bắt buộc, nhiều user có thể cùng Role; phạm vi kho độc lập. |
 | Warehouse | Danh mục/quản trị | Code, Name, Address, Status | Kho vật lý; các khu chức năng cùng địa điểm không phải các kho riêng. |
 | Location | Danh mục/quản trị | Code, AreaCode, LocationType, CapacityLimit, Status | Vị trí thuộc một kho; AreaCode thay Zone trong bản rút gọn. |
 | Product | Danh mục/quản trị | SKU, Name, NominalSize, Surface, Status | Danh mục sản phẩm; kích thước danh nghĩa khác calibre thực tế của lô. |
@@ -62,7 +63,7 @@ Quan hệ thay cho FK trên hình. Không hiển thị ID nội bộ, PK/FK, ki�
 4. **Inventory–Location:** ON_HAND có đúng một vị trí; TRANSIT không có vị trí vật lý và giữ TransitReference đến dispatch/dòng nguồn. StockBucket độc lập với Quality. Inventory chỉ chứa hàng thuộc cửa hàng; custody không vào đây.
 5. **Inventory–StockMovement:** decreasing/increasing chỉ số dư nguồn/đích. Sự kiện có một hoặc cả hai phía phù hợp; chuyển nội bộ có hai phía bảo toàn tổng. SourceAccount/DestinationAccount xác định vị trí/tài khoản transit và chất lượng. Ghi bằng chứng/đóng hồ sơ không trừ lần nữa.
 6. **StockCount:** Scope chọn kho/vị trí/lô/trạng thái. SnapshotItems bất biến; CountAttempts lưu mỗi lần đếm, chưa đếm khác 0; ResolutionPlans giữ phiên bản/quyết định/bằng chứng/batch. Chỉ plan được duyệt đúng phiên bản mới post delta/RECLASS. Book50 good, count48 good+2 broken → RECLASS2, không ADJ=0.
-7. **User:** creating/planning/posting ghi người thực hiện, không hàm ý mọi chứng từ đều có Owner approval. Quyền và phân tách nhiệm vụ vẫn theo 3.1.0; không suy quyền duyệt từ cạnh User.
+7. **User:** Mỗi user đúng một Role bắt buộc; nhiều user có thể cùng Role. SQL dùng app_user.role_code FK trực tiếp, Mongo dùng roleId ObjectId đơn. Kho được phân công vẫn M:N; đổi role không thay danh tính lịch sử. creating/planning/posting ghi người thực hiện, không hàm ý mọi chứng từ đều có Owner approval. Quyền và phân tách nhiệm vụ vẫn theo 3.1.0; không suy quyền duyệt từ cạnh User.
 8. **Partner:** SO có thể chỉ giữ snapshot giao nhận, nên liên kết Customer là 0..1. Nếu liên kết thì phải đúng loại; PO luôn gắn một Supplier. Nhãn cạnh dùng động từ -ing theo ảnh mẫu.
 
 ## 5. Các nhóm thuộc tính phải bảo toàn

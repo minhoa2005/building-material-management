@@ -14,14 +14,14 @@ names are camelCase; timestamps use UTC Date values.
 ## Source and mapping decisions
 
 Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.3.0
-(27 October 2026). The SQL is a relational design reference; persistence stays
-MongoDB. All 85 SQL tables have a representation below, using 39 collections,
+(27 October 2026), with the single-role decision of 28 October 2026. The SQL is a relational design reference; persistence stays
+MongoDB. All 84 SQL tables have a representation below, using 39 collections,
 35 document discriminators and 19 line discriminators. Representation does not
 mean that all foreign keys or business workflows are enforced by these schemas.
 
 | SQL tables | MongoDB model / representation |
 | --- | --- |
-| app_user, user_role, user_warehouse | User; roleIds and warehouseIds hold unique reference arrays |
+| app_user, user_warehouse | User; required scalar roleId references Role; warehouseIds remains a unique reference array |
 | app_role, role_permission | Role; permissionIds holds unique references |
 | permission | Permission |
 | warehouse, location, party | Warehouse, Location, Party |
@@ -99,9 +99,9 @@ const inspection = new DocumentLine({
 - User keeps existing fullName, passwordHash, phone and isActive names.
   passwordHash is excluded from normal query selection. SQL display_name,
   credential_hash and active map to those fields.
-- User.role is replaced by roleIds. Role.code follows the supplied design:
+- User.roleId is a required scalar Role reference with a non-unique index; roleIds is removed. Role.code follows the supplied design:
   OWNER, SALES, WAREHOUSE, ACCOUNTANT, ADMIN. Existing legacy role data requires
-  an explicit migration/role assignment before implementing authentication.
+  the explicit single-role migration/role assignment before starting the updated backend.
   No migration or automatic role/permission seeding runs on import.
 - Uom.code is extensible; PIECE, BOX and M2 are initial design examples, not a
   restriction to tile products. Quality is PENDING/GOOD/DAMAGED/BLOCKED;
@@ -194,7 +194,7 @@ const inspection = new DocumentLine({
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **85 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
 
 
 The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../../git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
@@ -261,3 +261,7 @@ and drop only that temporary database afterward.
 ## Schema deployment
 
 Deploy the declared current collections/indexes explicitly after reviewing the target database. Fresh demo seeding writes only to an entirely empty database and never fills a populated one. Update the permission catalogue and existing role assignments explicitly; seed:sync-permissions requires all permission records to exist before changing roles. No model import performs database maintenance. Transaction services must enforce current source kinds, scope, coverage and idempotency; form DTO/schema definitions alone do not implement those operations.
+
+## Single-role decision — 28 October 2026
+
+Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions. Response role, roles=[role] and primaryRole=role use lowercase codes; uppercase roleCode remains the write input. These aliases are not persisted. Legacy arrays never grant rights. See [migration instructions](../../README.md#single-role-migration).

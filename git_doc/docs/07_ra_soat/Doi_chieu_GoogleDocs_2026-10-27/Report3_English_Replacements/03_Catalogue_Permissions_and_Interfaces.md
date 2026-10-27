@@ -120,7 +120,7 @@ The current catalogue contains 97 active use cases across nine features. Origina
 | UC-95 | View account list | FE-09 | ACTIVE | Search and filter accounts by name, role, and active status. |
 | UC-96 | View account details | FE-09 | ACTIVE | Display the selected account's information, assigned role, and status. |
 | UC-97 | Maintain Staff Account | FE-09 | ACTIVE | Create, update, activate or deactivate staff accounts; role assignment remains separately controlled. |
-| UC-98 | Assign roles and operation permissions | FE-09 | ACTIVE | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Multiple roles do not permit self-approval. |
+| UC-98 | Assign roles and operation permissions | FE-09 | ACTIVE | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change. |
 | UC-99 | View Operational Reports | FE-09 | ACTIVE | Run authorized physical/available/reserved/custody/transit, outstanding receipt/issue, customer-received quantities, DELIVERED pending receipt, COMPLETED/cancelled orders, defect, transfer, return and stocktake reports; no revenue/profit reports. |
 | UC-100 | View stock movement log | FE-09 | ACTIVE | Filter movements by product, lot, location, transaction type, and time. |
 | UC-101 | View stock movement details | FE-09 | ACTIVE | Display source document, before/after quantity, operator, time, and reason. |
@@ -143,7 +143,7 @@ Sales Staff: UC-01, UC-02, UC-03, UC-11, UC-12, UC-20, UC-21, UC-22, UC-30, UC-3
 Administrator: UC-94, UC-95, UC-96, UC-97, UC-98.
 
 4.4 Permission Matrix
-Operation/sub-operation rights require assigned warehouse, document state/version and actual user identity. Owner decision requester must differ even across roles; C2 permits Sales own ordinary inspected CR acceptance. BF-08 has no Owner approval; transfer receiver differs from dispatcher. Departments record their own work. Co-inspection/external contact grants no extra right. View never implies mutation.
+Operation/sub-operation rights require assigned warehouse, document state/version and actual user identity. Each user has exactly one role; the Owner decision requester must differ even after role reassignment; C2 permits Sales own ordinary inspected CR acceptance. BF-08 has no Owner approval; transfer receiver differs from dispatcher. Departments record their own work. Co-inspection/external contact grants no extra right. View never implies mutation.
 | UC | Operation | Store Owner | Accountant | Warehouse Staff | Sales Staff | Administrator |
 |---|---|---|---|---|---|---|
 | UC-01 | View replenishment request list | View | View | Own / assigned scope | Own / assigned scope | — |

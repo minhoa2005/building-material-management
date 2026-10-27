@@ -147,6 +147,8 @@ Bảng dưới lưu phát hiện của lần review 17/10. Hai bản quy trình,
 
 Giữ năm application roles; thống nhất Warehouse Staff thay cho Inventory Staff trong toàn bộ bản tiếng Anh. Có thể dịch “nhân viên kho/thủ kho” tùy chức danh thực tế, nhưng không dùng hai tên tiếng Anh cho cùng một role.
 
+Quyết định phân quyền 28/10/2026: Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
+
 | Actor | Trách nhiệm To-be |
 |---|---|
 | Store Owner | Duyệt bổ sung, TR liên kho, hủy/tái phân loại/giải phóng hàng lỗi và phương án kiểm kê; chỉ duyệt ngoại lệ nhận trả khách. Xem báo cáo. Không duyệt ca trả khách thông thường, đổi kệ hoặc nghiệp vụ BF-08. |
@@ -157,7 +159,7 @@ Giữ năm application roles; thống nhất Warehouse Staff thay cho Inventory 
 
 Customer, Supplier, Carrier là bên tham gia nghiệp vụ, có thể có pool trong BPMN nhưng không có tài khoản WMSD mặc định. Warehouse Staff tại kho đi và kho nhận là hai trách nhiệm theo kho, chưa cần hai loại role. Người làm bước thực tế phải được lưu bằng userId, không chỉ lưu nhãn role.
 
-Tách phê duyệt và xác nhận thực hiện: việc nhân viên xác nhận đã chuyển kệ không phải tự phê duyệt kinh doanh. Nhưng cùng một người không được tạo rồi phê duyệt chính đề nghị bổ sung/điều chuyển/điều chỉnh của mình. Liên kho cần xác nhận nhận hàng độc lập với người xuất. Nếu nhân sự ít, chủ cửa hàng có thể được giao nhiệm vụ kiểm nhận độc lập với quyền rõ ràng; phải xác nhận cách bố trí này khi khảo sát, không dùng chung tài khoản hoặc mặc định có đủ người.
+Tách phê duyệt và xác nhận thực hiện: việc nhân viên xác nhận đã chuyển kệ không phải tự phê duyệt kinh doanh. Nhưng cùng một người không được tạo rồi phê duyệt chính đề nghị bổ sung/điều chuyển/điều chỉnh của mình. Liên kho cần xác nhận nhận hàng độc lập với người xuất. Chủ cửa hàng có thể hỗ trợ kiểm thực tế nhưng tài khoản OWNER không có quyền xác nhận nhận/post thay WAREHOUSE; phải phân công một user WAREHOUSE độc lập với người xuất. Không dùng chung tài khoản hoặc mặc định có đủ người.
 
 Hệ thống kiểm tra quyền theo **role + thao tác + kho được giao + trạng thái chứng từ + người tạo/người duyệt**. Quyền xem danh sách không đồng nghĩa quyền ghi nhận hoặc duyệt.
 
@@ -565,7 +567,7 @@ V = xem theo phạm vi; T = tạo/ghi nhận nghiệp vụ; D = duyệt; X = th�
 | Ghi tham chiếu xử lý bên ngoài | V | V (liên quan) | V (phần kho) | T | — |
 | Tài khoản và phân quyền kỹ thuật | — | — | — | — | T |
 
-Ràng buộc chéo: cấm cùng user tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê; có nhiều role không vượt ràng buộc. Ngoại lệ được người dùng chốt là Sales chấp nhận CR thông thường do chính mình lập sau Warehouse kiểm; đây không phải Owner approval và không áp cho ca ngoại lệ. Chỉ Warehouse được phân công post tồn/POD/GR-FD; chỉ Sales quản lý SO/WIR, xử lý nhu cầu tái mở và PAY-CFM sau DELIVERED. BF-08 không có approval Owner; Accountant đối chiếu/đóng nhưng không post thay Warehouse. B1 chỉ batch chốt đã duyệt được thay quality/vị trí dưới khóa; không sửa approval bằng đổi quyền sau post.
+Ràng buộc chéo: cấm cùng user tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê; mỗi user chỉ có một role và đổi role không vượt ràng buộc danh tính. Ngoại lệ được người dùng chốt là Sales chấp nhận CR thông thường do chính mình lập sau Warehouse kiểm; đây không phải Owner approval và không áp cho ca ngoại lệ. Chỉ Warehouse được phân công post tồn/POD/GR-FD; chỉ Sales quản lý SO/WIR, xử lý nhu cầu tái mở và PAY-CFM sau DELIVERED. BF-08 không có approval Owner; Accountant đối chiếu/đóng nhưng không post thay Warehouse. B1 chỉ batch chốt đã duyệt được thay quality/vị trí dưới khóa; không sửa approval bằng đổi quyền sau post.
 
 ## 7. Context diagram mới và sửa hình hiện tại
 
@@ -679,7 +681,7 @@ Ngày 25/10 đã đồng bộ phần văn bản Report 1/2/3, thiết kế chi t
 | I.2.1–2.8 Main Business Flow | Thay trigger, end condition, decision handling và hình theo 8 BF ở mục 4 (đặc biệt chuỗi BF-06 SO → WIR → PGI → DELIVERED → COMPLETED); không chỉ sửa hình. |
 | I.3.1 ERD / I.3.2 Entity Descriptions | Mô tả/DDL tham chiếu đã có CR/FD, dòng GI/POD/GR-FD và claim, tái mở/OD thay thế, decision_kind, defect hold/phương án B1, Invoice/Credit Note EXT-REF. ERD Mermaid đã cập nhật A1/B1/C2; schema/API runtime chưa triển khai, MongoDB có thể embed theo vòng đời. |
 | I.3.3 Data Business Rules | Ánh xạ mục 8 (BR-01–BR-33), sửa range UC sai và loại trùng; không coi In Transit là một quality status đơn lẻ. |
-| I.4.1 Actors | Giữ 5 role, thay tên Warehouse Staff; cập nhật nhiệm vụ Sales (sao chép SO, lập WIR liên kết, xác nhận tiền ngoài COMPLETED), Warehouse (xác nhận giao khách kèm ảnh DELIVERED), Accountant, Owner; mô tả trách nhiệm nguồn/đích và hạn chế kiêm nhiệm. |
+| I.4.1 Actors | Giữ 5 role, thay tên Warehouse Staff; cập nhật nhiệm vụ Sales (sao chép SO, lập WIR liên kết, xác nhận tiền ngoài COMPLETED), Warehouse (xác nhận giao khách kèm ảnh DELIVERED), Accountant, Owner; mô tả trách nhiệm nguồn/đích và quy tắc mỗi user một role. |
 | I.4.2 Catalogue | Đồng bộ 111 ID: 97 active/14 retired, bổ sung UC-106 vào retired; UC-71 Sales thường/Owner ngoại lệ, UC-73 CR/FD, UC-83 Accountant đóng, UC-92/93 B1. Không thêm ID cho nhánh FD hoặc RECLASS. |
 | I.4.3 UC diagrams | Sales nối UC-71 ca thường; Owner UC-71 ngoại lệ và UC-66/92 theo phạm vi; Warehouse UC-72/73 FD và xác nhận B1; Accountant UC-83/107/108; bỏ UC-106 cùng các retired khỏi sơ đồ active, không nối Owner vào BF-08. |
 | I.4.4 Permission Matrix | Đồng bộ mục 6 với từng thao tác/kho: quyết định Owner cần creator≠approver, Sales được chấp nhận CR thông thường mình lập theo C2; BF-08 không Owner. Warehouse riêng UC-110, Sales riêng UC-111. |

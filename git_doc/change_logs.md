@@ -1,3 +1,13 @@
+# Phân quyền mỗi user một role — 28/10/2026
+
+Theo quyết định người dùng, User.roleId là ObjectId đơn bắt buộc; bỏ roleIds, giữ warehouseIds và năm role. SQL tham chiếu chuyển user_role sang app_user.role_code NOT NULL FK: 84 bảng/2 view; Mongo vẫn 39 collections. BE auth/middleware/users/roles/seed đồng bộ; DTO lowercase role và alias roles=[role], primaryRole=role phục vụ FE chưa sửa. Runtime không gộp quyền, không fallback ADMIN và lọc quyền theo role catalogue.
+
+Chuẩn bị migrate:single-role mặc định dry-run; user nhiều/thiếu/sai/mâu thuẫn role cần ánh xạ userId→roleCode; preflight toàn bộ, backup users/roles, transaction chuyển dữ liệu và index roleId không unique. Không tự chạy migration trên database đang dùng. Đồng bộ quy trình VI/EN, report đúng mục có sẵn, thiết kế, context, Mermaid/ERD hiện hành; giữ draw.io lịch sử, khảo sát và biên bản. Bảo toàn thay đổi có sẵn, không stage/commit.
+
+Kiểm chứng: SQL ScriptDom TSql160Parser 0 lỗi, 6 batch, 84 bảng/2 view; không chạy DDL trên SQL Server. Bộ thay đổi được tách đạt 76/76 test trên MongoDB replica set tạm, không skip; gồm HTTP tạo/đổi role, login/refresh/me bằng token cũ, seed, migration/rollback. Kiểm chứng thêm CLI thật trên DB tạm: mặc định read-only, mapping, EJSON backup, transaction/index và apply lần hai cập nhật 0 user. Parse 31 Mermaid và dựng lại ERD HTML; đã xem ảnh Role 1–N User và User.Role đơn. git diff --check đạt. Các kết quả này không áp dụng cho database đang dùng hoặc DDL thực thi trên SQL Server.
+
+---
+
 # Đồng bộ form tạo RR và Notification — 27/10/2026
 
 Baseline hiện hành 3.3.0 theo đề xuất1.4.0 được chấp thuận. Đã cập nhật model/seed/DTO/tài liệu/context cho một form điền sẵn, lựa chọn dòng và thêm sản phẩm, hỏi sau lưu SO còn thiếu, giữ form khi dữ liệu đổi, lưu nháp/gửi duyệt và source từng dòng. Không có phân loại cách tạo. API/consumer/UI vẫn cần triển khai; chưa thay database người dùng hoặc commit. Chi tiết [báo cáo đồng bộ](docs/07_ra_soat/CR-2026-10-27-REPLENISHMENT.md).

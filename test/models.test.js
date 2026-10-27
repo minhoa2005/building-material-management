@@ -145,7 +145,7 @@ test('master data and local relationships reject incompatible combinations', asy
   await new models.StockAccount({ transitDispatchLineId: id() }).validate();
   await invalid(new models.StockAccount({}), 'locationId');
   await invalid(new models.StockAccount({ locationId, transitDispatchLineId: id() }), 'locationId');
-  await invalid(new models.User({ username: 'a', fullName: 'A', passwordHash: 'hash', roleIds: [locationId, locationId] }), 'roleIds');
+  await invalid(new models.User({ username: 'a', fullName: 'A', passwordHash: 'hash', roleId: [locationId, locationId] }), 'roleId');
   await invalid(new models.DocumentLink({ parentDocumentId: locationId, childDocumentId: locationId, relationCode: 'SOURCE' }), 'childDocumentId');
   await invalid(new models.LineLink({ sourceLineId: locationId, targetLineId: locationId, relationCode: 'SOURCE', linkedQty: '1' }), 'targetLineId');
 });
