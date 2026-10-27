@@ -91,6 +91,8 @@ const documentSchema = new Schema(
   options("business_documents", { discriminatorKey: "documentKind" }),
 );
 documentSchema.index({ documentKind: 1, workflowStatus: 1, createdAt: 1 });
+documentSchema.index({ documentKind: 1, "header.warehouseId": 1, createdAt: -1, _id: -1 });
+documentSchema.index({ documentKind: 1, createdBy: 1, "header.warehouseId": 1, createdAt: -1, _id: -1 });
 // Creation keys are scoped to the real actor; the service also compares payloadHash.
 documentSchema.index({ createdBy: 1, "header.creationKey": 1 }, {
   unique: true,
