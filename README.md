@@ -43,7 +43,7 @@ src/
 │   ├── roles/                      # Role & Permissions management (/api/roles)
 │   ├── upload/                     # Cloudinary media uploads (/api/upload)
 │   └── users/                      # User account management (/api/users)
-├── seeds/                          # Database seeder (Default roles & accounts)
+├── seeds/                          # Empty-database demo seeder (all 37 collections)
 └── shared/
     └── utils/
         ├── ApiError.js             # Custom error wrapper
@@ -83,13 +83,58 @@ npm run dev      # Starts with nodemon on port 3333
 npm test         # Runs node --test suite
 ```
 
-## Default Seeded Accounts
-On startup, the system automatically checks and seeds 5 demo accounts into MongoDB:
+## Demo seed data
+
+Run `npm run seed` from `be/`, or start the server with `SEED_ON_STARTUP=true`
+(the default). The seeder inserts data **only when the entire database is empty**.
+One existing document in any non-system collection, including a legacy collection,
+skips all seed inserts. Empty collections and indexes alone do not block seeding.
+An existing database with only accounts/roles is also skipped; this is not a migration.
+
+The dataset covers all **37 collections, 35 document kinds and 18 line kinds**:
+permissions/roles/accounts, warehouses/locations, parties, products/UOM/conversions,
+lots/policies, procurement, SO/WIR/OD/GI/POD/payment, CR/FD/SR, transfers,
+defects/dispositions, stocktake plans/counts/holds, references/links/approvals,
+inventory/batches/movements/reservations/allocations, audit and outbox.
+
+Fixtures include a completed sale, a wholly cancelled sale, a failed delivery with
+reopened demand and a replacement OD, a partial transfer with 2 pieces in transit,
+and a frozen stocktake with a draft resolution. Stock balances reconcile to the
+seed ledger. Quantities and conversion factors use decimal strings.
+
+**MongoDB Atlas or a replica set is required** because all inserts commit in one
+transaction. For local MongoDB, configure a replica set (for example `rs0`) and use
+the matching `replicaSet` connection option shown in `.env.example`. Standalone
+MongoDB is rejected before inserts. Validation and index creation happen before
+the transaction; an insert failure rolls back the complete dataset. Running seed
+again preserves existing records, passwords, role permissions and warehouse scopes.
+
+All business records, supplier terms and external references are synthetic demo
+data. Evidence keys under `demo-only/` are placeholders, not uploaded files; POD
+metadata uses a tiny synthetic PNG hash. These are not proof of real inspections,
+deliveries or payments. Outbox fixtures are already marked delivered so they do
+not enqueue real messages.
+
+`npm run seed:sync-permissions` is separate, explicit maintenance: on a populated
+database it updates only existing roles using existing permission records. It
+never inserts missing roles/permissions or business fixtures, and fails before
+updates if required permissions are absent. Server startup never syncs permissions.
+`SEED_SYNC_ROLE_PERMISSIONS=true` applies only to the manual seed CLI.
+
+The six demo login accounts keep their existing credentials:
+
 - `admin@ceratile.vn` / `Admin@123` (Admin)
 - `owner@ceratile.vn` / `Owner@123` (Store Owner)
 - `sales@ceratile.vn` / `Sales@123` (Sales Staff)
 - `warehouse@ceratile.vn` / `Kho@12345678` (Warehouse Staff)
+- `warehouse2@ceratile.vn` / `Kho2@12345678` (Warehouse Staff, independent receiver)
 - `accountant@ceratile.vn` / `KeToan@123` (Accountant)
+
+`npm test` validates fixture schemas, coverage, references, credential hashes,
+ledger reconciliation and the nonempty-database guard without connecting to MongoDB.
+Set `MONGODB_TEST_URI` to a test replica set to also exercise insertion, repeat
+runs and transaction rollback. Integration tests always use random
+`sep490_seed_verification_<ObjectId>` databases and remove only those temporary databases.
 
 ## Key Endpoints
 - `GET /api/health`: Health status

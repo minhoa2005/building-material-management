@@ -1,8 +1,8 @@
 /**
  * CLI seed thủ công.
  *
- *   npm run seed                     # chỉ insert dữ liệu còn thiếu
- *   npm run seed -- --sync-permissions   # ghi đè quyền 5 role về ma trận mặc định
+ *   npm run seed                     # chỉ insert khi toàn bộ DB trống
+ *   npm run seed -- --sync-permissions   # DB có dữ liệu: chỉ cập nhật quyền role đã có
  */
 import 'dotenv/config';
 import mongoose from 'mongoose';

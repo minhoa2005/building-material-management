@@ -7,13 +7,11 @@ import { runSeeds } from './seeds/index.js';
 async function startServer() {
   await connectDatabase();
 
-  // Tự động kiểm tra DB và insert dữ liệu mặc định còn thiếu (permission, role, kho, user).
+  // Chỉ insert toàn bộ dữ liệu demo nếu database hoàn toàn trống.
   // Tắt bằng SEED_ON_STARTUP=false.
   const seedOnStartup = process.env.SEED_ON_STARTUP !== 'false';
   if (seedOnStartup && mongoose.connection.readyState === 1) {
-    await runSeeds({
-      syncRolePermissions: process.env.SEED_SYNC_ROLE_PERMISSIONS === 'true',
-    }).catch((err) => {
+    await runSeeds().catch((err) => {
       console.error('Failed to seed default data:', err);
     });
   }
