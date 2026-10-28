@@ -21,6 +21,7 @@ documentLinkSchema.index(
   { parentDocumentId: 1, childDocumentId: 1, relationCode: 1 },
   { unique: true },
 );
+documentLinkSchema.index({ childDocumentId: 1 });
 rules(documentLinkSchema, function preventDocumentSelfLink() {
   if (sameId(this.parentDocumentId, this.childDocumentId))
     this.invalidate("childDocumentId", "A document cannot link to itself");

@@ -24,7 +24,7 @@ test('userService: listUsers returns correct structure', async (t) => {
                 username: 'admin@ceratile.vn',
                 fullName: 'Quản trị viên',
                 phone: '0901234567',
-                roleIds: [{ code: 'ADMIN' }],
+                roleId: { code: 'ADMIN' },
                 isActive: true,
                 createdAt: new Date(),
                 updatedAt: new Date(),

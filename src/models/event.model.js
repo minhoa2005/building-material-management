@@ -27,6 +27,9 @@ const outboxSchema = new Schema(
     documentId: ref("BusinessDocument"),
     eventType: text(60),
     eventKey: text(120, { unique: true }),
+    documentVersion: integer(1, { required() {
+      return ["STOCKTAKE_CLOSED", "SALES_ORDER_SAVED"].includes(this.eventType);
+    } }),
     deliveredAt: date(false),
     attempts: integer(0, { default: 0 }),
   },

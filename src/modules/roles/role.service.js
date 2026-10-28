@@ -4,10 +4,9 @@ import { ApiError } from '../../shared/utils/ApiError.js';
 export const listRoles = async () => {
   const roles = await Role.find().populate('permissionIds').lean();
 
-  // Count active users per role
+  // Count each account once under its single assigned role
   const userCounts = await User.aggregate([
-    { $unwind: '$roleIds' },
-    { $group: { _id: '$roleIds', count: { $sum: 1 } } },
+    { $group: { _id: '$roleId', count: { $sum: 1 } } },
   ]);
   const countMap = new Map(userCounts.map((c) => [c._id.toString(), c.count]));
 

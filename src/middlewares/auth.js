@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { ApiError } from "../shared/utils/ApiError.js";
 import { User } from "../models/index.js";
+import { currentRole } from "../shared/utils/userRole.js";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "wmsd_default_super_secret_jwt_key_2026";
@@ -23,10 +24,10 @@ export const authenticate = async (req, _res, next) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.userId).populate({
-      path: "roleIds",
+      path: "roleId",
       populate: { path: "permissionIds" },
     });
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || !currentRole(user)) {
       return next(
         new ApiError(401, "Tài khoản không hợp lệ hoặc đã bị vô hiệu hóa"),
       );
@@ -46,10 +47,8 @@ export const authorize =
       return next(new ApiError(401, "Chưa xác thực"));
     }
 
-    const userRoles = (req.user.roleIds || []).map((r) => r.code.toUpperCase());
-    const hasRole = allowedRoles.some((role) =>
-      userRoles.includes(role.toUpperCase()),
-    );
+    const assigned = currentRole(req.user);
+    const hasRole = assigned && allowedRoles.some((role) => assigned.code === role.toUpperCase());
 
     if (!hasRole) {
       return next(

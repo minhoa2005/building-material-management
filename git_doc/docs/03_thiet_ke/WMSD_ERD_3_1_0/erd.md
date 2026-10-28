@@ -46,7 +46,7 @@ erDiagram
     User {
         attr Username
         attr FullName
-        attr Roles
+        attr Role
         attr AccountStatus
     }
 

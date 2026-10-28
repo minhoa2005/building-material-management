@@ -45,7 +45,7 @@ test('central entry point reuses models and every ObjectId reference resolves', 
 test('all 35 document kinds select their typed schemas in one collection', async () => {
   const warehouseId = id();
   const headers = {
-    REPLENISHMENT: { warehouseId, neededOn: when, triggerReason: 'Low stock' },
+    REPLENISHMENT: { warehouseId, neededOn: when, triggerReason: 'Low stock', creationKey: 'test:rr' },
     PO: { warehouseId, supplierId: id() },
     ARRIVAL: { warehouseId, arrivedAt: when },
     GR_PURCHASE: { warehouseId },
@@ -87,8 +87,9 @@ test('all 35 document kinds select their typed schemas in one collection', async
   await invalid(document('PO', { warehouseId, supplierId: id(), unrelated: true }), 'header');
 });
 
-test('all 18 line kinds retain typed detail fields and a shared line identity', async () => {
+test('all 19 line kinds retain typed detail fields and a shared line identity', async () => {
   const details = {
+    REPLENISHMENT: { triggerType: 'MANUAL_OTHER', reasonNote: 'Additional reserve requested manually' },
     SALES_ORDER: { externalReferenceId: id(), externalLineId: id() },
     OUTBOUND_DELIVERY: { issueRequestLineId: id() },
     SALES_GOODS_ISSUE: { outboundDeliveryLineId: id() },
@@ -107,7 +108,7 @@ test('all 18 line kinds retain typed detail fields and a shared line identity', 
     DISCREPANCY: { sourceLineId: id(), discrepancyKind: 'SHORT' },
     ADJUSTMENT: { countId: id(), deltaQty: '-12' },
   };
-  assert.equal(models.LINE_KINDS.length, 18);
+  assert.equal(models.LINE_KINDS.length, 19);
   for (const kind of models.LINE_KINDS) {
     const doc = line({ lineKind: kind, ...(details[kind] && { details: details[kind] }) });
     await doc.validate();
@@ -144,7 +145,7 @@ test('master data and local relationships reject incompatible combinations', asy
   await new models.StockAccount({ transitDispatchLineId: id() }).validate();
   await invalid(new models.StockAccount({}), 'locationId');
   await invalid(new models.StockAccount({ locationId, transitDispatchLineId: id() }), 'locationId');
-  await invalid(new models.User({ username: 'a', fullName: 'A', passwordHash: 'hash', roleIds: [locationId, locationId] }), 'roleIds');
+  await invalid(new models.User({ username: 'a', fullName: 'A', passwordHash: 'hash', roleId: [locationId, locationId] }), 'roleId');
   await invalid(new models.DocumentLink({ parentDocumentId: locationId, childDocumentId: locationId, relationCode: 'SOURCE' }), 'childDocumentId');
   await invalid(new models.LineLink({ sourceLineId: locationId, targetLineId: locationId, relationCode: 'SOURCE', linkedQty: '1' }), 'targetLineId');
 });

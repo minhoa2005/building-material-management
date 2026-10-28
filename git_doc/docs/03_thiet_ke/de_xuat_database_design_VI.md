@@ -2,7 +2,7 @@
 
 SQL Server/T-SQL trong tài liệu là mô hình quan hệ để phân tích thiết kế; hệ thống thực tế dùng MongoDB. DDL không phải migration cho MongoDB và chưa cung cấp service nghiệp vụ.
 
-Cập nhật 25/10/2026 theo quy trình 3.1.0 (A1/B1/C2 và BF-08 không Owner), khảo sát, D1–D8 và luồng BF-06 hiện hành trong [Đề xuất quy trình 2 — VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md). SQL tham chiếu: [WMSD_SQL_schema.sql](WMSD_SQL_schema.sql). Nhật ký: [change_logs.md](../../change_logs.md).
+Cập nhật 28/10/2026, baseline3.3.0 và quyết định mỗi user một role: áp dụng bổ sung hàng theo nguồn và Notification/form1.4.0, giữ A1/B1/C2/BF-08. SQL tham chiếu84 bảng/2 view; MongoDB runtime39 collection/35 document kinds/19 line kinds. Xem [quy trình VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), [SQL](WMSD_SQL_schema.sql) và [nhật ký](../../change_logs.md).
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
@@ -14,20 +14,22 @@ Cập nhật 25/10/2026 theo quy trình 3.1.0 (A1/B1/C2 và BF-08 không Owner),
 
 | 3.1.1 | 25/10/2026 | Cập nhật ERD Mermaid thành ba góc nhìn A1/B1/C2-BF-08; chỉ file draw.io giữ nguyên. Không đổi DDL hoặc baseline nghiệp vụ 3.1.0. |
 
+| 3.3.0 | 27/10/2026 | User-selected replenishment, source snapshots, Notification and planning guard; 85 tables/2 views, R-01–30 and T01–T69. |
+
 ## 1. Trạng thái, căn cứ và phạm vi
 
 ### 1.1 Nguồn và thứ tự áp dụng
 
 | Mã | Nguồn | Cách áp dụng |
 |---|---|---|
-| S1 | [Đề xuất quy trình 2 — VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), baseline 3.1.0 ngày 24/10; đồng bộ tài liệu ngày 25/10/2026 | Nguồn nghiệp vụ hiện hành: 8 BF, 5 vai trò, 111 UC (97 active/14 retired), BR-01–33; không đồng bộ MISA tự động. |
+| S1 | [Đề xuất quy trình 2 — VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), baseline3.3.0, đồng bộ ngày27/10/2026 | Nguồn nghiệp vụ hiện hành: 8 BF, 5 vai trò, 111 UC (97 active/14 retired), BR-01–33; không đồng bộ MISA tự động. |
 | S2 | [Report 1 text](../01_bao_cao/WMSD_Report1_Fix.docx.txt), đồng bộ 25/10/2026 | Bối cảnh một cửa hàng, khảo sát từ 3 kho, 8 BF và phạm vi SO/POD/PAY-CFM hiện hành; As-is không phải To-be đã triển khai. |
-| S3 | [Report 3 text](../01_bao_cao/WMSD_Report3_Fix.docx.txt), baseline 3.1.0, đồng bộ 25/10/2026 | 111 UC (97 active/14 retired), BR-01–33, SC-01–31; SO ở UC-45–48, WIR/POD/PAY-CFM ở UC-109–111. MongoDB runtime. |
+| S3 | [Report 3 text](../01_bao_cao/WMSD_Report3_Fix.docx.txt), baseline3.3.0, đồng bộ 25/10/2026 | 111 UC (97 active/14 retired), BR-01–33, SC-01–31; SO ở UC-45–48, WIR/POD/PAY-CFM ở UC-109–111. MongoDB runtime. |
 | S4 | [WMSD_Bangach.drawio](../04_so_do/WMSD_Bangach.drawio), 21 trang có nhãn lịch sử | Chỉ đối chiếu các phương án cũ; không dùng lane System/WMSD, giá bán hoặc TO liên kho cũ làm yêu cầu hiện hành. |
 | S5 | [SAP WM I](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_I_en_v4.1.pdf), [II](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_II_en_v4.1.pdf), [III](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_III_en_v4.1.pdf), [IV](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_IV_en_v4.1.pdf) | Bộ **v4.1** trong repo: I GR tr.10, TO tr.18/21; II STO tr.6, GI tr.12, GR tr.18, TO tr.26/29; III picking tr.14/19, ship tr.25; IV snapshot/đếm/đếm lại/clear tr.4/12/14/21/27. Không tái dùng số trang v4.2 từ đề xuất cũ. |
 | S6 | [Tổng hợp quy trình](../06_tham_khao/quy_trinh/Tổng%20hợp%20quy%20trình.pdf), 4 trang | Tham khảo chứng từ giao nhận và bối cảnh; phần công nợ/thanh toán/xe không tự trở thành phạm vi MVP. |
 | S7 | [Các link tham khảo](../06_tham_khao/link_tham_khao.md) | Dùng hướng dẫn chính thức MISA, Odoo, Microsoft để đối chiếu khái niệm; các quyết định riêng của WMSD được mô tả dưới đây. |
-| S8 | [Sơ đồ database](WMSD_database_design.drawio), 10 trang | Snapshot 3.0.0: 73 bảng/173 FK/2 view tại 22/10; giữ nguyên theo phạm vi loại trừ diagrams. DDL 3.1.0 có 82 bảng/2 view; không tuyên bố hình đồng bộ DDL mới. |
+| S8 | [Sơ đồ database](WMSD_database_design.drawio), 10 trang | Snapshot 3.0.0: 73 bảng/173 FK/2 view tại 22/10; giữ nguyên theo phạm vi loại trừ diagrams. DDL 3.3.0 có 84 bảng/2 view; không tuyên bố hình đồng bộ DDL mới. |
 | S9 | [Mainflow VI/EN](../04_so_do/WMSD_Mainflows_VI_EN.drawio), 16 trang | Snapshot 3.0.0, chưa sửa theo 3.1.0; chỉ dùng tham khảo bố cục. Quy trình văn bản hiện hành chi phối. |
 
 Thứ tự áp dụng: yêu cầu hiện tại → S1/D1–D8 và [change log](../../change_logs.md) → Report 1/3 cùng baseline → thiết kế/S8/S9 → khảo sát và nguồn tham khảo. S4 là sơ đồ lịch sử, không ghi đè quyết định hiện hành. Hiện có 111 UC (97 active/14 retired). SQL là mô hình tham chiếu, MongoDB là lưu trữ thực tế.
@@ -68,7 +70,7 @@ Bảng dưới đây mô tả cách ánh xạ các khái niệm của mô hình 
 
 | Mô hình quan hệ dùng để phân tích | Collection/embedding dự kiến trên MongoDB |
 |---|---|
-| app_user, app_role, permission, user_warehouse | users, roles, permissions; quan hệ bằng ObjectId reference/role IDs |
+| app_user, app_role, permission, user_warehouse | users, roles, permissions; User.roleId bắt buộc tham chiếu Role; warehouseIds là mảng ObjectId |
 | warehouse, location, party, product, uom, lot | warehouses, locations, parties, products, lots; snapshot thuộc tính quan trọng vào dòng chứng từ |
 | document + typed header + document_line | business_documents phân loại documentType, hoặc collection theo bounded context cùng documentId; embed header/lines nếu cùng vòng đời và giới hạn kích thước |
 | sales_order + line + cancellations | sales_orders với dòng hàng và tham chiếu nguồn; cancellation_events lưu từng lần hủy có kiểm soát; unique source và version trên đơn |
@@ -90,6 +92,25 @@ Không biến từng bảng SQL thành một MongoDB collection. Chỉ embed d�
 
 Tạo unique indexes cho số chứng từ, mã chống ghi lặp, mã thao tác và các thành phần xác định số dư. Xác nhận collation, partial index cho bản ghi active, index báo cáo/truy vết và chiến lược shard theo tải thực; không thêm sharding chỉ vì MongoDB hỗ trợ.
 
+
+### Phân quyền một user một role — 28/10/2026
+
+Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
+
+```mermaid
+erDiagram
+  APP_ROLE ||--o{ APP_USER : assigned_to
+  APP_ROLE {
+    varchar role_code PK
+  }
+  APP_USER {
+    bigint user_id PK
+    varchar role_code FK
+  }
+```
+
+MongoDB lưu User.roleId đơn bắt buộc, có index không unique; warehouseIds giữ nguyên. Dữ liệu cũ phải qua migration dry-run/chọn role/backup trước khi chạy BE mới. Response roles=[role] và primaryRole=role chỉ là trường tương thích FE, không lưu Mongo.
+
 ## 3. Mô hình dữ liệu quan hệ tham chiếu (SQL)
 
 ### 3.1 Chuẩn hóa và quy ước kiểu SQL
@@ -107,15 +128,15 @@ Trong mô hình này, PK là khóa chính, FK là khóa ngoại, UNIQUE bảo đ
 
 | Bảng | Khóa và trường chính | Quy tắc |
 |---|---|---|
-| `app_user` | PK user_id; username UNIQUE, display_name, credential_hash, active | Hash mật khẩu/credential, không lưu plaintext |
-| `app_role`, `user_role` | Role code; PK ghép user-role | Năm role; một user nhiều role vẫn chịu cấm tự duyệt |
+| `app_user` | PK user_id; username UNIQUE, display_name, credential_hash, role_code NOT NULL FK, active | Mỗi user đúng một role; hash mật khẩu, không lưu plaintext |
+| `app_role` | PK role_code; được tham chiếu trực tiếp từ app_user.role_code | Năm role; Role 1–N User, không có bảng nối user_role |
 | `permission`, `role_permission` | Permission code; role-permission PK | Quyền theo thao tác; Admin không tự có nghiệp vụ |
 | `warehouse`, `user_warehouse` | warehouse_id; code UNIQUE; user-warehouse PK | Phạm vi kho được giao |
 | `location` | location_id, warehouse_id FK, code, kind, allocatable, active | UNIQUE(warehouse,code); chỉ STORAGE có thể allocatable |
 | `party` | party_id, code UNIQUE, kind, contact | STORE/SUPPLIER/CUSTOMER/CARRIER; một STORE trong MVP; không là tài khoản đăng nhập |
 | `uom`, `product` | uom_code; product_id, sku UNIQUE, base_uom FK, whole_base_units | Gạch base=PIECE; không hard-code mọi hàng là gạch |
 | `product_uom_version` | conversion_id, product_id, uom_code, version, base_per_unit | UNIQUE(product,uom,version); version đã dùng bất biến |
-| `product_warehouse_policy` | PK(product,warehouse), minimum_qty | Ngưỡng bổ sung cố định, không trình biên tập policy tổng quát |
+| `product_warehouse_policy` | policy_id UNIQUE, PK(product,warehouse), minimum_qty, target_qty, version, updated_by | Ngưỡng bổ sung cố định, không trình biên tập policy tổng quát |
 | `lot` | lot_id, product_id, manufacturer_lot, tone, calibre, identification_status | Một lot không chứa tổng tồn; UNKNOWN không được phân bổ bán |
 | `quality_status` | quality_code | PENDING, GOOD, DAMAGED, BLOCKED; không thêm IN_TRANSIT vào quality |
 
@@ -141,7 +162,7 @@ Các bảng header dưới đây có **PK đồng thời là FK `document_id →
 
 | Nhóm | Bảng và trường riêng quan trọng |
 |---|---|
-| BF-01 | `replenishment_request`: warehouse, needed_on, trigger_reason. `purchase_order`: supplier, receiving warehouse, expected date, supplier_confirmation. `arrival`: warehouse, supplier?, arrived_at, delivery_reference. |
+| BF-01 | `replenishment_request`: warehouse, needed_on, trigger_reason, creation_key, submitted_by/at; typed replenishment_line sources/snapshots. `purchase_order`: supplier, receiving warehouse, expected date, supplier_confirmation. `arrival`: warehouse, supplier?, arrived_at, delivery_reference. |
 | Kiểm nhận dùng chung | `inspection_line`: inspected_source_line, quality, ownership_decision, inspector/time. Tách dòng khi khác chất lượng/quyền sở hữu. |
 | Nhập mua/trả khách/giao thất bại | `goods_receipt`: warehouse, receipt_kind PURCHASE/CUSTOMER_RETURN/FAILED_DELIVERY; GR-FD có typed line, inspection và GI-S gốc. |
 | BF-03 | warehouse_task loại RELOCATE; warehouse_task_line có vị trí nguồn/đích cùng kho, cùng lô/chủ/chất lượng; document/audit lưu xác nhận. |
@@ -213,6 +234,44 @@ SR: DRAFT → AGREEMENT_PENDING → READY → PARTIAL/COMPLETED; READY cần Acc
 
 Invoice/Credit Note ngoài WMS được liên kết bằng external_reference, external_reference_line và document_external_reference: loại/mã/reference_date, nguồn mua/GI-SR, lượng đối chiếu, verifier/evidence và trạng thái tài chính riêng. Không tạo chứng từ tiền hoặc buộc phần kho chờ tài chính.
 
+### 3.4.4 Bổ sung hàng theo nguồn và Notification / Source-backed replenishment — 3.3.0
+
+Quyết định 3.3.0 ngày 27/10/2026 đã được người dùng yêu cầu áp dụng từ [đề xuất bổ sung hàng 1.4.0](De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Giữ 8 BF, 5 role và 111 UC (97 active/14 retired); mở rộng UC-03/13/47/48/88/93/103/109, BR-03/25 và màn hình liên quan, không thêm UC hay quyền tự đặt PO.
+
+1. Khi SO được lưu hợp lệ, kiểm tồn cùng kho, phương án kho khác có thể thực hiện và PO/transfer tương thích, đúng hạn, chưa dành cho nhu cầu khác. Nguồn thiếu bán là SO line; WIR là ngữ cảnh tùy chọn. Không đếm SO/WIR/OD thành nhiều nhu cầu.
+2. Sau khi kiểm kê đã chốt, tồn cập nhật và mở khóa thành công, đánh giá toàn sản phẩm/kho gồm SKU tồn0; hoãn khi phạm vi liên quan còn freeze. Có chênh lệch thì Warehouse lập/xác nhận thực hiện, Owner UC-92/93 duyệt/chốt; nhánh không lệch vẫn đóng theo BF-05. Owner chốt chỉ kích hoạt đánh giá, không tự tạo RR.
+3. Cảnh báo khi available < minimum; target >= minimum, mặc định target=minimum. Trừ coverage hợp lệ và pending RR một lần. Thiếu bán và dự trữ là hai nhu cầu riêng; source kho khác chỉ thành cam kết khi có phương án được chọn và kiểm hợp lệ.
+4. Người dùng bấm Tạo yêu cầu để mở form điền sẵn, chỉnh dữ liệu rồi Lưu nháp hoặc Gửi duyệt; mở/hủy form hay Để sau chưa tạo RR. Giữ source/lý do từng dòng; thêm sản phẩm ngoài danh sách phải có nguồn riêng hoặc lý do nhu cầu khác. Dữ liệu đổi khi lưu phải giữ form và cho review lại.
+5. Sales/Warehouse gửi RR; Owner khác người gửi duyệt; Accountant lập PO sau duyệt. Không tự cấp Owner quyền tạo RR vì đã chốt kiểm kê. Giữ DocumentLink SO→RR hoặc Stocktake→RR và LineLink SO-line→RR-line, rồi RR→PO; không cần Evidence/ExternalReference mới cho lý do tồn thấp.
+6. Ghi sự kiện STOCKTAKE_CLOSED/SALES_ORDER_SAVED và version vào outbox cùng transaction nguồn. Consumer đánh giá sau commit và lưu Notification theo người nhận; retry theo dedupKey, không reset readAt hoặc tạo RR. Warehouse active đúng kho nhận thông báo tổng hợp; thiếu bán chỉ báo người có quyền với SO/kho liên quan.
+7. Notification lưu nội dung tại lúc đánh giá, nguồn, recipient, evaluatedAt và readAt. Danh sách/số chưa đọc/mở nguồn đều kiểm quyền hiện hành. Đọc không đồng nghĩa xử lý; khi mở trang cảnh báo hoặc tạo RR phải tính lại dữ liệu hiện tại. Để sau không ẩn nhu cầu, không tạo RR/pending coverage. MVP chưa có StockAlert; chỉ thêm khi cần giao việc, hẹn nhắc, bỏ qua có lý do hoặc lịch sử trạng thái cảnh báo.
+
+Ví dụ không có đơn bán: available18/min50/target50/incoming10 → gợi ý22, chưa có RR. Bấm Tạo yêu cầu mở form22; Lưu nháp → RR22 DRAFT có người tạo/link kiểm kê/lý do; đã có pending RR22 thì không đề nghị thêm22. Notification cũ vẫn là lịch sử, trang chi tiết hiển thị coverage mới nhất.
+
+
+| Component | 3.3.0 contract |
+|---|---|
+| ProductWarehousePolicy | productId/warehouseId unique; Decimal128 minimumQty/targetQty; target defaults to minimum and must be >= minimum; version >=1 and optional updatedBy |
+| REPLENISHMENT header | creationKey, textual triggerReason; submittedBy/submittedAt together; unique (createdBy, creationKey) only for RR string keys |
+| REPLENISHMENT line | triggerType SALES_SHORTAGE/STOCKTAKE_LOW_STOCK/MANUAL_OTHER; direct SO-line/version or stocktake/version/policy/version; evaluationKey/evaluatedAt, coverage snapshots, positive suggestedQty, reasonNote, quantityAdjustmentReason when changed |
+| Source links | REPLENISHES_SALES_ORDER, REPLENISHES_DEMAND, RELATED_ISSUE_REQUEST, STOCKTAKE_REPLENISHMENT, REPLENISHMENT_PURCHASE; childDocumentId reverse index; service validates types/product/warehouse/quantity |
+| DemandSupplyAllocation | Canonical sales demand is SO line; resolve existing WIR allocations to the same obligation, never duplicate SO/WIR allocations for the same quantity |
+| ReplenishmentPlanningGuard | Unique warehouseId/productId with integer version; shared conditional writes in coverage-changing transactions, no copied stock totals |
+| Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
+| OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
+
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+
+
+**Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.
+
+- Mở/hủy form hoặc chọn Để sau không lưu RR, links hay pending coverage. Lưu nháp mới ghi DRAFT; Gửi duyệt kiểm dữ liệu rồi ghi SUBMITTED theo quyền. Nháp đã lưu được cập nhật cùng ID/version. Owner khác người gửi duyệt; Accountant lập PO sau duyệt.
+- Sau lưu SO thành công, xét các kho, nguồn về đúng hạn/tương thích và RR đã có. Còn thiếu thì hỏi “Đơn đã lưu; còn thiếu lượng chưa có nguồn phù hợp đúng hạn. Bạn có muốn tạo yêu cầu bổ sung?” Người dùng chọn dòng rồi mở form. Áp dụng cho cả không có nguồn và chỉ đủ một phần; đủ RR/nguồn thì dẫn tới phương án đang có. Có phương án kho khác chưa chọn phải hiển thị trước, không kết luận không có nguồn.
+- Đánh giá lỗi/chậm hiển thị chưa kiểm tra được/đang kiểm tra, không coi nguồn bằng0 hoặc làm SO lưu thất bại. Hộp thoại theo lần lưu có thay đổi nhu cầu; refresh/retry/sửa ghi chú không liên quan không tự lặp. Cảnh báo và nút tạo vẫn có trên chi tiết SO.
+- Được thêm sản phẩm ngoài cảnh báo. Dòng thêm chọn nguồn đúng của chính nó hoặc MANUAL_OTHER kèm lý do; sản phẩm ngoài SO không gắn giả vào SO line ban đầu. Cùng sản phẩm khác nguồn/lý do có thể tách dòng; trùng đúng cùng nguồn cần gộp/sửa.
+- Khi lưu/gửi, BE kiểm lại source/version/coverage và trả số cũ–mới nếu thay đổi. Giữ nội dung người dùng nhập; chỉ lưu sau khi xác nhận dữ liệu hợp lệ. Nguồn hủy/hết quyền/hết nhu cầu phải sửa/xóa dòng; không âm thầm thay lượng hoặc đổi loại lý do. Phần vượt thiếu bán phải tách nhu cầu khác.
+- Contract tạo dùng action SAVE_DRAFT/SUBMIT, creationKey, kho/ngày/lý do và source từng dòng; không có trường phân loại cách tạo. Quyền, Notification/readAt, guard và payloadHash giữ nguyên mục đích; mở form/đọc thông báo không ghi tồn. Ngày cần sau kiểm kê không có căn cứ thì để người dùng chọn.
+
 ### 3.5 Tồn, giữ hàng và ledger
 
 | Bảng | Khóa/trường | Bất biến |
@@ -258,7 +317,7 @@ Book50GOOD/count48GOOD+2vỡ: RECLASS2, tổng50, không thiếu−2/ADJ0. Count
 
 ### 3.7 ERD rút gọn
 
-> Ba Mermaid dưới đây là các góc nhìn logic hiện hành 3.1.0, cập nhật 25/10: A1, B1 và C2/BF-08. Không vẽ đủ 82 bảng DDL; PK/FK/thuộc tính trọng yếu chỉ hiển thị cho phần mới. Các cạnh contains theo header/dòng có thể đi qua document/document_line dùng chung; không thay cho toàn bộ FK/kiểm service.
+> Ba Mermaid dưới đây là các góc nhìn logic hiện hành 3.1.0, cập nhật 25/10: A1, B1 và C2/BF-08. Không vẽ đủ84 bảng DDL hiện tại; PK/FK/thuộc tính trọng yếu chỉ hiển thị cho phần mới. Các cạnh contains theo header/dòng có thể đi qua document/document_line dùng chung; không thay cho toàn bộ FK/kiểm service.
 
 Sơ đồ này thể hiện cấu trúc chính; toàn bộ cột, FK, bảng nối và subtype nằm trong DDL.
 
@@ -641,3 +700,42 @@ Các quyết định cần nhóm/cửa hàng xác nhận trước chốt SRS: da
 - [Microsoft — transfer order receiving](https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/configure-transfer-order-receiving-process): minh họa nhận điều chuyển và xử lý hậu trường có thể tách; không lấy cấu hình tài chính Dynamics làm phạm vi WMSD.
 
 Toàn bộ tên bảng, mã MWTR, supertype chứng từ, tài khoản transit theo dòng TD và transaction protocol là **thiết kế đề xuất của tài liệu này**, không phải trích nguyên một mô hình dữ liệu của SAP/MISA/Odoo/Microsoft. Các nguồn thuế/hóa đơn không được dùng để đưa ra hướng dẫn pháp lý trong đề xuất kho này.
+
+
+## 8. Contract bổ sung 3.3.0 / Additional contracts
+
+
+| Proposed endpoint [TK] | Authorization and behavior |
+|---|---|
+| POST /api/replenishments/evaluate | replenishment_request:evaluate; current source/warehouse scope, returns decimal-string quantities, source versions and evaluationKey; no RR or stock writes |
+| POST /api/replenishments | replenishment_request:create; action SAVE_DRAFT/SUBMIT + source IDs/versions + stable creationKey + warehouse/neededOn/reasons; server recomputes snapshots, returns changed evaluations for review without overwriting entered fields, guards coverage and records payloadHash |
+| PUT /api/replenishments/:id [TK] | replenishment_request:update; documentVersion + operationKey + action SAVE_DRAFT/SUBMIT; keep RR ID and existing lineIds, validate line ownership/current state, add new lines without IDs; stale review preserves entered fields |
+| GET /api/notifications | notification:read; own recipient only AND current source/warehouse access, paginated; optional unread filter; no implicit marking read |
+| GET /api/notifications/unread-count | notification:read; same recipient/scope filter as list |
+| POST /api/notifications/:id/read | notification:mark_read; own accessible notification; idempotently set readAt without resetting it on retry |
+
+New operation catalogue entries: replenishment_request:evaluate, notification:read, notification:mark_read for OWNER/WAREHOUSE/SALES, still subject to individual recipient/source scope. No new create/approve grants, ADMIN bypass or notification creation endpoint. Proposed DTOs use existing success/message/data envelopes, ObjectId strings, decimal-string quantities, UTC ISO dates and Asia/Saigon presentation. No route, worker or live UI for these new contracts is implemented by schema/seed changes alone.
+
+| Rule | Requirement |
+|---|---|
+| R-27 | Direct SO-line or committed stocktake/policy source; both modes retain structured snapshots and free-text reason. |
+| R-28 | Explicit user creation; actor-scoped creationKey + payloadHash, source version and shared coverage guard; no stock effect. |
+| R-29 | Notification recipient/current scope, derived unique key, immutable message facts and independent readAt; live alerts are reevaluated. |
+| R-30 | Exact min/target/version policy and single-use coverage across pending RR→incoming→stock; no duplicate SO/WIR obligations. |
+
+
+| Case | Kết quả cần kiểm khi triển khai |
+|---|---|
+| T57 — Chốt và nhận thông báo | Chỉ sau commit/unlock mới đánh giá; Warehouse đúng kho offline vẫn đọc được Notification khi trở lại |
+| T58 — Form/Lưu nháp/Gửi duyệt/Để sau | User chọn/lưu mới có DRAFT với user thật; đổi lượng có giải trình, bỏ qua chưa tạo pending coverage |
+| T59 — RR trực tiếp từ SO | SO đã lưu chưa có WIR vẫn tạo được; source SO-line và reason giữ khi chỉnh form |
+| T60 — Coverage trùng | Không cộng SO/WIR/OD như ba nhu cầu; pending RR→PO→stock chuyển một lần; guard chống hai lệnh tạo bù trùng |
+| T61 — Thông báo retry/đã đọc | Một event/type/người/kho chỉ một record; hai người có readAt riêng, retry không reset |
+| T62 — Thông báo cũ/quyền đổi | Mở lại tính mới; đã mất scope không thấy list/unread/source, readAt không đóng cảnh báo |
+| T63 — Tồn0/freeze | Bao gồm SKU0; phiên chưa chốt/rollback hoặc scope còn freeze không tạo cảnh báo sai |
+| T64 — Seed và migration | Seed rỗng mới ghi đủ39 collection/35 document/19 line; DB đã có dữ liệu không bị seed lại, schema hiện hành và reference seed hợp lệ |
+| T65 | SO post-save assessment | No/partial suitable supply prompts only for uncovered quantity; covered demand links to existing source/RR; pending/failed evaluation is not zero supply. |
+| T66 | Form opening/cancellation and saving | Opening/Later/cancel creates no RR; Save draft or Submit persists one request; edits reuse saved ID/version. |
+| T67 | Extra product in source-backed RR | Each added line has its own source or other-need reason; a product outside SO never inherits its sales quantity link. |
+| T68 | Stale open form | Save returns changed evaluation/invalid lines, retaining entered quantity/date/reasons for reconfirmation. |
+| T69 | Strict current create contract | No creation-method field; source/UOM/reason/permission/version and idempotency still apply. |

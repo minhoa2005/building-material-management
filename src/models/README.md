@@ -13,15 +13,15 @@ names are camelCase; timestamps use UTC Date values.
 
 ## Source and mapping decisions
 
-Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.1.0
-(25 October 2026). The SQL is a relational design reference; persistence stays
-MongoDB. All 82 SQL tables have a representation below, using 37 collections,
-35 document discriminators and 18 line discriminators. Representation does not
+Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.3.0
+(27 October 2026), with the single-role decision of 28 October 2026. The SQL is a relational design reference; persistence stays
+MongoDB. All 84 SQL tables have a representation below, using 39 collections,
+35 document discriminators and 19 line discriminators. Representation does not
 mean that all foreign keys or business workflows are enforced by these schemas.
 
 | SQL tables | MongoDB model / representation |
 | --- | --- |
-| app_user, user_role, user_warehouse | User; roleIds and warehouseIds hold unique reference arrays |
+| app_user, user_warehouse | User; required scalar roleId references Role; warehouseIds remains a unique reference array |
 | app_role, role_permission | Role; permissionIds holds unique references |
 | permission | Permission |
 | warehouse, location, party | Warehouse, Location, Party |
@@ -52,6 +52,9 @@ mean that all foreign keys or business workflows are enforced by these schemas.
 | reservation, demand_supply_allocation | Reservation, DemandSupplyAllocation |
 | location_lock, stocktake_snapshot, count_attempt | LocationLock, StocktakeSnapshot, CountAttempt |
 | audit_event, outbox_event | AuditEvent, OutboxEvent |
+| replenishment_line | REPLENISHMENT typed DocumentLine details |
+| notification | Notification; per-recipient history/readAt, no stored live alert |
+| replenishment_planning_guard | ReplenishmentPlanningGuard; one warehouse/product version guard |
 
 Document headers share the `business_documents` collection through internal
 Mongoose discriminators keyed by `documentKind`. Use the exported base model;
@@ -96,9 +99,9 @@ const inspection = new DocumentLine({
 - User keeps existing fullName, passwordHash, phone and isActive names.
   passwordHash is excluded from normal query selection. SQL display_name,
   credential_hash and active map to those fields.
-- User.role is replaced by roleIds. Role.code follows the supplied design:
+- User.roleId is a required scalar Role reference with a non-unique index; roleIds is removed. Role.code follows the supplied design:
   OWNER, SALES, WAREHOUSE, ACCOUNTANT, ADMIN. Existing legacy role data requires
-  an explicit migration/role assignment before implementing authentication.
+  the explicit single-role migration/role assignment before starting the updated backend.
   No migration or automatic role/permission seeding runs on import.
 - Uom.code is extensible; PIECE, BOX and M2 are initial design examples, not a
   restriction to tile products. Quality is PENDING/GOOD/DAMAGED/BLOCKED;
@@ -178,6 +181,46 @@ const inspection = new DocumentLine({
   time and evidence are all present or all absent. RECLASS2 plus shortage2 is
   separate from shortage4; a quality-only correction never creates ADJUSTMENT0.
 
+## Revision 3.3 contracts
+
+| Component | 3.3.0 contract |
+|---|---|
+| ProductWarehousePolicy | productId/warehouseId unique; Decimal128 minimumQty/targetQty; target defaults to minimum and must be >= minimum; version >=1 and optional updatedBy |
+| REPLENISHMENT header | creationKey, textual triggerReason; submittedBy/submittedAt together; unique (createdBy, creationKey) only for RR string keys |
+| REPLENISHMENT line | triggerType SALES_SHORTAGE/STOCKTAKE_LOW_STOCK/MANUAL_OTHER; direct SO-line/version or stocktake/version/policy/version; evaluationKey/evaluatedAt, coverage snapshots, positive suggestedQty, reasonNote, quantityAdjustmentReason when changed |
+| Source links | REPLENISHES_SALES_ORDER, REPLENISHES_DEMAND, RELATED_ISSUE_REQUEST, STOCKTAKE_REPLENISHMENT, REPLENISHMENT_PURCHASE; childDocumentId reverse index; service validates types/product/warehouse/quantity |
+| DemandSupplyAllocation | Canonical sales demand is SO line; resolve existing WIR allocations to the same obligation, never duplicate SO/WIR allocations for the same quantity |
+| ReplenishmentPlanningGuard | Unique warehouseId/productId with integer version; shared conditional writes in coverage-changing transactions, no copied stock totals |
+| Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
+| OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
+
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+
+
+The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../../git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
+
+1. After a valid SO save, evaluate compatible, timely, uncommitted local stock, feasible other-warehouse options and incoming PO/transfer supply. The SO line is the original demand; WIR is optional context, and SO/WIR/OD releases must not multiply demand.
+2. Evaluate low stock only after committed stocktake closure, updated balances and scope unlock, including zero-stock SKUs. Defer while relevant freezes remain. Warehouse prepares/confirms execution; Owner approves/posts differences through UC-92/93. A no-variance closure remains valid under BF-05. Owner closure triggers evaluation, not RR creation.
+3. Alert when available < minimum; target >= minimum and defaults to minimum. Subtract valid coverage and saved pending RRs once. Sales shortages and reserve needs remain separate; other-warehouse possibilities become commitments only through a selected, validated fulfilment option.
+4. Create request opens one prefilled form. Users edit, add source-backed or reasoned extra products, then Save draft or Submit. Opening/cancelling/Later persists no RR. Changed evaluations preserve entered fields for review; source references and reasons remain per line.
+5. Sales/Warehouse submits; a different Owner approves; Accountant creates the PO after approval. Closing a stocktake grants no new RR creation right to Owner. Link SO→RR or Stocktake→RR, SO-line→RR-line and RR→PO; no invented external/evidence document is required for a low-stock reason.
+6. Commit STOCKTAKE_CLOSED/SALES_ORDER_SAVED and source version to the outbox with the source command. After commit, the consumer evaluates and persists per-recipient Notifications. Stable dedupKey prevents duplicate delivery without resetting readAt or creating an RR. Active Warehouse staff with current warehouse/source access receive a count summary; SO notices remain scoped to authorized handlers.
+7. Notification stores historical message/source/recipient/evaluatedAt/readAt. Listing, unread counts and source access enforce current permissions. Reading is independent of resolving a shortage. Opening a warning or creating an RR reevaluates current stock and coverage. Later neither hides demand nor creates pending coverage. MVP has no StockAlert collection; assignment, snoozing, reasoned dismissal or alert-state history would require a later design.
+
+Example without sales demand: available18/min50/target50/incoming10 suggests22 but creates no RR. Opening the form persists nothing; Save draft records DRAFT22 with count source and reason; pending RR22 prevents another22. A previous Notification remains historical while the detail page shows current coverage.
+
+Only model validation/index definitions and synthetic seed data are implemented here; proposed endpoints, outbox consumers, authorization checks and planning transactions remain service work. Schema validation cannot prove closure state, current coverage, source existence or permissions.
+
+
+**Unified prefilled RR form (approved proposal1.4.0, baseline3.3.0):** Select warning lines and choose Create request, or open the menu and choose a source/other need. Prefill verified product, warehouse, suggested quantity, reason and references. Users edit quantity, need date and reasons; source product/warehouse/references are fixed until the context is reselected and reevaluated. One RR has one receiving warehouse/need date; other groups require separate reviewed requests.
+
+- Opening/cancelling the form or choosing Later persists no RR, links or pending coverage. Save draft creates DRAFT; Submit validates then records SUBMITTED with the actual user. Editing an existing draft updates its ID/version. A different Owner approves; Accountant PO follows approval.
+- After successful SO save, check compatible timely local/other-warehouse/incoming sources and existing RRs. An uncovered quantity prompts: “The order was saved; some quantity has no suitable timely source. Create a replenishment request?” Users select lines and open the form. Handle both no supply and partial supply; covered demand links to its existing source/RR. Display feasible unselected source options before declaring no suitable source.
+- Evaluation pending/failed is not zero supply and does not fail the saved SO. Prompt once per demand-affecting save; refresh, retry or note-only edits do not reopen it. Warnings and Create request remain available on SO details.
+- Extra products are allowed: each needs its own valid source or MANUAL_OTHER reason. Products outside the SO never inherit its sales-line quantity link. Different sources/reasons may have separate lines; duplicate identical source lines must be merged/corrected.
+- Save/submit reevaluates source versions and coverage. Show old/new values and retain entered fields for reconfirmation, rather than overwriting quantities. Cancelled, unauthorized or no-longer-needed sources must be corrected/removed; never silently detach a source or reclassify it. Excess above a sales shortage is a separate other-need line.
+- Create contracts use action SAVE_DRAFT/SUBMIT, creationKey, warehouse/date/reasons and per-line source. No creation-method classification is stored. Permissions, Notification/readAt, guards and payload hashes retain their purpose; form opening/notification reading never posts stock. Reserve need dates without evidence are explicitly chosen by the user.
+
 ## Service/database responsibilities
 
 These schemas validate documents through `validate()` / `save()` and define
@@ -215,26 +258,10 @@ Set `MONGODB_TEST_URI` to opt into the MongoDB integration checks. They override
 the database name with a random `sep490_model_verification_<ObjectId>` database
 and drop only that temporary database afterward.
 
-## Existing database upgrade
+## Schema deployment
 
-Imports do not migrate data or remove old indexes. Before deploying this model
-revision against existing data:
+Deploy the declared current collections/indexes explicitly after reviewing the target database. Fresh demo seeding writes only to an entirely empty database and never fills a populated one. Update the permission catalogue and existing role assignments explicitly; seed:sync-permissions requires all permission records to exist before changing roles. No model import performs database maintenance. Transaction services must enforce current source kinds, scope, coverage and idempotency; form DTO/schema definitions alone do not implement those operations.
 
-1. Back up and audit existing ExternalReference, WIR and supplier-return records.
-   Assign stable unique correlationIds; preserve known referenceDate/sourceVersion
-   without fabricating missing source evidence.
-2. Establish verified SO documents/lines for existing WIR sources, then replace
-   WIR header.customerId with header.salesOrderId and line details.externalLineId
-   with details.salesOrderLineId. Keep the existing WIR document/line identities
-   used by reservations and ledger history. Missing provenance needs reconciliation.
-3. Reconcile supplier-return agreement facts from real evidence and remove the
-   retired details.authorizationId. For stored inspection details, persist UNKNOWN
-   packagingCondition where it was never observed. Do not infer packaging damage
-   from quality. Existing documents are not revalidated merely by reading them.
-4. After WIR data conversion, explicitly remove the obsolete unique index
-   `details.externalLineId_1_details.releaseKey_1` from `document_lines` if present.
-   Otherwise all new WIR lines with a missing externalLineId can collide on releaseKey.
-   Audit duplicates and apply/verify new indexes with a controlled deployment.
-   Do not run syncIndexes blindly against a database containing unrelated indexes.
+## Single-role decision — 28 October 2026
 
-No production data, index removal, or automatic migration runs from these models.
+Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions. Response role, roles=[role] and primaryRole=role use lowercase codes; uppercase roleCode remains the write input. These aliases are not persisted. Legacy arrays never grant rights. See [migration instructions](../../README.md#single-role-migration).

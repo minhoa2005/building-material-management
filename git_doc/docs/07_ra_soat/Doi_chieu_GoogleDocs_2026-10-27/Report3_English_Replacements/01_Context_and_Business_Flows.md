@@ -47,7 +47,7 @@ Warehouse Staff is the canonical existing warehouse application role. Put-away/p
 
 I. Overall Requirements
 1. Context Diagram
-Exactly five roles: Sales copies verified external SO, manages linked WIR/OD and customer-return demand and confirms full external payment receipt (UC-111); assigned Warehouse records physical operations and photo POD (UC-110); Accountant records approved PO, supplier agreements/ACK and external accounting references; Owner makes scoped decisions and clears differences; Administrator manages technical accounts/permissions without business-posting rights.
+Exactly five roles, with exactly one role assigned to each user: Sales copies verified external SO, manages linked WIR/OD and customer-return demand and confirms full external payment receipt (UC-111); assigned Warehouse records physical operations and photo POD (UC-110); Accountant records approved PO, supplier agreements/ACK and external accounting references; Owner makes scoped decisions and clears differences; Administrator manages technical accounts/permissions without business-posting rights.
 MISA, Customer, Supplier and Carrier are staff-mediated business parties/systems, not direct API/login actors. Commercial selling/prices/invoices/refunds/payment execution/debt/accounting remain external. WMSD SO is a manually copied source record; POD/PAY-CFM track fulfilment without executing payment. No automatic channel/MISA integration. D2/D3 retain personal departmental entry and five roles despite survey-reported shared entry/delegation.
 API-01 SMTP sends post-commit warehouse notifications. API-02 controlled storage supports private evidence upload/retrieval; provider selection remains open, Cloudinary is not an assumed deployed dependency.
 

@@ -6,6 +6,8 @@
  *  - WMSD_Thiet_ke_he_thong_chi_tiet §2 + Phụ lục A (truy vết 111 UC).
  *  - de_xuat_quy_trinh_2_EN §3 (Actors and authorization) và §6 (business permission matrix).
  *
+ *  - Revision3.3.0 (27/10/2026): unified source-backed RR forms and own scoped Notifications.
+ *
  * Quy ước mã quyền: `<resource>:<action>`.
  * Quyền ở đây chỉ là lớp "role + operation". Các ràng buộc còn lại (kho được giao, trạng thái/version
  * chứng từ, người lập ≠ người duyệt, người nhận điều chuyển ≠ người xuất…) phải được kiểm tra ở service.
@@ -31,6 +33,9 @@ const BUSINESS_ROLES = [OWNER, ACCOUNTANT, WAREHOUSE, SALES];
  */
 export const PERMISSION_CATALOGUE = [
   // ---------- FE-01: Bổ sung hàng, mua hàng, nhập kho (BF-01) ----------
+  { code: 'replenishment_request:evaluate', description: 'Xem cảnh báo và đánh giá lại nhu cầu bổ sung theo nguồn/kho', uc: ['UC-03', 'UC-103'], roles: [OWNER, WAREHOUSE, SALES] },
+  { code: 'notification:read', description: 'Xem thông báo của chính mình trong phạm vi nguồn/kho hiện hành', uc: ['UC-03', 'UC-47', 'UC-48', 'UC-93', 'UC-103'], roles: [OWNER, WAREHOUSE, SALES] },
+  { code: 'notification:mark_read', description: 'Đánh dấu đã đọc thông báo của chính mình', uc: ['UC-03', 'UC-47', 'UC-48', 'UC-93', 'UC-103'], roles: [OWNER, WAREHOUSE, SALES] },
   { code: 'replenishment_request:read', description: 'Xem danh sách/chi tiết yêu cầu bổ sung hàng (RR)', uc: ['UC-01', 'UC-02'], roles: BUSINESS_ROLES },
   { code: 'replenishment_request:create', description: 'Tạo yêu cầu bổ sung hàng', uc: ['UC-03'], roles: [WAREHOUSE, SALES] },
   { code: 'replenishment_request:update', description: 'Sửa/gửi lại RR nháp của mình', uc: ['UC-03'], roles: [WAREHOUSE, SALES] },

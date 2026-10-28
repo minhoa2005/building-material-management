@@ -1,6 +1,8 @@
 # Process Proposal 2 — WMSD — English
 
-Updated: 25 October 2026. Document revision 3.1.2 reviews/synchronizes text while retaining the 24 October business baseline 3.1.0. Baseline 3.1.0 revises flows against supervisor minutes/draw.io notes. User selections: A1, a failed-delivery intake branch within BF-07; B1, immediate defect blocking with controlled quality posting at stocktake closure; C2, Sales accepts ordinary customer returns and Owner reviews exceptions only; BF-08 has no Owner approval. This is a To-be design, not verified implementation; alternatives and impacts are in section 17.
+**Current business/document revision: 3.3.0, 27 October 2026. User-selected replenishment and per-recipient Notifications apply under proposal 1.4.0.**
+
+Historical24–25 October context: revision3.1.2 retained baseline3.1.0; those decisions continue under current3.3.0. Baseline 3.1.0 revises flows against supervisor minutes/draw.io notes. User selections: A1, a failed-delivery intake branch within BF-07; B1, immediate defect blocking with controlled quality posting at stocktake closure; C2, Sales accepts ordinary customer returns and Owner reviews exceptions only; BF-08 has no Owner approval. This is a To-be design, not verified implementation; alternatives and impacts are in section 17.
 
 BF-06: copy MISA/paper order → linked WIR/OD → draft GI-S → picking and TO confirmation → handover/PGI → photo POD → DELIVERED → Sales confirms full external payment receipt → COMPLETED. On 25 October, Report 1/2/3, detailed design, paired data design, reference SQL, README and change log are synchronized to business baseline 3.1.0. The 25 October follow-up updates embedded Mermaid, standalone context, BF-04 PNGs and the reduced ERD package; only draw.io files stay unchanged. The old draw.io baseline does not define revised behavior. See [25 October verification](../07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md).
 
@@ -16,6 +18,8 @@ Vietnamese: [de_xuat_quy_trinh_2_VI.md](de_xuat_quy_trinh_2_VI.md). Data design:
 | 3.1.1 | 25 October 2026 | Review wording/POD–FD acceptance caps and document synchronization status for 3.1.0; preserve all diagrams/Mermaid and selected business decisions. |
 
 | 3.1.2 | 25 October 2026 | Follow-up updates current Mermaid and related exports: FD bypasses POD, B1 separates commit failure from missing execution, C2 and BF-08 finance. Only draw.io files are excluded. |
+
+| 3.3.0 | 27 October 2026 | Apply proposal 1.4.0: user-selected one prefilled form, SO-line/count sources, coverage guards, Notifications and current-state alerts. |
 
 ## Warehouse terminology
 
@@ -142,6 +146,8 @@ The table retains the 17 October review findings. Process/database proposals, SQ
 
 Retain five application roles. Use **Warehouse Staff** consistently instead of Inventory Staff in English; this is a naming alignment, not a sixth role.
 
+Authorization decision, 28 October 2026: Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
+
 | Actor | To-be responsibility |
 |---|---|
 | Store Owner | Approves replenishment, inter-warehouse TR, defect destruction/regrade/release and stocktake plans; reviews customer-return exceptions only. Views reports. No approval of ordinary customer returns, relocation or BF-08. |
@@ -152,7 +158,7 @@ Retain five application roles. Use **Warehouse Staff** consistently instead of I
 
 Customer, Supplier and Carrier are business participants, potentially separate BPMN pools, with no default WMSD account. Source/destination Warehouse Staff are two warehouse responsibilities, not two application roles. Record actual users by userId, not just role labels.
 
-Approval and execution are distinct: confirming a completed shelf move is not self-approval of a business proposal. The same person cannot create and approve their own replenishment/transfer/adjustment request. Inter-warehouse receipt requires someone independent from dispatch. Where staffing is limited, the Owner may be explicitly assigned independent inspection; verify that arrangement, never assume enough people or share accounts.
+Approval and execution are distinct: confirming a completed shelf move is not self-approval of a business proposal. The same person cannot create and approve their own replenishment/transfer/adjustment request. Inter-warehouse receipt requires someone independent from dispatch. The Owner may assist physical observation, but an OWNER account cannot confirm receipt/post stock as WAREHOUSE. Assign a WAREHOUSE user independent from dispatch; never assume enough staff or share accounts.
 
 Authorization checks **role + operation + assigned warehouse + document state + creator/approver identity**. List access does not imply entry or approval.
 
@@ -160,11 +166,11 @@ Authorization checks **role + operation + assigned warehouse + document state + 
 
 ### BF-01 — Replenishment, purchasing and goods receipt
 
-Trigger: (a) issue demand remains short after checking other warehouses; (b) availability falls below a fixed minimum; (c) stocktake/defect outcomes cause a replenishment proposal. Fixed-threshold alerts are proposed functionality, not AI forecasting or automatic purchasing.
+Trigger: (a) a saved SO remains short after evaluating other warehouses and incoming supply; (b) availability falls below minimum after committed stocktake closure/unlock; (c) a reasoned manual need. The system suggests; the user selects one prefilled form or Later under revision 3.3.0 below.
 
 **Main flow:**
 
-1. Sales records customer shortages linked to issue demand; Warehouse records reserve-stock needs linked to alerts/counts. Show available/reserved stock, open POs, incoming transfers and need date.
+1. Sales records shortages linked directly to saved SO lines, with optional WIR context; Warehouse records reserve needs linked to committed count sources/alerts. Show available/reserved stock, open POs, incoming transfers and need date.
 2. Check existing supply coverage. Planned inbound supply offsets demand only if compatible, timely and not already allocated.
 3. Submit RR. Owner approves, rejects or returns with reasons. No PO before approval.
 4. Accountant creates PO and records supplier quantity/schedule confirmation. Changes beyond approval require renewed approval; do not overwrite executed documents.
@@ -192,6 +198,30 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 | BF-01-E1 | Over or wrong delivery | Warehouse separates quantities, records discrepancy/custody if held; no automatic substitution or excess PO receipt. Accountant coordinates; Owner authorizes required changes before acceptance. | GR only eligible quantities; remainder pending or handed back. | UC-26 |
 | BF-01-E2 | Zero accepted quantity | Retain arrival/inspection, evidence and custody/handback outcome; PO outstanding and discrepancy remain open. | No zero-quantity GR; no increase in owned stock. | UC-10, UC-26 |
 | BF-01-A4 | Torn/open boxes; replacements | Count actual pieces; inspect quality independently. Supplier replacement is a new linked arrival/GR; never rewrite the original GR. | After GR, put-away at step 8; no second receipt on placement. | UC-26, UC-33 |
+
+#### Replenishment warnings and Notifications — revision 3.3.0
+
+The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
+
+1. After a valid SO save, evaluate compatible, timely, uncommitted local stock, feasible other-warehouse options and incoming PO/transfer supply. The SO line is the original demand; WIR is optional context, and SO/WIR/OD releases must not multiply demand.
+2. Evaluate low stock only after committed stocktake closure, updated balances and scope unlock, including zero-stock SKUs. Defer while relevant freezes remain. Warehouse prepares/confirms execution; Owner approves/posts differences through UC-92/93. A no-variance closure remains valid under BF-05. Owner closure triggers evaluation, not RR creation.
+3. Alert when available < minimum; target >= minimum and defaults to minimum. Subtract valid coverage and saved pending RRs once. Sales shortages and reserve needs remain separate; other-warehouse possibilities become commitments only through a selected, validated fulfilment option.
+4. Create request opens one prefilled form. Users edit, add source-backed or reasoned extra products, then Save draft or Submit. Opening/cancelling/Later persists no RR. Changed evaluations preserve entered fields for review; source references and reasons remain per line.
+5. Sales/Warehouse submits; a different Owner approves; Accountant creates the PO after approval. Closing a stocktake grants no new RR creation right to Owner. Link SO→RR or Stocktake→RR, SO-line→RR-line and RR→PO; no invented external/evidence document is required for a low-stock reason.
+6. Commit STOCKTAKE_CLOSED/SALES_ORDER_SAVED and source version to the outbox with the source command. After commit, the consumer evaluates and persists per-recipient Notifications. Stable dedupKey prevents duplicate delivery without resetting readAt or creating an RR. Active Warehouse staff with current warehouse/source access receive a count summary; SO notices remain scoped to authorized handlers.
+7. Notification stores historical message/source/recipient/evaluatedAt/readAt. Listing, unread counts and source access enforce current permissions. Reading is independent of resolving a shortage. Opening a warning or creating an RR reevaluates current stock and coverage. Later neither hides demand nor creates pending coverage. MVP has no StockAlert collection; assignment, snoozing, reasoned dismissal or alert-state history would require a later design.
+
+Example without sales demand: available18/min50/target50/incoming10 suggests22 but creates no RR. Opening the form persists nothing; Save draft records DRAFT22 with count source and reason; pending RR22 prevents another22. A previous Notification remains historical while the detail page shows current coverage.
+
+
+**Unified prefilled RR form (approved proposal1.4.0, baseline3.3.0):** Select warning lines and choose Create request, or open the menu and choose a source/other need. Prefill verified product, warehouse, suggested quantity, reason and references. Users edit quantity, need date and reasons; source product/warehouse/references are fixed until the context is reselected and reevaluated. One RR has one receiving warehouse/need date; other groups require separate reviewed requests.
+
+- Opening/cancelling the form or choosing Later persists no RR, links or pending coverage. Save draft creates DRAFT; Submit validates then records SUBMITTED with the actual user. Editing an existing draft updates its ID/version. A different Owner approves; Accountant PO follows approval.
+- After successful SO save, check compatible timely local/other-warehouse/incoming sources and existing RRs. An uncovered quantity prompts: “The order was saved; some quantity has no suitable timely source. Create a replenishment request?” Users select lines and open the form. Handle both no supply and partial supply; covered demand links to its existing source/RR. Display feasible unselected source options before declaring no suitable source.
+- Evaluation pending/failed is not zero supply and does not fail the saved SO. Prompt once per demand-affecting save; refresh, retry or note-only edits do not reopen it. Warnings and Create request remain available on SO details.
+- Extra products are allowed: each needs its own valid source or MANUAL_OTHER reason. Products outside the SO never inherit its sales-line quantity link. Different sources/reasons may have separate lines; duplicate identical source lines must be merged/corrected.
+- Save/submit reevaluates source versions and coverage. Show old/new values and retain entered fields for reconfirmation, rather than overwriting quantities. Cancelled, unauthorized or no-longer-needed sources must be corrected/removed; never silently detach a source or reclassify it. Excess above a sales shortage is a separate other-need line.
+- Create contracts use action SAVE_DRAFT/SUBMIT, creationKey, warehouse/date/reasons and per-line source. No creation-method classification is stored. Permissions, Notification/readAt, guards and payload hashes retain their purpose; form opening/notification reading never posts stock. Reserve need dates without evidence are explicitly chosen by the user.
 
 ### BF-02 — Defect detection, isolation and disposition
 
@@ -536,7 +566,7 @@ V = scoped view; T = create/record; D = approve; X = execute/confirm as defined 
 | Record external outcomes | V | V related | V warehouse part | T | — |
 | Technical accounts/permissions | — | — | — | — | T |
 
-Cross-cutting constraints: same-user approval is prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans regardless of multiple roles. The user-selected exception lets Sales accept an ordinary CR they created after Warehouse inspection; it is not Owner approval and never authorizes exception cases. Only assigned Warehouse posts stock/POD/GR-FD; only Sales manages SO/WIR, reopened demand and PAY-CFM after DELIVERED. BF-08 has no Owner approval; Accountant reconciles/closes without Warehouse stock posting. Only approved B1 closure batches may change quality/location under freeze; rights changes cannot rewrite posted authority.
+Cross-cutting constraints: same-user approval is prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans including after reassignment of the user’s single role. The user-selected exception lets Sales accept an ordinary CR they created after Warehouse inspection; it is not Owner approval and never authorizes exception cases. Only assigned Warehouse posts stock/POD/GR-FD; only Sales manages SO/WIR, reopened demand and PAY-CFM after DELIVERED. BF-08 has no Owner approval; Accountant reconciles/closes without Warehouse stock posting. Only approved B1 closure batches may change quality/location under freeze; rights changes cannot rewrite posted authority.
 
 ## 7. Software context and figure corrections
 
@@ -591,7 +621,7 @@ Do not combine quality, location, ownership and delivery state in one enum. “I
 |---|---|---|
 | BR-01 | Lot identity distinguishes product/lot/tone/calibre; do not pool different tones to fill demand. | DR-01, UC-13/16/26/30/54/55/72 |
 | BR-02 | Version product/packaging conversions and snapshot them on lines. Whole tiles cannot be fractional pieces. Use product area specifications; calibre does not determine m² factors. | DR-02, GB-03 |
-| BR-03 | Sales/Warehouse or fixed alerts originate needs; only Owner approves. Controlled thresholds do not automatically issue POs. | UC-03/04/103, BF-01 |
+| BR-03 | Evaluate sources after SO save/count closure; an uncovered need prompts or warns. Create request only opens a prefilled form; valid Save draft/Submit persists source-backed RR. A different Owner approves; no automatic PO. | UC-03/04/13/47/48/93/103 |
 | BR-04 | Do not double-count demand already covered by PO/transfer/allocation. Planned receipts are not current availability. | BF-01/04/06 |
 | BR-05 | Same-user approval prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans. C2 permits Sales ordinary acceptance of own CR after Warehouse inspection, never exception/Owner approval. BF-08 has no Owner approval. | UC-04/41/66/71/92 |
 | BR-06 | Post receipt/issue/return/adjustment once, atomically with ledger/balance. No negative availability; retry returns prior result. | DR-09/10/13, GB-09/10/13 |
@@ -613,7 +643,7 @@ Do not combine quality, location, ownership and delivery state in one enum. “I
 | BR-22 | Freeze ordinary stocktake-scope postings; record balance-neutral defect hold/evidence immediately. B1 only approved closure posts delta/RECLASS/location, retaining freeze/holds until resolution. Uncounted differs from zero; preserve recount history. | UC-87/88/92/93 |
 | BR-23 | Substantiated variance may proceed directly to a plan; unclear variance recounts. Warehouse proposes, Owner approves/posts version-matched actual delta plus total-preserving RECLASS without duplicate deductions; quality-only creates no ADJ=0. | UC-88/91/92/93 |
 | BR-24 | Posted documents cannot be edited/deleted to remove history. Authorized linked reversal/adjustment corrects errors; inactive masters preserve history. | DR-14, GB-02/13, UC-97/100–102 |
-| BR-25 | Notification/upload retries never repeat stock posting. Email failure does not roll back committed PGI/receipt. | API-01, JOB-01, UC-58/26/110 |
+| BR-25 | Post-commit outbox persists recipient/scope-filtered Notifications with stable dedupKey; readAt does not resolve demand. Opening reevaluates stock; retry never recreates RR or stock postings. | UC-03/47/48/93/103, JOB-01 |
 | BR-26 | Carrier handover or PGI is not customer delivery (DELIVERED), and customer delivery alone is not Sales Order completion (COMPLETED); return receipt is not refund; supplier replacement agreement is not received stock. | BF-06/07/08, UC-58/110/111 |
 | BR-27 | Only evidence-authorized users retrieve files; URLs are not public by default. | API-02 evidence storage, GB-NEW-02 |
 | BR-28 | Source system/document/line, version and correlation ID prevent duplicate WMS/MISA recording across SO, WIR, OD, GI-S, `CR` and `EXT-REF`. | UC-47/109/51/58/70/108 |
@@ -648,7 +678,7 @@ On 25 October the text of Report 1/2/3, detailed design, paired data design and 
 |---|---|
 | I.1 Context Diagram | Section 7 data; include copied SO, linked WIR, delivery photo POD and external payment confirmation PAY-CFM; decide SMTP/storage; remove out-of-scope pricing/billing arrows. |
 | I.2.1–2.8 Main Business Flow | Align trigger, completion, decisions and figures with section 4 (especially BF-06 SO → WIR → PGI → DELIVERED → COMPLETED), not figures alone. |
-| I.3.1 ERD / I.3.2 Entity Descriptions | Text/reference DDL now represents CR/FD, GI/POD/GR-FD lines/claims, reopening/replacement OD, decision_kind, defect holds/B1 plans and Invoice/Credit Note EXT-REF. Mermaid ERD updated for A1/B1/C2; runtime schema/API remains unimplemented and MongoDB may embed bounded lifecycle concepts. |
+| I.3.1 ERD / I.3.2 Entity Descriptions | Text/reference DDL now represents CR/FD, GI/POD/GR-FD lines/claims, reopening/replacement OD, decision_kind, defect holds/B1 plans and Invoice/Credit Note EXT-REF. Mermaid ERD updated for A1/B1/C2; model schemas now exist; runtime business services/APIs remain unimplemented and MongoDB may embed bounded lifecycle concepts. |
 | I.3.3 Data Business Rules | Map section 8 (BR-01–BR-33); fix invalid ranges/duplicates; transit is not a quality enum. |
 | I.4.1 Actors | Five roles, Warehouse Staff naming, revised Sales (SO copy, linked WIR, external payment COMPLETED), Warehouse (POD photo confirmation DELIVERED), Accountant and Owner responsibilities, and source/destination independence. |
 | I.4.2 Catalogue | Align 111 IDs: 97 active/14 retired including UC-106. UC-71 Sales ordinary/Owner exception, UC-73 CR/FD, UC-83 Accountant closure, UC-92/93 B1. No new ID for FD/RECLASS. |
@@ -671,11 +701,26 @@ These diagrams show principal decisions, not complete BPMN swimlanes. Use sectio
 ### BF-01
 
 ```mermaid
-%% WMSD business baseline 3.1.0 - synchronized 2026-10-25
+%% WMSD business baseline 3.3.0 - synchronized 2026-10-27
 flowchart TD
- A[Shortage or threshold alert] --> B[Sales or Warehouse creates RR]
- B --> C{Owner approves?}
- C -->|Revise| B
+ A[Saved SO or committed unlocked stocktake] --> EVAL[Evaluate current sources and coverage]
+ EVAL -->|Uncovered need| OPEN[Post-save SO prompt or stock warning]
+ EVAL -->|Post-commit notice needed| NOTICE[Persist scoped recipient Notification]
+ NOTICE --> OPEN
+ OPEN -->|Select lines and Create request| FORM[Prefilled form]
+ OPEN -->|Later or already covered| WAIT[No new RR]
+ MENU[Create request from menu] --> SOURCE[Select source or other need]
+ SOURCE --> FORM
+ FORM --> EDIT[Edit quantity, date and reasons; add products]
+ EDIT -->|Cancel| WAIT
+ EDIT -->|Save draft or Submit| CHECK[Recheck sources, versions and coverage]
+ CHECK -->|Changed| REVIEW[Keep entered form and show old, new values]
+ REVIEW --> EDIT
+ CHECK -->|Valid| B[Save the user choice]
+ B -->|Save draft| DRAFT[RR DRAFT]
+ B -->|Submit| C{Different Owner approves?}
+ DRAFT -->|Submit later| C
+ C -->|Revise| EDIT
  C -->|Reject| Z[Close RR without stock effect]
  C -->|Approve| D[Accountant creates PO and supplier confirmation]
  D --> E[Warehouse records arrival and inspection per delivery]

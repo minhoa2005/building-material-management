@@ -1,6 +1,6 @@
 # Thiết kế hệ thống WMSD
 
-Phiên bản tài liệu 3.1.1 • Baseline nghiệp vụ 3.1.0 • Đồng bộ ngày 25/10/2026 • Phạm vi lưu trữ: MongoDB runtime
+Phiên bản tài liệu 3.3.0 • Baseline nghiệp vụ 3.3.0 • Đồng bộ ngày 28/10/2026 • Phạm vi lưu trữ: MongoDB runtime
 
 Tài liệu này thay thế nội dung thiết kế 1.0 ngày 16/10/2026 làm căn cứ triển khai trong repo. Nguồn hiện hành là [quy trình VI](../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md), [EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), [Report 1](../01_bao_cao/WMSD_Report1_Fix.docx.txt), [Report 3](../01_bao_cao/WMSD_Report3_Fix.docx.txt) và [thiết kế dữ liệu](de_xuat_database_design_VI.md). Bộ quy trình có 8 BF, 5 vai trò, 111 UC (97 active/14 retired), BR-01–33 và 31 màn hình (28 active/3 retired). Đây là thiết kế được chọn, chưa phải xác nhận mọi kiểm soát đã được cửa hàng triển khai.
 
@@ -12,15 +12,36 @@ Chuỗi bán hàng thống nhất: SO nhập lại từ nguồn ngoài đã xác
 | 3.1.0 | 25/10/2026 | A1 GR-FD/tái mở, B1 hold/RECLASS/batch, C2 và BF-08 không Owner; 97 active/14 retired, 26 R/56 T. Sơ đồ giữ nguyên. |
 | 3.1.1 | 25/10/2026 | Cập nhật trạng thái Mermaid/bản xuất liên quan theo yêu cầu bổ sung; chỉ file draw.io giữ nguyên. API/DDL/baseline nghiệp vụ không đổi. |
 
+| 3.3.0 | 27/10/2026 | Áp dụng bổ sung hàng theo lựa chọn và Notification; schema/seed đã cập nhật, API/consumer/UI mới vẫn là [TK]. |
+
 ## 1. Phạm vi và thứ tự nguồn
 
 - Một cửa hàng, khảo sát ghi nhận từ 3 kho; chưa tự đặt tên/địa chỉ kho, số người, hệ số SKU hoặc thời hạn nhận trả.
-- Quyết định nghiệp vụ trong quy trình 3.1.0 và Report 3 chi phối API, dữ liệu, quyền và nghiệm thu. SQL là mô hình quan hệ tham chiếu để review, không phải migration MongoDB hoặc backend đã chạy.
+- Quyết định nghiệp vụ trong quy trình3.3.0 và Report3 đã đồng bộ chi phối API, dữ liệu, quyền và nghiệm thu. SQL là mô hình quan hệ tham chiếu để review, không phải migration MongoDB hoặc backend đã chạy.
 - Giá bán, thương lượng, hóa đơn, thu/chuyển tiền, công nợ, hoàn tiền và kế toán thực hiện bên ngoài. SO là bản sao phục vụ thực hiện đơn; PAY-CFM chỉ ghi nhận xác nhận đủ tiền ngoài hệ thống.
 - Không live MISA, không vai trò mua hàng/giao hàng mới, không nhập hộ/ủy quyền động, không tự đặt PO hoặc tối ưu tuyến xe.
 - UC-23–25, UC-42, UC-59–62, UC-74–78, UC-106 là 14 mã retired: giữ lịch sử, không có quyền, màn hình hay API thực thi.
-- [DDL 3.1.0](WMSD_SQL_schema.sql) có 82 bảng/2 view tham chiếu. [Sơ đồ database](WMSD_database_design.drawio) và [mainflow song ngữ](../04_so_do/WMSD_Mainflows_VI_EN.drawio) giữ snapshot 3.0.0, ngoài phạm vi chỉnh sửa; không dùng hình cũ làm chuẩn quyền/luồng mới.
+- [DDL 3.3.0](WMSD_SQL_schema.sql) có 84 bảng/2 view tham chiếu. [Sơ đồ database](WMSD_database_design.drawio) và [mainflow song ngữ](../04_so_do/WMSD_Mainflows_VI_EN.drawio) giữ snapshot 3.0.0, ngoài phạm vi chỉnh sửa; không dùng hình cũ làm chuẩn quyền/luồng mới.
 - Report 2 đã đồng bộ phạm vi/kế hoạch kiểm thử; effort và lịch giữ số liệu kế hoạch gốc, chưa tái ước lượng. Các bản Word/Google Docs bên ngoài repo cần phát hành từ bộ nội dung mới; chỉnh file .docx.txt không tự cập nhật các bản đó.
+
+
+### Phân quyền một user một role — 28/10/2026
+
+Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
+
+```mermaid
+erDiagram
+  APP_ROLE ||--o{ APP_USER : assigned_to
+  APP_ROLE {
+    varchar role_code PK
+  }
+  APP_USER {
+    bigint user_id PK
+    varchar role_code FK
+  }
+```
+
+MongoDB lưu User.roleId đơn bắt buộc, có index không unique; warehouseIds giữ nguyên. Dữ liệu cũ phải qua migration dry-run/chọn role/backup trước khi chạy BE mới. Response roles=[role] và primaryRole=role chỉ là trường tương thích FE, không lưu Mongo.
 
 ## 2. Vai trò, quyền và phạm vi bản ghi
 
@@ -32,7 +53,7 @@ Chuỗi bán hàng thống nhất: SO nhập lại từ nguồn ngoài đã xác
 | Accountant | Lập PO sau RR duyệt; xác minh thỏa thuận NCC, ghi ACK/đối chiếu sai lệch và đóng phần kho SR bằng UC-83/107 không Owner. UC-108 lưu Invoice/Credit Note ngoài và tài chính độc lập; không post tồn hoặc thay Sales UC-111. |
 | Administrator | Tài khoản, phân quyền và cấu hình kỹ thuật. Không tự có quyền duyệt nghiệp vụ, ghi tăng/giảm kho hoặc sửa nhật ký. |
 
-Quyền được kiểm tra phía server theo role + operation/sub-operation + kho/bản ghi + trạng thái/version + danh tính thực tế. Không lấy creator/approver/confirmer từ dữ liệu client làm danh tính xác thực. Người nhiều role vẫn không được tự duyệt quyết định Owner; C2 Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm; người nhận điều chuyển khác người xuất. Nếu chủ được bố trí kiểm nhận độc lập phải được phân công rõ, không mặc định kế thừa quyền Warehouse.
+Quyền được kiểm tra phía server theo role + operation/sub-operation + kho/bản ghi + trạng thái/version + danh tính thực tế. Không lấy creator/approver/confirmer từ dữ liệu client làm danh tính xác thực. Mỗi user có đúng một role và vẫn không được tự duyệt quyết định Owner kể cả sau khi đổi role; C2 Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm; người nhận điều chuyển khác người xuất. Nếu chủ được bố trí kiểm nhận độc lập phải được phân công rõ, không mặc định kế thừa quyền Warehouse.
 
 Quyền master giữ đúng Report 3: UC-13 Owner quản lý sản phẩm/quy cách/ngưỡng hữu hạn; UC-16 Owner create/update, Warehouse create only; UC-19 Accountant create/update, Owner activate/deactivate. Admin không tự có quyền nghiệp vụ. Quyền xem không cho phép sửa/xác nhận; cùng scope áp cho tìm kiếm, URL chi tiết, xuất báo cáo và tải bằng chứng.
 
@@ -79,7 +100,7 @@ Các nhánh A/E 3.1.0 và EX-01–05 được định nghĩa đầy đủ tại 
 
 | Mô hình quan hệ dùng để phân tích | Collection/embedding dự kiến trên MongoDB |
 |---|---|
-| app_user, app_role, permission, user_warehouse | users, roles, permissions; quan hệ bằng ObjectId reference/role IDs |
+| app_user, app_role, permission, user_warehouse | users, roles, permissions; User.roleId bắt buộc tham chiếu Role; warehouseIds là mảng ObjectId |
 | warehouse, location, party, product, uom, lot | warehouses, locations, parties, products, lots; snapshot thuộc tính quan trọng vào dòng chứng từ |
 | document + typed header + document_line | business_documents phân loại documentType, hoặc collection theo bounded context cùng documentId; embed header/lines nếu cùng vòng đời và giới hạn kích thước |
 | sales_order + line + cancellations | sales_orders với dòng hàng và tham chiếu nguồn; cancellation_events lưu từng lần hủy có kiểm soát; unique source và version trên đơn |
@@ -143,6 +164,44 @@ Invoice/Credit Note ngoài WMS được liên kết bằng external_reference, e
 So sánh đủ căn cứ → giải trình/lập phương án trực tiếp; chưa rõ hoặc chọn đếm lại → Start Recount → Enter Recount → so sánh lại, lưu attempts. Owner UC-92 duyệt đúng version, khác người lập; UC-93 post một batch delta thực tế + RECLASS/vị trí đã duyệt sau Warehouse xác nhận thực hiện, bảo toàn tổng của RECLASS. Còn TO/hold chưa giải quyết, thiếu evidence hoặc batch lỗi thì giữ freeze; không UC-67 hoặc giao dịch thường vượt khóa.
 
 Book50GOOD/count48GOOD+2vỡ: RECLASS2, tổng50, không thiếu−2/ADJ0. Count46GOOD+2vỡ: delta−2 + RECLASS2, tổng48, không thiếu−4 rồi hủy2. Commit batch/movement/balance/plan/hold/audit/outbox cùng nhau; rollback không mở khóa, unknown commit tra key trước retry.
+
+### 5.5 Bổ sung hàng và Notification — 3.3.0
+
+Quyết định 3.3.0 ngày 27/10/2026 đã được người dùng yêu cầu áp dụng từ [đề xuất bổ sung hàng 1.4.0](De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Giữ 8 BF, 5 role và 111 UC (97 active/14 retired); mở rộng UC-03/13/47/48/88/93/103/109, BR-03/25 và màn hình liên quan, không thêm UC hay quyền tự đặt PO.
+
+1. Khi SO được lưu hợp lệ, kiểm tồn cùng kho, phương án kho khác có thể thực hiện và PO/transfer tương thích, đúng hạn, chưa dành cho nhu cầu khác. Nguồn thiếu bán là SO line; WIR là ngữ cảnh tùy chọn. Không đếm SO/WIR/OD thành nhiều nhu cầu.
+2. Sau khi kiểm kê đã chốt, tồn cập nhật và mở khóa thành công, đánh giá toàn sản phẩm/kho gồm SKU tồn0; hoãn khi phạm vi liên quan còn freeze. Có chênh lệch thì Warehouse lập/xác nhận thực hiện, Owner UC-92/93 duyệt/chốt; nhánh không lệch vẫn đóng theo BF-05. Owner chốt chỉ kích hoạt đánh giá, không tự tạo RR.
+3. Cảnh báo khi available < minimum; target >= minimum, mặc định target=minimum. Trừ coverage hợp lệ và pending RR một lần. Thiếu bán và dự trữ là hai nhu cầu riêng; source kho khác chỉ thành cam kết khi có phương án được chọn và kiểm hợp lệ.
+4. Người dùng bấm Tạo yêu cầu để mở form điền sẵn, chỉnh dữ liệu rồi Lưu nháp hoặc Gửi duyệt; mở/hủy form hay Để sau chưa tạo RR. Giữ source/lý do từng dòng; thêm sản phẩm ngoài danh sách phải có nguồn riêng hoặc lý do nhu cầu khác. Dữ liệu đổi khi lưu phải giữ form và cho review lại.
+5. Sales/Warehouse gửi RR; Owner khác người gửi duyệt; Accountant lập PO sau duyệt. Không tự cấp Owner quyền tạo RR vì đã chốt kiểm kê. Giữ DocumentLink SO→RR hoặc Stocktake→RR và LineLink SO-line→RR-line, rồi RR→PO; không cần Evidence/ExternalReference mới cho lý do tồn thấp.
+6. Ghi sự kiện STOCKTAKE_CLOSED/SALES_ORDER_SAVED và version vào outbox cùng transaction nguồn. Consumer đánh giá sau commit và lưu Notification theo người nhận; retry theo dedupKey, không reset readAt hoặc tạo RR. Warehouse active đúng kho nhận thông báo tổng hợp; thiếu bán chỉ báo người có quyền với SO/kho liên quan.
+7. Notification lưu nội dung tại lúc đánh giá, nguồn, recipient, evaluatedAt và readAt. Danh sách/số chưa đọc/mở nguồn đều kiểm quyền hiện hành. Đọc không đồng nghĩa xử lý; khi mở trang cảnh báo hoặc tạo RR phải tính lại dữ liệu hiện tại. Để sau không ẩn nhu cầu, không tạo RR/pending coverage. MVP chưa có StockAlert; chỉ thêm khi cần giao việc, hẹn nhắc, bỏ qua có lý do hoặc lịch sử trạng thái cảnh báo.
+
+Ví dụ không có đơn bán: available18/min50/target50/incoming10 → gợi ý22, chưa có RR. Bấm Tạo yêu cầu mở form22; Lưu nháp → RR22 DRAFT có người tạo/link kiểm kê/lý do; đã có pending RR22 thì không đề nghị thêm22. Notification cũ vẫn là lịch sử, trang chi tiết hiển thị coverage mới nhất.
+
+
+| Component | 3.3.0 contract |
+|---|---|
+| ProductWarehousePolicy | productId/warehouseId unique; Decimal128 minimumQty/targetQty; target defaults to minimum and must be >= minimum; version >=1 and optional updatedBy |
+| REPLENISHMENT header | creationKey, textual triggerReason; submittedBy/submittedAt together; unique (createdBy, creationKey) only for RR string keys |
+| REPLENISHMENT line | triggerType SALES_SHORTAGE/STOCKTAKE_LOW_STOCK/MANUAL_OTHER; direct SO-line/version or stocktake/version/policy/version; evaluationKey/evaluatedAt, coverage snapshots, positive suggestedQty, reasonNote, quantityAdjustmentReason when changed |
+| Source links | REPLENISHES_SALES_ORDER, REPLENISHES_DEMAND, RELATED_ISSUE_REQUEST, STOCKTAKE_REPLENISHMENT, REPLENISHMENT_PURCHASE; childDocumentId reverse index; service validates types/product/warehouse/quantity |
+| DemandSupplyAllocation | Canonical sales demand is SO line; resolve existing WIR allocations to the same obligation, never duplicate SO/WIR allocations for the same quantity |
+| ReplenishmentPlanningGuard | Unique warehouseId/productId with integer version; shared conditional writes in coverage-changing transactions, no copied stock totals |
+| Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
+| OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
+
+MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+
+
+**Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.
+
+- Mở/hủy form hoặc chọn Để sau không lưu RR, links hay pending coverage. Lưu nháp mới ghi DRAFT; Gửi duyệt kiểm dữ liệu rồi ghi SUBMITTED theo quyền. Nháp đã lưu được cập nhật cùng ID/version. Owner khác người gửi duyệt; Accountant lập PO sau duyệt.
+- Sau lưu SO thành công, xét các kho, nguồn về đúng hạn/tương thích và RR đã có. Còn thiếu thì hỏi “Đơn đã lưu; còn thiếu lượng chưa có nguồn phù hợp đúng hạn. Bạn có muốn tạo yêu cầu bổ sung?” Người dùng chọn dòng rồi mở form. Áp dụng cho cả không có nguồn và chỉ đủ một phần; đủ RR/nguồn thì dẫn tới phương án đang có. Có phương án kho khác chưa chọn phải hiển thị trước, không kết luận không có nguồn.
+- Đánh giá lỗi/chậm hiển thị chưa kiểm tra được/đang kiểm tra, không coi nguồn bằng0 hoặc làm SO lưu thất bại. Hộp thoại theo lần lưu có thay đổi nhu cầu; refresh/retry/sửa ghi chú không liên quan không tự lặp. Cảnh báo và nút tạo vẫn có trên chi tiết SO.
+- Được thêm sản phẩm ngoài cảnh báo. Dòng thêm chọn nguồn đúng của chính nó hoặc MANUAL_OTHER kèm lý do; sản phẩm ngoài SO không gắn giả vào SO line ban đầu. Cùng sản phẩm khác nguồn/lý do có thể tách dòng; trùng đúng cùng nguồn cần gộp/sửa.
+- Khi lưu/gửi, BE kiểm lại source/version/coverage và trả số cũ–mới nếu thay đổi. Giữ nội dung người dùng nhập; chỉ lưu sau khi xác nhận dữ liệu hợp lệ. Nguồn hủy/hết quyền/hết nhu cầu phải sửa/xóa dòng; không âm thầm thay lượng hoặc đổi loại lý do. Phần vượt thiếu bán phải tách nhu cầu khác.
+- Contract tạo dùng action SAVE_DRAFT/SUBMIT, creationKey, kho/ngày/lý do và source từng dòng; không có trường phân loại cách tạo. Quyền, Notification/readAt, guard và payloadHash giữ nguyên mục đích; mở form/đọc thông báo không ghi tồn. Ngày cần sau kiểm kê không có căn cứ thì để người dùng chọn.
 
 ## 6. Trạng thái và quyền sửa
 
@@ -229,6 +288,19 @@ Prefix /api/v1; ID ObjectId string, quantity/factor dưới dạng decimal strin
 
 Đây là hợp đồng thiết kế, không phải khẳng định endpoint đang tồn tại. Mỗi subcommand review/confirm/void kiểm permission cụ thể; xem màn hình không tự cấp quyền mutate. Không active route cho invoice, refund workflow hay UC retired.
 
+### 8.1 Contract bổ sung hàng/thông báo [TK]
+
+| Proposed endpoint [TK] | Authorization and behavior |
+|---|---|
+| POST /api/replenishments/evaluate | replenishment_request:evaluate; current source/warehouse scope, returns decimal-string quantities, source versions and evaluationKey; no RR or stock writes |
+| POST /api/replenishments | replenishment_request:create; action SAVE_DRAFT/SUBMIT + source IDs/versions + stable creationKey + warehouse/neededOn/reasons; server recomputes snapshots, returns changed evaluations for review without overwriting entered fields, guards coverage and records payloadHash |
+| PUT /api/replenishments/:id [TK] | replenishment_request:update; documentVersion + operationKey + action SAVE_DRAFT/SUBMIT; keep RR ID and existing lineIds, validate line ownership/current state, add new lines without IDs; stale review preserves entered fields |
+| GET /api/notifications | notification:read; own recipient only AND current source/warehouse access, paginated; optional unread filter; no implicit marking read |
+| GET /api/notifications/unread-count | notification:read; same recipient/scope filter as list |
+| POST /api/notifications/:id/read | notification:mark_read; own accessible notification; idempotently set readAt without resetting it on retry |
+
+New operation catalogue entries: replenishment_request:evaluate, notification:read, notification:mark_read for OWNER/WAREHOUSE/SALES, still subject to individual recipient/source scope. No new create/approve grants, ADMIN bypass or notification creation endpoint. Proposed DTOs use existing success/message/data envelopes, ObjectId strings, decimal-string quantities, UTC ISO dates and Asia/Saigon presentation. No route, worker or live UI for these new contracts is implemented by schema/seed changes alone.
+
 ## 9. Bằng chứng, thông báo và lỗi
 
 API-02 là controlled private storage, chưa chốt nhà cung cấp. Backend kiểm parent scope trước upload/download; lưu asset identifier/object key, hash, MIME, uploader/time, document/line association và upload result. Photo phải là ảnh tải thành công thuộc đúng POD; không chỉ kiểm URL không rỗng. Danh sách MIME/kích thước/lưu trữ cần cấu hình/chốt, không tự đặt số cam kết.
@@ -247,7 +319,7 @@ BR-01–33 dưới đây cùng nội dung mục 8 của quy trình VI; DR/GB tro
 |---|---|---|
 | BR-01 | Lot identity phải phân biệt product/lot/tone/calibre; không gộp hàng khác tone để đủ lượng. | DR-01, UC-13/16/26/30/54/55/72 |
 | BR-02 | Quy đổi theo sản phẩm và phiên bản đóng gói; chốt hệ số ở dòng chứng từ. Với gạch nguyên viên, không tạo số viên phân số. Dùng diện tích theo quy cách sản phẩm; calibre là thuộc tính tương thích, không tự thay hệ số m². | DR-02, GB-03 |
-| BR-03 | Nhu cầu bổ sung từ Sales/Warehouse hoặc cảnh báo; chỉ Owner duyệt; ngưỡng tồn là tham số được kiểm soát, không tự phát hành PO. | UC-03/04/103, BF-01 |
+| BR-03 | Sau lưu SO/chốt kiểm kê, hệ thống đánh giá nguồn và hỏi/cảnh báo nếu còn thiếu. User mở form điền sẵn; chỉ Lưu nháp/Gửi duyệt hợp lệ mới ghi RR có source/snapshot/lý do. Owner khác người gửi duyệt; không tự tạo PO. | UC-03/04/13/47/48/93/103 |
 | BR-04 | Không tính trùng nhu cầu đã có PO/điều chuyển/phân bổ; lượng dự kiến về chưa phải khả dụng hiện tại. | BF-01/04/06 |
 | BR-05 | Cấm tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê theo userId. Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm, theo C2; không tự duyệt ngoại lệ hoặc cấp quyền Owner. BF-08 không có approval Owner. | UC-04/41/66/71/92 |
 | BR-06 | Receipt/issue/return/adjustment chỉ post một lần, nguyên tử cùng ledger và balance. Không âm tồn khả dụng; retry trả lại kết quả cũ. | DR-09/10/13, GB-09/10/13 |
@@ -269,7 +341,7 @@ BR-01–33 dưới đây cùng nội dung mục 8 của quy trình VI; DR/GB tro
 | BR-22 | Khóa giao dịch thường trong kiểm kê; defect hold/evidence không đổi balance được ghi ngay. B1 chỉ batch chốt đã duyệt post delta/RECLASS/vị trí; giữ khóa/hold đến hoàn tất. Chưa đếm khác 0; lưu recount. | UC-87/88/92/93 |
 | BR-23 | Chênh đủ căn cứ có thể lập phương án trực tiếp hoặc recount nếu chưa rõ. Warehouse đề xuất, Owner duyệt/post đúng version. Batch delta thực tế + RECLASS bảo toàn tổng không ghi giảm hai lần; quality-only không ADJ=0. | UC-88/91/92/93 |
 | BR-24 | Chứng từ đã post không sửa/xóa để xóa dấu vết. Sai sót cần đảo/điều chỉnh liên kết có thẩm quyền. Master inactive giữ nguyên lịch sử. | DR-14, GB-02/13, UC-97/100–102 |
-| BR-25 | Thông báo và upload không tạo lại giao dịch tồn; gửi mail thất bại không rollback PGI/receipt đã commit. | API-01, JOB-01, UC-58/26/110 |
+| BR-25 | Outbox sau commit lưu Notification đúng recipient/scope; dedup retry; mở cảnh báo tính lại, không tự tạo RR hoặc post lại tồn. | UC-03/47/48/93/103, JOB-01 |
 | BR-26 | Không suy ra tình trạng đã giao khách (DELIVERED) chỉ từ PGI/bàn giao cho nhà vận chuyển, và không suy ra hoàn thành đơn bán (COMPLETED) chỉ từ đã giao hàng; không suy ra hoàn tiền từ phiếu nhập trả; không suy ra tăng tồn từ NCC đồng ý đổi hàng. | BF-06/07/08, UC-58/110/111 |
 | BR-27 | Chỉ các vai trò được phép xem chứng cứ mới lấy được tệp; URL không mặc định công khai. | API-02 lưu chứng cứ, GB-NEW-02 |
 | BR-28 | Có source system, source document/line, version và correlation ID để chống nhập/ghi nhận trùng giữa WMS và hồ sơ MISA trên SO, WIR, OD, GI-S, `CR` và `EXT-REF`. | UC-47/109/51/58/70/108 |
@@ -311,6 +383,11 @@ R-01–26 cùng thiết kế database; CHECK/FK/UNIQUE trong DDL chỉ diễn đ
 | R-24 | C2 và BF-08 đúng thẩm quyền | STANDARD_ACCEPTANCE chỉ Sales/CR thông thường sau kiểm, có thể cùng creator; EXCEPTION_APPROVAL chỉ Owner khác người đề xuất, không vượt D6. SR không approval Owner; Accountant UC-83/107 đối chiếu/đóng. |
 | R-25 | B1 hold không đổi balance | defect_hold/evidence ghi ngay dưới freeze; chặn phân bổ, giữ snapshot. Chỉ UC-93 batch được duyệt post delta khác 0 và RECLASS/vị trí; không ADJ=0 hoặc giao dịch thường vượt khóa. |
 | R-26 | Chốt B1 và TR toàn bộ phạm vi | B1 cần count/plan/version/UC-92 và Warehouse xác nhận thực hiện, không task/hold chưa giải quyết; rollback giữ khóa. TR cần hết nhu cầu, transit, sai lệch và TO; một đợt khớp chưa đủ. |
+
+| R-27 | Source | Direct saved SO-line or committed stocktake/policy, structured snapshots and textual reasons in both modes. |
+| R-28 | User command | Explicit creation with real actor, actor-scoped key/payload hash, version and shared coverage guard; no stock effect. |
+| R-29 | Notification | Current recipient/source scope, derived unique key, historical message and independent readAt; warnings reevaluate current state. |
+| R-30 | Policy/coverage | Exact versioned minimum/target and single-use coverage across pending RR→incoming→stock; one SO/WIR obligation. |
 
 ## 12. Màn hình và dữ liệu tương tác
 
@@ -422,6 +499,24 @@ Storage và SMTP giữ secret phía server. Backup/restore, retention, SLA, tả
 | T56 | Đổi plan B1/assessment CR sau duyệt hoặc nhận trả thường sau POD | Version mới cần quyết định đúng thẩm quyền; quality-only dùng ST_RESOLUTION/RECLASS không ADJ0; GR-CR giữ lịch sử POD/PAY-CFM và không tái mở. |
 
 Kiểm bổ sung toàn bộ các nhánh A/E 3.1.0 cùng EX-01–05 từ process/SRS; mỗi nhánh có command, nguồn/approval, quantity, expected state và stock effect. T27–T56 bao phủ chuỗi SO/WIR/POD/PAY mới, gồm 6+5 cạnh tranh trên PGI10, photo sai phiếu, early receipt, full cancellation và VOIDED correction.
+
+### 14.1 Nghiệm thu bổ sung hàng và Notification
+
+| Case | Kết quả cần kiểm khi triển khai |
+|---|---|
+| T57 — Chốt và nhận thông báo | Chỉ sau commit/unlock mới đánh giá; Warehouse đúng kho offline vẫn đọc được Notification khi trở lại |
+| T58 — Form/Lưu nháp/Gửi duyệt/Để sau | User chọn/lưu mới có DRAFT với user thật; đổi lượng có giải trình, bỏ qua chưa tạo pending coverage |
+| T59 — RR trực tiếp từ SO | SO đã lưu chưa có WIR vẫn tạo được; source SO-line và reason giữ khi chỉnh form |
+| T60 — Coverage trùng | Không cộng SO/WIR/OD như ba nhu cầu; pending RR→PO→stock chuyển một lần; guard chống hai lệnh tạo bù trùng |
+| T61 — Thông báo retry/đã đọc | Một event/type/người/kho chỉ một record; hai người có readAt riêng, retry không reset |
+| T62 — Thông báo cũ/quyền đổi | Mở lại tính mới; đã mất scope không thấy list/unread/source, readAt không đóng cảnh báo |
+| T63 — Tồn0/freeze | Bao gồm SKU0; phiên chưa chốt/rollback hoặc scope còn freeze không tạo cảnh báo sai |
+| T64 — Seed và migration | Seed rỗng mới ghi đủ39 collection/35 document/19 line; DB đã có dữ liệu không bị seed lại, schema hiện hành và reference seed hợp lệ |
+| T65 | SO post-save assessment | No/partial suitable supply prompts only for uncovered quantity; covered demand links to existing source/RR; pending/failed evaluation is not zero supply. |
+| T66 | Form opening/cancellation and saving | Opening/Later/cancel creates no RR; Save draft or Submit persists one request; edits reuse saved ID/version. |
+| T67 | Extra product in source-backed RR | Each added line has its own source or other-need reason; a product outside SO never inherits its sales quantity link. |
+| T68 | Stale open form | Save returns changed evaluation/invalid lines, retaining entered quantity/date/reasons for reconfirmation. |
+| T69 | Strict current create contract | No creation-method field; source/UOM/reason/permission/version and idempotency still apply. |
 
 ## 15. Quyết định triển khai còn cần xác nhận
 

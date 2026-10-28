@@ -92,7 +92,7 @@ Chỉ liệt kê UC ACTIVE. Không đánh lại ID để lấp khoảng trống.
 | UC-95 | View account list | FE-09 | Search and filter accounts by name, role, and active status. |
 | UC-96 | View account details | FE-09 | Display the selected account's information, assigned role, and status. |
 | UC-97 | Maintain Staff Account | FE-09 | Create, update, activate or deactivate staff accounts; role assignment remains separately controlled. |
-| UC-98 | Assign roles and operation permissions | FE-09 | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Multiple roles do not permit self-approval. |
+| UC-98 | Assign roles and operation permissions | FE-09 | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change. |
 | UC-99 | View Operational Reports | FE-09 | Run authorized physical/available/reserved/custody/transit, outstanding receipt/issue, customer-received quantities, DELIVERED pending receipt, COMPLETED/cancelled orders, defect, transfer, return and stocktake reports; no revenue/profit reports. |
 | UC-100 | View stock movement log | FE-09 | Filter movements by product, lot, location, transaction type, and time. |
 | UC-101 | View stock movement details | FE-09 | Display source document, before/after quantity, operator, time, and reason. |

@@ -12,6 +12,7 @@ Remove UC-23–25, UC-42, UC-59–62, UC-74–78 and UC-106 from active catalogu
 
 3. Conceptual Data Model
 3.1 Entity Relationship Diagram
+Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
 The three logical views below describe failed delivery and net-demand reopening (A1), stocktake holds and resolution closure (B1), and customer-return decisions and supplier returns (C2/BF-08). They show key identifiers, attributes and relationships. Shared document/document-line records support typed business records. MongoDB may embed bounded lifecycle records; a logical concept does not require a separate collection.
 
 A1 — GI/POD, GR-FD and net demand
@@ -214,7 +215,7 @@ erDiagram
 | Warehouse / Location | Configured physical warehouse and coded receiving/storage/staging/quarantine/custody position; active/scope/freeze; no nonempty deactivation. | UC-27–29, UC-36–41, UC-43–44, UC-104 |
 | Product / Conversion Version | Unique SKU, nominal specifications, whole-piece granularity and positive versioned BOX/PIECE/m² factors snapshotted on lines. | UC-11–13, UC-26, UC-55, UC-87 |
 | Lot | Product/manufacturer lot/tone/actual calibre; VERIFIED/UNKNOWN; transacted identity immutable. | UC-14–16, UC-26, UC-30–31 |
-| Party / User / Assignment | Business party distinct from login; personal accounts, five roles, operation and warehouse scope. | UC-17–22, UC-94–98 |
+| Party / User / Assignment | Business party distinct from login; personal accounts with exactly one of five roles, operation and warehouse scope. | UC-17–22, UC-94–98 |
 | Document / Line / Link | Versioned document/kind/status, homogeneous quantity and real source links/ceilings; posted history immutable. | UC-03–10, UC-47–58, UC-70–73, UC-81–93 |
 | Approval / Line | Typed decision/version/actor/line/quantity. Sales STANDARD_ACCEPTANCE of own ordinary inspected CR allowed; Owner exceptions and other approvals require distinct requester. No SR approval. | UC-04, UC-41, UC-66, UC-71, UC-92 |
 | Replenishment / PO | Uncovered need, Owner decision, Accountant PO and supplier confirmation; partial receipt/outstanding/short closure. | UC-01–10, UC-103 |

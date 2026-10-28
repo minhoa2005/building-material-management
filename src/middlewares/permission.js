@@ -1,40 +1,21 @@
 import { ApiError } from "../shared/utils/ApiError.js";
+import { currentRole, rolePermissions } from "../shared/utils/userRole.js";
 
-const checkPermission = (requiredPermission, requiredRoles) => {
-  return async (req, res, next) => {
-    const allowRoles = (requiredRoles || []).map((role) => role.toUpperCase());
-    const user = req.user;
-    if (!user) {
-      return next(
-        new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
-      );
-    }
-    const roleCodes = user.roleIds.map((role) => role.code);
+const checkPermission =
+  (requiredPermission, requiredRoles = []) =>
+  (req, _res, next) => {
+    const role = currentRole(req.user);
     if (
-      !roleCodes.some((role) => allowRoles.includes(role.toUpperCase())) &&
-      allowRoles.length > 0
+      !role ||
+      (requiredRoles.length &&
+        !requiredRoles.some((code) => code.toUpperCase() === role.code)) ||
+      !rolePermissions(req.user).includes(requiredPermission)
     ) {
       return next(
-        new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
+        new ApiError(403, "Bạn không có quyền thực hiện hành động này"),
       );
     }
-    const permissions = [];
-    user.roleIds.forEach((role) => {
-      role.permissionIds.forEach((per) => {
-        permissions.push(per.code);
-      });
-    });
-    const hasPermission = permissions.some(
-      (permission) => permission === requiredPermission,
-    );
-    if (!hasPermission) {
-      return next(
-        new ApiError(403, "Bạn không có quyền thực hiện hàng động này"),
-      );
-    }
-    console.log("User Permissions:", permissions);
     next();
   };
-};
 
 export default checkPermission;

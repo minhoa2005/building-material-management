@@ -1,4 +1,6 @@
--- WMSD relational analysis/reference DDL, 2026-10-25. NOT a production schema.
+-- WMSD relational analysis/reference DDL, 2026-10-28. NOT a production schema.
+-- Revision 3.3.0: one prefilled RR form, direct SO-line/count sources,
+-- target/version policies, planning guards and per-recipient notifications.
 -- Runtime persistence remains MongoDB (NoSQL), per Report 3 and the system design.
 -- SQL Server (T-SQL) syntax is used only to make the proposed relational model executable for review.
 -- Schema only: posting/approval services and authorization are NOT implemented here.
@@ -17,22 +19,21 @@ GO
 CREATE SCHEMA wmsd;
 GO
 
-CREATE TABLE wmsd.app_user (
- user_id bigint IDENTITY(1,1) PRIMARY KEY,
- username varchar(100) NOT NULL UNIQUE,
- display_name varchar(160) NOT NULL,
- credential_hash varchar(255) NOT NULL,
- active bit NOT NULL DEFAULT 1
-);
+-- 28 October 2026: exactly one role per user; many users may share a role.
 CREATE TABLE wmsd.app_role (
  role_code varchar(30) PRIMARY KEY,
  CONSTRAINT ck_app_role_fixed CHECK(role_code IN ('OWNER','SALES','WAREHOUSE','ACCOUNTANT','ADMIN'))
 );
 INSERT INTO wmsd.app_role VALUES ('OWNER'),('SALES'),('WAREHOUSE'),('ACCOUNTANT'),('ADMIN');
-CREATE TABLE wmsd.user_role (
- user_id bigint NOT NULL REFERENCES wmsd.app_user, role_code varchar(30) NOT NULL REFERENCES wmsd.app_role,
- PRIMARY KEY(user_id, role_code)
+CREATE TABLE wmsd.app_user (
+ user_id bigint IDENTITY(1,1) PRIMARY KEY,
+ username varchar(100) NOT NULL UNIQUE,
+ display_name varchar(160) NOT NULL,
+ credential_hash varchar(255) NOT NULL,
+ role_code varchar(30) NOT NULL REFERENCES wmsd.app_role(role_code),
+ active bit NOT NULL DEFAULT 1
 );
+CREATE INDEX ix_app_user_role ON wmsd.app_user(role_code);
 CREATE TABLE wmsd.permission (permission_code varchar(80) PRIMARY KEY);
 CREATE TABLE wmsd.role_permission (
  role_code varchar(30) NOT NULL REFERENCES wmsd.app_role, permission_code varchar(80) NOT NULL REFERENCES wmsd.permission,
@@ -83,10 +84,16 @@ CREATE TABLE wmsd.product_uom_version (
  UNIQUE(product_id, uom_code, version), UNIQUE(conversion_id, product_id)
 );
 CREATE TABLE wmsd.product_warehouse_policy (
+ policy_id bigint IDENTITY(1,1) NOT NULL UNIQUE,
  product_id bigint NOT NULL REFERENCES wmsd.product, warehouse_id bigint NOT NULL REFERENCES wmsd.warehouse,
  minimum_qty numeric(20,6) NOT NULL CHECK(minimum_qty >= 0),
+ target_qty numeric(20,6) NOT NULL,
+ version integer NOT NULL DEFAULT 1 CHECK(version > 0),
+ updated_by bigint REFERENCES wmsd.app_user,
+ CHECK(target_qty >= minimum_qty),
  PRIMARY KEY(product_id, warehouse_id)
 );
+-- On create/backfill, set target_qty=minimum_qty when no separate target is configured.
 CREATE TABLE wmsd.lot (
  lot_id bigint IDENTITY(1,1) PRIMARY KEY,
  product_id bigint NOT NULL REFERENCES wmsd.product,
@@ -117,6 +124,7 @@ CREATE TABLE wmsd.document (
  created_at datetimeoffset NOT NULL DEFAULT SYSDATETIMEOFFSET(),
  occurred_at datetimeoffset,
  note varchar(2000),
+ UNIQUE(document_id, created_by),
  CONSTRAINT ck_sales_order_status CHECK(document_kind <> 'SALES_ORDER' OR workflow_status IN
    ('DRAFT','OPEN','IN_PROGRESS','PARTIALLY_DELIVERED','DELIVERED','COMPLETED','CANCELLED')),
  CONSTRAINT ck_customer_confirmation_status CHECK(document_kind NOT IN
@@ -146,6 +154,7 @@ CREATE TABLE wmsd.document_link (
  PRIMARY KEY(parent_document_id, child_document_id, relation_code),
  CHECK(parent_document_id <> child_document_id)
 );
+CREATE INDEX ix_document_link_child ON wmsd.document_link(child_document_id);
 CREATE TABLE wmsd.line_link (
  source_line_id bigint NOT NULL REFERENCES wmsd.document_line,
  target_line_id bigint NOT NULL REFERENCES wmsd.document_line,
@@ -235,7 +244,15 @@ CREATE TABLE wmsd.business_operation (
 CREATE TABLE wmsd.replenishment_request (
  document_id bigint PRIMARY KEY REFERENCES wmsd.document,
  warehouse_id bigint NOT NULL REFERENCES wmsd.warehouse,
- needed_on date NOT NULL, trigger_reason varchar(200) NOT NULL
+ needed_on date NOT NULL, trigger_reason varchar(200) NOT NULL CHECK(LEN(LTRIM(RTRIM(trigger_reason))) > 0),
+ creation_key varchar(160) NOT NULL CHECK(LEN(LTRIM(RTRIM(creation_key))) > 0),
+ -- Repeated only for the actor-scoped relational idempotency constraint.
+ created_by bigint NOT NULL REFERENCES wmsd.app_user,
+ submitted_by bigint REFERENCES wmsd.app_user, submitted_at datetimeoffset,
+ FOREIGN KEY(document_id, created_by) REFERENCES wmsd.document(document_id, created_by),
+ UNIQUE(created_by, creation_key),
+ CHECK((submitted_by IS NULL AND submitted_at IS NULL) OR
+       (submitted_by IS NOT NULL AND submitted_at IS NOT NULL))
 );
 CREATE TABLE wmsd.purchase_order (
  document_id bigint PRIMARY KEY REFERENCES wmsd.document,
@@ -775,10 +792,94 @@ CREATE TABLE wmsd.outbox_event (
  document_id bigint NOT NULL REFERENCES wmsd.document,
  event_type varchar(60) NOT NULL,
  event_key varchar(120) NOT NULL UNIQUE,
+ document_version integer CHECK(document_version > 0),
  created_at datetimeoffset NOT NULL DEFAULT SYSDATETIMEOFFSET(),
  delivered_at datetimeoffset,
- attempts integer NOT NULL DEFAULT 0 CHECK(attempts >= 0)
+ attempts integer NOT NULL DEFAULT 0 CHECK(attempts >= 0),
+ CHECK(event_type NOT IN ('STOCKTAKE_CLOSED','SALES_ORDER_SAVED') OR document_version IS NOT NULL)
 );
+
+-- 3.3.0: RR is created only by an explicit user command. No stock_alert table.
+CREATE TABLE wmsd.replenishment_line (
+ line_id bigint PRIMARY KEY REFERENCES wmsd.document_line,
+ document_id bigint NOT NULL REFERENCES wmsd.replenishment_request,
+ trigger_type varchar(30) NOT NULL CHECK(trigger_type IN ('SALES_SHORTAGE','STOCKTAKE_LOW_STOCK','MANUAL_OTHER')),
+ source_sales_order_line_id bigint REFERENCES wmsd.sales_order_line(line_id),
+ source_sales_order_version integer CHECK(source_sales_order_version > 0),
+ source_issue_request_line_id bigint REFERENCES wmsd.issue_request_line(line_id),
+ source_issue_request_version integer CHECK(source_issue_request_version > 0),
+ source_stocktake_id bigint REFERENCES wmsd.stocktake(document_id),
+ source_stocktake_version integer CHECK(source_stocktake_version > 0),
+ policy_id bigint REFERENCES wmsd.product_warehouse_policy(policy_id),
+ policy_version integer CHECK(policy_version > 0),
+ evaluation_key varchar(200), evaluated_at datetimeoffset,
+ available_qty_snapshot numeric(20,6) CHECK(available_qty_snapshot >= 0),
+ other_warehouse_coverage_qty_snapshot numeric(20,6) CHECK(other_warehouse_coverage_qty_snapshot >= 0),
+ remaining_demand_qty_snapshot numeric(20,6) CHECK(remaining_demand_qty_snapshot >= 0),
+ reserved_for_demand_qty_snapshot numeric(20,6) CHECK(reserved_for_demand_qty_snapshot >= 0),
+ on_hand_coverage_qty_snapshot numeric(20,6) CHECK(on_hand_coverage_qty_snapshot >= 0),
+ incoming_coverage_qty_snapshot numeric(20,6) CHECK(incoming_coverage_qty_snapshot >= 0),
+ pending_request_coverage_qty_snapshot numeric(20,6) CHECK(pending_request_coverage_qty_snapshot >= 0),
+ minimum_qty_snapshot numeric(20,6) CHECK(minimum_qty_snapshot >= 0),
+ target_qty_snapshot numeric(20,6), suggested_qty numeric(20,6) CHECK(suggested_qty > 0),
+ reason_note varchar(2000) NOT NULL CHECK(LEN(LTRIM(RTRIM(reason_note))) > 0),
+ quantity_adjustment_reason varchar(2000),
+ FOREIGN KEY(line_id, document_id) REFERENCES wmsd.document_line(line_id, document_id),
+ CHECK(target_qty_snapshot IS NULL OR (minimum_qty_snapshot IS NOT NULL AND target_qty_snapshot >= minimum_qty_snapshot)),
+ CHECK((evaluation_key IS NULL AND evaluated_at IS NULL) OR (evaluation_key IS NOT NULL AND evaluated_at IS NOT NULL)),
+ CHECK((source_issue_request_line_id IS NULL AND source_issue_request_version IS NULL) OR
+       (source_issue_request_line_id IS NOT NULL AND source_issue_request_version IS NOT NULL)),
+ CHECK(trigger_type = 'MANUAL_OTHER' OR
+       (evaluation_key IS NOT NULL AND LEN(LTRIM(RTRIM(evaluation_key))) > 0 AND evaluated_at IS NOT NULL
+        AND available_qty_snapshot IS NOT NULL AND incoming_coverage_qty_snapshot IS NOT NULL
+        AND pending_request_coverage_qty_snapshot IS NOT NULL AND suggested_qty IS NOT NULL)),
+ CHECK(
+   (trigger_type = 'SALES_SHORTAGE' AND source_sales_order_line_id IS NOT NULL AND source_sales_order_version IS NOT NULL
+    AND remaining_demand_qty_snapshot IS NOT NULL AND reserved_for_demand_qty_snapshot IS NOT NULL
+    AND on_hand_coverage_qty_snapshot IS NOT NULL AND other_warehouse_coverage_qty_snapshot IS NOT NULL
+    AND source_stocktake_id IS NULL AND source_stocktake_version IS NULL AND policy_id IS NULL AND policy_version IS NULL
+    AND minimum_qty_snapshot IS NULL AND target_qty_snapshot IS NULL)
+   OR (trigger_type = 'STOCKTAKE_LOW_STOCK' AND source_stocktake_id IS NOT NULL AND source_stocktake_version IS NOT NULL
+    AND policy_id IS NOT NULL AND policy_version IS NOT NULL AND minimum_qty_snapshot IS NOT NULL AND target_qty_snapshot IS NOT NULL
+    AND source_sales_order_line_id IS NULL AND source_sales_order_version IS NULL
+    AND source_issue_request_line_id IS NULL AND source_issue_request_version IS NULL
+    AND remaining_demand_qty_snapshot IS NULL AND reserved_for_demand_qty_snapshot IS NULL AND on_hand_coverage_qty_snapshot IS NULL)
+   OR (trigger_type = 'MANUAL_OTHER' AND source_sales_order_line_id IS NULL AND source_sales_order_version IS NULL
+    AND source_issue_request_line_id IS NULL AND source_issue_request_version IS NULL
+    AND source_stocktake_id IS NULL AND source_stocktake_version IS NULL AND policy_id IS NULL AND policy_version IS NULL)
+ )
+);
+CREATE INDEX ix_replenishment_sales_source ON wmsd.replenishment_line(source_sales_order_line_id);
+CREATE INDEX ix_replenishment_stocktake_source ON wmsd.replenishment_line(source_stocktake_id);
+-- Service also requires an adjustment reason when document_line.qty_base differs
+-- from suggested_qty, and checks source kinds/products/warehouse and current coverage.
+
+CREATE TABLE wmsd.replenishment_planning_guard (
+ warehouse_id bigint NOT NULL REFERENCES wmsd.warehouse,
+ product_id bigint NOT NULL REFERENCES wmsd.product,
+ version integer NOT NULL DEFAULT 0 CHECK(version >= 0),
+ PRIMARY KEY(warehouse_id, product_id)
+);
+
+CREATE TABLE wmsd.notification (
+ notification_id bigint IDENTITY(1,1) PRIMARY KEY,
+ recipient_id bigint NOT NULL REFERENCES wmsd.app_user,
+ notification_type varchar(40) NOT NULL CHECK(notification_type IN ('LOW_STOCK_AFTER_STOCKTAKE','SALES_SHORTAGE')),
+ title nvarchar(200) NOT NULL, message nvarchar(2000) NOT NULL,
+ warehouse_id bigint REFERENCES wmsd.warehouse,
+ source_document_id bigint NOT NULL REFERENCES wmsd.document,
+ source_document_version integer NOT NULL CHECK(source_document_version > 0),
+ event_key varchar(120) NOT NULL REFERENCES wmsd.outbox_event(event_key),
+ evaluated_at datetimeoffset NOT NULL, read_at datetimeoffset,
+ dedup_key varchar(300) NOT NULL UNIQUE,
+ created_at datetimeoffset NOT NULL DEFAULT SYSDATETIMEOFFSET(),
+ updated_at datetimeoffset NOT NULL DEFAULT SYSDATETIMEOFFSET(),
+ CHECK(notification_type <> 'LOW_STOCK_AFTER_STOCKTAKE' OR warehouse_id IS NOT NULL)
+);
+CREATE INDEX ix_notification_recipient ON wmsd.notification(recipient_id, created_at DESC);
+CREATE INDEX ix_notification_unread ON wmsd.notification(recipient_id, read_at, created_at DESC);
+-- dedup_key derives from event_key/type/recipient/warehouse. Opening reevaluates
+-- live stock/coverage; reading a notification never resolves demand or creates RR.
 
 CREATE INDEX ix_return_claim_source ON wmsd.return_source_claim(sales_issue_line_id, claim_kind, status);
 CREATE INDEX ix_return_claim_history ON wmsd.return_source_claim(historical_external_line_id, status);
@@ -951,3 +1052,20 @@ COMMIT TRANSACTION;
 --     TR closes only after all request remainder/transit/variance/TO is resolved.
 -- All 3.1.0 cross-row, immutable-history, role and transaction controls remain
 -- APPLICATION REQUIREMENTS, not implemented services or SQL Server test results.
+
+-- Revision3.3.0 application requirements (not SQL procedures):
+-- Opening a prefilled form writes nothing. Save draft/Submit rechecks coverage,
+-- preserve text reason and structured snapshots, guard shared warehouse/product
+-- planning writes and idempotency payloadHash, and never double-count SO/WIR/OD.
+-- Canonical sales allocation demand is SO line, not its WIR releases.
+-- Transfer pending RR coverage to PO/incoming/stock once; return stale evaluations
+-- for user review. Owner differs from submitter; Accountant PO follows approval.
+-- Persist source event/version with source commit; Notification fanout occurs after.
+-- ReadAt changes only for the actual authorized recipient, preserves first read,
+-- and does not resolve a live warning. List/unread/source access rechecks current
+-- warehouse and record permissions. No stock_alert table or background-created RR.
+
+-- Form may mix source-backed lines and other-need lines. Never attach an extra
+-- product to an unrelated SO line. Stale evaluations preserve entered fields and
+-- require reconfirmation. Post-save SO prompts do not repeat on GET/retry and
+-- failed/pending source evaluation does not mean zero supply. One save/submit contract.
