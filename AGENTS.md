@@ -1,10 +1,13 @@
-# Hướng dẫn agent BE
+# Backend agent instructions
 
-Trước khi phân tích, lập kế hoạch hoặc sửa backend, hãy đọc đầy đủ [context.md](context.md) trong thư mục này. Dùng các quy tắc nghiệp vụ chung và thẻ UC liên quan làm căn cứ triển khai. Context mô tả cả phần đã có lẫn phần đề xuất, vì vậy hãy đối chiếu với source code hiện tại trước khi kết luận hoặc thay đổi.
+Before analyzing, planning, or changing the backend, read [context.md](context.md) in full. Use the shared business rules and relevant use case cards as the basis for implementation. The context describes both existing and proposed functionality, so check the current source code before drawing conclusions or making changes.
 
-Khi thay đổi API, quyền, dữ liệu hoặc nghiệp vụ có liên quan giao diện, hãy đọc thêm [context FE](../fe/context.md) và giữ contract FE–BE nhất quán. Bảo toàn phạm vi UC, liên kết chứng từ nguồn, kiểm tra kho được giao, version, bằng chứng và tác động tồn kho.
+When changing APIs, permissions, data, or business rules that affect the frontend, also read the [frontend context](../fe/context.md) and keep the frontend–backend contract consistent. Preserve use case scope, source document links, assigned warehouse checks, versions, evidence, and inventory effects.
 
-Không tự commit.
+Before starting code changes, pull the latest `main` into the current working branch. Check the repository status first and preserve existing changes; if pulling would risk overwriting work or cannot be completed safely, explain the blocker and ask the user how to proceed.
 
-Các file trong `git_doc/docs/01_bao_cao/` là bản đối chiếu và nộp. Chỉ cập nhật nội dung trong các mục có sẵn; không tự thêm banner phiên bản, dòng/bảng lịch sử chỉnh sửa, khối REVISION, phụ lục cập nhật hoặc ghi chú đồng bộ/triển khai ở cuối report. Yêu cầu mới phải đưa vào đúng phần nghiệp vụ, phạm vi, dữ liệu, use case, màn hình hoặc kế hoạch/kiểm thử tương ứng. Giữ bảng Change Log có sẵn, không tự thêm bản ghi.
+When documentation changes, record the changes in [git_doc/change_logs.md](git_doc/change_logs.md). When model files change, record the changes in [src/models/CHANGELOG.md](src/models/CHANGELOG.md).
 
+The files in `git_doc/docs/01_bao_cao/` are comparison and submission copies. Update content only within existing sections; do not add version banners, revision history lines or tables, REVISION blocks, update appendices, or synchronization or implementation notes at the end of a report. Put new requirements in the appropriate existing business, scope, data, use case, screen, or planning/testing section. Preserve existing Change Log tables without adding entries to them; use the separate documentation changelog above.
+
+After completing a feature, suggest that the user push the code. Do not automatically commit or push.

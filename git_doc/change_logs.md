@@ -1,3 +1,9 @@
+# Cập nhật hướng dẫn agent và changelog — 28/10/2026
+
+Chuyển hướng dẫn FE/BE sang tiếng Anh; bổ sung quy tắc pull main trước khi sửa code, đề nghị người dùng push sau khi hoàn thành feature và ghi thay đổi tài liệu vào changelog này. Tạo changelog riêng cho các thay đổi model về sau. Không tự commit hoặc push.
+
+---
+
 # Phân quyền mỗi user một role — 28/10/2026
 
 Theo quyết định người dùng, User.roleId là ObjectId đơn bắt buộc; bỏ roleIds, giữ warehouseIds và năm role. SQL tham chiếu chuyển user_role sang app_user.role_code NOT NULL FK: 84 bảng/2 view; Mongo vẫn 39 collections. BE auth/middleware/users/roles/seed đồng bộ; DTO lowercase role và alias roles=[role], primaryRole=role phục vụ FE chưa sửa. Runtime không gộp quyền, không fallback ADMIN và lọc quyền theo role catalogue.
