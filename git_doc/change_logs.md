@@ -1,3 +1,13 @@
+# Làm rõ tạo yêu cầu bổ sung chủ động — 29/10/2026
+
+Theo yêu cầu người dùng, bổ sung trực tiếp vào các mục hiện có của Report 3 (BF-01, catalogue/đặc tả UC-03, SC-06, BR-03) và quy trình VI/EN: Sales/Warehouse được tạo RR hoàn toàn bằng MANUAL_OTHER từ menu dù không có đơn thiếu, cảnh báo tồn thấp hay kiểm kê. Bắt buộc lý do nghiệp vụ từng dòng, kho/ngày cần và lượng dương; đối chiếu tồn, yêu cầu và nguồn sắp về để tránh mua trùng; không tạo giả refs/snapshot nguồn. Owner khác người đề xuất duyệt, Accountant lập PO sau duyệt; RR không đổi tồn.
+
+Tác động: làm rõ nhánh nhu cầu khác đã được chấp thuận trong đề xuất replenishment 1.4.0; không phát sinh UC/role/schema/API mới. Đồng bộ nội dung này trong cả bản tài liệu src/be/git_doc và SEP490/git_doc, không nâng toàn bộ bản cũ lên baseline 3.3.0. Bản quy trình tăng patch tài liệu; giữ bảng Change Log trong report. Bổ sung hai tình huống nghiệm thu: tạo không có trigger và chặn lý do trống. Rủi ro cần kiểm khi triển khai: không ép nguồn SO/kiểm kê vào MANUAL_OTHER, không mua trùng. Đây là cập nhật tài liệu, không phải xác nhận runtime.
+
+Kiểm chứng: rà soát các mục đã sửa, đối chiếu VI/EN, kiểm cấu trúc bảng/liên kết và git diff --check; không chạy kiểm thử ứng dụng cho thay đổi tài liệu. Không stage, commit hoặc push.
+
+---
+
 # Cập nhật hướng dẫn agent và changelog — 28/10/2026
 
 Chuyển hướng dẫn FE/BE sang tiếng Anh; bổ sung quy tắc pull main trước khi sửa code, đề nghị người dùng push sau khi hoàn thành feature và ghi thay đổi tài liệu vào changelog này. Tạo changelog riêng cho các thay đổi model về sau. Không tự commit hoặc push.
