@@ -17,7 +17,7 @@ test('MongoDB indexes, discriminator persistence and append-only history', {
     });
     const exportedModels = Object.values(models).filter((value) => value?.modelName);
     for (const Model of exportedModels) await Model.createIndexes();
-    assert.equal(new Set(exportedModels.map((Model) => Model.collection.name)).size, 39);
+    assert.equal(new Set(exportedModels.map((Model) => Model.collection.name)).size, 40);
 
     await t.test('natural keys and singleton STORE are enforced by MongoDB', async () => {
       const user = { username: 'owner', fullName: 'Owner', passwordHash: 'hash', roleId: id() };
