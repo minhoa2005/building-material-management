@@ -207,3 +207,11 @@ Apply backs up complete `users` and `roles` plus collection/index metadata as EJ
 The non-unique `roleId` index is ensured after the data transaction; index DDL is not transactional. If index creation fails after the data commit, keep the backend stopped and rerun the command to finish the index. Repeat application makes zero user updates. Start the new backend after migration/index verification; login/refresh/me must report one matching role. Existing access tokens cannot retain rights from the previous role.
 
 To roll back before reopening writes, stop the new backend, restore the backed-up users and their previous metadata/indexes to the same verified database, and restart the matching old backend. Never restore only roles or delete users: business documents retain references to the original user IDs. Run migration tests with `node --test`; MongoDB tests use unique disposable database names from `MONGODB_TEST_URI` and never target the URI's existing database.
+
+## Location movement API (UC-35 / UC-36)
+
+`POST /api/location-movements` creates a same-warehouse relocation task;
+`GET /api/location-movements/:id` reads its planned/actual quantities and posting
+history. Creation does not move stock. See the [request, access, transaction and
+test contract](src/modules/location-movements/README.md). UC-37 confirmation and
+the FE HTTP integration are separate work.

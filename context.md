@@ -803,7 +803,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** Relocation TO ID.
 - **Logic/kết quả:** Lot/from/to/planned/actual/posting history; read-only.
 - **Thiết kế BE:** Scope cả hai location và immutable operation/movement links.
-- **Điểm đặt BE:** `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: TO, WAREHOUSE_TASK lines; StockBalance/Reservation.
+- **Điểm đặt BE:** `src/modules/location-movements` — GET `/api/location-movements/:id` đã triển khai 29/10/2026; xem README trong module. Model TO/WAREHOUSE_TASK, actual từ ledger; FE còn mock.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-35 (dòng 1406 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -815,7 +815,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** Warehouse: from/to cùng kho, lot/quality/owner/qty/reason.
 - **Logic/kết quả:** Lập relocation sau kiểm nguồn/reservation/freeze; khác kho đi BF-04. Chưa move cho đến confirm.
 - **Thiết kế BE:** Validate distinct locations same assigned warehouse, quantity/source/suitability; create TO not stock mutation.
-- **Điểm đặt BE:** `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: TO, WAREHOUSE_TASK lines; StockBalance/Reservation.
+- **Điểm đặt BE:** `src/modules/location-movements` — POST `/api/location-movements` đã triển khai 29/10/2026; stock-neutral OPEN TO + lines + idempotent BusinessOperation + audit trong transaction. Location.planningVersion khóa planner cạnh tranh; các UC xác nhận/kiểm kê triển khai sau phải dùng chung guard. Xem README module; UC-37 chưa triển khai.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
 - **Truy vết:** Report 3 phần II, UC-36 (dòng 1423 tại snapshot đọc); nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 

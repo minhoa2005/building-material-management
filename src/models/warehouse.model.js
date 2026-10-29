@@ -5,6 +5,7 @@ import {
   text,
   ref,
   code,
+  integer,
   rules,
 } from "./model-utils.js";
 
@@ -28,6 +29,9 @@ const locationSchema = new Schema(
   },
   options("locations"),
 );
+// Shared write guard for task planning; stocktake activation/task confirmation
+// must acquire the same locations (in ID order) before changing their scope.
+locationSchema.add({ planningVersion: integer(0, { default: 0 }) });
 locationSchema.index({ warehouseId: 1, code: 1 }, { unique: true });
 rules(locationSchema, function validateAllocatableLocation() {
   if (this.allocatable && this.kind !== "STORAGE") {

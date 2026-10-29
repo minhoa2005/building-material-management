@@ -417,3 +417,9 @@ Các script kiểm tra, bản chụp trước sửa, parser tải về và ảnh
 4. Chưa xác minh số kho chính xác/danh sách/địa chỉ, số người từng kho, actual calibre, hệ số từng SKU, thời hạn nhận trả và lịch đối chiếu MISA. Giữ các mục này ở trạng thái cần xác minh.
 5. Các liên kết SAP/MISA và hướng dẫn hóa đơn được kế thừa từ đề xuất gốc; lượt này không tái xác minh toàn bộ nguồn trực tuyến hoặc quy định thuế. Không coi đó là tư vấn pháp lý được cập nhật.
 6. Các file có sẵn chưa theo dõi `docs/03_thiet_ke/WMSD_database_design.drawio`, `docs/03_thiet_ke/debug.log` và CSV khảo sát được giữ nguyên. Không thu dọn hoặc gán chúng là sản phẩm của lượt này.
+
+## 2026-10-29 — BE UC-35 / UC-36
+
+- Added the implementation/API handoff document at `src/modules/location-movements/README.md` and linked it from the root README.
+- Updated the BE context entries for UC-35/36 to point at the implemented routes. Business scope and permissions remain unchanged; FE mock screens are not represented as HTTP-integrated.
+- Documented additive task-source fields and the Location planning guard in `src/models/CHANGELOG.md`, including future cross-module guard obligations and replica-set tests.
