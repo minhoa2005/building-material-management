@@ -48,6 +48,7 @@ const claimSchema = new Schema({
   claimKind: code(["CR", "FD"], { immutable: true }),
   qtyBase: decimal({ positive: true, immutable: true }),
   status: code(["OPEN", "CONSUMED", "RELEASED"]),
+  consumedQty: decimal({ required: false }),
   operationId: ref("BusinessOperation", true, { immutable: true }),
 }, options("return_source_claims"));
 claimSchema.index({ requestLineId: 1, operationId: 1 }, { unique: true });
@@ -93,5 +94,13 @@ appendOnly(commitmentSchema);
 
 export const CustomerReturnAssessment = model("CustomerReturnAssessment", assessmentSchema);
 export const ReturnSourceClaim = model("ReturnSourceClaim", claimSchema);
+
+const returnSourceGuardSchema = new Schema({
+  salesIssueLineId: ref("DocumentLine"),
+  version: integer(0, { default: 0 }),
+}, options("return_source_guards"));
+returnSourceGuardSchema.index({ salesIssueLineId: 1 }, { unique: true });
+export const ReturnSourceGuard = model("ReturnSourceGuard", returnSourceGuardSchema);
+
 export const DemandReopening = model("DemandReopening", reopeningSchema);
 export const OdCommitmentTransfer = model("OdCommitmentTransfer", commitmentSchema);

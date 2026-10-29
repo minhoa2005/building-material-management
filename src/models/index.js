@@ -35,7 +35,7 @@ export {
 } from "./stocktake.model.js";
 export { BusinessOperation, SalesOrderCancellation } from "./business-operation.model.js";
 export {
-  CustomerReturnAssessment, ReturnSourceClaim, DemandReopening, OdCommitmentTransfer,
+  CustomerReturnAssessment, ReturnSourceClaim, ReturnSourceGuard, DemandReopening, OdCommitmentTransfer,
 } from "./return.model.js";
 export { AuditEvent, OutboxEvent } from "./event.model.js";
 export { Notification, notificationDedupKey } from "./notification.model.js";
