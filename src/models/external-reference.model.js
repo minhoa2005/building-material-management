@@ -6,6 +6,7 @@ import {
   ref,
   decimal,
   date,
+  integer,
 } from "./model-utils.js";
 
 const referenceSchema = new Schema(
@@ -18,6 +19,12 @@ const referenceSchema = new Schema(
     correlationId: text(100, { unique: true }),
     verifiedBy: ref("User", false),
     verifiedAt: date(false),
+    documentId: ref("BusinessDocument", false),
+    status: text(30, { default: "RECORDED" }),
+    evidenceId: ref("Evidence", false),
+    note: text(2000, { required: false }),
+    customerId: ref("Party", false),
+    warehouseId: ref("Warehouse", false),
   },
   options("external_references"),
 );
@@ -32,6 +39,11 @@ const lineSchema = new Schema(
     lineKey: text(100),
     productId: ref("Product"),
     eligibleQty: decimal(),
+    sourceLineId: ref("DocumentLine", false),
+    returnedQty: decimal({ required: false }),
+    lotId: ref("Lot", false),
+    conversionId: ref("ProductUomVersion", false),
+    claimVersion: integer(0, { default: 0 }),
   },
   options("external_reference_lines"),
 );
