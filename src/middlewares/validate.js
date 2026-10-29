@@ -7,6 +7,9 @@ export const validate = (schema) => (req, _res, next) => {
       query: req.query,
       params: req.params,
     });
+    // Express 5 req.query is a getter. Preserve parsed defaults/transforms for
+    // controllers instead of relying on mutations of its temporary value.
+    req.validated = parsed;
     if (parsed.body) req.body = parsed.body;
     if (parsed.query) Object.assign(req.query, parsed.query);
     if (parsed.params) Object.assign(req.params, parsed.params);

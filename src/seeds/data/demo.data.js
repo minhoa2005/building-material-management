@@ -533,7 +533,13 @@ export async function buildDemoData() {
     quantityAdjustmentReason: 'Đề nghị trước một phần; 4 viên còn lại chờ Sales xác nhận với khách (demo).',
   });
   line('rr:sales:extra', salesRr, '5', 'REPLENISHMENT', {
-    triggerType: 'MANUAL_OTHER', reasonNote: 'Mua dự trữ mẫu gạch khác ngoài đơn bán, người dùng thêm trên cùng form.',
+    triggerType: 'MANUAL_OTHER',
+    evaluationKey: 'demo:manual-reserve:product2:v1', evaluatedAt: at(27, 9),
+    availableQtySnapshot: '0', onHandCoverageQtySnapshot: '0', otherWarehouseCoverageQtySnapshot: '0',
+    remainingDemandQtySnapshot: '20', reservedForDemandQtySnapshot: '0', incomingCoverageQtySnapshot: '0',
+    pendingRequestCoverageQtySnapshot: '0', minimumQtySnapshot: '20', targetQtySnapshot: '20', suggestedQty: '20',
+    reasonNote: 'Mua dự trữ mẫu gạch khác ngoài đơn bán, người dùng thêm trên cùng form.',
+    quantityAdjustmentReason: 'Chỉ đề nghị 5 viên để bổ sung thử; 15 viên còn lại chưa đưa vào yêu cầu demo.',
   }, 1);
   operation('rr:sales:create', salesRr, sales, 'CREATE_REPLENISHMENT');
   add('DocumentLink', 'so:rr', {

@@ -309,6 +309,8 @@ Runtime mount **/api**, không /api/v1. Có:
 | POST /api/auth/refresh | Cookie refresh; access token và user mới. |
 | GET/POST /api/users, GET/PUT /api/users/:id, PATCH /api/users/:id/status | Account module; list data={items,total,page,limit}. |
 | GET /api/roles, PUT /api/roles/:code/permissions | Catalogue/ma trận role hiện tại. |
+| GET /api/replenishments | UC-01; scoped list; data={items,total,page,limit}; optional code/warehouse/creator/status/latest-decision/Vietnam-date filters. |
+| GET /api/replenishments/:id | UC-02; saved RR/source/coverage snapshots/versioned approvals, stored demand records/PO links and separate live product/warehouse available stock. |
 | POST /api/upload | multipart field file, image/*, memory5MB; trả url/publicId/format/width/height. |
 
 Success hiện {success:true,message,data?,meta?}; lỗi {success:false,message,stack?} (stack chỉ development). Không hứa field code/fieldErrors/correlationId đã có.
@@ -325,7 +327,7 @@ Permission catalogue thực ở src/seeds/data/permissions.data.js, dạng resou
 
 **Các độ lệch xác minh bằng đọc code; context này chỉ ghi nhận, chưa sửa:**
 
-1. middlewares/permission.js hiện đã sửa các lỗi user-before-declaration/requiredRoles.map/permission.push ghi trong snapshot cũ; xử lý role/permission ref bị thiếu và không log permission list. Không suy middleware operation thay được record/warehouse scope.
+1. RR reuse authenticate/checkPermission với roleId đơn hiện tại để kiểm active user, role và replenishment_request:read. Service dùng currentRole dựng scope kho/người tạo, không gom role thành mảng hoặc kiểm lại permission endpoint. Chứng từ liên quan dùng rolePermissions chung và scope riêng; quyền RR không cấp quyền SO/PO/stocktake.
 2. users/roles routes còn allow OWNER ở outer authorize và một số read gate khác baseline UC-95–98 Admin-only. role.service tự tạo Permission khi gặp code lạ; cần whitelist catalogue/role-operation compatibility và audit, cấm retired/arbitrary quyền. Giao diện hay seed không thay kiểm server.
 3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode gán/thay đúng một roleId. Cần thiết kế assignment đúng UC-98 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
 4. upload route hiện chưa authenticate/parent scope và trả Cloudinary secure_url; middleware chỉ kiểm MIME khai báo image/*, giới hạn5MB kỹ thuật. Chưa đạt private Evidence/hash/ownership/authorized download của API-02/POD. Mức5MB có trong implementation, không phải cửa hàng đã chốt mọi hạn mức.
@@ -411,7 +413,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — Own / assigned scope; Sales Staff — Own / assigned scope.
 - **Mã quyền trong seed hiện tại:** `replenishment_request:read`→OWNER/ACCOUNTANT/WAREHOUSE/SALES.
 - **Đầu vào/điều kiện:** Filter ngày tạo/người lập/status/decision, phân trang tùy chọn.
-- **Logic/kết quả:** Danh sách mã RR/sản phẩm/lượng/quyết định; Sales/Warehouse chỉ own/assigned, Owner/Accountant theo trách nhiệm. Read-only.
+- **Logic/kết quả:** Danh sách mã RR/sản phẩm/lượng/quyết định. UC-01/02: Owner xem RR mọi kho không phụ thuộc warehouseIds; Accountant xem RR trong warehouseIds; Sales/Warehouse chỉ RR createdBy chính mình VÀ kho còn trong warehouseIds. Không thêm giao người phụ trách từng RR. Read-only.
 - **Thiết kế BE:** Scoped find + count cùng predicate; không trả mọi RR rồi nhờ FE lọc.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
@@ -423,11 +425,13 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — Own / assigned scope; Sales Staff — Own / assigned scope.
 - **Mã quyền trong seed hiện tại:** `replenishment_request:read`→OWNER/ACCOUNTANT/WAREHOUSE/SALES.
 - **Đầu vào/điều kiện:** RR ID đã lưu.
-- **Logic/kết quả:** Chi tiết nguồn thiếu/available/pending supply, dòng hàng và versioned approval history; không coi inbound là available.
+- **Logic/kết quả:** Chi tiết nguồn, coverage snapshot đã lưu, reservation ACTIVE/allocation đã lưu, dòng hàng, PO links và versioned approval history. Available hiện tại là sản phẩm/kho; không coi inbound là available, không tính lại current shortage/suggested purchase. Lượng duyệt chỉ áp dụng đúng version/dòng, giữ lịch sử cũ.
 - **Thiết kế BE:** Validate ID + scope trước populate nguồn/approval/evidence; derive lượng từ transaction.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-02 (dòng 904 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+
+**Contract UC-01/02 đã triển khai:** [replenishment read API](src/modules/replenishments/README.md). Owner đọc/lọc RR mọi kho; metadata nguồn liên quan trong UC-02 theo permission riêng, không phụ thuộc warehouseIds cho Owner. Quyết định này giới hạn ở hai UC đọc, không tự mở rộng quyền duyệt, xuất/evidence hay scope UC khác. Prefix `/api/replenishments`; list filter `page/limit/search/warehouseId/createdBy/status/approvalDecision/createdFrom/createdTo`, strict query và ngày Asia/Saigon. List dùng preview ba dòng, latest RR decision trước count/pagination; detail tách `evaluationSnapshot` khỏi `currentStock`, nguồn/PO thiếu quyền chỉ giữ saved reference với `access=UNAVAILABLE`. Không download evidence hoặc backfill history trong GET. Middleware validate giữ `req.validated` để không mất defaults/transforms qua getter req.query của Express5. UI hiện vẫn demo; API/model không chứng minh UI đã nối.
 
 ### UC-03 — Create replenishment request
 

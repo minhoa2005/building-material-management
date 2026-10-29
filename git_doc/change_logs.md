@@ -1,3 +1,27 @@
+# Chuyển ví dụ model sang tình huống thực tế — 29/10/2026
+
+Theo điều chỉnh của người dùng, sửa [MO_TA_DATABASE_MODELS.md](../MO_TA_DATABASE_MODELS.md): thay toàn bộ 39 ví dụ JSON bằng tình huống vận hành cửa hàng gạch, có nhân vật, hàng hóa, số lượng và giải thích model ghi nhận điều gì. Đổi quy ước ví dụ và sơ đồ dạng khối sang diễn giải/bảng dễ đọc; bỏ các minh họa gọi hàm, tạo object và định danh giả. Giữ mô tả trường/quan hệ/ràng buộc và các luồng nghiệp vụ để đối chiếu source.
+
+Kiểm chứng: đủ 39 mục model và mỗi mục có ví dụ thực tế; không còn khối mã hoặc ví dụ JSON; kiểm bảng, liên kết nội bộ và git diff --check. Đây là sửa tài liệu, không chạy kiểm thử ứng dụng hoặc thao tác database. Bảo toàn thay đổi có sẵn; không stage, commit hoặc push.
+
+---
+
+# Giải thích model database tại root backend — 29/10/2026
+
+Thêm [MO_TA_DATABASE_MODELS.md](../MO_TA_DATABASE_MODELS.md) tại root `be`, giải thích đủ 39 model/collection MongoDB, 35 loại chứng từ và 19 loại dòng chứng từ theo source hiện tại. Mỗi model có mục đích, trường chính, quan hệ/ràng buộc đáng chú ý và ví dụ JSON; có các tình huống nhập mua, PGI/POD/PAY-CFM, FD mở lại nhu cầu, CR, điều chuyển, kiểm kê B1, trả NCC và thông báo/bổ sung hàng. Làm rõ discriminator dùng chung collection, decimal/snapshot/version, reservation/allocation/claim/hold và giới hạn schema so với service/transaction/API.
+
+Kiểm chứng: đối chiếu model/collection/discriminator từ registry Mongoose không kết nối database; parse và validate cục bộ các ví dụ JSON sau thay alias ID bằng ObjectId minh họa; kiểm liên kết và git diff --check. Không thay model/code ứng dụng, không chạy server/seed/migration hoặc ghi database. Bảo toàn các thay đổi có sẵn; không stage, commit hoặc push.
+
+---
+
+# Rà soát và đề xuất tách Use Case — 29/10/2026
+
+Thêm [báo cáo đề xuất tách UC](docs/07_ra_soat/De_xuat_tach_Use_Case_2026-10-29.md), dựa trên catalogue/quyền/đặc tả Report 3 trong workspace và baseline 3.3.0. Phân loại đủ 111 mã: 11 UC ưu tiên tách, 10 UC chuẩn hóa tiếp, 7 UC cân nhắc theo cách vận hành, 69 ACTIVE giữ cấu trúc và 14 RETIRED giữ lịch sử. Chi tiết UC-13 thành 5 mục tiêu sản phẩm/trạng thái/quy đổi/policy minimum-target; UC-19 thành tạo/sửa của Accountant và thay trạng thái của Owner. Các nhóm khác có actor, ranh giới trạng thái/tồn, mapping tạm và số lượng dự kiến.
+
+Đây là đề xuất để review; không thay catalogue, mã UC chính thức, quyền, quy trình, code hoặc bản tài liệu riêng tại SEP490/git_doc. Bảo toàn các thay đổi có sẵn trong workspace và changelog. Kiểm chứng bằng đối chiếu tập mã, số lượng/mapping, liên kết cục bộ và git diff --check; không chạy test ứng dụng cho báo cáo tài liệu. Không stage, commit hoặc push.
+
+---
+
 # Làm rõ tạo yêu cầu bổ sung chủ động — 29/10/2026
 
 Theo yêu cầu người dùng, bổ sung trực tiếp vào các mục hiện có của Report 3 (BF-01, catalogue/đặc tả UC-03, SC-06, BR-03) và quy trình VI/EN: Sales/Warehouse được tạo RR hoàn toàn bằng MANUAL_OTHER từ menu dù không có đơn thiếu, cảnh báo tồn thấp hay kiểm kê. Bắt buộc lý do nghiệp vụ từng dòng, kho/ngày cần và lượng dương; đối chiếu tồn, yêu cầu và nguồn sắp về để tránh mua trùng; không tạo giả refs/snapshot nguồn. Owner khác người đề xuất duyệt, Accountant lập PO sau duyệt; RR không đổi tồn.
@@ -16,11 +40,11 @@ Chuyển hướng dẫn FE/BE sang tiếng Anh; bổ sung quy tắc pull main tr
 
 # Phân quyền mỗi user một role — 28/10/2026
 
-Theo quyết định người dùng, User.roleId là ObjectId đơn bắt buộc; bỏ roleIds, giữ warehouseIds và năm role. SQL tham chiếu chuyển user_role sang app_user.role_code NOT NULL FK: 84 bảng/2 view; Mongo vẫn 39 collections. BE auth/middleware/users/roles/seed đồng bộ; DTO lowercase role và alias roles=[role], primaryRole=role phục vụ FE chưa sửa. Runtime không gộp quyền, không fallback ADMIN và lọc quyền theo role catalogue.
+Theo quyết định người dùng, User.roleId là ObjectId đơn bắt buộc; bỏ roleIds, giữ warehouseIds và năm role. SQL tham chiếu chuyển user_role sang app_user.role_code NOT NULL FK: 84 bảng/2 view; Mongo vẫn 39 collections. BE auth/middleware/users/roles/replenishment/seed đồng bộ; DTO lowercase role và alias roles=[role], primaryRole=role phục vụ FE chưa sửa. Runtime không gộp quyền, không fallback ADMIN và lọc quyền theo role catalogue.
 
 Chuẩn bị migrate:single-role mặc định dry-run; user nhiều/thiếu/sai/mâu thuẫn role cần ánh xạ userId→roleCode; preflight toàn bộ, backup users/roles, transaction chuyển dữ liệu và index roleId không unique. Không tự chạy migration trên database đang dùng. Đồng bộ quy trình VI/EN, report đúng mục có sẵn, thiết kế, context, Mermaid/ERD hiện hành; giữ draw.io lịch sử, khảo sát và biên bản. Bảo toàn thay đổi có sẵn, không stage/commit.
 
-Kiểm chứng: SQL ScriptDom TSql160Parser 0 lỗi, 6 batch, 84 bảng/2 view; không chạy DDL trên SQL Server. Bộ thay đổi được tách đạt 76/76 test trên MongoDB replica set tạm, không skip; gồm HTTP tạo/đổi role, login/refresh/me bằng token cũ, seed, migration/rollback. Kiểm chứng thêm CLI thật trên DB tạm: mặc định read-only, mapping, EJSON backup, transaction/index và apply lần hai cập nhật 0 user. Parse 31 Mermaid và dựng lại ERD HTML; đã xem ảnh Role 1–N User và User.Role đơn. git diff --check đạt. Các kết quả này không áp dụng cho database đang dùng hoặc DDL thực thi trên SQL Server.
+Kiểm chứng: SQL ScriptDom TSql160Parser 0 lỗi, 6 batch, 84 bảng/2 view; không chạy DDL trên SQL Server. Toàn bộ 99 test đạt trên MongoDB replica set tạm, không skip; gồm HTTP tạo/đổi role, login/refresh/me bằng token cũ, scope replenishment, seed, migration/rollback. Kiểm chứng thêm CLI thật trên DB tạm: mặc định read-only, mapping, EJSON backup, transaction/index và apply lần hai cập nhật 0 user. Parse 31 Mermaid và dựng lại ERD HTML; đã xem ảnh Role 1–N User và User.Role đơn. git diff --check đạt. Các kết quả này không áp dụng cho database đang dùng hoặc DDL thực thi trên SQL Server.
 
 ---
 
