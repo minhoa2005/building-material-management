@@ -221,7 +221,15 @@ const shapes = {
     }),
   },
   PAYMENT_CONFIRMATION: { header: { type: paymentHeader, required: true } },
-  DEFECT_CASE: { header: header({ discoveredAt: date(), reason: text(1000) }) },
+  DEFECT_CASE: { header: header({
+    discoveredAt: date(),
+    reason: text(1000),
+    sourceKind: code(["RECEIPT", "ISSUE", "STOCKTAKE", "TRANSFER", "CUSTOMER_RETURN", "MANUAL"], { required: false }),
+    sourceLineId: ref("DocumentLine", false),
+    warehouseId: ref("Warehouse", false),
+    sourceBalanceId: ref("StockBalance", false),
+    stocktakeId: ref("BusinessDocument", false),
+  }) },
   DISPOSITION: {},
   SCRAP: {},
   STOCKTAKE: {
