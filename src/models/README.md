@@ -15,7 +15,7 @@ names are camelCase; timestamps use UTC Date values.
 
 Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.3.0
 (27 October 2026), with the single-role decision of 28 October 2026. The SQL is a relational design reference; persistence stays
-MongoDB. All 84 SQL tables have a representation below, using 39 collections,
+MongoDB. All 84 SQL tables have a representation below, using 40 collections,
 35 document discriminators and 19 line discriminators. Representation does not
 mean that all foreign keys or business workflows are enforced by these schemas.
 
@@ -43,6 +43,7 @@ mean that all foreign keys or business workflows are enforced by these schemas.
 | customer_return_assessment | CustomerReturnAssessment; separate append-only versioned assessments |
 | failed_delivery, failed_delivery_line, failed_delivery_receipt_line | FAILED_DELIVERY typed header; FAILED_DELIVERY and FAILED_DELIVERY_RECEIPT typed line details |
 | return_source_claim, demand_reopening, od_commitment_transfer | ReturnSourceClaim, DemandReopening, OdCommitmentTransfer; separate collections |
+| return_source_guard | ReturnSourceGuard; per-issued-line write token serializes concurrent customer-return claim caps |
 | defect_hold, stocktake_resolution, stocktake_resolution_line | DefectHold collection; ST_RESOLUTION typed header and line details |
 | document_link, line_link | DocumentLink, LineLink |
 | approval, approval_line | Approval with bounded lines belonging to one decision |
@@ -194,7 +195,7 @@ const inspection = new DocumentLine({
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **40 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
 
 
 The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../../git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
