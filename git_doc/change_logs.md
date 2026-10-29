@@ -1,5 +1,9 @@
 # Cập nhật hướng dẫn agent và changelog — 28/10/2026
 
+## 2026-10-29 — Trungph iterations 1–3 application contracts
+
+Implemented and connected UC-63–73, UC-79–83, UC-102, UC-107 and UC-108 through the return-workflow API screens. Added transaction/HTTP verification on an isolated temporary database, frontend permission/error tests, and the shared manual acceptance guide at workspace ALL_ITERATIONS_TEST_GUIDE.md. Runtime contract and optional model additions are documented in src/modules/return-workflows/README.md and src/models/CHANGELOG.md. Existing report/submission copies were not edited.
+
 ## 2026-10-29 — FE-06 Iteration 1 read API contract
 
 Documented UC-46/49/50 routes, scoped SO/OD source-chain reads, decimal quantities,
