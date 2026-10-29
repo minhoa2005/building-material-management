@@ -1,0 +1,20 @@
+{
+  "baseUrl": "http://127.0.0.1:3016/api",
+  "accessToken": "",
+  "evidenceReceipt": "",
+  "evidenceId": "",
+  "createdSalesOrderId": "",
+  "runId": "manual-001",
+  "customerId": "9c5d98ea66abdcef021691c7",
+  "productId": "64cadeba8f6ee537d899134d",
+  "pieceConversionId": "47e0eae4db0ccb503601efe3",
+  "boxConversionId": "96cf56091d4b5b8d5d30b416",
+  "completedSalesOrderId": "09fccf860c8ee92812ac021f",
+  "failedDeliverySalesOrderId": "b2b26fea06cccb811574af97",
+  "cancelledSalesOrderId": "44b81ae42080896d28f29e66",
+  "outboundDeliveryId": "281c363fc38c97cb67084b13",
+  "issueRequestId": "ac022e60f797be3fd58f1057",
+  "warehouseId": "2a949639ddfbcd5acce9b381",
+  "productName": "Gạch mẫu 600x600",
+  "boxFactor": "4"
+}

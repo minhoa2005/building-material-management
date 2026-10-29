@@ -215,3 +215,11 @@ To roll back before reopening writes, stop the new backend, restore the backed-u
 history. Creation does not move stock. See the [request, access, transaction and
 test contract](src/modules/location-movements/README.md). UC-37 confirmation and
 the FE HTTP integration are separate work.
+
+## Sales and outbound read APIs (UC-46 / UC-49 / UC-50)
+
+`GET /api/sales-orders/:id`, `GET /api/outbound-deliveries` and
+`GET /api/outbound-deliveries/:id` expose scoped source and fulfilment history.
+See the [API and test contract](src/modules/sales-orders/README.md).
+UC-47 provides source-evidence upload and POST `/api/sales-orders`; Sales enters
+the source on the creation form. See the module contract for current limitations.

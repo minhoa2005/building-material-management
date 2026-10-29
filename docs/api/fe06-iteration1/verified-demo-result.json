@@ -1,0 +1,10 @@
+{
+  "testedAt": "2026-10-29T11:29:14.409Z",
+  "database": "wmsd_fe06_thunder",
+  "baseUrl": "http://127.0.0.1:3016/api",
+  "createdSalesOrderId": "6ae32df92ea64296cec8ceca",
+  "evidenceId": "6ae32df92ea64296cec8cecd",
+  "sourceReferenceNo": "PAPER-smoke-1793273334902",
+  "quantity": "2 BOX = 8 PIECE",
+  "result": "All collection smoke checks passed; no tokens persisted."
+}

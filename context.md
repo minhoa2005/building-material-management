@@ -35,7 +35,7 @@ Không dùng đề xuất 7 quy trình, tài liệu đánh giá cũ hoặc draw.
 
 ### Ranh giới sản phẩm
 
-- SO là bản sao của đơn MISA/giấy tờ/nguồn ngoài đã xác minh; không có live MISA hay API đồng bộ bán hàng.
+- SO là bản sao của đơn MISA/giấy tờ/nguồn ngoài; không có live MISA hay API đồng bộ bán hàng. Quyết định 29/10/2026: Sales nhập nguồn và bằng chứng ngay trong form tạo SO, không yêu cầu Accountant tạo/xác minh một hồ sơ nguồn trước. Ghi nhận nguồn không tự điền verifiedBy/verifiedAt như một xác minh kế toán.
 - WMSD không tính giá bán/chiết khấu, báo giá, hóa đơn nội bộ/thuế, thu/chuyển tiền, công nợ, hoàn tiền hay kế toán. UC-108 chỉ tham chiếu kết quả ngoài; UC-111 chỉ Sales xác nhận đã nhận đủ tiền bên ngoài.
 - Không tự thêm vai trò mua hàng/tài xế/khách/NCC, portal đối tác, ủy quyền động, tài khoản chung, route optimization, native/offline app, AI dự báo hoặc tự đặt PO.
 - Chỉ cấu hình hữu hạn như quy đổi/ngưỡng tối thiểu; không mở rộng thành general policy editor. Không mặc định thời hạn trả 7/15/30 ngày, hệ số SKU hay calibre thực tế chưa có chứng cứ.
@@ -116,7 +116,7 @@ Cuối kỳ = đầu kỳ + SUM(ledger delta) trên cùng dimension/cutoff, kể
 ### 3.3 Chuỗi SO/WIR/OD, A1 và hoàn thành
 
 ```text
-Nguồn ngoài verified → SO → WIR (header và line đúng SO) → OD theo một kho
+Nguồn ngoài được Sales ghi nhận kèm bằng chứng khi tạo SO → SO → WIR (header và line đúng SO) → OD theo một kho
 → GI-S DRAFT trước picking → confirm TO thực soạn → PGI khi bàn giao
 → POD ảnh cùng phiếu → DELIVERED → Sales PAY-CFM → COMPLETED.
 ```
@@ -928,7 +928,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** SO ID/current source history.
 - **Logic/kết quả:** Detail source lines/WIR/OD/GI/POD/PAY-CFM/cancellation/FD reopening; không pricing/invoice math.
 - **Thiết kế BE:** Typed chain joins + DTO projection; don't conflate WIR completion with SO completion.
-- **Điểm đặt BE:** `src/modules/sales-orders` [đề xuất, chưa có route]; model/data: SALES_ORDER; ExternalReference/ExternalReferenceLine; BusinessOperation/SalesOrderCancellation.
+- **Điểm đặt BE:** `src/modules/sales-orders` — GET `/api/sales-orders/:id` đã triển khai; scope theo người tạo SO hoặc kho thực hiện. Xem README module về source chain, FD, conversion snapshots và giới hạn DTO.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-46 (dòng 1588 tại snapshot đọc); nhánh BF-06-A1, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -937,10 +937,10 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-16.**
 - **Quyền theo Report 3:** Sales Staff — create copied SO.
 - **Mã quyền trong seed hiện tại:** `sales_order:create`→SALES.
-- **Đầu vào/điều kiện:** Sales: verified source order+line/evidence, customer/address/needDate/product/qty/UOM/tone/calibre.
+- **Đầu vào/điều kiện:** Sales nhập source order+line/evidence ngay trên form SO theo quyết định 29/10/2026; customer/address/needDate/product/qty/UOM/tone/calibre. Không cần hồ sơ nguồn do Accountant tạo trước; không giả metadata xác minh kế toán.
 - **Logic/kết quả:** Copy source duy nhất; chỉ provider version khi có, phone/Zalo phải có recorded order. Save SO không stock/reservation.
 - **Thiết kế BE:** Unique ExternalReference+SO line source, snapshot conversions, BusinessOperation+SO/audit atomic.
-- **Điểm đặt BE:** `src/modules/sales-orders` [đề xuất, chưa có route]; model/data: SALES_ORDER; ExternalReference/ExternalReferenceLine; BusinessOperation/SalesOrderCancellation.
+- **Điểm đặt BE:** `src/modules/sales-orders` — POST `/api/sales-orders` và `/api/sales-orders/source-evidence` đã triển khai. Source/SO/lines/evidence/BusinessOperation/audit/outbox nguyên tử, không thay tồn/reservation. Xem README module và gói test `docs/api/fe06-iteration1`.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
 - **Truy vết:** Report 3 phần II, UC-47 (dòng 1603 tại snapshot đọc); nhánh BF-06-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Sau lưu SO thành công, đánh giá nguồn và hỏi tạo RR nếu còn thiếu; chỉ mở form khi user chọn. Ghi sự kiện SALES_ORDER_SAVED có version để đánh giá thiếu và Notification theo scope; RR có thể dùng SO-line trước khi có WIR.
@@ -966,7 +966,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** OD warehouse/source/status/date filter tùy chọn.
 - **Logic/kết quả:** List OD của linked WIR, read-only theo scope; original/replacement không duplicate demand.
 - **Thiết kế BE:** OUTBOUND_DELIVERY query join WIR/SO chain and current net quantities, not mock status patch.
-- **Điểm đặt BE:** `src/modules/outbound-deliveries` [đề xuất, chưa có route]; model/data: OUTBOUND_DELIVERY; Reservation; OdCommitmentTransfer.
+- **Điểm đặt BE:** `src/modules/sales-orders` — GET `/api/outbound-deliveries` đã triển khai, lọc scope trước phân trang; xem README module về filter và số lượng từ ledger.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-49 (dòng 1633 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -978,7 +978,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** OD ID.
 - **Logic/kết quả:** Detail WIR line allowance/warehouse/reservations/picking/GI/POD/replacement commitment history.
 - **Thiết kế BE:** Validate source ownership chain, derive remaining from valid operations and transfers.
-- **Điểm đặt BE:** `src/modules/outbound-deliveries` [đề xuất, chưa có route]; model/data: OUTBOUND_DELIVERY; Reservation; OdCommitmentTransfer.
+- **Điểm đặt BE:** `src/modules/sales-orders` — GET `/api/outbound-deliveries/:id` đã triển khai; typed WIR/SO chain, reservations, picking, GI/POD/GR-FD và commitment history; xem README module.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-50 (dòng 1647 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 

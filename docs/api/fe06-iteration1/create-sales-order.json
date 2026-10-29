@@ -1,0 +1,20 @@
+{
+  "idempotencyKey": "thunder-{{runId}}",
+  "customerId": "{{customerId}}",
+  "neededOn": "2026-11-15T08:00:00+07:00",
+  "deliveryAddress": "Địa chỉ giao hàng demo - test Thunder Client",
+  "evidenceReceipt": "{{evidenceReceipt}}",
+  "source": {
+    "sourceSystem": "PAPER",
+    "referenceNo": "PAPER-{{runId}}",
+    "referenceDate": "2026-10-29T09:00:00+07:00"
+  },
+  "lines": [
+    {
+      "sourceLineKey": "1",
+      "productId": "{{productId}}",
+      "conversionId": "{{boxConversionId}}",
+      "quantity": "2"
+    }
+  ]
+}

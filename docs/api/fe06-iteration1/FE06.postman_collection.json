@@ -1,0 +1,537 @@
+{
+  "info": {
+    "name": "WMSD FE06 Iteration 1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Import into Thunder Client. Synthetic seeded IDs only. Copy login token, evidence receipt and created SO ID manually as described in README."
+  },
+  "item": [
+    {
+      "name": "00 Login",
+      "item": [
+        {
+          "name": "Login Sales",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "description": "200. Copy data.accessToken to environment accessToken. Login another role to test permissions.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"sales@ceratile.vn\",\n  \"password\": \"Sales@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Owner",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "description": "200. Copy data.accessToken to environment accessToken. Login another role to test permissions.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"owner@ceratile.vn\",\n  \"password\": \"Owner@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Accountant",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "description": "200. Copy data.accessToken to environment accessToken. Login another role to test permissions.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"accountant@ceratile.vn\",\n  \"password\": \"KeToan@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Warehouse",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "description": "200. Copy data.accessToken to environment accessToken. Login another role to test permissions.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"warehouse@ceratile.vn\",\n  \"password\": \"Kho@12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "description": "200. Copy data.accessToken to environment accessToken. Login another role to test permissions.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin@ceratile.vn\",\n  \"password\": \"Admin@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "UC47 Create source and SO",
+      "item": [
+        {
+          "name": "01 Upload source evidence",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders/source-evidence",
+            "description": "201. Sales only. In Body > Form select source-order.png as file. Copy data.receipt to evidenceReceipt. Do not set Content-Type manually.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "source-order.png"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 Create copied SO",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders",
+            "description": "201 first request. Copy data.id to createdSalesOrderId. Example: 2 BOX = 8 PIECE for this seeded product.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"thunder-{{runId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"neededOn\": \"2026-11-15T08:00:00+07:00\",\n  \"deliveryAddress\": \"Địa chỉ giao hàng demo - test Thunder Client\",\n  \"evidenceReceipt\": \"{{evidenceReceipt}}\",\n  \"source\": {\n    \"sourceSystem\": \"PAPER\",\n    \"referenceNo\": \"PAPER-{{runId}}\",\n    \"referenceDate\": \"2026-10-29T09:00:00+07:00\"\n  },\n  \"lines\": [\n    {\n      \"sourceLineKey\": \"1\",\n      \"productId\": \"{{productId}}\",\n      \"conversionId\": \"{{boxConversionId}}\",\n      \"quantity\": \"2\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 Retry identical creation",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders",
+            "description": "200 replayed=true and SAME ID. Do not change body or evidenceReceipt between retries.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"thunder-{{runId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"neededOn\": \"2026-11-15T08:00:00+07:00\",\n  \"deliveryAddress\": \"Địa chỉ giao hàng demo - test Thunder Client\",\n  \"evidenceReceipt\": \"{{evidenceReceipt}}\",\n  \"source\": {\n    \"sourceSystem\": \"PAPER\",\n    \"referenceNo\": \"PAPER-{{runId}}\",\n    \"referenceDate\": \"2026-10-29T09:00:00+07:00\"\n  },\n  \"lines\": [\n    {\n      \"sourceLineKey\": \"1\",\n      \"productId\": \"{{productId}}\",\n      \"conversionId\": \"{{boxConversionId}}\",\n      \"quantity\": \"2\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 Same source with another key",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders",
+            "description": "409 duplicate source. Run after 02.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"other-{{runId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"neededOn\": \"2026-11-15T08:00:00+07:00\",\n  \"deliveryAddress\": \"Địa chỉ giao hàng demo - test Thunder Client\",\n  \"evidenceReceipt\": \"{{evidenceReceipt}}\",\n  \"source\": {\n    \"sourceSystem\": \"PAPER\",\n    \"referenceNo\": \"PAPER-{{runId}}\",\n    \"referenceDate\": \"2026-10-29T09:00:00+07:00\"\n  },\n  \"lines\": [\n    {\n      \"sourceLineKey\": \"1\",\n      \"productId\": \"{{productId}}\",\n      \"conversionId\": \"{{boxConversionId}}\",\n      \"quantity\": \"2\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 Same key with changed payload",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders",
+            "description": "409 key conflict. Run after 02.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"thunder-{{runId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"neededOn\": \"2026-11-15T08:00:00+07:00\",\n  \"deliveryAddress\": \"Changed address\",\n  \"evidenceReceipt\": \"{{evidenceReceipt}}\",\n  \"source\": {\n    \"sourceSystem\": \"PAPER\",\n    \"referenceNo\": \"PAPER-{{runId}}\",\n    \"referenceDate\": \"2026-10-29T09:00:00+07:00\"\n  },\n  \"lines\": [\n    {\n      \"sourceLineKey\": \"1\",\n      \"productId\": \"{{productId}}\",\n      \"conversionId\": \"{{boxConversionId}}\",\n      \"quantity\": \"2\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "UC46 Sales Order detail",
+      "item": [
+        {
+          "name": "06 View newly created SO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/sales-orders/{{createdSalesOrderId}}",
+            "description": "200; OPEN, lines saved, evidence metadata, downstream history empty. GET never changes stock.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "07 Get private evidence URL",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/sales-orders/{{createdSalesOrderId}}/evidence/{{evidenceId}}",
+            "description": "Set evidenceId from previous response data.evidence[0].id. 200 with 60-second signed URL. Warehouse cannot access source evidence.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "08 Completed seeded SO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/sales-orders/{{completedSalesOrderId}}",
+            "description": "200. Completed sample: issued12, delivered12, one payment confirmation.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "09 Failed delivery seeded SO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/sales-orders/{{failedDeliverySalesOrderId}}",
+            "description": "200. Original OD: issued10, returned4, net6. Replacement commitment4; not a new customer demand.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "10 Cancelled seeded SO",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/sales-orders/{{cancelledSalesOrderId}}",
+            "description": "200. Cancellation history, no fabricated delivery.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "UC49 UC50 Outbound deliveries",
+      "item": [
+        {
+          "name": "11 OD list",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries?page=1&limit=20",
+            "description": "200; total filtered by current role/warehouse/SO creator.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "12 OD filtered list",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries?warehouseId={{warehouseId}}&salesOrderId={{failedDeliverySalesOrderId}}&page=1&limit=10",
+            "description": "200. Original and replacement ODs preserve the same source demand.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "13 OD search",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries?q=FD&page=1&limit=20",
+            "description": "200. Case-insensitive literal documentNo search; query is not interpreted as regex.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "14 OD detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries/{{outboundDeliveryId}}",
+            "description": "200. WIR/SO links, line snapshots, reservations, picking, GI/POD/FD/commitment histories.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Validation and permission",
+      "item": [
+        {
+          "name": "15 No token",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries",
+            "description": "401.",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "16 Invalid ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/sales-orders/bad-id",
+            "description": "400.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "17 Invalid pagination",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries?limit=101",
+            "description": "400.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "18 Wrong document kind",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/outbound-deliveries/{{completedSalesOrderId}}",
+            "description": "404.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "19 Invalid quantity",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders",
+            "description": "400; no source/SO created.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"invalid-{{runId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"neededOn\": \"2026-11-15T08:00:00+07:00\",\n  \"deliveryAddress\": \"Địa chỉ giao hàng demo - test Thunder Client\",\n  \"evidenceReceipt\": \"{{evidenceReceipt}}\",\n  \"source\": {\n    \"sourceSystem\": \"PAPER\",\n    \"referenceNo\": \"PAPER-{{runId}}\",\n    \"referenceDate\": \"2026-10-29T09:00:00+07:00\"\n  },\n  \"lines\": [\n    {\n      \"sourceLineKey\": \"1\",\n      \"productId\": \"{{productId}}\",\n      \"conversionId\": \"{{boxConversionId}}\",\n      \"quantity\": \"0\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20 Missing evidence",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sales-orders",
+            "description": "400; no source/SO created.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"no-proof-{{runId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"neededOn\": \"2026-11-15T08:00:00+07:00\",\n  \"deliveryAddress\": \"Địa chỉ giao hàng demo - test Thunder Client\",\n  \"evidenceReceipt\": \"\",\n  \"source\": {\n    \"sourceSystem\": \"PAPER\",\n    \"referenceNo\": \"PAPER-{{runId}}\",\n    \"referenceDate\": \"2026-10-29T09:00:00+07:00\"\n  },\n  \"lines\": [\n    {\n      \"sourceLineKey\": \"1\",\n      \"productId\": \"{{productId}}\",\n      \"conversionId\": \"{{boxConversionId}}\",\n      \"quantity\": \"2\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

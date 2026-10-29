@@ -1,5 +1,20 @@
 # Cập nhật hướng dẫn agent và changelog — 28/10/2026
 
+## 2026-10-29 — FE-06 Iteration 1 read API contract
+
+Documented UC-46/49/50 routes, scoped SO/OD source-chain reads, decimal quantities,
+FD/replacement and reversal semantics in src/modules/sales-orders/README.md.
+UC-47 implements the confirmed single-form source entry, signed evidence receipt,
+atomic creation, idempotency and outbox. Added private scoped evidence retrieval,
+OD search, stale conversion guards and a Thunder-compatible Postman 2.1 pack with
+isolated local demo server. Live Cloudinary smoke test passed private upload,
+signed retrieval, denied unsigned retrieval and test-asset cleanup.
+FE Warehouse Staff read screens now consume UC-46/49/50; FE UC-47 create form and
+shortage evaluation/notification consumer remain separate.
+Final verification: 4/4 FE06 acceptance tests passed without skips; 63 non-DB
+regression tests passed (10 integration/live skips); 1/1 live Cloudinary smoke
+passed; 23 collection HTTP checks passed against isolated local demo data.
+
 ## 2026-10-29 — FE-05 Iteration 1 backend reads
 
 Added UC-38/39 API contract in src/modules/transfers/README.md: pagination, scope,

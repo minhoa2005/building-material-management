@@ -10,6 +10,8 @@
     "seed:sync-permissions": "node src/seeds/run.js --sync-permissions",
     "migrate:replenishment": "node src/migrations/run-replenishment-3.3.js",
     "test": "node --test",
+    "test:fe06:pack": "node scripts/generate-fe06-thunder.mjs",
+    "test:fe06:server": "node scripts/start-fe06-thunder.mjs",
     "migrate:single-role": "node src/migrations/run-single-role.js"
   },
   "dependencies": {
