@@ -22,7 +22,7 @@ const lineDto = (line) => ({ id: id(line), lineNo: line.lineNo, productId: id(li
 
 // Full batch reversals cancel their original ledger legs. A reversal of a
 // reversal restores them; posted document quantities alone are not actuals.
-async function effectiveStockLines(lines, documents, session) {
+export async function effectiveStockLines(lines, documents, session) {
   const batches = await read(PostingBatch.find({ documentId: { $in: ids(documents) }, reversalOf: null }), session);
   const all = [...batches];
   let frontier = batches;
