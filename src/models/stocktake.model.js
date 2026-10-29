@@ -62,6 +62,6 @@ const holdSchema = new Schema({
   recordedAt: date(true, { default: Date.now, immutable: true }),
   status: code(["ACTIVE", "RESOLVED"]),
 }, options("defect_holds"));
-holdSchema.index({ balanceId: 1 }, { partialFilterExpression: { status: "ACTIVE" } });
+holdSchema.index({ balanceId: 1 }, { unique: true, partialFilterExpression: { status: "ACTIVE" } });
 
 export const DefectHold = model("DefectHold", holdSchema);
