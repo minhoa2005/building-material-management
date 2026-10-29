@@ -839,7 +839,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** From/to warehouse/status tùy chọn.
 - **Logic/kết quả:** Transfer progress theo scope; Sales chỉ nhu cầu liên quan, Accountant reconciliation.
 - **Thiết kế BE:** Scoped queries theo cả trách nhiệm warehouse/related demand; no unrestricted transfer list.
-- **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
+- **Điểm đặt BE:** `src/modules/transfers` — GET `/api/warehouse-transfers` đã triển khai. Quyết định 29/10/2026: Sales được xem tổng tiến độ TR liên quan tới nhu cầu của mình kể cả TR phục vụ nhiều Sales, không xem ghi chú/chứng từ nội bộ. Xem README module về DTO và scope.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-38 (dòng 1454 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -851,7 +851,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** TR ID.
 - **Logic/kết quả:** Approved/requested/TD/MWTR/quality/transit/variance/TO và whole-TR closure.
 - **Thiết kế BE:** Aggregate line chain, valid cancellation/outcome/partial receipt; closure invariant toàn TR.
-- **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
+- **Điểm đặt BE:** `src/modules/transfers` — GET `/api/warehouse-transfers/:id` đã triển khai. Sales nhận DTO tổng tiến độ của TR liên quan, kể cả nhiều nhu cầu, không có ghi chú/chứng từ nội bộ. GET không đóng TR; hiển thị lifecycle đã lưu và số liệu từ TD/MWTR POSTED, transit balance. Xem README module; các command xuất/nhận/đối chiếu chưa thuộc Iteration 1.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-39 (dòng 1472 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 

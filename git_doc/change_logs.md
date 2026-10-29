@@ -1,5 +1,12 @@
 # Cập nhật hướng dẫn agent và changelog — 28/10/2026
 
+## 2026-10-29 — FE-05 Iteration 1 backend reads
+
+Added UC-38/39 API contract in src/modules/transfers/README.md: pagination, scope,
+posted-document progress, transit balances and read-only detail. Documented the
+confirmed Sales access to overall related-TR progress (including mixed-demand
+TRs), while hiding internal documents/notes, and separate write workflows.
+
 Chuyển hướng dẫn FE/BE sang tiếng Anh; bổ sung quy tắc pull main trước khi sửa code, đề nghị người dùng push sau khi hoàn thành feature và ghi thay đổi tài liệu vào changelog này. Tạo changelog riêng cho các thay đổi model về sau. Không tự commit hoặc push.
 
 ---
