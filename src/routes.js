@@ -7,6 +7,7 @@ import authRouter from './modules/auth/auth.routes.js';
 import uploadRouter from './modules/upload/upload.routes.js';
 import usersRouter from './modules/users/user.routes.js';
 import rolesRouter from './modules/roles/role.routes.js';
+import replenishmentsRouter from './modules/replenishments/replenishment.routes.js';
 
 const router = Router();
 router.use('/location-movements', locationMovementRouter);
@@ -19,5 +20,6 @@ router.use('/auth', authRouter);
 router.use('/upload', uploadRouter);
 router.use('/users', usersRouter);
 router.use('/roles', rolesRouter);
+router.use('/replenishments', replenishmentsRouter);
 
 export default router;
