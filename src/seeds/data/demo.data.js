@@ -353,6 +353,7 @@ export async function buildDemoData() {
   add('ReturnSourceClaim', 'cr', {
     requestLineId: crLine._id, salesIssueLineId: delivered.giLine._id, claimKind: 'CR', qtyBase: '4', status: 'CONSUMED', operationId: crOperation._id,
   });
+  add('ReturnSourceGuard', 'cr', { salesIssueLineId: delivered.giLine._id });
   const custody = doc('CUSTODY-IN', 'CUSTODY_RECEIPT', dispatcher, null, 'POSTED', 17);
   const custodyLine = line('custody:in', custody, '4');
   link(crLine, custodyLine);
