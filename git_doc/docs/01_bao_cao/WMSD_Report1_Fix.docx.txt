@@ -1,0 +1,374 @@
+CAPSTONE PROJECT REPORT
+Report 1 – Project Introduction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+– Hanoi, Oct 2026 –
+Table of Contents
+Change Log
+Definition and Acronyms
+I. Project Overview
+1. Project Information
+2. Project Purpose
+3. Project Stakeholders
+II. Product Background
+III. Existing Solutions
+1. KiotViet
+2. MISA eShop
+3. Consolidated Gaps and Section Summary
+IV. Proposed Solution
+V. Project Scope & Limitations
+1. Major Features
+2. Limitations & Exclusions
+Change Log
+Date
+	A*M, D
+	In charge
+	Change Description
+	19/09/2026
+	A
+	Project Team
+	Created the initial project overview and baseline scope.
+	19/09/2026
+	A
+	Project Team
+	Documented purchasing, stock and sales workflows.
+	19/09/2026
+	A
+	Project Team
+	Added the software comparison and proposed solution.
+	26/09/2026
+	M
+	Project Team
+	Revised Product Background and store information.
+	26/09/2026
+	M
+	Project Team
+	Updated the existing-solution comparison.
+	26/09/2026
+	M
+	Project Team
+	Revised project scope, major features and scope boundaries.
+	29/09/2026
+	M
+	Project Team
+	Rewrote Product Background for the store’s operating context.
+	29/09/2026
+	M
+	Project Team
+	Specified warehouse pain points and mapped them to Major Features.
+	29/09/2026
+	M
+	Project Team
+	Clarified report language and project scope.
+	08/10/2026
+	M
+	Project Team
+	Completed stakeholder details from the client-provided list.
+	08/10/2026
+	M
+	Project Team
+	Clarified owner-reviewed purchase proposals, transfer evidence checkpoints and return outcomes.
+	08/10/2026
+	A
+	Project Team
+	Added Figure 3, the proposed WMSD warehouse process.
+	08/10/2026
+	M
+	Project Team
+	Applied the official template, clarified sales and financial boundaries, removed unused acronyms, aligned contents headings and refined table pagination.
+	09/10/2026
+	M
+	HieuDT
+	Add Diagram about Proposed Solution
+	09/10/26
+	M
+	MinhTD
+	Modify Existing Solution
+	09/10/26
+	M
+	TrungPH
+	Modify and revise Product Background 
+	15/10/2026
+	M
+	Project Team
+	Aligned the nine major features and corrected limitations for Sales Orders, internal invoicing, external refund recording, SMTP notifications and manual selling prices.
+	21/10/2026
+	M
+	Project Team
+	Synchronized D1–D8, the 20 October survey, warehouse-only scope, seven BF flows and alternate/exception paths; see change_logs.md.
+	22/10/2026
+	M
+	Project Team
+	Baseline 3.0.0: eight BF IDs; copied SO, linked WIR, photo POD and Sales PAY-CFM; current figures/detailed design. Report 2 unchanged.
+	25/10/2026
+	M
+	Project Team
+	Baseline 3.1.0: A1 failed-delivery/net reopening, B1 stocktake hold/RECLASS closure, C2 ordinary Sales acceptance and Owner-free BF-08; diagrams excluded.
+	*A - Added   M - Modified   D - Deleted
+
+
+Definition and Acronyms
+RR = Replenishment Request; SO = copied external Sales Order; POD = photo Proof of Delivery; PAY-CFM = external payment-receipt confirmation; WIR = Warehouse Issue Request; OD = Outbound Delivery; PGI = Post Goods Issue; TD = Transfer Dispatch; MWTR = destination transfer receipt; FD/GR-FD = failed-delivery case/actual return receipt; RECLASS = total-preserving quality/location posting at B1 closure. Custody is physically held stock owned by another party. Warehouse Staff is the canonical application-role name.
+Acronym
+	Definition
+	WMSD
+	Warehouse Management System Development – project name and code.
+	PO
+	Purchase Order – supplier order for products and quantities.
+	GAP
+	Project gap – an unmet operational control in the case-store workflow relative to available retail-software functions.
+	FE
+	Feature – identifier for an in-scope function in Section V.
+	LI
+	Limitation/Exclusion – identifier for a capability outside this release.
+	
+
+I. Project Overview
+1. Project Information
+– English name: Warehouse Management System Development
+– Vietnamese name: Phát Triển Ứng Dụng Quản Lý Kho
+– Project code: WMSD
+– Group name: SEP490_G56
+– Software type: Responsive Web Application – warehouse operations for one retail store
+– Baseline scope: One retail store; the survey reports three or more warehouses with coded areas/racks. Exact warehouse list, addresses and staffing remain to be verified.
+2. Project Purpose
+Warehouse Management System Development (WMSD) supports the physical warehouse operations of Cửa hàng gạch ốp lát Tân Thương: replenishment needs, purchasing, receiving/inspection, put-away, location movement, inter-warehouse transfer, issue fulfilment, defects, returns and stocktake. Exactly five application roles are Store Owner, Sales Staff, Warehouse Staff, Accountant and Administrator. Each user has exactly one role; each department uses personal accounts to record and confirm its work. Role changes never bypass independent approval or transfer identities.
+The release serves one store and its configured warehouses. Track product, lot, tone, verified actual calibre where available, location, quality, owner/custody, reservations and transit, with versioned BOX/PIECE/m² conversions. Survey-recorded nominal size does not prove actual calibre has already been collected; unknown identity is kept explicit and unavailable for allocation.
+WMSD stores an SO manually copied from a verified MISA/paper source, then linked WIR releases. Warehouse reserves, picks, posts actual handover/PGI once, and confirms customer delivery with mandatory photo POD. Fully delivered remaining quantities set DELIVERED; only Sales confirms full money receipt outside WMSD (PAY-CFM) to set COMPLETED. These confirmations do not change inventory or execute financial transactions. D1 reconciliation explains external order-time deduction versus physical WMS dispatch.
+MISA and external processes retain commercial Sales Orders, selling prices, internal/tax invoices, refunds, payment, receivables and full accounting. WMSD records source references and external outcomes without creating, calculating, approving or paying a refund. Live MISA synchronization and general-purpose business-policy editing are excluded. Fixed thresholds and compatible-stock suggestions assist decisions without automatically purchasing or posting stock.
+
+3. Project Stakeholders
+Full Name
+	Role
+	Email
+	Mobile
+	Tân Thương
+	Client
+	
+
+	0344449888
+	Nguyễn Thị Hải Năng
+	Supervisor
+	nangnth@fpt.edu.vn
+	
+
+	Đặng Trung Hiếu
+	Leader
+	hieudthe180536@gmail.com
+	0846250287
+	Trần Đức Minh
+	Member
+	minhsoc5@gmail.com
+	0912600863
+	Phạm Hải Trung
+	Member
+	phamhaitrung03@gmail.com
+	0356202604
+	Hoàng Minh Bách
+	Member
+	bachmhhe171188@fpt.edu.vn
+	0978943403
+	Hoa Hải Đăng
+	Member
+	danghhhe163301@fpt.edu.vn
+	0382381426
+	
+
+II. Product Background
+The store supplies wall/floor tiles for construction and renovation. Earlier project notes place it at Phố Tân An, xã Tân An, Yên Dũng, Bắc Giang; the 20 October survey does not independently verify that address or provide individual warehouse addresses.
+
+Evidence baseline: one response submitted at 09:04:25 on 20 October 2026 (GMT+7), in docs/05_khao_sat/khao_sat_kho_gach.csv. It reports three or more warehouses, clear areas/racks and position codes; MISA for sales/orders/invoices, stock movements/balances and party information. The reported difficulties are stock not matching reality and tracking customer-held, defective and returned quantities. The survey does not justify claiming that storage positions or lot/colour/size records are absent.
+
+Observed activities (As-is; external personnel here are business participants, not extra WMSD roles):
+| Activity | Survey evidence and limits |
+|---|---|
+| Replenishment and purchase | Sales/Warehouse report needs; Owner/management or purchasing personnel decide; Accountant orders from suppliers. Exact approval/delegation settings are not supplied. |
+| Supplier receipt | Warehouse counts/checks quality; Owner/Accountant may co-inspect; shortages, excess, wrong sample or breakage have photos/records and are discussed with supplier for replacement or return. |
+| Identity and units | Lot, colour and size are recorded in software or carton photos; receipt/count uses boxes, sales uses boxes/pieces/m². MISA/Excel holds factors; loose pieces and open cartons are counted. Torn packaging with intact tiles may still be sold. Actual calibre and SKU factors remain unverified. |
+| Defects | Isolate, mark/block, photograph or record; Owner/delegate decides supplier return, regrade or destruction. Dynamic delegation is not selected for WMSD (D3). |
+| Transfers | The response selects both transfer and no-transfer options. D4 explicitly resolves this for the proposal: retain physical inter-warehouse transfer and independent dispatch/receipt. Do not edit the contradictory survey record. |
+| Stocktake | Monthly counts; MISA comparison, pausing the area, separate movement records if movement continues, recount/cause and Owner/delegate approval are reported. WMSD selects frozen scope until resolution (D5); concurrent-movement counting is not selected. |
+| Issue fulfilment | Requests arrive via MISA/software, paper, Zalo/phone/verbal channels. Reserved stock is marked; partial delivery/outstanding quantities are followed. Current deduction is at order/request creation; D1 selects physical deduction at actual handover/PGI. |
+| Customer return | Sealed cartons and unused loose tiles are case-by-case; installed, customer-damaged or overdue goods are not accepted. Warehouse counts/checks quality; refund is recorded in MISA. No numerical return deadline is supplied. |
+| Supplier return | Accountant/purchasing personnel or Owner contacts supplier; agreement is required before dispatch, with internal authorization, issue/handover evidence and supplier receipt acknowledgement. |
+| Entry and device | Survey selects Accountant/one shared operator and immediate entry using a phone. D2 instead retains separate departmental entry/personal accounts; D3 retains five roles without new purchasing/delivery roles. Responsive phone use is required, without inferring native/offline software. |
+
+Design decisions D1–D8 in change_logs.md distinguish selected To-be controls from survey evidence. Custody, staging/put-away, compatible FIFO, versioned decisions, atomic posting and idempotency are proposed controls; this report does not assert they are already deployed.
+III. Existing Solutions
+
+
+KiotViet and MISA eShop are two existing retail management solutions relevant to the warehouse operations examined in this project. Both provide established capabilities for product management, purchasing, inventory tracking, stocktaking, transfers, and returns.
+1. KiotViet
+KiotViet Retail supports purchase ordering, multiple receipts against one order, goods tracking by lot/expiry date for enabled items, stock transfers, stock counts and supplier returns. The assessment below compares its documented retail workflows with the specific physical checks used at Tân Thương; it does not assert that the platform is incapable of configuration or extension.
+Website / Link
+	https://www.kiotviet.vn
+	Target Users
+	Small and medium retailers and wholesalers using point-of-sale, purchase, inventory and supplier management.
+	Core Features
+	POS, supplier purchasing, purchase orders, repeated goods receipts, inventory by item, unit handling, optional lot/expiry tracking, warehouse transfers, stock counts, customer and supplier returns, and retail reports.
+	Strengths
+	The official purchase-order guide explicitly supports multiple goods receipts for one order and the statuses “Nhập một phần” and “Hoàn thành”. The retail transfer guide records dispatched and received quantities, allows a discrepancy note, and updates warehouse stock. Stock counting compares recorded and actual quantities before balancing.
+	Scope fit / limits
+	Suitable for standard procurement and stock control. The cited workflow descriptions do not establish one mandatory case-specific record joining tile tone, actual calibre, box-to-piece-to-m² conversion, quality inspection, exact storage position and evidence-based handling of exceptions. This is a project fit gap, not a claim that KiotViet lacks lot control or partial receiving.
+	GAP for this project
+	GAP-01: Multi-receipt PO tracking exists, but Tân Thương still needs per-arrival accepted/rejected/outstanding reconciliation.
+GAP-02: Tile tone, actual calibre and package conversion must identify the same physical stock.
+GAP-03: Warehouse inspection outcomes must control which received quantities are usable.
+GAP-04: Each tile lot requires its real storage bin and a logged location move.
+GAP-05: The store needs evidence across transfer dispatch, handover and destination discrepancy resolution.
+GAP-06: Actual issue needs the source request, picked lot, bin and physical quantity.
+GAP-07: Customer and supplier returns require a warehouse quality decision before release or dispatch.
+GAP-08: Paper/Excel counts need a dated snapshot, investigation and controlled adjustment.
+GAP-09: Physical warehouse evidence must be connected across the event trail, separate from retail sales records.
+	2. MISA eShop
+MISA eShop is the retail platform already used by Tân Thương for product, sales and related records. Its official guides cover product variants, lot/expiry tracking, warehouse storage positions, warehouse receipts and transfers, stocktaking, and customer returns. The project therefore addresses the store's remaining end-to-end physical warehouse workflow, not an assumed absence of those standard functions.
+The existence, configuration and edition-specific availability of each standard feature must be checked against the store's own MISA eShop account. The project gaps describe operational requirements that are not currently handled consistently in the store's working process; where a vendor guide does not establish a combined control, this is treated as a fit-to-process question rather than a proven product limitation.
+Website / Link
+	https://www.misaeshop.vn
+	Target Users
+	Retail SMEs that need sales, stock, tax/invoicing and related operational records on one platform; this is the case store's current retail system.
+	Core Features
+	Product variants (including colour/size), lot/expiry tracking, multiple warehouses, structured storage positions (including parent position), warehouse receipts, transfers, stocktaking, retail returns, invoicing and reporting.
+	Strengths
+	MISA eShop documents creation of named warehouse positions and nested locations; the goods-receipt guide includes warehouse and storage-position fields. Product inventory can be viewed by warehouse, attribute and lot where configured. The inventory-count guide records actual counts, differences and causes; transfer-order and return workflows are also documented.
+	Scope fit / limits
+	MISA eShop is retained for retail and accounting transactions. Although product attributes, lots, storage locations, transfers and stock counts exist, Tân Thương currently also uses paper/separate warehouse records. The cited instructions do not by themselves verify that the installed configuration enforces a single inspection-to-bin-to-picking trail with case-specific proof at every physical checkpoint.
+	GAP for this project
+	GAP-01: The store must reconcile each supplier delivery and quality-accepted balance with its purchase record.
+GAP-02: Standard attributes and lot tracking must be tied to tile-specific tone, actual calibre and unit conversions.
+GAP-03: Receipt inspection must split usable, pending, damaged and rejected quantities by delivery.
+GAP-04: Existing storage-position functions need consistent deployment and traceable physical relocations at Tân Thương.
+GAP-05: Transfer orders need locally recorded dispatch, handover, arrival and discrepancy evidence.
+GAP-06: Warehouse issues need actual picked lot, position and issued quantity against their source request.
+GAP-07: Physical inspection and quarantine must precede retail return/accounting settlement.
+GAP-08: Count cut-off, recount, cause and review are needed beyond the store's current paper/Excel method.
+GAP-09: Warehouse proofs and exceptions must form one event history with MISA document references.
+	3. Consolidated Gaps and Section Summary
+Gap ID
+	Operational mismatch with existing solutions and store practice
+	Business impact
+	GAP-01
+	Partial supplier delivery reconciliation: KiotViet already documents partial goods receipts; MISA provides purchase-related receiving. At Tân Thương, delivered, quality-accepted, defective and outstanding quantities are not currently consolidated by supplier confirmation and each arrival.
+	A purchase order can appear settled while goods remain to be received or resolved.
+	GAP-02
+	Tile-specific identity and unit consistency: The platforms support standard item attributes and lot-related inventory. The store needs its lot, tone, actual calibre, packaging specification and box/piece/m² equivalent recorded and validated together when goods are handled.
+	A matching item code can conceal a wrong tile batch or inconsistent stock quantity.
+	GAP-03
+	Inspection-to-usable-stock separation: Retail receipts exist, but the store also checks packaging, tone, calibre and damage manually. Its separate notes do not consistently connect each inspection outcome to accepted, waiting, damaged or rejected quantity.
+	Unverified stock can be presented as available for picking.
+	GAP-04
+	Position-level stock and movement trace: MISA eShop documents hierarchical storage positions; the survey confirms coded areas/racks, while consistent linkage of every move to lot/status and evidence remains the proposed control.
+	Staff cannot reliably locate the intended lot or explain a misplaced quantity.
+	GAP-05
+	Transfer checkpoints and exception ownership: KiotViet documents dispatch/receipt and difference notes; MISA documents transfer orders. The store needs attributable evidence for dispatch, carrier handover and destination receipt, followed by a documented resolution of short or damaged quantities.
+	It is difficult to establish where a transfer discrepancy occurred and who must resolve it.
+	GAP-06
+	Actual warehouse picking and issue: Existing retail sales and stock-issue functions do not replace the store's need to tie a physical issue request to the exact picked lot, location, quality status and issued quantity.
+	The posted issue may differ from what was actually handed over.
+	GAP-07
+	Warehouse treatment of returns: Both products support returns as retail transactions. Tân Thương needs an independent physical check for customer-return quality and supplier-return quarantine, with accepted and rejected quantities recorded before stock disposition.
+	Damaged or unresolved returned goods may be mixed with usable stock.
+	GAP-08
+	Stocktake cut-off and controlled adjustment: Both products support stock counts and variance handling. The survey reports monthly counts, area pauses, recount/cause and approval; durable software snapshot/attempt history and frozen scope through resolution are proposed controls.
+	Discrepancies cannot be reconstructed reliably after a stock adjustment.
+	GAP-09
+	Unified physical warehouse audit trail: MISA eShop provides retail documents and reports, but the store's physical inspection, bins, handovers and exception evidence remain partly in separate records. WMSD will keep source-document references rather than duplicate retail or financial processing.
+	An individual quantity cannot be followed across receiving, storage, movement, issue and return.
+	Section Summary. KiotViet and MISA eShop already offer established retail and inventory functions. The nine GAPs describe the store's unresolved physical controls and fragmented records. WMSD addresses tile-specific inspection, traceable stock events, exception resolution and count accountability, together with source-linked warehouse issue fulfilment and external-document reconciliation. Financial accounting and sales payment/debt management remain outside WMSD.
+IV. Proposed Solution
+The proposed solution supports nine features across eight linked warehouse processes, with five application roles, 97 active use cases and BR-01–33. Sales/Warehouse creates source-linked replenishment requests through one editable prefilled form; a different Owner approves before Accountant creates the purchase order. Saved sales orders and committed stocktakes provide shortage warnings and scoped in-app notifications.
+
+| Gap | Feature | Proposed operational handling |
+|---|---|---|
+| GAP-01 | FE-01 — Purchase Delivery and Partial Receiving | Select uncovered saved-SO or committed-stocktake needs, open one editable prefilled RR form, add products with their own source or reason, and save a draft or submit. Owner approval precedes Accountant PO/supplier confirmation; support multiple receipts and outstanding quantities. |
+| GAP-02 | FE-02 — Master Data and Tile Traceability | Product, lot/tone/verified calibre, versioned BOX/PIECE/m² factors, parties and warehouse minimum/target quantities. The target is at least the minimum and defaults to it. Selling-price maintenance is excluded. |
+| GAP-03 | FE-03 — Goods Receiving Quality Control | Per-quantity inspection, packaging observation, ownership/custody, good/pending/defective/rejected outcomes, discrepancy evidence and eligible receipt. |
+| GAP-04 | FE-04 — Bin-level Inventory and Location Movement | Coded warehouses/locations, stock by owner/lot/quality, put-away and same-warehouse movements that preserve total and reservations without Owner approval. |
+| GAP-05 | FE-05 — Warehouse Transfer and Discrepancy Management | Approved TR → draft TD before picking → TO execution if staging → actual TD/HO → independent MWTR/put-away. Preserve allocations and resolve request remainder/transit/variances/tasks before whole-TR closure. |
+| GAP-06 | FE-06 — Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → source/shortage check → linked WIR/OD → draft GI-S, picking and PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. For uncovered quantity, offer the RR form directly from saved SO lines before WIR. GR-FD reopens original net demand without duplicating commitments; commercial pricing and payment execution remain external. |
+| GAP-07 | FE-07 — Defective Goods and Physical Returns | Immediate defect hold; Sales ordinary CR acceptance or eligible Owner exception after Warehouse inspection; GI-linked failed-delivery GR-FD with net reopening; Accountant agreement/reconciliation/closure and Warehouse actual supplier return without Owner. External finance references remain separate. |
+| GAP-08 | FE-08 — Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-92/93 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. |
+| GAP-09 | FE-09 — Access Administration, Audit and Operational Reporting | Five roles, exactly one role per personal account and assigned warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. In-app notifications have per-recipient read/unread status; opening a warning reevaluates current stock and supply within current access rights. |
+
+BF-01 — Replenishment, purchasing and goods receipt
+Main flow: Sales/Warehouse selects shortage lines from a saved SO, stocktake warning or chosen source, then opens a form prefilled with product, warehouse, suggested quantity and textual reasons. Users may edit quantity/date/reasons and add products with a valid source or separate need reason, keeping one receiving warehouse and need date per RR. Only Save draft or Submit persists the RR; a different Owner reviews before Accountant PO. Warehouse records actual arrival/inspection/accepted GR and confirms put-away TO.
+Alternate/exception outcomes: Opening/cancelling the form or choosing Later creates no RR or pending coverage. Before saving, recalculate current stock and compatible, timely incoming/other-warehouse supply, subtracting pending RR coverage once. Changed data retains the entered form for review; extra products never inherit an unrelated SO-line link. During receiving, separate accepted ownership, custody and immediate rejection; partial supply/replacements preserve their sources, without GR0 or double receipt.
+
+BF-02 — Defect detection, isolation and disposition
+Main flow: Warehouse records evidence and blocks affected allocation immediately. Outside frozen stocktake, Owner approves scoped scrap/regrade/release; Warehouse executes. Supplier return routes directly to BF-08 without Owner authorization.
+Alternate/exception outcomes: B1 records balance-neutral hold/evidence, retaining snapshot and freeze; quality/location posts only in approved UC-93 closure batch, without duplicate UC-66 approval. Scrap deducts actual destruction once; supplier return deducts only at UC-82.
+
+BF-03 — Same-warehouse relocation
+Main flow: Warehouse creates/confirms TO-RELOCATE actual quantity and locations in one warehouse, preserving identity/quality/owner/reservations and total. No Owner approval, TR, TD or MWTR.
+Alternate/exception outcomes: Different warehouse uses BF-04; frozen/short source blocks confirmation; partial tasks retain or traceably cancel remainder.
+
+BF-04 — Inter-warehouse transfer and discrepancies
+Main flow: Owner-approved TR → source TD draft before picking → actual TO confirmation if staging → TD/HO at handover → independent destination MWTR → created/confirmed put-away TO.
+Alternate/exception outcomes: Repeat dispatch/receipt for partial trips. A matched TD60 against TR100 leaves unissued40 open; it is not transit. Close only after request remainder, transit, variances and all tasks resolve. Direct customer dispatch from another warehouse uses BF-06 without fictitious receipt.
+
+BF-05 — Stocktake, reconciliation and B1 resolution
+Main flow: Owner plans; Warehouse resolves open tasks, atomically freezes/snapshots and counts. Substantiated differences may go directly to explanation/plan; unclear/chosen recount uses Start Recount → Enter Recount → comparison with history.
+Alternate/exception outcomes: Record defect hold/evidence immediately without changing balance under freeze. Warehouse proposes/confirms execution, Owner UC-92 approves and UC-93 posts actual nonzero delta plus total-preserving RECLASS/location. Book50/count48GOOD+2broken means RECLASS2/total50; count46GOOD+2broken means delta−2 plus RECLASS2/total48. No ADJ0, false shortage or ordinary freeze bypass. Failure/open holds/tasks prevent unlock.
+
+BF-06 — Copied SO, issue, customer delivery and completion
+Main flow: Sales saves a verified external SO, then checks compatible available stock, feasible sources at other warehouses, incoming supply due before the need date and existing RRs. If quantity remains uncovered, ask whether to create an RR for selected shortage lines; the form opens without creating a request. The SO then proceeds through linked WIR/OD, draft GI-S/picking/PGI, Warehouse photo POD/DELIVERED and Sales full external receipt PAY-CFM/COMPLETED.
+Alternate/exception outcomes: Preserve original SO/WIR, net fulfilment and versioned OD commitments. Valid PGI less valid GR-FD stays within source allowance; effective POD + posted GR-FD + OPEN FD claims ≤ valid PGI per GI line. Partial delivery remains PARTIALLY_DELIVERED; missing photo or early/partial payment cannot complete. Only unexecuted or received-back, not-redelivered quantity may be cancelled; unresolved off-site quantity cannot. GR-FD/changed delivery invalidates stale completion authority.
+
+BF-07 — Post-receipt customer return and failed-delivery intake
+Main flow CR: Customer-received POD or verified historical delivery → Sales CR → Warehouse custody/inspection/D6 → Sales STANDARD_ACCEPTANCE for ordinary GOOD/UNUSED, proven-term cases, including own CR; Owner EXCEPTION_APPROVAL only for eligible exceptions with distinct requester → Warehouse GR-CR/put-away or actual handback.
+Main flow FD (A1): Valid undelivered GI-S plus failure evidence → Warehouse ARR/INS → actual GR-FD by quality, without D6, fabricated POD, Owner approval or customer custody. Commit receipt/claim consumption and exact original SO/WIR/OD net reopening/version together; Sales then chooses wait/redelivery/cancel received-back remainder.
+Alternate/exception outcomes: CR + OPEN CR claims cannot exceed eligible customer-received quantity. FD and POD share source caps, consuming a claim never counts it again with receipt. SO10/PGI10/GR-FD10/redelivery10 retains gross dispatch20/receipt10/net10. Ordinary CR never reopens demand. D6 exclusions block both Sales and Owner; UNKNOWN waits. Reversal checks dependent POD/claims/redelivery; finance remains external.
+
+BF-08 — Supplier return and quantity reconciliation
+Main flow: Warehouse proposes/isolates; Accountant verifies source/quantity/agreement; Warehouse posts actual GI-SR or custody release/HO; Accountant records later ACK, reconciles outcomes and closes accounted warehouse quantity through UC-83/107.
+Alternate/exception outcomes: No Owner dispatch, variance or closure approval and no UC-106 route/historical BF-02 approval prerequisite. Missing agreement or unresolved disputes keep work open. ACK/closure never deduct again; replacement/returned goods require actual receipt. External Invoice/Credit Note and financial status remain independent. On-site destruction/regrade/release still requires BF-02/B1 authority.
+
+Shared failure handling: enforce role/sub-operation/warehouse/source/version and proper decision_kind on the server. Owner approvals require distinct requester; C2 explicitly permits Sales ordinary acceptance of own inspected CR. Transfer receiver is independent of dispatcher. Failed batches roll back fully; unknown commit requires stable operation-key lookup before retry. Photo/upload/email retry cannot post stock again.
+
+V. Project Scope & Limitations
+1. Major Features
+| ID | Major feature | Capability | Gap |
+|---|---|---|---|
+| FE-01 | Purchase Delivery and Partial Receiving | Select uncovered saved-SO or committed-stocktake needs, open one editable prefilled RR form, add products with their own source or reason, and save a draft or submit. Owner approval precedes Accountant PO/supplier confirmation; support multiple receipts and outstanding quantities. | GAP-01 |
+| FE-02 | Master Data and Tile Traceability | Product, lot/tone/verified calibre, versioned BOX/PIECE/m² factors, parties and warehouse minimum/target quantities. The target is at least the minimum and defaults to it. Selling-price maintenance is excluded. | GAP-02 |
+| FE-03 | Goods Receiving Quality Control | Per-quantity inspection, packaging observation, ownership/custody, good/pending/defective/rejected outcomes, discrepancy evidence and eligible receipt. | GAP-03 |
+| FE-04 | Bin-level Inventory and Location Movement | Coded warehouses/locations, stock by owner/lot/quality, put-away and same-warehouse movements that preserve total and reservations without Owner approval. | GAP-04 |
+| FE-05 | Warehouse Transfer and Discrepancy Management | Approved TR → draft TD before picking → TO execution if staging → actual TD/HO → independent MWTR/put-away. Preserve allocations and resolve request remainder/transit/variances/tasks before whole-TR closure. | GAP-05 |
+| FE-06 | Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → source/shortage check → linked WIR/OD → draft GI-S, picking and PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. For uncovered quantity, offer the RR form directly from saved SO lines before WIR. GR-FD reopens original net demand without duplicating commitments; commercial pricing and payment execution remain external. | GAP-06 |
+| FE-07 | Defective Goods and Physical Returns | Immediate defect hold; Sales ordinary CR acceptance or eligible Owner exception after Warehouse inspection; GI-linked failed-delivery GR-FD with net reopening; Accountant agreement/reconciliation/closure and Warehouse actual supplier return without Owner. External finance references remain separate. | GAP-07 |
+| FE-08 | Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-92/93 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. | GAP-08 |
+| FE-09 | Access Administration, Audit and Operational Reporting | Five roles, exactly one role per personal account and assigned warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. In-app notifications have per-recipient read/unread status; opening a warning reevaluates current stock and supply within current access rights. | GAP-09 |
+
+2. Limitations & Exclusions
+| ID | Excluded item | Boundary |
+|---|---|---|
+| LI-01 | Multi-store retail management | One store with three or more reported warehouses; no multi-branch retail administration. |
+| LI-02 | Sales payments, refunds and accounting | No collection, deposits, receivables/debt, refund amount/approval/payment or financial ledgers. Accountant records verified external references/status only (UC-108). |
+| LI-03 | Sales pricing, internal/tax invoicing and live MISA | Commercial SO, selling prices and internal/tax invoices remain external. No invoice generation/email or live MISA synchronization. Warehouse print/handover evidence remains in scope. |
+| LI-04 | Fleet and routing | Carrier/recipient and evidence may be recorded; GPS, route optimization and fleet maintenance are excluded. |
+| LI-05 | Complex approval/delegation | Only scoped Owner decisions with distinct requester; Sales ordinary inspected CR acceptance may share creator. BF-08 has no Owner approval. No extra role, dynamic delegation, tendering or multilevel approval. |
+| LI-06 | Quotation, promotion, loyalty and CRM | Customer records support delivery/contact/source matching only; commercial campaigns and CRM remain external. |
+| LI-07 | Omnichannel integration | Paper/Zalo/phone requests are verified and recorded as source evidence before staff copies SO and creates linked WIR; no automatic channel sync or public storefront. |
+| LI-08 | Forecasting and automatic purchasing | Minimum/target stock warnings, compatible-source suggestions, in-app notifications and user-confirmed RR forms are in scope. No background-created RR, demand forecasting, automatic PO, physical posting or pricing recommendations. |
+| LI-09 | HRM and payroll | Accounts support authorized operations only; no attendance, recruitment or payroll. |
+| LI-10 | General business-policy editor | No arbitrary policy, workflow or approval-chain editor. Controlled finite thresholds/conversion versions do not confer general rule-authoring rights. |
+
+The survey provides one response and does not establish every warehouse name, staffing assignment or a signed-off return period. Warehouse and return parameters require verified business data. MongoDB is the application database; relational SQL describes data relationships for design analysis.
+
+Report 1 (Project Introduction)
