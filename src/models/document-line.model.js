@@ -304,19 +304,22 @@ const shapes = {
     details: details({
       defectLineId: ref("DocumentLine"),
       outcome: code(["RELEASE", "REGRADE", "SCRAP", "RETURN_SUPPLIER"]),
+      targetQuality: code(["GOOD", "DAMAGED", "BLOCKED"], { required: false }),
       approvalId: ref("Approval", false),
     }),
   },
   CUSTOMER_RETURN: { details: { type: returnDetails, required: true } },
   SUPPLIER_RETURN: {
     details: details({
+      phase: code(["PROPOSED", "VERIFIED"], { default: "VERIFIED" }),
+      sourceBalanceId: ref("StockBalance", false),
       originLineId: ref("DocumentLine"),
       ownerPartyId: ref("Party"),
-      agreedQty: decimal(),
-      agreementVersion: integer(1),
-      agreementVerifiedBy: ref("User"),
-      agreementVerifiedAt: date(),
-      agreementEvidenceId: ref("Evidence"),
+      agreedQty: decimal({ required() { return this.phase !== "PROPOSED"; } }),
+      agreementVersion: integer(1, { required() { return this.phase !== "PROPOSED"; } }),
+      agreementVerifiedBy: ref("User", function () { return this.phase !== "PROPOSED"; }),
+      agreementVerifiedAt: date(function () { return this.phase !== "PROPOSED"; }),
+      agreementEvidenceId: ref("Evidence", function () { return this.phase !== "PROPOSED"; }),
     }),
   },
   SUPPLIER_ACK: {
