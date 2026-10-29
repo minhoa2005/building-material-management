@@ -213,4 +213,6 @@ test('3.1 indexes cover source deduplication, confirmations, claims, reopening a
   assert.ok(hasIndex(m.DemandReopening, { receiptLineId: 1 }, unique));
   assert.ok(hasIndex(m.OdCommitmentTransfer, { operationId: 1, fromOdLineId: 1, toOdLineId: 1 }, unique));
   assert.ok(hasIndex(m.DefectHold, { balanceId: 1 }, (o) => o.partialFilterExpression?.status === 'ACTIVE'));
+  assert.ok(hasIndex(m.DefectHold, { balanceId: 1 }, (o) => o.unique && o.partialFilterExpression?.status === 'ACTIVE'));
+  assert.ok(hasIndex(m.ReturnSourceGuard, { salesIssueLineId: 1 }, unique));
 });
