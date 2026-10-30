@@ -1,3 +1,19 @@
+# Bỏ nhóm UC-107 cũ khỏi catalogue — 30/10/2026
+
+Theo yêu cầu người dùng, bỏ ba mục UC độc lập Verify Supplier Return Agreement, Record Supplier Receipt Acknowledgement và Reconcile Supplier Return Variance (mã trước lượt này UC-122/123/124, tách từ UC-107 cũ). Không khôi phục dòng UC-107 gộp. Catalogue còn 130 UC, mã liên tục UC-01–UC-130; chín mã cuối được dịch xuống ba số. Đồng bộ catalogue/quyền/spec/actor/screen/BR/BF, phụ lục thiết kế, VI/EN, context và crosswalk. Không loại bỏ bằng chứng/thỏa thuận/ACK hay kiểm soát đang có trong luồng trả NCC, không cấp thêm quyền.
+
+Mapping WBS còn 96 nguồn active với 20 nhóm tách thành 54 UC, thêm 34 dòng, tổng 130. Nếu kế thừa kế hoạch và bỏ dòng UC-107 nguồn effort 1: iteration 74/49/7 UC, effort 29.75/32.5/7.75, tổng 70; đây là hướng dẫn cho Gemini, chưa sửa sheet. Cập nhật prompt tự chứa, không sửa runtime/database/cloud hoặc file lịch sử, không commit/push.
+
+---
+
+# Loại UC ngoài phạm vi và đánh lại mã — 30/10/2026
+
+Theo yêu cầu người dùng, xóa 14 UC retired khỏi catalogue, ma trận quyền, đặc tả Report 3, phụ lục thiết kế và context BE/FE. Đánh lại 133 UC active liên tục UC-01–UC-133 theo thứ tự catalogue sau tách. Đồng bộ tham chiếu đầy đủ, shorthand/range, actor, BF/BR/SC, Report 1/2/3, quy trình VI/EN, thiết kế hệ thống/dữ liệu và đề xuất replenishment đang dùng. Bảng đối chiếu mã đầy đủ: docs/07_ra_soat/UC_RENUMBER_2026-10-30.md; crosswalk phân rã đã ghi rõ cột mã cũ và mã hiện hành.
+
+Kiểm chứng: 133 mã duy nhất ở catalogue/quyền/spec/phụ lục, tên tương ứng đúng mapping; đủ dãy UC-01–UC-133, không còn mục UC RETIRED; bảo toàn nội dung nhật ký phiên bản. Tài liệu rà soát và sơ đồ lịch sử giữ nguyên mã tại thời điểm ghi nhận, đối chiếu qua mapping mới. Không sửa runtime, permission strings, dữ liệu, spreadsheet/cloud, Word hoặc draw.io; không commit/push.
+
+---
+
 # Áp dụng phân rã UC — 30/10/2026
 
 Áp dụng P1/P2 đã chấp thuận: 21 UC thành 57 mục tiêu, tăng ròng 36; 147 mã = 133 active + 14 retired. Giữ mã cha cho mục tiêu kế thừa, thêm UC-112–147. Cập nhật SRS catalogue/quyền/actor/spec/screen, quy trình VI/EN, thiết kế/dữ liệu, Report 1/2, README và context BE/FE. Crosswalk/impact/QA tại docs/07_ra_soat/CR-2026-10-30-UC-SPLIT.md. Giữ nguyên effort/ngày và dòng WBS cũ ở cấp nhóm, không nhân estimate hoặc tuyên bố hoàn thành UC con. Không sửa runtime, spreadsheet, Word/cloud hoặc draw.io lịch sử; không commit/push.

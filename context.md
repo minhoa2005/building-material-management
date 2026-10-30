@@ -12,7 +12,7 @@ WMSD (SEP490_G56) phục vụ cửa hàng gạch ốp lát Tân Thương: quản
 
 Đây là context để agent **thực hiện chức năng**: đọc phần quy tắc chung, phần kiến trúc của repo này và thẻ UC cần làm; lần theo UC liên quan để không phá chuỗi nguồn. Không coi tài liệu này là bằng chứng chức năng đã chạy. Mỗi thẻ UC gồm quyền, đầu vào, xử lý, hiệu ứng và hướng dẫn triển khai riêng cho repo.
 
-Baseline nghiệp vụ **3.3.0 (quyết định 27/10/2026)**; quy trình và thiết kế được đồng bộ theo đề xuất bổ sung hàng/Notification/form1.4.0. Giữ 8 BF, 9 nhóm FE-01–09, 5 role, **147 UC = 133 ACTIVE + 14 RETIRED**, BR-01–33, SC-01–31 =28 active/3 retired. Lịch sử A1/B1/C2 của3.1.0 vẫn áp dụng.
+Baseline nghiệp vụ **3.3.0 (quyết định 27/10/2026)**; quy trình và thiết kế được đồng bộ theo đề xuất bổ sung hàng/Notification/form1.4.0. Giữ 8 BF, 9 nhóm FE-01–09, 5 role, **130 UC ACTIVE**, BR-01–33, SC-01–31 =28 active/3 retired. Lịch sử A1/B1/C2 của3.1.0 vẫn áp dụng.
 
 ### Nguồn và cách giải quyết mâu thuẫn
 
@@ -21,7 +21,7 @@ Baseline nghiệp vụ **3.3.0 (quyết định 27/10/2026)**; quy trình và th
 | [Quy trình VI](git_doc/docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) | mục 3–4 quyền/luồng, mục 8 BR, mục 11 nghiệm thu, mục 15 chứng từ/trạng thái, mục 17 A1/B1/C2 |
 | [Quy trình EN (đã đọc và đối chiếu)](git_doc/docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | mục 3–4 Eight To-be processes và EX-01–05, mục 6 permissions, mục 8 BR, mục 11 acceptance, mục 15/17 |
 | [Report 3](git_doc/docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | I.4.4 ma trận quyền; II đặc tả từng UC; III SC; IV NFR; V BR/MSG |
-| [Thiết kế chi tiết](git_doc/docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | mục 5–8 model/trạng thái/transaction/API; mục 11 R-01–26; mục 14 nghiệm thu; phụ lục 147 UC |
+| [Thiết kế chi tiết](git_doc/docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | mục 5–8 model/trạng thái/transaction/API; mục 11 R-01–26; mục 14 nghiệm thu; phụ lục 130 UC |
 | [Thiết kế dữ liệu VI](git_doc/docs/03_thiet_ke/de_xuat_database_design_VI.md) | mục 2 MongoDB; mục 3.4/3.6 A1/B1/C2; mục 4 ràng buộc; mục 6 T01–T56 |
 | [DDL tham chiếu](git_doc/docs/03_thiet_ke/WMSD_SQL_schema.sql) | 84 bảng/2 view để đối chiếu; không chạy như migration MongoDB |
 | [Report 1](git_doc/docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | bối cảnh, phạm vi, FE và giới hạn |
@@ -36,23 +36,23 @@ Không dùng đề xuất 7 quy trình, tài liệu đánh giá cũ hoặc draw.
 ### Ranh giới sản phẩm
 
 - SO là bản sao của đơn MISA/giấy tờ/nguồn ngoài; không có live MISA hay API đồng bộ bán hàng. Quyết định 29/10/2026: Sales nhập nguồn và bằng chứng ngay trong form tạo SO, không yêu cầu Accountant tạo/xác minh một hồ sơ nguồn trước. Ghi nhận nguồn không tự điền verifiedBy/verifiedAt như một xác minh kế toán.
-- WMSD không tính giá bán/chiết khấu, báo giá, hóa đơn nội bộ/thuế, thu/chuyển tiền, công nợ, hoàn tiền hay kế toán. UC-108 chỉ tham chiếu kết quả ngoài; UC-111 chỉ Sales xác nhận đã nhận đủ tiền bên ngoài.
+- WMSD không tính giá bán/chiết khấu, báo giá, hóa đơn nội bộ/thuế, thu/chuyển tiền, công nợ, hoàn tiền hay kế toán. UC-122 chỉ tham chiếu kết quả ngoài; UC-130 chỉ Sales xác nhận đã nhận đủ tiền bên ngoài.
 - Không tự thêm vai trò mua hàng/tài xế/khách/NCC, portal đối tác, ủy quyền động, tài khoản chung, route optimization, native/offline app, AI dự báo hoặc tự đặt PO.
 - Chỉ cấu hình hữu hạn như quy đổi/ngưỡng tối thiểu; không mở rộng thành general policy editor. Không mặc định thời hạn trả 7/15/30 ngày, hệ số SKU hay calibre thực tế chưa có chứng cứ.
-- Không triển khai UC retired: 23–25, 42, 59–62, 74–78, 106. Giữ ID và lịch sử; không thêm action/permission/API/navigation mới cho chúng.
+- Chỉ triển khai 130 UC trong catalogue hiện hành. Không thêm chức năng giá bán, hóa đơn nội bộ, hoàn tiền hoặc Owner duyệt trả NCC; mã được đánh lại liên tục theo catalogue hiện hành.
 
 ### Tám quy trình khi thực hiện chức năng
 
 | BF | Chuỗi thực hiện và UC chính |
 |---|---|
-| BF-01 | RR UC-03 → Owner UC-04 → Accountant PO UC-07 → Warehouse arrival/GR UC-10/26 → put-away UC-32/33; partial/mismatch vẫn giữ nguồn. |
-| BF-02 | Warehouse defect/hold UC-65 → Owner disposition UC-66 → Warehouse execute UC-67 ngoài freeze; SR đi BF-08; B1 chỉ UC-92/93. |
-| BF-03 | Warehouse TO-RELOCATE UC-36/37 giữa hai vị trí cùng kho; không Owner/TR. |
-| BF-04 | Warehouse TR UC-40 → Owner UC-41 → TD draft/picking/handover UC-43 → receiver độc lập MWTR UC-104 → put-away/Owner variance UC-44 → đủ điều kiện toàn TR mới đóng. |
-| BF-05 | Owner plan UC-86 → Warehouse freeze/snapshot/count/sheet UC-87/105 → reconcile/recount UC-88 → plan/execution UC-91 → Owner approval UC-92/clear UC-93; B1 giữ khóa tới commit. |
-| BF-06 | Sales SO UC-47/48 → WIR UC-109 → OD UC-51 → Warehouse GI draft/picking/PGI UC-54/55/58 → photo POD UC-110 → Sales PAY-CFM UC-111. |
-| BF-07 | CR từ khách đã nhận: Sales UC-70 → Warehouse custody/inspection UC-72 → Sales ordinary hoặc Owner exception UC-71 → Warehouse GR-CR UC-73. FD chưa POD: Warehouse UC-72/73 GR-FD → tái mở ròng cùng commit → Sales chọn chờ/giao lại/hủy phần đủ điều kiện. |
-| BF-08 | Warehouse SR UC-81 → Accountant agreement UC-107 → Warehouse actual GI-SR UC-82 → Accountant ACK/reconcile UC-107/close UC-83 → external reference UC-108; không Owner/UC-106. |
+| BF-01 | RR UC-03 → Owner UC-06 → Accountant PO UC-09 → Warehouse arrival/GR UC-16/37 → put-away UC-45/46; partial/mismatch vẫn giữ nguồn. |
+| BF-02 | Warehouse defect/hold UC-75 → Owner disposition UC-77 → Warehouse execute UC-78 ngoài freeze; SR đi BF-08; B1 chỉ UC-104/105. |
+| BF-03 | Warehouse TO-RELOCATE UC-49/50 giữa hai vị trí cùng kho; không Owner/TR. |
+| BF-04 | Warehouse TR UC-53 → Owner UC-54 → TD draft/picking/handover UC-55 → receiver độc lập MWTR UC-120 → put-away/Owner variance UC-56 → đủ điều kiện toàn TR mới đóng. |
+| BF-05 | Owner plan UC-95 → Warehouse freeze/snapshot/count/sheet UC-96/121 → reconcile/recount UC-98 → plan/execution UC-102 → Owner approval UC-104/clear UC-105; B1 giữ khóa tới commit. |
+| BF-06 | Sales SO UC-59/60 → WIR UC-124 → OD UC-64 → Warehouse GI draft/picking/PGI UC-67/68/71 → photo POD UC-129 → Sales PAY-CFM UC-130. |
+| BF-07 | CR từ khách đã nhận: Sales UC-81 → Warehouse custody/inspection UC-84 → Sales ordinary hoặc Owner exception UC-82 → Warehouse GR-CR UC-86. FD chưa POD: Warehouse UC-84/86 GR-FD → tái mở ròng cùng commit → Sales chọn chờ/giao lại/hủy phần đủ điều kiện. |
+| BF-08 | Warehouse SR UC-90 → Accountant agreement  → Warehouse actual GI-SR UC-91 → Accountant ACK/reconcile /close UC-92 → external reference UC-122; không Owner. |
 
 ## 2. Ngôn ngữ nghiệp vụ và quyền
 
@@ -77,14 +77,14 @@ Quyết định 28/10/2026: Mỗi user bắt buộc có đúng một role trong 
 | OWNER | Duyệt RR/TR, xử lý lỗi tại chỗ ngoài freeze, CR ngoại lệ đủ điều kiện, lập/duyệt/chốt kiểm kê. Không duyệt CR thường hoặc SR. |
 | SALES | Sao SO, quản lý WIR/OD, quyết định ca CR thường sau Warehouse kiểm, xác nhận đủ tiền ngoài. Không kiểm chất lượng thay Warehouse hay post tồn. |
 | WAREHOUSE | Thực hiện vật lý, GR/PGI/TD/MWTR/put-away/picking/kiểm kê/GR-CR/GR-FD và POD tại kho được giao. |
-| ACCOUNTANT | PO sau RR duyệt; xác minh thỏa thuận/ACK/đối chiếu/đóng SR; xác minh tham chiếu ngoài. Không post tồn hoặc thay Sales xác nhận UC-111. |
+| ACCOUNTANT | PO sau RR duyệt; xác minh thỏa thuận/ACK/đối chiếu/đóng SR; xác minh tham chiếu ngoài. Không post tồn hoặc thay Sales xác nhận UC-130. |
 | ADMIN | Quản trị tài khoản/role/operation/kho; không tự có quyền kinh doanh hoặc sửa audit. |
 
 Kiểm quyền = active user + role + operation/sub-operation + warehouse/record/evidence scope + state/version + danh tính thực. Quyền View không suy ra mutate; URL trực tiếp/export/download áp cùng scope. Owner/Accountant hỗ trợ kiểm thực tế không kế thừa quyền GR. Mỗi thao tác lưu actual userId từ session.
 
 Mỗi user có đúng một role; người duyệt Owner khác người đề xuất kể cả sau khi đổi role; người nhận điều chuyển khác dispatcher. Ngoại lệ duy nhất đã chọn C2: Sales được STANDARD_ACCEPTANCE cho chính CR thường mình lập, sau Warehouse inspection. Không dùng quy tắc cấm tự duyệt để vô hiệu C2, cũng không mở C2 sang Owner EXCEPTION_APPROVAL.
 
-Master data: UC-13 Owner; UC-16 Owner/Warehouse create, UC-122 chỉ Owner update; UC-19/123 Accountant create/update, UC-124 chỉ Owner activate/deactivate; UC-22 Sales; UC-29 Owner. UC-99 giới hạn theo nhóm báo cáo, không chỉ một cờ report:read.
+Master data: UC-19 Owner; UC-26 Owner/Warehouse create, UC-27 chỉ Owner update; UC-30/31 Accountant create/update, UC-32 chỉ Owner activate/deactivate; UC-35 Sales; UC-40 Owner. UC-113 giới hạn theo nhóm báo cáo, không chỉ một cờ report:read.
 
 ## 3. Bất biến cần bảo vệ
 
@@ -157,17 +157,17 @@ Blank count = chưa đếm; count0 phải có attempt thật. Recount append att
 
 Phát hiện lỗi dưới freeze ghi DefectHold/evidence ngay, chặn availability nhưng không đổi balance/quality/location. Đủ căn cứ có thể giải trình/lập plan trực tiếp; thiếu căn cứ hoặc chọn recount thì Start Recount → Enter Recount → compare lại, không bắt buộc mọi lệch phải recount.
 
-Warehouse lập ST_RESOLUTION theo current count/plan version, tách DELTA khác0 khỏi RECLASS/RELOCATE bảo toàn tổng. Owner UC-92 duyệt; Warehouse xác nhận actual execution/evidence theo plan đã duyệt; Owner UC-93 post một closure batch. Đổi plan sau duyệt phải review lại, không tận dụng approval cũ.
+Warehouse lập ST_RESOLUTION theo current count/plan version, tách DELTA khác0 khỏi RECLASS/RELOCATE bảo toàn tổng. Owner UC-104 duyệt; Warehouse xác nhận actual execution/evidence theo plan đã duyệt; Owner UC-105 post một closure batch. Đổi plan sau duyệt phải review lại, không tận dụng approval cũ.
 
 Book50GOOD/count48GOOD+2broken → RECLASS2, tổng50, không shortage-2 hoặc ADJ0. Count46GOOD+2broken → delta-2 + RECLASS2, tổng48, không shortage-4 rồi hủy thêm2.
 
-Chỉ unlock/resolve hold khi toàn bộ task/line/variance đã xử lý và batch commit thành công. Lỗi rollback giữ freeze; unknown commit tra key trước retry. No-variance closure chỉ khi không lệch quantity/quality/location và không open hold/task. Quality-only vẫn UC-92/93 và RECLASS, không tạo ADJ=0. Không UC-67 ordinary posting xuyên freeze. Không trộn với phương án đếm nhưng vẫn cho giao dịch đồng thời.
+Chỉ unlock/resolve hold khi toàn bộ task/line/variance đã xử lý và batch commit thành công. Lỗi rollback giữ freeze; unknown commit tra key trước retry. No-variance closure chỉ khi không lệch quantity/quality/location và không open hold/task. Quality-only vẫn UC-104/105 và RECLASS, không tạo ADJ=0. Không UC-78 ordinary posting xuyên freeze. Không trộn với phương án đếm nhưng vẫn cho giao dịch đồng thời.
 
 ### 3.6 BF-08 và điều kiện đóng toàn phần
 
-SR: Warehouse đề xuất đúng nguồn, block defects/reserve GOOD → Accountant xác minh agreement source/qty/version/evidence → Warehouse GI-SR/custody release thực tế → Accountant ACK/reconcile → Accountant UC-83 đóng phần kho. Không Owner dispatch/variance/closure, không UC-106, không lấy BF-02 approval lịch sử làm gate.
+SR: Warehouse đề xuất đúng nguồn, block defects/reserve GOOD → Accountant xác minh agreement source/qty/version/evidence → Warehouse GI-SR/custody release thực tế → Accountant ACK/reconcile → Accountant UC-92 đóng phần kho. Không Owner dispatch/variance/closure, không lấy BF-02 approval lịch sử làm gate.
 
-ACK khác agreement trước xuất; ACK không sửa GI đã post. Dispute/missing/refused còn mở; hàng trả về chỉ tăng bằng actual receipt/inspection. Invoice/Credit Note UC-108 theo type/number/date/source line/reconciledQty/evidence/status; NOT_RECORDED/PENDING_EXTERNAL/RECORDED_EXTERNAL độc lập hoàn tất kho. Tiền/thỏa thuận thay hàng không tạo stock.
+ACK khác agreement trước xuất; ACK không sửa GI đã post. Dispute/missing/refused còn mở; hàng trả về chỉ tăng bằng actual receipt/inspection. Invoice/Credit Note UC-122 theo type/number/date/source line/reconciledQty/evidence/status; NOT_RECORDED/PENDING_EXTERNAL/RECORDED_EXTERNAL độc lập hoàn tất kho. Tiền/thỏa thuận thay hàng không tạo stock.
 
 TR chỉ đóng khi nhu cầu chưa xuất đã fulfil/hủy hợp lệ, toàn dispatched quantity được giải trình, transit/variance hết và TO xác nhận hoặc hủy phần chưa thực hiện có truy vết. TR100/TD60 nhận đủ60 vẫn còn unissued40, không tự đóng. TD100/MWTR95GOOD+3DAMAGED → đích98 và transit2, không nhận95 rồi coi thiếu5.
 
@@ -177,43 +177,43 @@ Trích bảng hiện hành ở quy trình VI mục 8.1; phần giải thích tri
 
 | BR | Quy tắc chuẩn | Truy vết |
 |---|---|---|
-| BR-01 | Lot identity phải phân biệt product/lot/tone/calibre; không gộp hàng khác tone để đủ lượng. | DR-01, UC-13/16/26/30/54/55/72 |
+| BR-01 | Lot identity phải phân biệt product/lot/tone/calibre; không gộp hàng khác tone để đủ lượng. | DR-01, UC-19/26/37/43/67/68/84 |
 | BR-02 | Quy đổi theo sản phẩm và phiên bản đóng gói; chốt hệ số ở dòng chứng từ. Với gạch nguyên viên, không tạo số viên phân số. Dùng diện tích theo quy cách sản phẩm; calibre là thuộc tính tương thích, không tự thay hệ số m². | DR-02, GB-03 |
-| BR-03 | Sau lưu SO/chốt kiểm kê, hệ thống đánh giá nguồn và hỏi/cảnh báo nếu còn thiếu. User mở form điền sẵn; chỉ Lưu nháp/Gửi duyệt hợp lệ mới ghi RR có source/snapshot/lý do. Owner khác người gửi duyệt; không tự tạo PO. | UC-03/04/13/47/48/93/103 |
+| BR-03 | Sau lưu SO/chốt kiểm kê, hệ thống đánh giá nguồn và hỏi/cảnh báo nếu còn thiếu. User mở form điền sẵn; chỉ Lưu nháp/Gửi duyệt hợp lệ mới ghi RR có source/snapshot/lý do. Owner khác người gửi duyệt; không tự tạo PO. | UC-03/06/19/59/60/105/117 |
 | BR-04 | Không tính trùng nhu cầu đã có PO/điều chuyển/phân bổ; lượng dự kiến về chưa phải khả dụng hiện tại. | BF-01/04/06 |
-| BR-05 | Cấm tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê theo userId. Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm, theo C2; không tự duyệt ngoại lệ hoặc cấp quyền Owner. BF-08 không có approval Owner. | UC-04/41/66/71/92 |
+| BR-05 | Cấm tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê theo userId. Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm, theo C2; không tự duyệt ngoại lệ hoặc cấp quyền Owner. BF-08 không có approval Owner. | UC-06/54/77/82/104 |
 | BR-06 | Receipt/issue/return/adjustment chỉ post một lần, nguyên tử cùng ledger và balance. Không âm tồn khả dụng; retry trả lại kết quả cũ. | DR-09/10/13, GB-09/10/13 |
-| BR-07 | Nhận hàng phân tách thực giao, nhận vào tồn, giữ hộ, từ chối; chưa kiểm hoặc chưa sẵn sàng vị trí thì không khả dụng. | DR-04, GB-04, UC-26/33/73 |
-| BR-08 | PO nhận nhiều đợt; phần đã ghi nhận bất biến. Chốt thiếu hoặc sửa vượt duyệt có lý do và quyết định phù hợp. | DR-03, GB-05, UC-07/10/26 |
-| BR-09 | Chuyển vị trí cùng kho không đổi tổng, lot, chất lượng; không cần Owner duyệt. Bảo toàn liên kết giữ hàng. | DR-06, GB-06, UC-36/37 |
-| BR-10 | TR duyệt → TD nháp trước Picking → xác nhận thực hiện → post TD/HO khi bàn giao → MWTR → xác nhận TO put-away. Không thêm Owner duyệt TO hoặc GI thứ hai cho cùng TD. | UC-41/43/104 |
-| BR-11 | Tổng TD đã post không vượt TR được duyệt sau hủy. Đã xuất = nhận hợp lệ + transit/chưa giải quyết + kết quả khác có chứng từ. TR chỉ đóng khi yêu cầu hết phần còn phải làm, mọi lượng xuất đã đối chiếu và TO liên quan đã xử lý; khớp một đợt chưa đủ. | UC-43/44/104 |
-| BR-12 | Người kho nhận xác nhận độc lập người xuất theo phương án nhân sự đã chốt; không một confirm cập nhật cả hai đầu. | UC-43/104, permissions |
-| BR-13 | Chọn nguồn theo tương thích lot/tone/calibre trước, FIFO trong tập hợp đó sau. Ghi lý do/chấp thuận khi ngoại lệ; không dùng LIFO làm mặc định nếu chưa khảo sát. | UC-54/55/103 |
-| BR-14 | SO/WIR/GI nháp không đổi tồn; TO Picking chỉ đổi vị trí; PGI giảm thực bàn giao một lần. GR-FD tăng lượng thực nhận và tái mở ròng đúng nguồn; POD/PAY-CFM không đổi tồn. Không sửa ledger để giấu giao lại. | UC-47/109/55/58/73/110/111 |
+| BR-07 | Nhận hàng phân tách thực giao, nhận vào tồn, giữ hộ, từ chối; chưa kiểm hoặc chưa sẵn sàng vị trí thì không khả dụng. | DR-04, GB-04, UC-37/46/86 |
+| BR-08 | PO nhận nhiều đợt; phần đã ghi nhận bất biến. Chốt thiếu hoặc sửa vượt duyệt có lý do và quyết định phù hợp. | DR-03, GB-05, UC-09/16/37 |
+| BR-09 | Chuyển vị trí cùng kho không đổi tổng, lot, chất lượng; không cần Owner duyệt. Bảo toàn liên kết giữ hàng. | DR-06, GB-06, UC-49/50 |
+| BR-10 | TR duyệt → TD nháp trước Picking → xác nhận thực hiện → post TD/HO khi bàn giao → MWTR → xác nhận TO put-away. Không thêm Owner duyệt TO hoặc GI thứ hai cho cùng TD. | UC-54/55/120 |
+| BR-11 | Tổng TD đã post không vượt TR được duyệt sau hủy. Đã xuất = nhận hợp lệ + transit/chưa giải quyết + kết quả khác có chứng từ. TR chỉ đóng khi yêu cầu hết phần còn phải làm, mọi lượng xuất đã đối chiếu và TO liên quan đã xử lý; khớp một đợt chưa đủ. | UC-55/56/120 |
+| BR-12 | Người kho nhận xác nhận độc lập người xuất theo phương án nhân sự đã chốt; không một confirm cập nhật cả hai đầu. | UC-55/120, permissions |
+| BR-13 | Chọn nguồn theo tương thích lot/tone/calibre trước, FIFO trong tập hợp đó sau. Ghi lý do/chấp thuận khi ngoại lệ; không dùng LIFO làm mặc định nếu chưa khảo sát. | UC-67/68/117 |
+| BR-14 | SO/WIR/GI nháp không đổi tồn; TO Picking chỉ đổi vị trí; PGI giảm thực bàn giao một lần. GR-FD tăng lượng thực nhận và tái mở ròng đúng nguồn; POD/PAY-CFM không đổi tồn. Không sửa ledger để giấu giao lại. | UC-59/124/68/71/86/129/130 |
 | BR-15 | Thiếu/hỏng khi soạn phải chặn lượng ảnh hưởng, ghi bằng chứng, phân bổ lại hoặc chờ; không tự chỉnh balance. | BF-02/05/06 |
-| BR-16 | CR thông thường lấy trần khách đã nhận (POD/nguồn lịch sử xác minh) trừ lượng trả/đang giữ chỗ; FD dùng phần PGI chưa POD, chưa GR-FD hoặc giữ chỗ FD. Kiểm trần nguyên tử chung nguồn; một lượng không thuộc cả hai nhánh. | UC-70/72/73/108/110 |
-| BR-17 | Sales chấp nhận/từ chối CR thông thường sau Warehouse kiểm, có thể là người lập; Owner chỉ duyệt ngoại lệ đủ điều kiện. Warehouse post GR-CR theo quyết định đúng loại/version. FD không cần chấp nhận thương mại hoặc Owner approval. | UC-70–73 |
-| BR-18 | CR phân từng lượng: đạt/cách ly/custody-từ chối; giữ POD/GI/hóa đơn gốc. FD theo GI và bằng chứng thất bại, không ghi custody khách, không tự hoàn tiền; chỉ post GR-FD một lần và mở lại ròng cùng commit. | UC-73/108/109 |
-| BR-19 | Chặn lượng lỗi ngay; ngoài kiểm kê hủy/đổi phẩm cấp/giải phóng cần Owner. B1 giữ hold đến batch UC-93. Trả NCC theo BF-08 không Owner approval, chỉ GI-SR giảm tồn; không giảm tại BF-02 rồi giảm lại. | UC-65/66/67/82/93 |
-| BR-20 | Trả NCC cần thỏa thuận đúng nguồn/lượng do Accountant xác minh, Warehouse xác nhận thực xuất; không Owner approval, UC-106 retired. Accountant đối chiếu/đóng UC-83/107 khi mọi lượng có kết quả; tài chính UC-108 độc lập. Custody không giảm owned. | UC-82/83/107/108 |
-| BR-21 | Snapshot bất biến tại kích hoạt; xuất danh sách kiểm kê; lưu thời gian và phạm vi. Không lấy tồn hiện tại để thay số snapshot. | DR-08, GB-08, UC-87/105 |
-| BR-22 | Khóa giao dịch thường trong kiểm kê; defect hold/evidence không đổi balance được ghi ngay. B1 chỉ batch chốt đã duyệt post delta/RECLASS/vị trí; giữ khóa/hold đến hoàn tất. Chưa đếm khác 0; lưu recount. | UC-87/88/92/93 |
-| BR-23 | Chênh đủ căn cứ có thể lập phương án trực tiếp hoặc recount nếu chưa rõ. Warehouse đề xuất, Owner duyệt/post đúng version. Batch delta thực tế + RECLASS bảo toàn tổng không ghi giảm hai lần; quality-only không ADJ=0. | UC-88/91/92/93 |
-| BR-24 | Chứng từ đã post không sửa/xóa để xóa dấu vết. Sai sót cần đảo/điều chỉnh liên kết có thẩm quyền. Master inactive giữ nguyên lịch sử. | DR-14, GB-02/13, UC-97/100–102 |
-| BR-25 | Outbox sau commit sinh Notification đúng recipient/scope; đọc không đóng cảnh báo, mở tính lại; retry không post tồn hoặc tự tạo RR. | UC-03/47/48/93/103 |
-| BR-26 | Không suy ra tình trạng đã giao khách (DELIVERED) chỉ từ PGI/bàn giao cho nhà vận chuyển, và không suy ra hoàn thành đơn bán (COMPLETED) chỉ từ đã giao hàng; không suy ra hoàn tiền từ phiếu nhập trả; không suy ra tăng tồn từ NCC đồng ý đổi hàng. | BF-06/07/08, UC-58/110/111 |
+| BR-16 | CR thông thường lấy trần khách đã nhận (POD/nguồn lịch sử xác minh) trừ lượng trả/đang giữ chỗ; FD dùng phần PGI chưa POD, chưa GR-FD hoặc giữ chỗ FD. Kiểm trần nguyên tử chung nguồn; một lượng không thuộc cả hai nhánh. | UC-81/84/86/122/129 |
+| BR-17 | Sales chấp nhận/từ chối CR thông thường sau Warehouse kiểm, có thể là người lập; Owner chỉ duyệt ngoại lệ đủ điều kiện. Warehouse post GR-CR theo quyết định đúng loại/version. FD không cần chấp nhận thương mại hoặc Owner approval. | UC-81–86 |
+| BR-18 | CR phân từng lượng: đạt/cách ly/custody-từ chối; giữ POD/GI/hóa đơn gốc. FD theo GI và bằng chứng thất bại, không ghi custody khách, không tự hoàn tiền; chỉ post GR-FD một lần và mở lại ròng cùng commit. | UC-86/122/124 |
+| BR-19 | Chặn lượng lỗi ngay; ngoài kiểm kê hủy/đổi phẩm cấp/giải phóng cần Owner. B1 giữ hold đến batch UC-105. Trả NCC theo BF-08 không Owner approval, chỉ GI-SR giảm tồn; không giảm tại BF-02 rồi giảm lại. | UC-75/77/78/91/105 |
+| BR-20 | Trả NCC cần thỏa thuận đúng nguồn/lượng do Accountant xác minh, Warehouse xác nhận thực xuất; không Owner approval. Accountant đối chiếu/đóng UC-92 khi mọi lượng có kết quả; tài chính UC-122 độc lập. Custody không giảm owned. | UC-91/UC-92/UC-122 |
+| BR-21 | Snapshot bất biến tại kích hoạt; xuất danh sách kiểm kê; lưu thời gian và phạm vi. Không lấy tồn hiện tại để thay số snapshot. | DR-08, GB-08, UC-96/121 |
+| BR-22 | Khóa giao dịch thường trong kiểm kê; defect hold/evidence không đổi balance được ghi ngay. B1 chỉ batch chốt đã duyệt post delta/RECLASS/vị trí; giữ khóa/hold đến hoàn tất. Chưa đếm khác 0; lưu recount. | UC-96/98/104/105 |
+| BR-23 | Chênh đủ căn cứ có thể lập phương án trực tiếp hoặc recount nếu chưa rõ. Warehouse đề xuất, Owner duyệt/post đúng version. Batch delta thực tế + RECLASS bảo toàn tổng không ghi giảm hai lần; quality-only không ADJ=0. | UC-98/102/104/105 |
+| BR-24 | Chứng từ đã post không sửa/xóa để xóa dấu vết. Sai sót cần đảo/điều chỉnh liên kết có thẩm quyền. Master inactive giữ nguyên lịch sử. | DR-14, GB-02/13, UC-109/114–116 |
+| BR-25 | Outbox sau commit sinh Notification đúng recipient/scope; đọc không đóng cảnh báo, mở tính lại; retry không post tồn hoặc tự tạo RR. | UC-03/59/60/105/117 |
+| BR-26 | Không suy ra tình trạng đã giao khách (DELIVERED) chỉ từ PGI/bàn giao cho nhà vận chuyển, và không suy ra hoàn thành đơn bán (COMPLETED) chỉ từ đã giao hàng; không suy ra hoàn tiền từ phiếu nhập trả; không suy ra tăng tồn từ NCC đồng ý đổi hàng. | BF-06/07/08, UC-71/129/130 |
 | BR-27 | Chỉ các vai trò được phép xem chứng cứ mới lấy được tệp; URL không mặc định công khai. | API-02 lưu chứng cứ, GB-NEW-02 |
-| BR-28 | Có source system, source document/line, version và correlation ID để chống nhập/ghi nhận trùng giữa WMS và hồ sơ MISA trên SO, WIR, OD, GI-S, `CR` và `EXT-REF`. | UC-47/109/51/58/70/108 |
-| BR-29 | CR: nguyên thùng/viên chưa dùng xét từng ca; không nhận đã thi công/hỏng do khách/quá hạn xác minh, chưa rõ thì chờ. C2 Sales quyết định ca đạt thông thường; Owner chỉ ngoại lệ đủ căn cứ, không vượt điều cấm. D6 không áp cho FD chưa khách nhận. | BF-07, UC-70–73 |
-| BR-30 | Bao bì rách/thùng mở không tự đồng nghĩa gạch hỏng. Ghi số viên thực tế; phân loại chất lượng sau kiểm tra. Hệ số thùng/viên/m² theo sản phẩm và phiên bản, không suy từ calibre. | D7, BF-01/05/06/07, UC-13/26/55/72/87 |
-| BR-31 | SO nguồn xác minh, WIR/OD liên kết dòng; cam kết không vượt SO sau hủy. Trần thực hiện dùng PGI hợp lệ trừ GR-FD đã post; giao lại dùng phần tái mở trên SO/WIR cũ, không cộng OD thay thế thành nhu cầu mới. | UC-45–48/51/58/73/109 |
-| BR-32 | POD cần GI-S POSTED, người/thời điểm/lượng/ảnh. POD hiệu lực + GR-FD đã post + FD giữ chỗ ≤ PGI hợp lệ mỗi dòng. Chỉ DELIVERED nếu phần active > 0 đã giao đủ; hủy toàn bộ giao 0 → CANCELLED. | UC-58/73/110 |
-| BR-33 | Chỉ Sales xác nhận nhận đủ tiền ngoài hệ thống sau DELIVERED để chuyển SO sang COMPLETED. Chưa đủ tiền hoặc trả trước khi chưa giao đủ không làm hoàn thành đơn. POD/PAY-CFM không đổi tồn; đính chính phải giữ lịch sử và tính lại tiến độ đơn. | BF-06, UC-48/110/111/108 |
+| BR-28 | Có source system, source document/line, version và correlation ID để chống nhập/ghi nhận trùng giữa WMS và hồ sơ MISA trên SO, WIR, OD, GI-S, `CR` và `EXT-REF`. | UC-59/124/64/71/81/122 |
+| BR-29 | CR: nguyên thùng/viên chưa dùng xét từng ca; không nhận đã thi công/hỏng do khách/quá hạn xác minh, chưa rõ thì chờ. C2 Sales quyết định ca đạt thông thường; Owner chỉ ngoại lệ đủ căn cứ, không vượt điều cấm. D6 không áp cho FD chưa khách nhận. | BF-07, UC-81–86 |
+| BR-30 | Bao bì rách/thùng mở không tự đồng nghĩa gạch hỏng. Ghi số viên thực tế; phân loại chất lượng sau kiểm tra. Hệ số thùng/viên/m² theo sản phẩm và phiên bản, không suy từ calibre. | D7, BF-01/05/06/07, UC-19/37/68/84/96 |
+| BR-31 | SO nguồn xác minh, WIR/OD liên kết dòng; cam kết không vượt SO sau hủy. Trần thực hiện dùng PGI hợp lệ trừ GR-FD đã post; giao lại dùng phần tái mở trên SO/WIR cũ, không cộng OD thay thế thành nhu cầu mới. | UC-57–60/64/71/86/124 |
+| BR-32 | POD cần GI-S POSTED, người/thời điểm/lượng/ảnh. POD hiệu lực + GR-FD đã post + FD giữ chỗ ≤ PGI hợp lệ mỗi dòng. Chỉ DELIVERED nếu phần active > 0 đã giao đủ; hủy toàn bộ giao 0 → CANCELLED. | UC-71/86/129 |
+| BR-33 | Chỉ Sales xác nhận nhận đủ tiền ngoài hệ thống sau DELIVERED để chuyển SO sang COMPLETED. Chưa đủ tiền hoặc trả trước khi chưa giao đủ không làm hoàn thành đơn. POD/PAY-CFM không đổi tồn; đính chính phải giữ lịch sử và tính lại tiến độ đơn. | BF-06, UC-60/129/130/122 |
 
 ### 3.6 Bổ sung hàng và Notification — quyết định 3.3.0 (27/10/2026)
 
-Nguồn quyết định đã được người dùng yêu cầu áp dụng: [đề xuất 1.4.0](git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Các quy tắc mới thay phần thiếu nguồn SO trực tiếp/thông báo của baseline 3.1.0; giữ 8 BF, 5 role, 147 UC (133 active/14 retired). Model/seed đã hỗ trợ cấu trúc mới; chưa có route/consumer/UI thật cho luồng này.
+Nguồn quyết định đã được người dùng yêu cầu áp dụng: [đề xuất 1.4.0](git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Các quy tắc mới thay phần thiếu nguồn SO trực tiếp/thông báo của baseline 3.1.0; giữ 8 BF, 5 role, 130 UC active. Model/seed đã hỗ trợ cấu trúc mới; chưa có route/consumer/UI thật cho luồng này.
 
 - Sau lưu SO hoặc chốt kiểm kê đã commit/unlock, tính coverage và cảnh báo. Thiếu bán dùng SO line đã lưu, WIR chỉ tùy chọn; kiểm stock các kho/PO đúng product/tone/calibre và hạn, chưa dành cho nhu cầu khác. Resolve allocation WIR về cùng SO line, không đếm hai lần.
 - User bấm Tạo yêu cầu để mở form điền sẵn; được chỉnh lượng/ngày/lý do, thêm dòng có nguồn hoặc lý do riêng, rồi Lưu nháp/Gửi duyệt. Mở/hủy form hoặc Để sau chưa tạo RR. Owner chốt chỉ kích hoạt đánh giá; Sales/Warehouse tạo/gửi, Owner khác người gửi duyệt.
@@ -328,8 +328,8 @@ Permission catalogue thực ở src/seeds/data/permissions.data.js, dạng resou
 **Các độ lệch xác minh bằng đọc code; context này chỉ ghi nhận, chưa sửa:**
 
 1. RR reuse authenticate/checkPermission với roleId đơn hiện tại để kiểm active user, role và replenishment_request:read. Service dùng currentRole dựng scope kho/người tạo, không gom role thành mảng hoặc kiểm lại permission endpoint. Chứng từ liên quan dùng rolePermissions chung và scope riêng; quyền RR không cấp quyền SO/PO/stocktake.
-2. users/roles routes còn allow OWNER ở outer authorize và một số read gate khác baseline UC-95–98 Admin-only. role.service tự tạo Permission khi gặp code lạ; cần whitelist catalogue/role-operation compatibility và audit, cấm retired/arbitrary quyền. Giao diện hay seed không thay kiểm server.
-3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode gán/thay đúng một roleId. Cần thiết kế assignment đúng UC-98 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
+2. users/roles routes còn allow OWNER ở outer authorize và một số read gate khác baseline UC-107–112 Admin-only. role.service tự tạo Permission khi gặp code lạ; cần whitelist catalogue/role-operation compatibility và audit, cấm retired/arbitrary quyền. Giao diện hay seed không thay kiểm server.
+3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode gán/thay đúng một roleId. Cần thiết kế assignment đúng UC-112 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
 4. upload route hiện chưa authenticate/parent scope và trả Cloudinary secure_url; middleware chỉ kiểm MIME khai báo image/*, giới hạn5MB kỹ thuật. Chưa đạt private Evidence/hash/ownership/authorized download của API-02/POD. Mức5MB có trong implementation, không phải cửa hàng đã chốt mọi hạn mức.
 5. JWT có secret fallback hardcode và refresh helper hiện chỉ ký/verify, chưa thấy rotation/reuse detection/revocation hoặc logout endpoint. Không đưa fallback vào cấu hình triển khai hoặc khẳng định comment FE đã đúng. CORS origin:true/cookie strict cần kiểm cùng deployment khi làm auth, không suy là kiểm soát production hoàn tất.
 
@@ -369,7 +369,7 @@ Không có posting engine hoàn chỉnh trong checkout. Khi thêm, dùng **một
 4. Mọi activation/ordinary posting/closure cùng scope/location guard; POD/FD/CR cùng GI-line guard; SO/PAY-CFM cùng current SO guard. Version/filter/đủ lượng và unique dimension chống oversell/write skew. Định nghĩa shared guards/index khi triển khai; không giả chúng đã tồn tại như service.
 5. Recheck product/lot/UOM/kho/owner/sourceKind/same-chain; trần còn lại sau cancellation/reversal/reservation/claim; decision kind/actor/version/approvedQty; task/execution/evidence. Giữ lock-order/ID-order thống nhất.
 6. Trong cùng session: batch + đủ movement legs/before-after + conditional balance changes + reservations/allocations + document/line status/version + audit + outbox. Một line lỗi rollback tất cả. Không dùng Promise.all thao tác song song trên cùng MongoDB transaction/session.
-7. GR-FD thêm consume claim/demandReopening/net SO-WIR-OD/version trong commit đó. UC-93 thêm plan/count/approval/execution check, delta/RECLASS, resolve hold và unlock chỉ khi hoàn tất.
+7. GR-FD thêm consume claim/demandReopening/net SO-WIR-OD/version trong commit đó. UC-105 thêm plan/count/approval/execution check, delta/RECLASS, resolve hold và unlock chỉ khi hoàn tất.
 8. Retry transient write conflict đúng MongoDB semantics, giữ identity. UnknownTransactionCommitResult tra batch/operation theo key trước quyết định retry; không post receipt lần hai hoặc tự unlock.
 9. Sau commit: authorized DTO/print từ committed snapshot, outbox notification retry riêng.
 
@@ -396,7 +396,7 @@ Nghiệp vụ stock cần test transaction trên replica set riêng: competing r
 1. Trước sửa: chạy git status --short, xem branch/remote/diff trong đúng repo; giữ nguyên thay đổi người dùng. Không reset --hard, clean -fd, force push hoặc ghi đè file không liên quan.
 2. Theo Report 2, main ổn định; team có integration branch nhưng **chưa xác minh tên**, không tự giả định develop. Công việc code trên feature/fix branch có phạm vi UC; nếu cần tạo nhánh dùng codex/uc-<id>-<mo-ta> theo mặc định môi trường. Không tự đổi branch khi người dùng đang làm việc trên đó.
 3. Khi nhiệm vụ cần đồng bộ: kiểm working tree, fetch origin rồi so divergence với đúng upstream. Ưu tiên git pull --ff-only cho nhánh sạch có upstream; diverged thì xem lịch sử, không tự merge/rebase thay đổi người dùng. Dirty tree không tự stash/discard. Không cần pull để chỉ viết tài liệu context này.
-4. Commit chỉ khi được yêu cầu rõ ràng ở lượt sau. Quy ước đề xuất dựa trên lịch sử feat/fix/refactor/docs/chore/test, ví dụ feat(returns): implement GR-FD source guards (UC-73). Mỗi commit một thay đổi logic, có UC/task; fix liên kết defect nếu có. Không stage toàn bộ repo một cách mù quáng; không commit .env/token/log/build/node_modules.
+4. Commit chỉ khi được yêu cầu rõ ràng ở lượt sau. Quy ước đề xuất dựa trên lịch sử feat/fix/refactor/docs/chore/test, ví dụ feat(returns): implement GR-FD source guards (UC-86). Mỗi commit một thay đổi logic, có UC/task; fix liên kết defect nếu có. Không stage toàn bộ repo một cách mù quáng; không commit .env/token/log/build/node_modules.
 5. Trước pull request/merge: build/runtime checks và tests phù hợp; review role/scope/UOM/stock/source/evidence/version. API/model/permission thay đổi cần người phụ trách FE/BE cùng review. PR nêu vấn đề, UC/BR, hành vi mới, contract/migration và checks đã chạy + phần chưa kiểm. Một thành viên khác review trước tích hợp theo Report 2.
 6. “Pull code” và “pull request” là hai việc riêng. Không tự push, mở/merge PR hoặc commit chỉ vì đã hoàn tất task. Khi được giao tạo PR, chuẩn bị diff và kết quả kiểm chứng cụ thể.
 7. Bàn giao chỉ nói phần thực sự đã sửa/đã kiểm. Schema validate hoặc MSW test không chứng minh MongoDB concurrency/transaction hay full end-to-end đã đúng.
@@ -405,7 +405,7 @@ Quy tắc indentation/naming/branch chi tiết không có trong Report 2 đượ
 
 ## 7. Chi tiết triển khai từng UC
 
-Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng mã. Mô tả quyền lấy từ đặc tả từng UC, không lấy actor association rộng làm quyền mutate. Mã seed là mapping **hiện có**, không chứng minh middleware/API đã chạy; role và scope chuẩn ở dòng quyền nghiệp vụ luôn phải được giữ. UC combined có nhiều operation, không cấp toàn bộ chỉ vì có một mã quyền. Source Report 3 phần II giữ tên tiếng Anh chuẩn để truy vết; logic triển khai được diễn giải tiếng Việt dưới đây.
+Mỗi ID xuất hiện một thẻ, dùng mã UC-01–UC-130 để tìm kiếm. Mô tả quyền lấy từ đặc tả từng UC, không lấy actor association rộng làm quyền mutate. Mã seed là mapping **hiện có**, không chứng minh middleware/API đã chạy; role và scope chuẩn ở dòng quyền nghiệp vụ luôn phải được giữ. UC combined có nhiều operation, không cấp toàn bộ chỉ vì có một mã quyền. Source Report 3 phần II giữ tên tiếng Anh chuẩn để truy vết; logic triển khai được diễn giải tiếng Việt dưới đây.
 
 ### UC-01 — View replenishment request list
 
@@ -417,7 +417,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Thiết kế BE:** Scoped find + count cùng predicate; không trả mọi RR rồi nhờ FE lọc.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-01 (dòng 887 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-01. Áp dụng BR chung và EX-01–05 khi liên quan.
 
 ### UC-02 — View replenishment request details
 
@@ -429,16 +429,16 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Thiết kế BE:** Validate ID + scope trước populate nguồn/approval/evidence; derive lượng từ transaction.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-02 (dòng 904 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-02. Áp dụng BR chung và EX-01–05 khi liên quan.
 
 **Contract UC-01/02 đã triển khai:** [replenishment read API](src/modules/replenishments/README.md). Owner đọc/lọc RR mọi kho; metadata nguồn liên quan trong UC-02 theo permission riêng, không phụ thuộc warehouseIds cho Owner. Quyết định này giới hạn ở hai UC đọc, không tự mở rộng quyền duyệt, xuất/evidence hay scope UC khác. Prefix `/api/replenishments`; list filter `page/limit/search/warehouseId/createdBy/status/approvalDecision/createdFrom/createdTo`, strict query và ngày Asia/Saigon. List dùng preview ba dòng, latest RR decision trước count/pagination; detail tách `evaluationSnapshot` khỏi `currentStock`, nguồn/PO thiếu quyền chỉ giữ saved reference với `access=UNAVAILABLE`. Không download evidence hoặc backfill history trong GET. Middleware validate giữ `req.validated` để không mất defaults/transforms qua getter req.query của Express5. UI hiện vẫn demo; API/model không chứng minh UI đã nối.
 
-### Implementation family UC-03 — UC-03, UC-112, UC-113
+### Implementation family UC-03 — UC-03, UC-04, UC-05
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
 - **UC-03 Create Replenishment Draft** — Warehouse Staff, Sales Staff: Open the common form and save DRAFT with warehouse/date and typed source lines. MANUAL_OTHER requires its own reason without invented source refs.
-- **UC-112 Update Replenishment Draft or Returned Request** — Warehouse Staff, Sales Staff: Select saved DRAFT or returned version and edit permitted lines with current source/coverage checks. Preserve IDs and entered fields on conflict.
-- **UC-113 Submit Replenishment Request** — Warehouse Staff, Sales Staff: Submit a new or saved valid request atomically as SUBMITTED with actual sender/time and source snapshots. Different Owner reviews in UC-04. Opening or Later persists nothing.
+- **UC-04 Update Replenishment Draft or Returned Request** — Warehouse Staff, Sales Staff: Select saved DRAFT or returned version and edit permitted lines with current source/coverage checks. Preserve IDs and entered fields on conflict.
+- **UC-05 Submit Replenishment Request** — Warehouse Staff, Sales Staff: Submit a new or saved valid request atomically as SUBMITTED with actual sender/time and source snapshots. Different Owner reviews in UC-06. Opening or Later persists nothing.
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-06.**
 - **Quyền theo Report 3:** Warehouse Staff — Create; Sales Staff — Create.
@@ -448,10 +448,10 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Guard source demand/allocation; positive exact qty, snapshot conversion và request version; gửi Owner khác user.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Nguồn đã covered không tạo RR trùng; Accountant không tạo.
-- **Truy vết:** Report 3 phần II, UC-03 (dòng 921 tại snapshot đọc); nhánh BF-01-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-03; nhánh BF-01-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Một form điền sẵn từ nguồn; chọn/thêm dòng có căn cứ riêng, Lưu nháp/Gửi duyệt mới tạo RR. Giữ lý do và source refs; recheck phiên bản/coverage, trả dữ liệu mới để review mà giữ form.
 
-### UC-04 — Approve or reject replenishment request
+### UC-06 — Approve or reject replenishment request
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-06.**
 - **Quyền theo Report 3:** Store Owner — Approve / reject / return; not requester.
@@ -461,10 +461,10 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Append Approval gắn document/version/line/qty/actor; chặn self-approval theo userId kể cả sau khi đổi role.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Requester đổi sang Owner vẫn không tự duyệt; approval stale chặn PO.
-- **Truy vết:** Report 3 phần II, UC-04 (dòng 936 tại snapshot đọc); nhánh BF-01-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-06; nhánh BF-01-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Review cả source refs, suggestedQty, lượng thực đề nghị và giải trình; Owner khác submittedBy/requester. Đọc Notification không là approval.
 
-### UC-05 — View purchase order list
+### UC-07 — View purchase order list
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-07.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — Receiving scope only.
@@ -474,9 +474,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Projection theo role+assigned receiving warehouse; cùng scope list/export, không financial DTO cho Warehouse.
 - **Điểm đặt BE:** `src/modules/purchase-orders` [đề xuất, chưa có route]; model/data: PO; source RR lines; supplier confirmations.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-05 (dòng 951 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-07. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-06 — View purchase order details
+### UC-08 — View purchase order details
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-07.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — Receiving scope only.
@@ -486,16 +486,16 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Aggregate nguồn hợp lệ/cancel/reversal và source receipt; receipt-only projection cho Warehouse.
 - **Điểm đặt BE:** `src/modules/purchase-orders` [đề xuất, chưa có route]; model/data: PO; source RR lines; supplier confirmations.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-06 (dòng 969 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-08. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-07 — UC-07, UC-114, UC-115, UC-116, UC-117
+### Implementation family UC-09 — UC-09, UC-10, UC-11, UC-12, UC-13
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-07 Create Purchase Order** — Accountant: Select approved RR lines with remaining allowance and supplier/warehouse. Save PO without inventory or payment posting.
-- **UC-114 Update Unreceived PO Remainder** — Accountant: Select current PO version and unreceived quantities. Changes beyond approved authority require renewed approval and never overwrite receipts.
-- **UC-115 Record Supplier Order Confirmation** — Accountant: Record supplier confirmed quantities/dates/evidence against saved PO lines. Preserve earlier confirmations and actual receipts.
-- **UC-116 Cancel Unreceived PO Remainder** — Accountant: Cancel only eligible unreceived remainder with reason and appropriate authority after resolving linked commitments. Preserve received history.
-- **UC-117 Close Purchase Order** — Accountant: Reconcile ordered/received/outstanding quantities and external references. Short closure needs appropriate authorization. Keep unresolved quantities open.
+- **UC-09 Create Purchase Order** — Accountant: Select approved RR lines with remaining allowance and supplier/warehouse. Save PO without inventory or payment posting.
+- **UC-10 Update Unreceived PO Remainder** — Accountant: Select current PO version and unreceived quantities. Changes beyond approved authority require renewed approval and never overwrite receipts.
+- **UC-11 Record Supplier Order Confirmation** — Accountant: Record supplier confirmed quantities/dates/evidence against saved PO lines. Preserve earlier confirmations and actual receipts.
+- **UC-12 Cancel Unreceived PO Remainder** — Accountant: Cancel only eligible unreceived remainder with reason and appropriate authority after resolving linked commitments. Preserve received history.
+- **UC-13 Close Purchase Order** — Accountant: Reconcile ordered/received/outstanding quantities and external references. Short closure needs appropriate authorization. Keep unresolved quantities open.
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-07.**
 - **Quyền theo Report 3:** Accountant — Perform.
@@ -505,9 +505,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Serialize RR line consumption; preserve executed PO/GR; kiểm current approval/version và authorize short closure.
 - **Điểm đặt BE:** `src/modules/purchase-orders` [đề xuất, chưa có route]; model/data: PO; source RR lines; supplier confirmations.
 - **Điểm kiểm chứng:** PO100 nhận60 còn40; không xóa GR đã post khi cancel remainder.
-- **Truy vết:** Report 3 phần II, UC-07 (dòng 987 tại snapshot đọc); nhánh BF-01-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-09; nhánh BF-01-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-08 — View goods receipt list
+### UC-14 — View goods receipt list
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-08.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — View.
@@ -517,9 +517,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Scoped read query theo warehouse/PO; không post side effect trên GET.
 - **Điểm đặt BE:** `src/modules/goods-receipts` / `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: ARRIVAL/INSPECTION/GR_PURCHASE/TO; DocumentLine.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-08 (dòng 1003 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-14. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-09 — View goods receipt details
+### UC-15 — View goods receipt details
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-08.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — View.
@@ -529,21 +529,21 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** DTO từ inspection/receipt lines, trace actual ownership và ledger, scope attachments.
 - **Điểm đặt BE:** `src/modules/goods-receipts` / `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: ARRIVAL/INSPECTION/GR_PURCHASE/TO; DocumentLine.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-09 (dòng 1020 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-15. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-10 — Create goods receipt from purchase order
+### UC-16 — Create goods receipt from purchase order
 
 - **ACTIVE · FE-01 — Bổ sung, mua và nhận hàng · SC-08.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform in assigned warehouse.
 - **Mã quyền trong seed hiện tại:** `goods_receipt_inspection:create`→WAREHOUSE.
 - **Đầu vào/điều kiện:** PO mở/dòng PO, kho nhận, actual BOX/PIECE/lô/packaging/evidence.
 - **Logic/kết quả:** Warehouse ghi arrival/draft riêng từng chuyến, giữ wrong/excess/zero-accepted evidence; chưa increase owned.
-- **Thiết kế BE:** ARRIVAL/draft và references đúng PO/kho; inspect/post để UC-26, không batch/movement khi draft.
+- **Thiết kế BE:** ARRIVAL/draft và references đúng PO/kho; inspect/post để UC-37, không batch/movement khi draft.
 - **Điểm đặt BE:** `src/modules/goods-receipts` / `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: ARRIVAL/INSPECTION/GR_PURCHASE/TO; DocumentLine.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-10 (dòng 1037 tại snapshot đọc); nhánh BF-01-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-16; nhánh BF-01-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-11 — View product list
+### UC-17 — View product list
 
 - **ACTIVE · FE-02 — Master data · SC-03.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — View; Sales Staff — View.
@@ -553,9 +553,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Read Product có pagination/sort allowlist, không fabricate stock từ master.
 - **Điểm đặt BE:** `src/modules/products` [đề xuất, chưa có route]; model/data: Product/ProductUomVersion/ProductWarehousePolicy/Uom.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-11 (dòng 1053 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-17. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-12 — View product details
+### UC-18 — View product details
 
 - **ACTIVE · FE-02 — Master data · SC-03.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — View; Sales Staff — View.
@@ -565,16 +565,16 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Populate phiên bản quy đổi đúng, giữ snapshot chứng từ đã dùng không rewrite.
 - **Điểm đặt BE:** `src/modules/products` [đề xuất, chưa có route]; model/data: Product/ProductUomVersion/ProductWarehousePolicy/Uom.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-12 (dòng 1070 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-18. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-13 — UC-13, UC-118, UC-119, UC-120, UC-121
+### Implementation family UC-19 — UC-19, UC-20, UC-21, UC-22, UC-23
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-13 Create Product** — Store Owner: Validate unique SKU and verified nominal specifications and save product identity. Do not create stock or assume valid conversion factors.
-- **UC-118 Update Product Information** — Store Owner: Update permitted product name/material/nominal attributes on existing version. Preserve transacted identity and snapshots and exclude activation/conversion/policy fields.
-- **UC-119 Change Product Status** — Store Owner: Activate or deactivate an existing product under eligibility checks. Preserve history and prevent inactive product from supplying new allocations.
-- **UC-120 Define Packaging Conversion Version** — Store Owner: Save positive verified BOX/PIECE/m2 conversion version. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional and calibre is not a conversion factor.
-- **UC-121 Configure Warehouse Stock Policy** — Store Owner: Select product/warehouse and save versioned minimumQty/targetQty with target >= minimum >= 0 and default target=minimum and actual updatedBy. No automatic RR/PO or inventory movement.
+- **UC-19 Create Product** — Store Owner: Validate unique SKU and verified nominal specifications and save product identity. Do not create stock or assume valid conversion factors.
+- **UC-20 Update Product Information** — Store Owner: Update permitted product name/material/nominal attributes on existing version. Preserve transacted identity and snapshots and exclude activation/conversion/policy fields.
+- **UC-21 Change Product Status** — Store Owner: Activate or deactivate an existing product under eligibility checks. Preserve history and prevent inactive product from supplying new allocations.
+- **UC-22 Define Packaging Conversion Version** — Store Owner: Save positive verified BOX/PIECE/m2 conversion version. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional and calibre is not a conversion factor.
+- **UC-23 Configure Warehouse Stock Policy** — Store Owner: Select product/warehouse and save versioned minimumQty/targetQty with target >= minimum >= 0 and default target=minimum and actual updatedBy. No automatic RR/PO or inventory movement.
 
 - **ACTIVE · FE-02 — Master data · SC-03.**
 - **Quyền theo Report 3:** Store Owner — Perform.
@@ -584,10 +584,10 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Reuse ProductUomVersion append-only + ProductWarehousePolicy; kiểm nguồn hệ số/độ hạt, không update conversion history.
 - **Điểm đặt BE:** `src/modules/products` [đề xuất, chưa có route]; model/data: Product/ProductUomVersion/ProductWarehousePolicy/Uom.
 - **Điểm kiểm chứng:** Đổi conversion version không đổi qtyBase lịch sử; fractional PIECE bị chặn.
-- **Truy vết:** Report 3 phần II, UC-13 (dòng 1087 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-19. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Policy theo sản phẩm/kho có minimumQty/targetQty/version/updatedBy; target mặc định minimum, target >= minimum; không thêm autoCreateAfterStocktake.
 
-### UC-14 — View lot list
+### UC-24 — View lot list
 
 - **ACTIVE · FE-02 — Master data · SC-04.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -597,9 +597,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Query Lot theo product+identity, không sum khác owner/quality thành available.
 - **Điểm đặt BE:** `src/modules/lots` [đề xuất, chưa có route]; model/data: Lot; product/identity/evidence.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-14 (dòng 1101 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-24. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-15 — View lot details
+### UC-25 — View lot details
 
 - **ACTIVE · FE-02 — Master data · SC-04.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -609,13 +609,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Scope source/warehouse trước join ledger; giữ nhận dạng lịch sử.
 - **Điểm đặt BE:** `src/modules/lots` [đề xuất, chưa có route]; model/data: Lot; product/identity/evidence.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-15 (dòng 1118 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-25. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-16 — UC-16, UC-122
+### Implementation family UC-26 — UC-26, UC-27
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-16 Create Product Lot** — Store Owner, Warehouse Staff: Create unique product/manufacturer lot/tone/calibre identity with evidence or explicit UNKNOWN. UNKNOWN is not allocatable.
-- **UC-122 Update Product Lot Information** — Store Owner: Update permitted existing lot metadata with evidence/history. Never overwrite transacted identity to conceal shortages or change quantity/quality.
+- **UC-26 Create Product Lot** — Store Owner, Warehouse Staff: Create unique product/manufacturer lot/tone/calibre identity with evidence or explicit UNKNOWN. UNKNOWN is not allocatable.
+- **UC-27 Update Product Lot Information** — Store Owner: Update permitted existing lot metadata with evidence/history. Never overwrite transacted identity to conceal shortages or change quantity/quality.
 
 - **ACTIVE · FE-02 — Master data · SC-04.**
 - **Quyền theo Report 3:** Store Owner — Create / Update; Warehouse Staff — Create only.
@@ -625,9 +625,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Unique identity + transacted-reference guard; quality xử lý bằng inspection/disposition, không sửa Lot để chuyển stock.
 - **Điểm đặt BE:** `src/modules/lots` [đề xuất, chưa có route]; model/data: Lot; product/identity/evidence.
 - **Điểm kiểm chứng:** Warehouse không edit lot cũ; UNKNOWN không được allocate.
-- **Truy vết:** Report 3 phần II, UC-16 (dòng 1135 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-26. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-17 — View supplier list
+### UC-28 — View supplier list
 
 - **ACTIVE · FE-02 — Master data · SC-05.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View.
@@ -637,9 +637,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Party SUPPLIER projection/search, không query cả CUSTOMER/STORE.
 - **Điểm đặt BE:** `src/modules/suppliers` [đề xuất, chưa có route]; model/data: Party(kind SUPPLIER).
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-17 (dòng 1149 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-28. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-18 — View supplier details
+### UC-29 — View supplier details
 
 - **ACTIVE · FE-02 — Master data · SC-05.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View.
@@ -649,14 +649,14 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Populate scoped docs, không lộ chứng từ ngoài warehouse/responsibility.
 - **Điểm đặt BE:** `src/modules/suppliers` [đề xuất, chưa có route]; model/data: Party(kind SUPPLIER).
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-18 (dòng 1166 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-29. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-19 — UC-19, UC-123, UC-124
+### Implementation family UC-30 — UC-30, UC-31, UC-32
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-19 Create Supplier** — Accountant: Validate unique supplier identity/contact and save new supplier. Creation does not grant Accountant activation rights and does not introduce an approval workflow.
-- **UC-123 Update Supplier Information** — Accountant: Update existing supplier identity/contact only with audit and preserved PO/GR/SR references. Exclude cooperation status.
-- **UC-124 Change Supplier Cooperation Status** — Store Owner: Activate/deactivate existing supplier with audit. Inactive suppliers cannot receive new POs and historical documents remain readable. Owner does not gain identity-edit permission.
+- **UC-30 Create Supplier** — Accountant: Validate unique supplier identity/contact and save new supplier. Creation does not grant Accountant activation rights and does not introduce an approval workflow.
+- **UC-31 Update Supplier Information** — Accountant: Update existing supplier identity/contact only with audit and preserved PO/GR/SR references. Exclude cooperation status.
+- **UC-32 Change Supplier Cooperation Status** — Store Owner: Activate/deactivate existing supplier with audit. Inactive suppliers cannot receive new POs and historical documents remain readable. Owner does not gain identity-edit permission.
 
 - **ACTIVE · FE-02 — Master data · SC-05.**
 - **Quyền theo Report 3:** Store Owner — Activate / Deactivate; Accountant — Create / Update.
@@ -666,9 +666,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Whitelist theo subcommand/permission, guard active usage/history; không generic full Party patch.
 - **Điểm đặt BE:** `src/modules/suppliers` [đề xuất, chưa có route]; model/data: Party(kind SUPPLIER).
 - **Điểm kiểm chứng:** Accountant không activate, Owner không edit identity/contact.
-- **Truy vết:** Report 3 phần II, UC-19 (dòng 1183 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-30. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-20 — View Customer List
+### UC-33 — View Customer List
 
 - **ACTIVE · FE-02 — Master data · SC-24.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reference scope; Warehouse Staff — Delivery scope; Sales Staff — View.
@@ -678,9 +678,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Party CUSTOMER query/projection theo related source/delivery; scope cả external customer identifiers.
 - **Điểm đặt BE:** `src/modules/customers` [đề xuất, chưa có route]; model/data: Party(kind CUSTOMER).
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-20 (dòng 1197 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-33. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-21 — View Customer Details
+### UC-34 — View Customer Details
 
 - **ACTIVE · FE-02 — Master data · SC-24.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reference scope; Warehouse Staff — Delivery scope; Sales Staff — View.
@@ -690,13 +690,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Direct detail áp predicate như list; không populate mọi đơn của khách ngoài phạm vi.
 - **Điểm đặt BE:** `src/modules/customers` [đề xuất, chưa có route]; model/data: Party(kind CUSTOMER).
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-21 (dòng 1211 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-34. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-22 — UC-22, UC-125
+### Implementation family UC-35 — UC-35, UC-36
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-22 Create Customer Delivery Reference** — Sales Staff: Create unique customer contact/delivery/external identifier reference without CRM/commercial account data.
-- **UC-125 Update Customer Delivery Reference** — Sales Staff: Update existing delivery/contact/external matching fields with source history. Do not delete referenced records or change pricing/debt/stock.
+- **UC-35 Create Customer Delivery Reference** — Sales Staff: Create unique customer contact/delivery/external identifier reference without CRM/commercial account data.
+- **UC-36 Update Customer Delivery Reference** — Sales Staff: Update existing delivery/contact/external matching fields with source history. Do not delete referenced records or change pricing/debt/stock.
 
 - **ACTIVE · FE-02 — Master data · SC-24.**
 - **Quyền theo Report 3:** Sales Staff — Maintain contact / delivery reference.
@@ -706,24 +706,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Update whitelist Party CUSTOMER, không xóa referenced party; audit identity mapping.
 - **Điểm đặt BE:** `src/modules/customers` [đề xuất, chưa có route]; model/data: Party(kind CUSTOMER).
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-22 (dòng 1225 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-35. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-23 — View Selling Price List
-
-- **RETIRED.** Giá bán xử lý bên ngoài.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-24 — View Selling Price Details
-
-- **RETIRED.** Giá bán xử lý bên ngoài.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-25 — Maintain Selling Price
-
-- **RETIRED.** Giá bán xử lý bên ngoài.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-26 — Inspect and Post Goods Receipt
+### UC-37 — Inspect and Post Goods Receipt
 
 - **ACTIVE · FE-03 — Kiểm nhận và post GR · SC-08.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform in assigned warehouse.
@@ -733,9 +718,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Guard cumulative PO allowance, current decision/evidence/freeze; atomically GR lines/batch/stock/PO progress/custody, no double receipt.
 - **Điểm đặt BE:** `src/modules/goods-receipts` / `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: ARRIVAL/INSPECTION/GR_PURCHASE/TO; DocumentLine.
 - **Điểm kiểm chứng:** accepted0 giữ ARR/INS/custody, không GR0; TORN intact không tự DAMAGED. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-26 (dòng 1258 tại snapshot đọc); nhánh BF-01-A3, BF-01-E1, BF-01-E2, BF-01-A4. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-37; nhánh BF-01-A3, BF-01-E1, BF-01-E2, BF-01-A4. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-27 — View warehouse and location list
+### UC-38 — View warehouse and location list
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-09.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -745,9 +730,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Warehouse/Location query scoped by assigned IDs; stable code uniqueness trong kho.
 - **Điểm đặt BE:** `src/modules/locations` [đề xuất, chưa có route]; model/data: Warehouse/Location.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-27 (dòng 1276 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-38. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-28 — View storage location details
+### UC-39 — View storage location details
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-09.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -757,14 +742,14 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Validate location thuộc warehouse đã scope; aggregate balances không gộp ownership.
 - **Điểm đặt BE:** `src/modules/locations` [đề xuất, chưa có route]; model/data: Warehouse/Location.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-28 (dòng 1293 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-39. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-29 — UC-29, UC-126, UC-127
+### Implementation family UC-40 — UC-40, UC-41, UC-42
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-29 Create Storage Location** — Store Owner: Create unique location code/kind within existing warehouse. Only STORAGE can be allocatable.
-- **UC-126 Update Storage Location Information** — Store Owner: Update permitted existing location metadata and eligibility without moving stock or bypassing freeze.
-- **UC-127 Change Storage Location Status** — Store Owner: Change active status after checking actual stock/open references. A nonempty location cannot deactivate. Preserve historical references.
+- **UC-40 Create Storage Location** — Store Owner: Create unique location code/kind within existing warehouse. Only STORAGE can be allocatable.
+- **UC-41 Update Storage Location Information** — Store Owner: Update permitted existing location metadata and eligibility without moving stock or bypassing freeze.
+- **UC-42 Change Storage Location Status** — Store Owner: Change active status after checking actual stock/open references. A nonempty location cannot deactivate. Preserve historical references.
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-09.**
 - **Quyền theo Report 3:** Store Owner — Perform.
@@ -774,9 +759,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Unique warehouse+code, guard stock/open refs; no StockBalance/reservation mutation từ master update.
 - **Điểm đặt BE:** `src/modules/locations` [đề xuất, chưa có route]; model/data: Warehouse/Location.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-29 (dòng 1310 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-40. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-30 — View stock by lot, location, and quality status
+### UC-43 — View stock by lot, location, and quality status
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-10.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouse; Sales Staff — Available / related demand only.
@@ -786,9 +771,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Available aggregation kiểm verified/active/allocatable/hold/freeze và reservation đúng chiều; scoped projection.
 - **Điểm đặt BE:** `src/modules/inventory` / `src/modules/fulfilment-options` [đề xuất, chưa có route]; model/data: StockBalance/StockAccount/Reservation/DefectHold/DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-30 (dòng 1324 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-43. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-31 — View inventory balance details
+### UC-44 — View inventory balance details
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-10.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouse; Sales Staff — Available / related demand only.
@@ -798,9 +783,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Read StockAccount+Balance+reservations/holds/ledger consistent dimensions; no cross-owner sum.
 - **Điểm đặt BE:** `src/modules/inventory` / `src/modules/fulfilment-options` [đề xuất, chưa có route]; model/data: StockBalance/StockAccount/Reservation/DefectHold/DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-31 (dòng 1342 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-44. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-32 — Create Put-away Task
+### UC-45 — Create Put-away Task
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-08.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform in assigned warehouse.
@@ -810,9 +795,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Guard receipt posted/owned/source and total open tasks vs unplaced qty; TO references source lines.
 - **Điểm đặt BE:** `src/modules/goods-receipts` / `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: ARRIVAL/INSPECTION/GR_PURCHASE/TO; DocumentLine.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-32 (dòng 1360 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-45. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-33 — Confirm Put-away Task
+### UC-46 — Confirm Put-away Task
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-08.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform in assigned warehouse.
@@ -822,9 +807,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Atomic movement legs/balance/reservation/task progress; scope/freeze/source qty/idempotency.
 - **Điểm đặt BE:** `src/modules/goods-receipts` / `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: ARRIVAL/INSPECTION/GR_PURCHASE/TO; DocumentLine.
 - **Điểm kiểm chứng:** Confirm retry không nhận tồn lần hai; partial giữ remainder. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-33 (dòng 1374 tại snapshot đọc); nhánh BF-01-A4. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-46; nhánh BF-01-A4. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-34 — View location movement list
+### UC-47 — View location movement list
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-12.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -834,9 +819,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Query TO relocation kind trong assigned warehouse, không lẫn transfer records.
 - **Điểm đặt BE:** `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: TO, WAREHOUSE_TASK lines; StockBalance/Reservation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-34 (dòng 1389 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-47. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-35 — View location movement details
+### UC-48 — View location movement details
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-12.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -846,9 +831,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Scope cả hai location và immutable operation/movement links.
 - **Điểm đặt BE:** `src/modules/location-movements` — GET `/api/location-movements/:id` đã triển khai 29/10/2026; xem README trong module. Model TO/WAREHOUSE_TASK, actual từ ledger; FE còn mock.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-35 (dòng 1406 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-48. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-36 — Create location movement
+### UC-49 — Create location movement
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-12.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform in assigned warehouse.
@@ -856,11 +841,11 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Đầu vào/điều kiện:** Warehouse: from/to cùng kho, lot/quality/owner/qty/reason.
 - **Logic/kết quả:** Lập relocation sau kiểm nguồn/reservation/freeze; khác kho đi BF-04. Chưa move cho đến confirm.
 - **Thiết kế BE:** Validate distinct locations same assigned warehouse, quantity/source/suitability; create TO not stock mutation.
-- **Điểm đặt BE:** `src/modules/location-movements` — POST `/api/location-movements` đã triển khai 29/10/2026; stock-neutral OPEN TO + lines + idempotent BusinessOperation + audit trong transaction. Location.planningVersion khóa planner cạnh tranh; các UC xác nhận/kiểm kê triển khai sau phải dùng chung guard. Xem README module; UC-37 chưa triển khai.
+- **Điểm đặt BE:** `src/modules/location-movements` — POST `/api/location-movements` đã triển khai 29/10/2026; stock-neutral OPEN TO + lines + idempotent BusinessOperation + audit trong transaction. Location.planningVersion khóa planner cạnh tranh; các UC xác nhận/kiểm kê triển khai sau phải dùng chung guard. Xem README module; UC-50 chưa triển khai.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-36 (dòng 1423 tại snapshot đọc); nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-49; nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-37 — Confirm actual location movement
+### UC-50 — Confirm actual location movement
 
 - **ACTIVE · FE-04 — Kho/tồn/vị trí · SC-12.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform in assigned warehouse.
@@ -870,9 +855,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Single batch two legs + reservation relocation + TO progress; blocked freeze/source shortage rollback.
 - **Điểm đặt BE:** `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: TO, WAREHOUSE_TASK lines; StockBalance/Reservation.
 - **Điểm kiểm chứng:** Chuyển stock reserved không tạo available mới; khác kho không dùng relocate. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-37 (dòng 1438 tại snapshot đọc); nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-50; nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-38 — View warehouse transfer list
+### UC-51 — View warehouse transfer list
 
 - **ACTIVE · FE-05 — Điều chuyển liên kho · SC-13.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouses; Sales Staff — Related demand progress.
@@ -882,9 +867,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Scoped queries theo cả trách nhiệm warehouse/related demand; no unrestricted transfer list.
 - **Điểm đặt BE:** `src/modules/transfers` — GET `/api/warehouse-transfers` đã triển khai. Quyết định 29/10/2026: Sales được xem tổng tiến độ TR liên quan tới nhu cầu của mình kể cả TR phục vụ nhiều Sales, không xem ghi chú/chứng từ nội bộ. Xem README module về DTO và scope.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-38 (dòng 1454 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-51. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-39 — View warehouse transfer details
+### UC-52 — View warehouse transfer details
 
 - **ACTIVE · FE-05 — Điều chuyển liên kho · SC-13.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouses; Sales Staff — Related demand progress.
@@ -894,21 +879,21 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Aggregate line chain, valid cancellation/outcome/partial receipt; closure invariant toàn TR.
 - **Điểm đặt BE:** `src/modules/transfers` — GET `/api/warehouse-transfers/:id` đã triển khai. Sales nhận DTO tổng tiến độ của TR liên quan, kể cả nhiều nhu cầu, không có ghi chú/chứng từ nội bộ. GET không đóng TR; hiển thị lifecycle đã lưu và số liệu từ TD/MWTR POSTED, transit balance. Xem README module; các command xuất/nhận/đối chiếu chưa thuộc Iteration 1.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-39 (dòng 1472 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-52. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-40 — Create Transfer Request
+### UC-53 — Create Transfer Request
 
 - **ACTIVE · FE-05 — Điều chuyển liên kho · SC-13.**
 - **Quyền theo Report 3:** Warehouse Staff — Create.
 - **Mã quyền trong seed hiện tại:** `stock_transfer:create`→WAREHOUSE; `stock_transfer:update`→WAREHOUSE.
 - **Đầu vào/điều kiện:** Need physical transfer, distinct source/dest, product/lot/qty/date/reason.
-- **Logic/kết quả:** Warehouse xem UC-103; direct dispatch dùng BF-06, same kho dùng BF-03; submit TR version chưa post.
+- **Logic/kết quả:** Warehouse xem UC-117; direct dispatch dùng BF-06, same kho dùng BF-03; submit TR version chưa post.
 - **Thiết kế BE:** Validate compatible supply, source/dest assignment/source need; create TRANSFER_REQUEST only.
 - **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-40 (dòng 1490 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-53. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-41 — Review Transfer Request
+### UC-54 — Review Transfer Request
 
 - **ACTIVE · FE-05 — Điều chuyển liên kho · SC-13.**
 - **Quyền theo Report 3:** Store Owner — Approve / reject / return; not requester.
@@ -918,14 +903,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Approval + controlled reservations theo current balance/freeze/source guard, self-approval deny.
 - **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
 - **Điểm kiểm chứng:** TR creator có Owner role vẫn không approve chính mình.
-- **Truy vết:** Report 3 phần II, UC-41 (dòng 1504 tại snapshot đọc); nhánh BF-04-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-54; nhánh BF-04-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-42 — Create Warehouse Transfer Order
-
-- **RETIRED.** TR đã duyệt thực hiện UC-43/104, không thêm transfer-order layer.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-43 — Record Transfer Dispatch
+### UC-55 — Record Transfer Dispatch
 
 - **ACTIVE · FE-05 — Điều chuyển liên kho · SC-13.**
 - **Quyền theo Report 3:** Warehouse Staff — Draft TD before picking; confirm TO execution; post actual handover.
@@ -935,9 +915,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** TRANSFER_DISPATCH/HANDOVER lines guard approved remainder/version; ledger two legs+allocations/task status atomic.
 - **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
 - **Điểm kiểm chứng:** TD draft không giảm tồn; post source→transit, không thêm GI và không credit destination. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-43 (dòng 1525 tại snapshot đọc); nhánh BF-04-E1, BF-04-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-55; nhánh BF-04-E1, BF-04-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-44 — Review Transfer Difference Resolution
+### UC-56 — Review Transfer Difference Resolution
 
 - **ACTIVE · FE-05 — Điều chuyển liên kho · SC-13.**
 - **Quyền theo Report 3:** Store Owner — Review transfer variance.
@@ -947,9 +927,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Approval for linked Warehouse execution documents; guard each variance outcome cap, don't reuse for BF-08 SR.
 - **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
 - **Điểm kiểm chứng:** Đã nhận3DAMAGED không lại ghi loss3 transit.
-- **Truy vết:** Report 3 phần II, UC-44 (dòng 1541 tại snapshot đọc); nhánh BF-04-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-56; nhánh BF-04-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-45 — View Copied Sales Order List
+### UC-57 — View Copied Sales Order List
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-16.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Related execution; Sales Staff — Own / assigned demand.
@@ -959,9 +939,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** SALES_ORDER query scope; compute current valid PGI/GR-FD/POD/cancel/confirmation versions.
 - **Điểm đặt BE:** `src/modules/sales-orders` [đề xuất, chưa có route]; model/data: SALES_ORDER; ExternalReference/ExternalReferenceLine; BusinessOperation/SalesOrderCancellation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-45 (dòng 1573 tại snapshot đọc); nhánh BF-06-A1, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-57; nhánh BF-06-A1, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-46 — View Copied Sales Order Details
+### UC-58 — View Copied Sales Order Details
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-16.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Related execution; Sales Staff — Own / assigned demand.
@@ -971,9 +951,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Typed chain joins + DTO projection; don't conflate WIR completion with SO completion.
 - **Điểm đặt BE:** `src/modules/sales-orders` — GET `/api/sales-orders/:id` đã triển khai; scope theo người tạo SO hoặc kho thực hiện. Xem README module về source chain, FD, conversion snapshots và giới hạn DTO.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-46 (dòng 1588 tại snapshot đọc); nhánh BF-06-A1, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-58; nhánh BF-06-A1, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-47 — Create Copied Sales Order
+### UC-59 — Create Copied Sales Order
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-16.**
 - **Quyền theo Report 3:** Sales Staff — create copied SO.
@@ -983,14 +963,14 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Unique ExternalReference+SO line source, snapshot conversions, BusinessOperation+SO/audit atomic.
 - **Điểm đặt BE:** `src/modules/sales-orders` — POST `/api/sales-orders` và `/api/sales-orders/source-evidence` đã triển khai. Source/SO/lines/evidence/BusinessOperation/audit/outbox nguyên tử, không thay tồn/reservation. Xem README module và gói test `docs/api/fe06-iteration1`.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-47 (dòng 1603 tại snapshot đọc); nhánh BF-06-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-59; nhánh BF-06-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Sau lưu SO thành công, đánh giá nguồn và hỏi tạo RR nếu còn thiếu; chỉ mở form khi user chọn. Ghi sự kiện SALES_ORDER_SAVED có version để đánh giá thiếu và Notification theo scope; RR có thể dùng SO-line trước khi có WIR.
 
-### Implementation family UC-48 — UC-48, UC-128
+### Implementation family UC-60 — UC-60, UC-61
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-48 Update Eligible Sales Order Remainder** — Sales Staff: Update only unexecuted or GR-FD-received-back not-redelivered quantities after resolving current dependent tasks/commitments. Preserve verified source/gross ledger and recompute version.
-- **UC-128 Cancel Eligible Sales Order Remainder** — Sales Staff: Cancel only eligible remainder after resolving OD/WIR tasks/holds and append cancellation history. Off-site unresolved stock cannot cancel. Recompute SO/version and invalidate stale PAY-CFM authority.
+- **UC-60 Update Eligible Sales Order Remainder** — Sales Staff: Update only unexecuted or GR-FD-received-back not-redelivered quantities after resolving current dependent tasks/commitments. Preserve verified source/gross ledger and recompute version.
+- **UC-61 Cancel Eligible Sales Order Remainder** — Sales Staff: Cancel only eligible remainder after resolving OD/WIR tasks/holds and append cancellation history. Off-site unresolved stock cannot cancel. Recompute SO/version and invalidate stale PAY-CFM authority.
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-16.**
 - **Quyền theo Report 3:** Sales Staff — Edit/cancel unexecuted or GR-FD-received-back, not-redelivered quantity.
@@ -1000,10 +980,10 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Guard net fulfilment/downstream/FD reopening and cancellation events; release only eligible commitments, no stock movement.
 - **Điểm đặt BE:** `src/modules/sales-orders` [đề xuất, chưa có route]; model/data: SALES_ORDER; ExternalReference/ExternalReferenceLine; BusinessOperation/SalesOrderCancellation.
 - **Điểm kiểm chứng:** Hàng PGI chưa về không được cancel; GR-FD về chưa redeliver mới đủ điều kiện.
-- **Truy vết:** Report 3 phần II, UC-48 (dòng 1618 tại snapshot đọc); nhánh BF-06-A1, BF-06-A2, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-60; nhánh BF-06-A1, BF-06-A2, BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** SO thay lượng/nguồn/ngày cần phải đánh giá lại nhu cầu và pending coverage; mở Notification cũ không dùng snapshot cũ để tạo RR.
 
-### UC-49 — View Outbound Delivery List
+### UC-62 — View Outbound Delivery List
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-22.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Related execution; Sales Staff — Own / assigned demand.
@@ -1013,9 +993,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** OUTBOUND_DELIVERY query join WIR/SO chain and current net quantities, not mock status patch.
 - **Điểm đặt BE:** `src/modules/sales-orders` — GET `/api/outbound-deliveries` đã triển khai, lọc scope trước phân trang; xem README module về filter và số lượng từ ledger.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-49 (dòng 1633 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-62. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-50 — View Outbound Delivery Details
+### UC-63 — View Outbound Delivery Details
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-22.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Related execution; Sales Staff — Own / assigned demand.
@@ -1025,9 +1005,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Validate source ownership chain, derive remaining from valid operations and transfers.
 - **Điểm đặt BE:** `src/modules/sales-orders` — GET `/api/outbound-deliveries/:id` đã triển khai; typed WIR/SO chain, reservations, picking, GI/POD/GR-FD và commitment history; xem README module.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-50 (dòng 1647 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-63. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-51 — Create Outbound Delivery
+### UC-64 — Create Outbound Delivery
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-22.**
 - **Quyền theo Report 3:** Sales Staff — Plan OD/reuse or transfer reopened commitment without duplicate demand.
@@ -1037,9 +1017,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Conditional WIR/SO/OD guards + Reservation + OdCommitmentTransfer; from/to different, qty≤reopening allowance.
 - **Điểm đặt BE:** `src/modules/outbound-deliveries` [đề xuất, chưa có route]; model/data: OUTBOUND_DELIVERY; Reservation; OdCommitmentTransfer.
 - **Điểm kiểm chứng:** Replacement OD chỉ chuyển reopened commitment, không nhân WIR/SO demand.
-- **Truy vết:** Report 3 phần II, UC-51 (dòng 1661 tại snapshot đọc); nhánh BF-04-A1, BF-06-E1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-64; nhánh BF-04-A1, BF-06-E1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-52 — View Picking Task List
+### UC-65 — View Picking Task List
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-23.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouse; Sales Staff — Related progress.
@@ -1049,9 +1029,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Read picking task scope and source kind; do not return unrelated TO.
 - **Điểm đặt BE:** `src/modules/picking-tasks` [đề xuất, chưa có route]; model/data: TO/WAREHOUSE_TASK; GI_SALE draft; Reservation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-52 (dòng 1677 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-65. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-53 — View Picking Task Details
+### UC-66 — View Picking Task Details
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-23.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouse; Sales Staff — Related progress.
@@ -1061,9 +1041,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** DTO joins source OD/GI/reservation and evidence scope, read-only.
 - **Điểm đặt BE:** `src/modules/picking-tasks` [đề xuất, chưa có route]; model/data: TO/WAREHOUSE_TASK; GI_SALE draft; Reservation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-53 (dòng 1691 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-66. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-54 — Create Picking Task
+### UC-67 — Create Picking Task
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-23.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform; PGI only on actual handover.
@@ -1073,9 +1053,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Validate GI draft belongs OD/current source, preserve demand reservation; positive bounded qty and task coverage guards.
 - **Điểm đặt BE:** `src/modules/picking-tasks` [đề xuất, chưa có route]; model/data: TO/WAREHOUSE_TASK; GI_SALE draft; Reservation.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-54 (dòng 1705 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-67. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-55 — Confirm Picking Task
+### UC-68 — Confirm Picking Task
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-23.**
 - **Quyền theo Report 3:** Warehouse Staff — Perform; PGI only on actual handover.
@@ -1085,9 +1065,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Atomic movement+reservation+task; recheck freeze/quality/caps; unpick linked operation not manual free stock.
 - **Điểm đặt BE:** `src/modules/picking-tasks` [đề xuất, chưa có route]; model/data: TO/WAREHOUSE_TASK; GI_SALE draft; Reservation.
 - **Điểm kiểm chứng:** Pick20 bàn giao18 chỉ PGI18; 2 staged/unpick giữ trace. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-55 (dòng 1719 tại snapshot đọc); nhánh BF-06-E2, BF-06-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-68; nhánh BF-06-E2, BF-06-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-56 — View goods issue list
+### UC-69 — View goods issue list
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-17.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouse; Sales Staff — Related progress.
@@ -1097,9 +1077,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** GI_SALE/allowed issue kinds read scope; no financial invoice data.
 - **Điểm đặt BE:** `src/modules/goods-issues` [đề xuất, chưa có route]; model/data: GI_SALE/SALES_GOODS_ISSUE; PostingBatch/StockMovement.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-56 (dòng 1735 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-69. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-57 — View goods issue details
+### UC-70 — View goods issue details
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-17.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Assigned warehouse; Sales Staff — Related progress.
@@ -1109,13 +1089,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Authorized ledger/source detail projection; no mutable balance controls.
 - **Điểm đặt BE:** `src/modules/goods-issues` [đề xuất, chưa có route]; model/data: GI_SALE/SALES_GOODS_ISSUE; PostingBatch/StockMovement.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-57 (dòng 1753 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-70. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-58 — UC-58, UC-129
+### Implementation family UC-71 — UC-71, UC-72
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-58 Post Actual Goods Issue** — Warehouse Staff: Require draft GI-S/OD and confirmed picking/actual handover evidence. Recheck net allowance/version/reservation/freeze and commit PGI ledger/balance/progress once. Print committed snapshot. PGI is not POD or completion.
-- **UC-129 Prepare Goods Issue Draft** — Warehouse Staff: Create/update GI-S DRAFT from current OD before picking. Save without stock deduction and route picking to UC-54/55. Do not post on draft save.
+- **UC-71 Post Actual Goods Issue** — Warehouse Staff: Require draft GI-S/OD and confirmed picking/actual handover evidence. Recheck net allowance/version/reservation/freeze and commit PGI ledger/balance/progress once. Print committed snapshot. PGI is not POD or completion.
+- **UC-72 Prepare Goods Issue Draft** — Warehouse Staff: Create/update GI-S DRAFT from current OD before picking. Save without stock deduction and route picking to UC-67/68. Do not post on draft save.
 
 - **ACTIVE · FE-06 — SO/xuất/giao · SC-17.**
 - **Quyền theo Report 3:** Warehouse Staff — Draft GI-S before picking; post actual handover once.
@@ -1125,29 +1105,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Single posting protocol: stock/reservation/ledger/source progress/audit/outbox; positive actual qty≤prepared/current allowance, no DELIVERED shortcut.
 - **Điểm đặt BE:** `src/modules/goods-issues` [đề xuất, chưa có route]; model/data: GI_SALE/SALES_GOODS_ISSUE; PostingBatch/StockMovement.
 - **Điểm kiểm chứng:** Retry/print/email fail không PGI lần hai; PGI không tự DELIVERED/COMPLETED. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-58 (dòng 1771 tại snapshot đọc); nhánh BF-06-A2, BF-06-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-71; nhánh BF-06-A2, BF-06-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-59 — View Internal Invoice List
-
-- **RETIRED.** Hóa đơn bên ngoài; in phiếu kho theo UC-58.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-60 — View Internal Invoice Details
-
-- **RETIRED.** Hóa đơn bên ngoài; in phiếu kho theo UC-58.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-61 — Create Internal Invoice
-
-- **RETIRED.** Hóa đơn bên ngoài; in phiếu kho theo UC-58.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-62 — Issue Internal Invoice and Produce PDF
-
-- **RETIRED.** Hóa đơn bên ngoài; in phiếu kho theo UC-58.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-63 — View defective goods list
+### UC-73 — View defective goods list
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-11.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -1157,9 +1117,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** DEFECT_CASE query with stocktake/source link; no automatic deduction.
 - **Điểm đặt BE:** `src/modules/defects` / `src/modules/dispositions` [đề xuất, chưa có route]; model/data: DEFECT_CASE/DISPOSITION/SCRAP/RECLASS; DefectHold/Approval.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-63 (dòng 1875 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-73. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-64 — View defective goods details
+### UC-74 — View defective goods details
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-11.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -1169,13 +1129,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Aggregate outcome consumption per source+quantity, parent evidence scope.
 - **Điểm đặt BE:** `src/modules/defects` / `src/modules/dispositions` [đề xuất, chưa có route]; model/data: DEFECT_CASE/DISPOSITION/SCRAP/RECLASS; DefectHold/Approval.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-64 (dòng 1892 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-74. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-65 — UC-65, UC-130
+### Implementation family UC-75 — UC-75, UC-76
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-65 Record Defect Inspection and Immediate Hold** — Warehouse Staff: Record affected lot/location/owner/quantity and evidence and immediately block allocation. Under B1 freeze save balance-neutral hold without quality/location/quantity changes.
-- **UC-130 Submit Defective Goods Disposition Proposal** — Warehouse Staff: Use recorded inspection/hold to submit outside-freeze disposition to UC-66 or stocktake plan to UC-91. Supplier return routes BF-08 without Owner. Keep hold until authorized execution/closure.
+- **UC-75 Record Defect Inspection and Immediate Hold** — Warehouse Staff: Record affected lot/location/owner/quantity and evidence and immediately block allocation. Under B1 freeze save balance-neutral hold without quality/location/quantity changes.
+- **UC-76 Submit Defective Goods Disposition Proposal** — Warehouse Staff: Use recorded inspection/hold to submit outside-freeze disposition to UC-77 or stocktake plan to UC-102. Supplier return routes BF-08 without Owner. Keep hold until authorized execution/closure.
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-11.**
 - **Quyền theo Report 3:** Warehouse Staff — Inspect / isolate / propose.
@@ -1185,33 +1145,33 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Create DefectHold/audit against balance/source with race guard; preserve snapshot, block conservative balance until resolution.
 - **Điểm đặt BE:** `src/modules/defects` / `src/modules/dispositions` [đề xuất, chưa có route]; model/data: DEFECT_CASE/DISPOSITION/SCRAP/RECLASS; DefectHold/Approval.
 - **Điểm kiểm chứng:** Defect dưới freeze ghi hold ngay nhưng không đổi balance/snapshot.
-- **Truy vết:** Report 3 phần II, UC-65 (dòng 1909 tại snapshot đọc); nhánh BF-02-E1, BF-02-A1, BF-06-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-75; nhánh BF-02-E1, BF-02-A1, BF-06-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-66 — Approve or reject defective goods disposition
+### UC-77 — Approve or reject defective goods disposition
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-11.**
 - **Quyền theo Report 3:** Store Owner — Approve on-site scrap/regrade/release outside ST; not requester.
 - **Mã quyền trong seed hiện tại:** `defect:approve`→OWNER.
 - **Đầu vào/điều kiện:** Owner: outside-freeze disposition version/action/qty/evidence, khác requester.
-- **Logic/kết quả:** Approve/reject/return scrap/regrade/release; SR không cần, B1 qua UC-92. Decision không deduct.
+- **Logic/kết quả:** Approve/reject/return scrap/regrade/release; SR không cần, B1 qua UC-104. Decision không deduct.
 - **Thiết kế BE:** Owner approval guards source/version/action, no required authorization for SR; preserve unapproved hold.
 - **Điểm đặt BE:** `src/modules/defects` / `src/modules/dispositions` [đề xuất, chưa có route]; model/data: DEFECT_CASE/DISPOSITION/SCRAP/RECLASS; DefectHold/Approval.
-- **Điểm kiểm chứng:** SR không bị yêu cầu UC-66/Owner approval; B1 chỉ UC-92.
-- **Truy vết:** Report 3 phần II, UC-66 (dòng 1924 tại snapshot đọc); nhánh BF-02-A2, BF-08-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Điểm kiểm chứng:** SR không bị yêu cầu UC-77/Owner approval; B1 chỉ UC-104.
+- **Truy vết:** Report 3 phần II, UC-77; nhánh BF-02-A2, BF-08-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-67 — Record approved defective goods disposition
+### UC-78 — Record approved defective goods disposition
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-11.**
-- **Quyền theo Report 3:** Warehouse Staff — Execute approved on-site action outside freeze; B1 through UC-93.
+- **Quyền theo Report 3:** Warehouse Staff — Execute approved on-site action outside freeze; B1 through UC-105.
 - **Mã quyền trong seed hiện tại:** `defect:execute`→WAREHOUSE.
 - **Đầu vào/điều kiện:** Warehouse: approved outside-freeze action và actual execution/evidence.
-- **Logic/kết quả:** Scrap actual giảm một lần, regrade/release total-preserving; SR chỉ UC-82 trừ, B1 UC-93 post.
+- **Logic/kết quả:** Scrap actual giảm một lần, regrade/release total-preserving; SR chỉ UC-91 trừ, B1 UC-105 post.
 - **Thiết kế BE:** Guard approval remaining+freeze+already consumed outcomes; linked batch and hold resolution atomically.
 - **Điểm đặt BE:** `src/modules/defects` / `src/modules/dispositions` [đề xuất, chưa có route]; model/data: DEFECT_CASE/DISPOSITION/SCRAP/RECLASS; DefectHold/Approval.
 - **Điểm kiểm chứng:** Không vừa BF-02 deduct rồi GI-SR deduct cùng lượng; ordinary post bị freeze chặn. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-67 (dòng 1939 tại snapshot đọc); nhánh BF-02-A2, BF-02-E2, BF-08-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-78; nhánh BF-02-A2, BF-02-E2, BF-08-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-68 — View customer return list
+### UC-79 — View customer return list
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-18.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — External follow-up; Warehouse Staff — Inspection / receipt scope; Sales Staff — Own / assigned returns.
@@ -1221,9 +1181,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Union typed case reads scoped with source provenance; no D6 metadata fabricated for FD.
 - **Điểm đặt BE:** `src/modules/customer-returns` / `src/modules/failed-deliveries` [đề xuất, chưa có route]; model/data: CUSTOMER_RETURN/FAILED_DELIVERY/GR_CUSTOMER_RETURN/GR_FAILED_DELIVERY; assessment/claim/reopening.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-68 (dòng 1954 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-79. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-69 — View customer return details
+### UC-80 — View customer return details
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-18.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — External follow-up; Warehouse Staff — Inspection / receipt scope; Sales Staff — Own / assigned returns.
@@ -1233,9 +1193,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Source/assessment/claim/receipt/reopening DTO joins, permission scoped evidence and financial projection.
 - **Điểm đặt BE:** `src/modules/customer-returns` / `src/modules/failed-deliveries` [đề xuất, chưa có route]; model/data: CUSTOMER_RETURN/FAILED_DELIVERY/GR_CUSTOMER_RETURN/GR_FAILED_DELIVERY; assessment/claim/reopening.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-69 (dòng 1973 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-80. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-70 — Create Customer Return Request
+### UC-81 — Create Customer Return Request
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-18.**
 - **Quyền theo Report 3:** Sales Staff — Create / check source and conditions.
@@ -1245,13 +1205,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Common source guard + ReturnSourceClaim with exact source XOR; no fake historical GI/POD, no source cap via header-only.
 - **Điểm đặt BE:** `src/modules/customer-returns` / `src/modules/failed-deliveries` [đề xuất, chưa có route]; model/data: CUSTOMER_RETURN/FAILED_DELIVERY/GR_CUSTOMER_RETURN/GR_FAILED_DELIVERY; assessment/claim/reopening.
 - **Điểm kiểm chứng:** CR dùng received POD cap, không gross PGI; historical source chưa verified phải chờ.
-- **Truy vết:** Report 3 phần II, UC-70 (dòng 1992 tại snapshot đọc); nhánh BF-06-E3, BF-07-A1, BF-07-E2, BF-07-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-81; nhánh BF-06-E3, BF-07-A1, BF-07-E2, BF-07-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-71 — UC-71, UC-131
+### Implementation family UC-82 — UC-82, UC-83
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-71 Decide Ordinary Customer Return Acceptance** — Sales Staff: Require latest Warehouse inspection and verified ordinary GOOD/UNUSED terms/deadline/source cap. Sales may accept/reject own ordinary CR. Save STANDARD_ACCEPTANCE by line/version without stock posting.
-- **UC-131 Review Eligible Customer Return Exception** — Store Owner: Require latest inspection/assessment and eligible exception not excluded by D6. Owner differs from requester. Record EXCEPTION_APPROVAL accept/reject/return by exact version. Never override installed/customer-damaged/verified-overdue exclusions.
+- **UC-82 Decide Ordinary Customer Return Acceptance** — Sales Staff: Require latest Warehouse inspection and verified ordinary GOOD/UNUSED terms/deadline/source cap. Sales may accept/reject own ordinary CR. Save STANDARD_ACCEPTANCE by line/version without stock posting.
+- **UC-83 Review Eligible Customer Return Exception** — Store Owner: Require latest inspection/assessment and eligible exception not excluded by D6. Owner differs from requester. Record EXCEPTION_APPROVAL accept/reject/return by exact version. Never override installed/customer-damaged/verified-overdue exclusions.
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-18.**
 - **Quyền theo Report 3:** Store Owner — Eligible EXCEPTION_APPROVAL only; not requester; Sales Staff — STANDARD_ACCEPTANCE after inspection; own ordinary CR allowed.
@@ -1261,13 +1221,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Approval decisionKind + latest assessment/inspection + source/qty/version guard; self exception only standardized ordinary Sales.
 - **Điểm đặt BE:** `src/modules/customer-returns` / `src/modules/failed-deliveries` [đề xuất, chưa có route]; model/data: CUSTOMER_RETURN/FAILED_DELIVERY/GR_CUSTOMER_RETURN/GR_FAILED_DELIVERY; assessment/claim/reopening.
 - **Điểm kiểm chứng:** Sales own ordinary inspected CR được phép; Owner không override installed/customer-damaged/overdue.
-- **Truy vết:** Report 3 phần II, UC-71 (dòng 2007 tại snapshot đọc); nhánh BF-07-E1, BF-07-A2, BF-07-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-82; nhánh BF-07-E1, BF-07-A2, BF-07-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-72 — UC-72, UC-132
+### Implementation family UC-84 — UC-84, UC-85
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-72 Inspect Customer Return** — Warehouse Staff: Require actual CR goods and eligible customer-received source. Record customer custody and append D6 assessment/evidence by quantity. UNKNOWN waits and decision follows proper UC-71 family. No owned receipt.
-- **UC-132 Inspect Failed-Delivery Intake** — Warehouse Staff: Require posted undelivered GI-S line and failure/actual arrival evidence. Record ARR/INS and quality with shared POD+GR-FD+OPEN-FD cap. No customer custody/D6/Owner acceptance and no demand reopening before posting.
+- **UC-84 Inspect Customer Return** — Warehouse Staff: Require actual CR goods and eligible customer-received source. Record customer custody and append D6 assessment/evidence by quantity. UNKNOWN waits and decision follows proper UC-82 family. No owned receipt.
+- **UC-85 Inspect Failed-Delivery Intake** — Warehouse Staff: Require posted undelivered GI-S line and failure/actual arrival evidence. Record ARR/INS and quality with shared POD+GR-FD+OPEN-FD cap. No customer custody/D6/Owner acceptance and no demand reopening before posting.
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-18.**
 - **Quyền theo Report 3:** Warehouse Staff — Inspect CR/custody/D6 or GI-linked FD without customer custody.
@@ -1277,13 +1237,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Verify assigned receiving scope, source chain, per-GI POD-FD caps; immutable assessment for CR, claim reservation not stock reservation.
 - **Điểm đặt BE:** `src/modules/customer-returns` / `src/modules/failed-deliveries` [đề xuất, chưa có route]; model/data: CUSTOMER_RETURN/FAILED_DELIVERY/GR_CUSTOMER_RETURN/GR_FAILED_DELIVERY; assessment/claim/reopening.
 - **Điểm kiểm chứng:** FD không D6/custody khách/POD giả; CR unknown deadline vẫn PENDING.
-- **Truy vết:** Report 3 phần II, UC-72 (dòng 2022 tại snapshot đọc); nhánh BF-07-E1, BF-07-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-84; nhánh BF-07-E1, BF-07-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-73 — UC-73, UC-133
+### Implementation family UC-86 — UC-86, UC-87
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-73 Post Customer Return Receipt** — Warehouse Staff: Require latest CR inspection and decision matching kind/actor/version. Post accepted GR-CR once and convert matching customer custody without double physical arrival. Rejected goods remain custody. Do not reopen demand.
-- **UC-133 Post Failed-Delivery Receipt** — Warehouse Staff: Require actual GI-linked FD inspection/failure evidence and source allowance. Atomically post GR-FD and consume claim and reopen exact original SO/WIR/OD net quantity/version. Do not create duplicate demand or separate reopening command.
+- **UC-86 Post Customer Return Receipt** — Warehouse Staff: Require latest CR inspection and decision matching kind/actor/version. Post accepted GR-CR once and convert matching customer custody without double physical arrival. Rejected goods remain custody. Do not reopen demand.
+- **UC-87 Post Failed-Delivery Receipt** — Warehouse Staff: Require actual GI-linked FD inspection/failure evidence and source allowance. Atomically post GR-FD and consume claim and reopen exact original SO/WIR/OD net quantity/version. Do not create duplicate demand or separate reopening command.
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-18.**
 - **Quyền theo Report 3:** Warehouse Staff — Post GR-CR under proper decision or GR-FD with atomic net reopening.
@@ -1293,34 +1253,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Posting protocol + common GI guard; GR_FAILED_DELIVERY lines/unique DemandReopening; rollback toàn receipt/reopening; reversal check downstream.
 - **Điểm đặt BE:** `src/modules/customer-returns` / `src/modules/failed-deliveries` [đề xuất, chưa có route]; model/data: CUSTOMER_RETURN/FAILED_DELIVERY/GR_CUSTOMER_RETURN/GR_FAILED_DELIVERY; assessment/claim/reopening.
 - **Điểm kiểm chứng:** PGI10/POD7 chỉ FD3; rollback receipt cũng rollback reopening; GR-CR không reopen. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-73 (dòng 2038 tại snapshot đọc); nhánh BF-06-E3, BF-07-E1, BF-07-A2, BF-07-E2, BF-07-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-86; nhánh BF-06-E3, BF-07-E1, BF-07-A2, BF-07-E2, BF-07-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-74 — View Refund Request List
-
-- **RETIRED.** Hoàn tiền bên ngoài, chỉ tham chiếu UC-108.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-75 — View Refund Request Details
-
-- **RETIRED.** Hoàn tiền bên ngoài, chỉ tham chiếu UC-108.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-76 — Create Customer Return Refund Request
-
-- **RETIRED.** Hoàn tiền bên ngoài, chỉ tham chiếu UC-108.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-77 — Review Customer Return Refund Request
-
-- **RETIRED.** Hoàn tiền bên ngoài, chỉ tham chiếu UC-108.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-78 — Record Refund Completion
-
-- **RETIRED.** Hoàn tiền bên ngoài, chỉ tham chiếu UC-108.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### UC-79 — View supplier return request list
+### UC-88 — View supplier return request list
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-19.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Agreement / reconciliation scope; Warehouse Staff — Assigned warehouse.
@@ -1330,9 +1265,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** SUPPLIER_RETURN scoped query, preserve separate finance status.
 - **Điểm đặt BE:** `src/modules/supplier-returns` [đề xuất, chưa có route]; model/data: SUPPLIER_RETURN/GI_SUPPLIER_RETURN/SUPPLIER_ACK; agreement/EXT-REF.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-79 (dòng 2085 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-88. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-80 — View supplier return request details
+### UC-89 — View supplier return request details
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-19.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Agreement / reconciliation scope; Warehouse Staff — Assigned warehouse.
@@ -1342,21 +1277,21 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Project source/agreement/version/dispatch/variance/evidence, no fake authorizationId prerequisite.
 - **Điểm đặt BE:** `src/modules/supplier-returns` [đề xuất, chưa có route]; model/data: SUPPLIER_RETURN/GI_SUPPLIER_RETURN/SUPPLIER_ACK; agreement/EXT-REF.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-80 (dòng 2102 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-89. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-81 — Create Supplier Return Request
+### UC-90 — Create Supplier Return Request
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-19.**
 - **Quyền theo Report 3:** Warehouse Staff — Propose/isolate; Accountant agreement, no Owner.
 - **Mã quyền trong seed hiện tại:** `supplier_return:create`→WAREHOUSE; `supplier_return:update`→WAREHOUSE.
 - **Đầu vào/điều kiện:** Warehouse: NCC/PO-GR/source lot/location/owner/qty/reason/evidence.
-- **Logic/kết quả:** Create SR và block defect/reserve GOOD; request Accountant agreement, chưa giảm stock; không UC-106/BF-02 gate.
+- **Logic/kết quả:** Create SR và block defect/reserve GOOD; request Accountant agreement, chưa giảm stock; không dùng BF-02 approval làm gate.
 - **Thiết kế BE:** Source cumulative return guard and proposal reservation/hold; SR AGREEMENT_PENDING, no stock batch.
 - **Điểm đặt BE:** `src/modules/supplier-returns` [đề xuất, chưa có route]; model/data: SUPPLIER_RETURN/GI_SUPPLIER_RETURN/SUPPLIER_ACK; agreement/EXT-REF.
-- **Điểm kiểm chứng:** SR không route UC-106; proposal không trừ stock, GOOD được reserve/defect block.
-- **Truy vết:** Report 3 phần II, UC-81 (dòng 2119 tại snapshot đọc); nhánh BF-08-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Điểm kiểm chứng:** SR không có route Owner approval; proposal không trừ stock, GOOD được reserve/defect block.
+- **Truy vết:** Report 3 phần II, UC-90; nhánh BF-08-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-82 — Confirm Supplier Return Dispatch
+### UC-91 — Confirm Supplier Return Dispatch
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-19.**
 - **Quyền theo Report 3:** Warehouse Staff — Post actual agreed GI-SR/custody release; no Owner.
@@ -1366,9 +1301,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Atomic dispatch batch/stock/reservation/handovers/progress, guard current agreement/freeze/owner/source.
 - **Điểm đặt BE:** `src/modules/supplier-returns` [đề xuất, chưa có route]; model/data: SUPPLIER_RETURN/GI_SUPPLIER_RETURN/SUPPLIER_ACK; agreement/EXT-REF.
 - **Điểm kiểm chứng:** NCC lấy4 custody chưa owned chỉ giảm custody; ACK không trừ thêm. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-82 (dòng 2134 tại snapshot đọc); nhánh BF-02-E2, BF-08-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-91; nhánh BF-02-E2, BF-08-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-83 — Review Supplier Return Closure
+### UC-92 — Review Supplier Return Closure
 
 - **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-19.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconcile and close accounted warehouse quantities.
@@ -1378,9 +1313,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Reconcile read/write current source and outcomes; BusinessOperation/audit no stock mutation; no close if unexplained qty.
 - **Điểm đặt BE:** `src/modules/supplier-returns` [đề xuất, chưa có route]; model/data: SUPPLIER_RETURN/GI_SUPPLIER_RETURN/SUPPLIER_ACK; agreement/EXT-REF.
 - **Điểm kiểm chứng:** Dispute chưa resolve chặn close; finance pending không bắt phần kho chờ nếu đã accounted.
-- **Truy vết:** Report 3 phần II, UC-83 (dòng 2149 tại snapshot đọc); nhánh BF-08-E2, BF-08-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-92; nhánh BF-08-E2, BF-08-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-84 — View stocktake list
+### UC-93 — View stocktake list
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-14.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -1390,9 +1325,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Scoped STOCKTAKE query, no activation side effects.
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-84 (dòng 2187 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-93. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-85 — View stocktake details
+### UC-94 — View stocktake details
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-14.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -1402,25 +1337,25 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Read immutable snapshots and attempts with scope and current plan; no overwrite on load.
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-85 (dòng 2204 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-94. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-86 — Create Stocktake Session
+### UC-95 — Create Stocktake Session
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-14.**
 - **Quyền theo Report 3:** Store Owner — Plan session.
 - **Mã quyền trong seed hiện tại:** `stocktake:create`→OWNER.
 - **Đầu vào/điều kiện:** Owner: kho/location/date/counters/target scope.
 - **Logic/kết quả:** Plan monthly/targeted, kiểm feasibility/overlap; lưu PLANNED chưa freeze/snapshot. Không job auto session.
-- **Thiết kế BE:** Validate known scope/assignment; persist STOCKTAKE only, activation at UC-87.
+- **Thiết kế BE:** Validate known scope/assignment; persist STOCKTAKE only, activation at UC-96.
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-86 (dòng 2221 tại snapshot đọc); nhánh BF-05-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-95; nhánh BF-05-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-87 — UC-87, UC-134
+### Implementation family UC-96 — UC-96, UC-97
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-87 Activate Stocktake Session** — Warehouse Staff: Require Owner-planned scope and resolved open tasks/no overlap. Atomically freeze and save immutable snapshot. Export snapshot sheet through UC-105. Do not post stock.
-- **UC-134 Record Stocktake Count Attempt** — Warehouse Staff: Require activated locked scope. Append actual count/recount with BOX/PIECE/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting.
+- **UC-96 Activate Stocktake Session** — Warehouse Staff: Require Owner-planned scope and resolved open tasks/no overlap. Atomically freeze and save immutable snapshot. Export snapshot sheet through UC-121. Do not post stock.
+- **UC-97 Record Stocktake Count Attempt** — Warehouse Staff: Require activated locked scope. Append actual count/recount with BOX/PIECE/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting.
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-14.**
 - **Quyền theo Report 3:** Warehouse Staff — Count / reconcile / propose within locked scope.
@@ -1430,13 +1365,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Activation competes same location guards as postings; Snapshot/CountAttempt append-only, scope protected, no ordinary quality mutation.
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Blank không thành zero; activation race với posting không lọt freeze; count attempts không overwrite.
-- **Truy vết:** Report 3 phần II, UC-87 (dòng 2236 tại snapshot đọc); nhánh BF-05-E1, BF-05-A1, BF-05-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-96; nhánh BF-05-E1, BF-05-A1, BF-05-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-88 — UC-88, UC-135
+### Implementation family UC-98 — UC-98, UC-99
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-88 Reconcile Stocktake Results** — Warehouse Staff: Compare selected count attempts to immutable snapshot by total/quality/location and substantiate causes. Direct substantiated plan or recount via count UC. Do not unlock in reconciliation.
-- **UC-135 Close Stocktake Without Variance** — Warehouse Staff: Require zero quantity/quality/location variance and no unresolved hold/task in locked scope. Atomically close eligible scope/unlock without ADJ0 or inventory posting. Quality-only mismatch must use resolution approval/closure.
+- **UC-98 Reconcile Stocktake Results** — Warehouse Staff: Compare selected count attempts to immutable snapshot by total/quality/location and substantiate causes. Direct substantiated plan or recount via count UC. Do not unlock in reconciliation.
+- **UC-99 Close Stocktake Without Variance** — Warehouse Staff: Require zero quantity/quality/location variance and no unresolved hold/task in locked scope. Atomically close eligible scope/unlock without ADJ0 or inventory posting. Quality-only mismatch must use resolution approval/closure.
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-14.**
 - **Quyền theo Report 3:** Warehouse Staff — Count / reconcile / propose within locked scope.
@@ -1446,10 +1381,10 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Reconcile selected attempts/source/UOM; no ADJ0/fictitious shortage; guard closure atomically against new holds.
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Có bằng chứng cho shortage2 được plan trực tiếp, chưa rõ mới recount; quality variance không giả shortage.
-- **Truy vết:** Report 3 phần II, UC-88 (dòng 2252 tại snapshot đọc); nhánh BF-05-A1, BF-05-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-98; nhánh BF-05-A1, BF-05-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Kết quả đang đếm/đối chiếu chưa là nguồn cảnh báo tồn thấp sau chốt. Hoàn tất nhánh không lệch cũng phát STOCKTAKE_CLOSED chỉ sau commit/unlock hợp lệ.
 
-### UC-89 — View inventory adjustment request list
+### UC-100 — View inventory adjustment request list
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-15.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -1459,9 +1394,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Query ST_RESOLUTION + actual ADJ links, distinguish plan from stock posting.
 - **Điểm đặt BE:** `src/modules/stocktake-resolutions` [đề xuất, chưa có route]; model/data: ST_RESOLUTION/ADJUSTMENT/RECLASS; Approval/DefectHold/PostingBatch.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-89 (dòng 2268 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-100. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-90 — View inventory adjustment request details
+### UC-101 — View inventory adjustment request details
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-15.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View.
@@ -1471,13 +1406,13 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Typed line actions/caps/count versions + approval/execution refs; no editing posted plan.
 - **Điểm đặt BE:** `src/modules/stocktake-resolutions` [đề xuất, chưa có route]; model/data: ST_RESOLUTION/ADJUSTMENT/RECLASS; Approval/DefectHold/PostingBatch.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-90 (dòng 2285 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-101. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-91 — UC-91, UC-136
+### Implementation family UC-102 — UC-102, UC-103
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-91 Propose Stocktake Resolution** — Warehouse Staff: Save versioned ST_RESOLUTION from selected count/hold evidence. Separate nonzero DELTA from total-preserving RECLASS/location and submit to distinct Owner UC-92. No ordinary balance posting.
-- **UC-136 Confirm Stocktake Resolution Execution** — Warehouse Staff: Require current UC-92-approved plan and actual Warehouse execution/evidence matching exact actions/quantities. Save execution confirmation and retain freeze/hold until UC-93 batch. Changed plan requires fresh review.
+- **UC-102 Propose Stocktake Resolution** — Warehouse Staff: Save versioned ST_RESOLUTION from selected count/hold evidence. Separate nonzero DELTA from total-preserving RECLASS/location and submit to distinct Owner UC-104. No ordinary balance posting.
+- **UC-103 Confirm Stocktake Resolution Execution** — Warehouse Staff: Require current UC-104-approved plan and actual Warehouse execution/evidence matching exact actions/quantities. Save execution confirmation and retain freeze/hold until UC-105 batch. Changed plan requires fresh review.
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-15.**
 - **Quyền theo Report 3:** Warehouse Staff — Propose B1 delta/RECLASS/location and confirm execution.
@@ -1487,46 +1422,46 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** ST_RESOLUTION typed lines + selected CountAttempt/hold; executedBy/At/evidence all-or-none, changed plan invalidates approval.
 - **Điểm đặt BE:** `src/modules/stocktake-resolutions` [đề xuất, chưa có route]; model/data: ST_RESOLUTION/ADJUSTMENT/RECLASS; Approval/DefectHold/PostingBatch.
 - **Điểm kiểm chứng:** Book50/count48GOOD+2broken => RECLASS2, không shortage2/ADJ0.
-- **Truy vết:** Report 3 phần II, UC-91 (dòng 2302 tại snapshot đọc); nhánh BF-05-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-102; nhánh BF-05-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-92 — Approve Stocktake Resolution
+### UC-104 — Approve Stocktake Resolution
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-15.**
 - **Quyền theo Report 3:** Store Owner — Approve/return current B1 resolution; not requester.
 - **Mã quyền trong seed hiện tại:** `stock_adjustment:approve`→OWNER.
 - **Đầu vào/điều kiện:** Owner khác proposer: latest count/plan/version/hold/evidence.
-- **Logic/kết quả:** Review approve/reject/return exact action/qty/version, quality-only vẫn approval; không post/unlock. Require Warehouse execution và UC-93.
+- **Logic/kết quả:** Review approve/reject/return exact action/qty/version, quality-only vẫn approval; không post/unlock. Require Warehouse execution và UC-105.
 - **Thiết kế BE:** Append Approval binds planVersion/count/action lines; same-user deny; no stock mutation.
 - **Điểm đặt BE:** `src/modules/stocktake-resolutions` [đề xuất, chưa có route]; model/data: ST_RESOLUTION/ADJUSTMENT/RECLASS; Approval/DefectHold/PostingBatch.
 - **Điểm kiểm chứng:** Approve không unlock; plan đổi version cần duyệt mới, Owner khác proposer.
-- **Truy vết:** Report 3 phần II, UC-92 (dòng 2317 tại snapshot đọc); nhánh BF-05-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-104; nhánh BF-05-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-93 — Clear Stocktake Difference
+### UC-105 — Clear Stocktake Difference
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-15.**
 - **Quyền theo Report 3:** Store Owner — Post approved B1 batch after Warehouse execution; unlock resolved scope.
 - **Mã quyền trong seed hiện tại:** `stock_adjustment:post`→OWNER.
-- **Đầu vào/điều kiện:** Owner: UC-92 current approval/count/plan, Warehouse actual execution/evidence, resolvable tasks/holds.
+- **Đầu vào/điều kiện:** Owner: UC-104 current approval/count/plan, Warehouse actual execution/evidence, resolvable tasks/holds.
 - **Logic/kết quả:** One batch actual DELTA khác0 nếu có + RECLASS/location; only committed complete closure unlock/resolve holds. Lỗi rollback giữ freeze.
 - **Thiết kế BE:** Atomic stock batch+source guard+plan+hold+lock release+audit/outbox; recheck execution/version and ledger before/after.
 - **Điểm đặt BE:** `src/modules/stocktake-resolutions` [đề xuất, chưa có route]; model/data: ST_RESOLUTION/ADJUSTMENT/RECLASS; Approval/DefectHold/PostingBatch.
 - **Điểm kiểm chứng:** Book50/count46GOOD+2broken => delta-2+RECLASS2; lỗi giữ freeze/hold và rollback tất cả. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-93 (dòng 2332 tại snapshot đọc); nhánh BF-05-A3, BF-05-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-105; nhánh BF-05-A3, BF-05-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Ghi STOCKTAKE_CLOSED + documentVersion cùng transaction chốt/unlock. Consumer sau commit báo Warehouse đúng kho, Owner không tự tạo RR; lỗi thông báo retry riêng.
 
-### UC-94 — Sign in to the system
+### UC-106 — Sign in to the system
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-01.**
 - **Quyền theo Report 3:** Store Owner — Use; Accountant — Use; Warehouse Staff — Use; Sales Staff — Use; Administrator — Use.
-- **Mã quyền trong seed hiện tại:** UC-94 dùng authenticated session; login chưa yêu cầu business permission..
+- **Mã quyền trong seed hiện tại:** UC-106 dùng authenticated session; login chưa yêu cầu business permission..
 - **Đầu vào/điều kiện:** Active personal username/password.
 - **Logic/kết quả:** Verify hash/active server; session giữ role/permissions/warehouse scope, không default Admin rights; không log credential.
 - **Thiết kế BE:** Reuse auth routes/service; trustworthy req.user; secure env secrets; scope DTO contract with FE, not JWT claim alone.
 - **Điểm đặt BE:** `src/modules/auth` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-94 (dòng 2363 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-106. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-95 — View account list
+### UC-107 — View account list
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-02.**
 - **Quyền theo Report 3:** Administrator — View.
@@ -1536,9 +1471,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Fix permission prerequisite, scoped admin query/projection, whitelist bounded pagination and search.
 - **Điểm đặt BE:** `src/modules/users` / `src/modules/roles` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission/warehouseIds; AuditEvent.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-95 (dòng 2377 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-107. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-96 — View account details
+### UC-108 — View account details
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-02.**
 - **Quyền theo Report 3:** Administrator — View.
@@ -1548,26 +1483,26 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Direct getById permission equal list, safe DTO and ObjectId validation.
 - **Điểm đặt BE:** `src/modules/users` / `src/modules/roles` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission/warehouseIds; AuditEvent.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-96 (dòng 2394 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-108. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-97 — UC-97, UC-137, UC-138
+### Implementation family UC-109 — UC-109, UC-110, UC-111
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-97 Create Staff Account** — Administrator: Create unique staff identity/protected credentials with exactly one existing role including inactive accounts. Role/operation/warehouse assignment remains UC-98.
-- **UC-137 Update Staff Account Information** — Administrator: Update permitted account profile/credentials with audit and historical actor references. Exclude status and access assignment UC-98.
-- **UC-138 Change Staff Account Status** — Administrator: Activate/deactivate existing account with audit. Inactive cannot sign in and historical actors remain unchanged. This grants no business posting rights.
+- **UC-109 Create Staff Account** — Administrator: Create unique staff identity/protected credentials with exactly one existing role including inactive accounts. Role/operation/warehouse assignment remains UC-112.
+- **UC-110 Update Staff Account Information** — Administrator: Update permitted account profile/credentials with audit and historical actor references. Exclude status and access assignment UC-112.
+- **UC-111 Change Staff Account Status** — Administrator: Activate/deactivate existing account with audit. Inactive cannot sign in and historical actors remain unchanged. This grants no business posting rights.
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-02.**
 - **Quyền theo Report 3:** Administrator — Perform.
 - **Mã quyền trong seed hiện tại:** `user:create`→ADMIN; `user:update`→ADMIN.
 - **Đầu vào/điều kiện:** Admin: unique username/fullName/contact/password/active.
-- **Logic/kết quả:** Maintain account/lock, protect credential hash/audit/actor history; role/warehouse assignments belong UC-98. Không default business approval.
+- **Logic/kết quả:** Maintain account/lock, protect credential hash/audit/actor history; role/warehouse assignments belong UC-112. Không default business approval.
 - **Thiết kế BE:** Whitelist payload, bcrypt hash, duplicate unique-index handling, inactive login denied; preserve audit refs and avoid self-lock bypass.
 - **Điểm đặt BE:** `src/modules/users` / `src/modules/roles` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission/warehouseIds; AuditEvent.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
-- **Truy vết:** Report 3 phần II, UC-97 (dòng 2411 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-109. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-98 — Assign roles and operation permissions
+### UC-112 — Assign roles and operation permissions
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-02.**
 - **Quyền theo Report 3:** Administrator — Maintain existing role / operation / warehouse scope.
@@ -1577,9 +1512,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Extend missing assignment path; whitelist PERMISSION_CATALOGUE, validate role-operation restrictions/warehouse existence and audit; no Permission.create arbitrary code.
 - **Điểm đặt BE:** `src/modules/users` / `src/modules/roles` [module đã có; cần đối chiếu quyền/contract]; model/data: User/Role/Permission/warehouseIds; AuditEvent.
 - **Điểm kiểm chứng:** Từ chối quyền retired/arbitrary, gán nhiều role và đổi role để lách SoD.
-- **Truy vết:** Report 3 phần II, UC-98 (dòng 2425 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-112. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-99 — View Operational Reports
+### UC-113 — View Operational Reports
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-20.**
 - **Quyền theo Report 3:** Store Owner — All report groups; Accountant — Movement; purchase/receipt; Warehouse Staff — Movement; stock; transfer; stocktake.
@@ -1589,9 +1524,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Authorize group on server dù report:read, scoped aggregation and cutoff dimensions; no fabricated SLA/financial metrics.
 - **Điểm đặt BE:** `src/modules/reports` [đề xuất, chưa có route]; model/data: Scoped stock/document aggregations.
 - **Điểm kiểm chứng:** Accountant không đọc stocktake report chỉ vì có report:read; export giữ scope.
-- **Truy vết:** Report 3 phần II, UC-99 (dòng 2439 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-113. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-100 — View stock movement log
+### UC-114 — View stock movement log
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-21.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Purchase / supplier scope; Warehouse Staff — View.
@@ -1601,9 +1536,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** StockMovement append-only queries, correct time filter/scope/sort and source projection.
 - **Điểm đặt BE:** `src/modules/stock-movements` / `src/modules/trace` [đề xuất, chưa có route]; model/data: StockMovement/PostingBatch/DocumentLink/LineLink/AuditEvent.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-100 (dòng 2453 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-114. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-101 — View stock movement details
+### UC-115 — View stock movement details
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-21.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Purchase / supplier scope; Warehouse Staff — View.
@@ -1613,9 +1548,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Authorize parent doc/warehouse and account owner before returning ledger/evidence.
 - **Điểm đặt BE:** `src/modules/stock-movements` / `src/modules/trace` [đề xuất, chưa có route]; model/data: StockMovement/PostingBatch/DocumentLink/LineLink/AuditEvent.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-101 (dòng 2471 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-115. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-102 — Trace a product lot through source documents
+### UC-116 — Trace a product lot through source documents
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-21.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Purchase / supplier scope; Warehouse Staff — View.
@@ -1625,14 +1560,14 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Traverse DocumentLink/LineLink/source IDs scoped, avoid duplicate event legs masquerading extra stock.
 - **Điểm đặt BE:** `src/modules/stock-movements` / `src/modules/trace` [đề xuất, chưa có route]; model/data: StockMovement/PostingBatch/DocumentLink/LineLink/AuditEvent.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
-- **Truy vết:** Report 3 phần II, UC-102 (dòng 2489 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-116. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-103 — UC-103, UC-139, UC-140
+### Implementation family UC-117 — UC-117, UC-118, UC-119
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-103 Compare Shortage Fulfilment Options** — Store Owner, Warehouse Staff, Sales Staff: Compare compatible current available stock/holds/timely allocated incoming and pending RR by authorized shortage context. Reevaluate stale Notifications and source versions. Owner is read-only.
-- **UC-139 Select Warehouse Supply Option** — Warehouse Staff: Select feasible stock/direct-dispatch/transfer/replenishment option within assigned warehouse responsibilities and save choice/source link. Create actual TR/RR only through authorized UC and do not auto-post.
-- **UC-140 Confirm Customer Fulfilment Choice** — Sales Staff: Record customer fulfilment choice based on feasible options/current source versions. Save choice without automatic purchase/transfer/stock posting and route actual RR/OD to its UC.
+- **UC-117 Compare Shortage Fulfilment Options** — Store Owner, Warehouse Staff, Sales Staff: Compare compatible current available stock/holds/timely allocated incoming and pending RR by authorized shortage context. Reevaluate stale Notifications and source versions. Owner is read-only.
+- **UC-118 Select Warehouse Supply Option** — Warehouse Staff: Select feasible stock/direct-dispatch/transfer/replenishment option within assigned warehouse responsibilities and save choice/source link. Create actual TR/RR only through authorized UC and do not auto-post.
+- **UC-119 Confirm Customer Fulfilment Choice** — Sales Staff: Record customer fulfilment choice based on feasible options/current source versions. Save choice without automatic purchase/transfer/stock posting and route actual RR/OD to its UC.
 
 - **ACTIVE · FE-06 — Nhu cầu và xác nhận · SC-10, SC-16.**
 - **Quyền theo Report 3:** Store Owner — View; Warehouse Staff — View / select stock option; Sales Staff — View / confirm customer fulfilment.
@@ -1642,22 +1577,22 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Pure scoped suggestion + selection linkage; no stock effect until authorized downstream reservation/dispatch/RR/TR.
 - **Điểm đặt BE:** `src/modules/inventory` / `src/modules/fulfilment-options` [đề xuất, chưa có route]; model/data: StockBalance/StockAccount/Reservation/DefectHold/DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Need80 main30 other50 compatible => đề xuất direct/transfer, không tự tạo PO50.
-- **Truy vết:** Report 3 phần II, UC-103 (dòng 1811 tại snapshot đọc); nhánh BF-01-A1, BF-02-E1, BF-04-A1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-117; nhánh BF-01-A1, BF-02-E1, BF-04-A1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** Hiển thị nguồn/coverage và nút Tạo yêu cầu mở form điền sẵn. SO vừa lưu còn thiếu mới thì hỏi tạo RR, kể cả thiếu một phần; chưa rõ đánh giá không coi là nguồn0. Refresh/retry không tự lặp hộp thoại.
 
-### UC-104 — Inspect and Post Transfer Receipt
+### UC-120 — Inspect and Post Transfer Receipt
 
 - **ACTIVE · FE-05 — Nhận điều chuyển · SC-13.**
 - **Quyền theo Report 3:** Warehouse Staff — Destination receive/post; independent from dispatcher.
 - **Mã quyền trong seed hiện tại:** `stock_transfer:receive`→WAREHOUSE.
 - **Đầu vào/điều kiện:** Independent destination Warehouse: TD/TR/source lines/remaining transit, actual qty/quality/evidence.
-- **Logic/kết quả:** Post actual MWTR transit→destination; quality split, allocation preserved; wrong/excess unresolved; put-away/UC-44 tiếp.
+- **Logic/kết quả:** Post actual MWTR transit→destination; quality split, allocation preserved; wrong/excess unresolved; put-away/UC-56 tiếp.
 - **Thiết kế BE:** Guard TD/TR/destination/receiver!=dispatcher/source version; atomic batch/stock/allocations/receipt/progress, no negative transit.
 - **Điểm đặt BE:** `src/modules/transfers` [đề xuất, chưa có route]; model/data: TRANSFER_REQUEST/TRANSFER_DISPATCH/MWTR/HANDOVER/DISCREPANCY.
 - **Điểm kiểm chứng:** TD100 nhận95GOOD+3DAMAGED => đích98/transit2; dispatcher không được nhận. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
-- **Truy vết:** Report 3 phần II, UC-104 (dòng 1556 tại snapshot đọc); nhánh BF-04-E1, BF-04-E2, BF-04-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-120; nhánh BF-04-E1, BF-04-E2, BF-04-E3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-105 — Export or Print Stocktake Count Sheet
+### UC-121 — Export or Print Stocktake Count Sheet
 
 - **ACTIVE · FE-08 — Kiểm kê/B1 · SC-14.**
 - **Quyền theo Report 3:** Store Owner — Export / print; Warehouse Staff — Export / print assigned scope.
@@ -1667,54 +1602,32 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Read snapshot projection with scope; no activation/stock transaction, print failure no repost.
 - **Điểm đặt BE:** `src/modules/stocktakes` [đề xuất, chưa có route]; model/data: STOCKTAKE/LocationLock/StocktakeSnapshot/CountAttempt/DefectHold.
 - **Điểm kiểm chứng:** Print retry không snapshot/activate lại hoặc ghi count0 vào ô trống.
-- **Truy vết:** Report 3 phần II, UC-105 (dòng 2348 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-121. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-106 — Approve Supplier Return and Variance Resolution
-
-- **RETIRED.** BF-08 không Owner approval: Warehouse UC-82, Accountant UC-107/83, EXT-REF UC-108.
-- Không tạo endpoint/operation permission/approval mới; không xóa history và không dùng approval lịch sử làm gate.
-
-### Implementation family UC-107 — UC-107, UC-141, UC-142
+### Implementation family UC-122 — UC-122, UC-123
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-107 Verify Supplier Return Agreement** — Accountant: Before dispatch record verified supplier agreement/refusal/source/quantity/schedule/evidence for exact SR version. No Owner approval or stock posting.
-- **UC-141 Record Supplier Receipt Acknowledgement** — Accountant: After actual Warehouse dispatch record supplier actual ACK quantities/outcome/time/evidence per source line. Do not rewrite GI-SR or deduct stock again.
-- **UC-142 Reconcile Supplier Return Variance** — Accountant: Compare dispatch/ACK and record evidenced supplier variance resolution. Keep disputes/missing/refused quantities open. Actual incoming/outgoing belongs to Warehouse and UC-83 alone closes warehouse work.
-
-- **ACTIVE · FE-07 — Hàng lỗi/CR/FD/SR · SC-19.**
-- **Quyền theo Report 3:** Accountant — Record / verify external evidence.
-- **Mã quyền trong seed hiện tại:** `supplier_return:record_agreement`→ACCOUNTANT.
-- **Đầu vào/điều kiện:** Accountant: authentic pre-dispatch agreement/refusal hoặc later actual ACK source/qty/version/evidence.
-- **Logic/kết quả:** Lưu hai stage riêng, reconcile mismatch/resolution; disputes open, actual stock do Warehouse; UC-83 close, UC-108 finance riêng.
-- **Thiết kế BE:** Versioned verified agreement source/qty/evidence guards + immutable history; ACK can't edit GI or post inventory.
-- **Điểm đặt BE:** `src/modules/supplier-returns` [đề xuất, chưa có route]; model/data: SUPPLIER_RETURN/GI_SUPPLIER_RETURN/SUPPLIER_ACK; agreement/EXT-REF.
-- **Điểm kiểm chứng:** Agreement trước dispatch không giả ACK; ACK mismatch không rewrite GI.
-- **Truy vết:** Report 3 phần II, UC-107 (dòng 2170 tại snapshot đọc); nhánh BF-08-A1, BF-08-E2. Áp dụng BR chung và EX-01–05 khi liên quan.
-
-### Implementation family UC-108 — UC-108, UC-143
-
-Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-108 Verify Historical Customer Delivery Source** — Accountant: Verify authentic historical delivered document/line/quantity/evidence for customer-return source cap. Unknown source waits. Do not fabricate POD/provider revision/return deadline.
-- **UC-143 Record External Document Reference** — Accountant: Record verified external kind/number/date/line/source/matched quantity/evidence and NOT_RECORDED/PENDING_EXTERNAL/RECORDED_EXTERNAL status. Financial follow-up is independent of warehouse closure and does not execute payment/refund or replace UC-111.
+- **UC-122 Verify Historical Customer Delivery Source** — Accountant: Verify authentic historical delivered document/line/quantity/evidence for customer-return source cap. Unknown source waits. Do not fabricate POD/provider revision/return deadline.
+- **UC-123 Record External Document Reference** — Accountant: Record verified external kind/number/date/line/source/matched quantity/evidence and NOT_RECORDED/PENDING_EXTERNAL/RECORDED_EXTERNAL status. Financial follow-up is independent of warehouse closure and does not execute payment/refund or replace UC-130.
 
 - **ACTIVE · FE-09 — Quản trị/báo cáo/truy vết · SC-28.**
 - **Quyền theo Report 3:** Accountant — Record / verify external evidence.
 - **Mã quyền trong seed hiện tại:** `external_reference:read`→ACCOUNTANT; `external_reference:create`→ACCOUNTANT.
 - **Đầu vào/điều kiện:** Accountant: external system/kind/number/date/line/actual provider revision nếu có/correlation/evidence.
 - **Logic/kết quả:** Verify history delivered/returned/openQty hoặc link purchase/GI-SR to Invoice/Credit Note/outcome; finance independent; không fake source/deadline.
-- **Thiết kế BE:** ExternalReference/Line unique nonblank correlation + verified quantities/audit; no posting batch/money/UC-111 substitution.
+- **Thiết kế BE:** ExternalReference/Line unique nonblank correlation + verified quantities/audit; no posting batch/money/UC-130 substitution.
 - **Điểm đặt BE:** `src/modules/external-references` [đề xuất, chưa có route]; model/data: ExternalReference/ExternalReferenceLine/Evidence.
 - **Điểm kiểm chứng:** External refund/reference không thu tiền hoặc hoàn thành SO thay Sales.
-- **Truy vết:** Report 3 phần II, UC-108 (dòng 2507 tại snapshot đọc); nhánh BF-06-E1, BF-07-A1, BF-07-A3, BF-08-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-122; nhánh BF-06-E1, BF-07-A1, BF-07-A3, BF-08-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### Implementation family UC-109 — UC-109, UC-144, UC-145, UC-146, UC-147
+### Implementation family UC-124 — UC-124, UC-125, UC-126, UC-127, UC-128
 
 Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp quyền cho từng UC. Đọc hợp đồng riêng tại Report 3 và crosswalk 30/10/2026.
-- **UC-109 View WIR List** — Store Owner, Accountant, Warehouse Staff, Sales Staff: List saved WIR within existing role/warehouse/related-demand scope with filters/status. No mutations.
-- **UC-144 View WIR Details** — Store Owner, Accountant, Warehouse Staff, Sales Staff: Require selected scoped WIR and display SO-line/OD/net commitment/reopening history with scoped evidence. No mutations.
-- **UC-145 Create Linked WIR** — Sales Staff: Create WIR with saved verified original SO/line and current source version. Cumulative effective WIR commitments cannot exceed SO after valid cancellation. No physical stock posting.
-- **UC-146 Update Linked WIR** — Sales Staff: Update permitted WIR commitment with current SO/WIR versions and eligible net quantity. GR-FD alone reopens demand atomically and replacement OD commitment transfer belongs UC-51. Never duplicate original demand.
-- **UC-147 Cancel Eligible WIR Remainder** — Sales Staff: Cancel only unexecuted or received-back not-redelivered WIR remainder after dependent OD/task/hold resolution. Preserve history and forbid cancelling unresolved off-site quantities. No stock movement.
+- **UC-124 View WIR List** — Store Owner, Accountant, Warehouse Staff, Sales Staff: List saved WIR within existing role/warehouse/related-demand scope with filters/status. No mutations.
+- **UC-125 View WIR Details** — Store Owner, Accountant, Warehouse Staff, Sales Staff: Require selected scoped WIR and display SO-line/OD/net commitment/reopening history with scoped evidence. No mutations.
+- **UC-126 Create Linked WIR** — Sales Staff: Create WIR with saved verified original SO/line and current source version. Cumulative effective WIR commitments cannot exceed SO after valid cancellation. No physical stock posting.
+- **UC-127 Update Linked WIR** — Sales Staff: Update permitted WIR commitment with current SO/WIR versions and eligible net quantity. GR-FD alone reopens demand atomically and replacement OD commitment transfer belongs UC-64. Never duplicate original demand.
+- **UC-128 Cancel Eligible WIR Remainder** — Sales Staff: Cancel only unexecuted or received-back not-redelivered WIR remainder after dependent OD/task/hold resolution. Preserve history and forbid cancelling unresolved off-site quantities. No stock movement.
 
 - **ACTIVE · FE-06 — Nhu cầu và xác nhận · SC-29.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Related execution view; Sales Staff — Manage net WIR/reopened demand; cancel eligible remainder.
@@ -1724,10 +1637,10 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** ISSUE_REQUEST header.salesOrderId, details.salesOrderLineId/releaseKey unique; shared source guard, BusinessOperation/version, no stock by WIR itself.
 - **Điểm đặt BE:** `src/modules/issue-requests` [đề xuất, chưa có route]; model/data: ISSUE_REQUEST/SALES_ORDER lines; releaseKey/BusinessOperation/OdCommitmentTransfer.
 - **Điểm kiểm chứng:** Không WIR thiếu saved SO, không duplicate releaseKey; FD claim chưa post không reopen.
-- **Truy vết:** Report 3 phần II, UC-109 (dòng 1826 tại snapshot đọc); nhánh BF-06-E1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-124; nhánh BF-06-E1, BF-06-A1. Áp dụng BR chung và EX-01–05 khi liên quan.
 - **Bổ sung 3.3.0:** WIR là release của SO gốc; RR đã tạo trực tiếp từ SO phải được tính khi kiểm thiếu từ WIR, không cộng SO/WIR allocations hoặc RR trùng lượng.
 
-### UC-110 — Confirm Customer Delivery with Photo Evidence
+### UC-129 — Confirm Customer Delivery with Photo Evidence
 
 - **ACTIVE · FE-06 — Nhu cầu và xác nhận · SC-30.**
 - **Quyền theo Report 3:** Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Confirm / correct POD in assigned warehouse; Sales Staff — Related progress view.
@@ -1737,9 +1650,9 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** BusinessOperation+confirmation+source/SO conditional writes+version/audit/outbox, validate image parent/storage before commit; no stock batch.
 - **Điểm đặt BE:** `src/modules/customer-deliveries` [đề xuất, chưa có route]; model/data: DELIVERY_CONFIRMATION; BusinessOperation/Evidence; GI source guard.
 - **Điểm kiểm chứng:** Ảnh upload fail/khác POD không confirm; POD và FD cạnh tranh cùng cap GI; không repick/re-PGI.
-- **Truy vết:** Report 3 phần II, UC-110 (dòng 1842 tại snapshot đọc); nhánh BF-06-E3, BF-06-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-129; nhánh BF-06-E3, BF-06-A2. Áp dụng BR chung và EX-01–05 khi liên quan.
 
-### UC-111 — Confirm Full External Payment Receipt
+### UC-130 — Confirm Full External Payment Receipt
 
 - **ACTIVE · FE-06 — Nhu cầu và xác nhận · SC-31.**
 - **Quyền theo Report 3:** Sales Staff — confirm/correct full external receipt after DELIVERED; Store Owner — view; Accountant — reconciliation scope, no confirmation; Warehouse Staff — related progress view, no confirmation. Administrator has no right.
@@ -1749,7 +1662,7 @@ Các ghi chú triển khai sau áp dụng cho nhóm kế thừa, không cấp qu
 - **Thiết kế BE:** Unique SO/deliveredOrderVersion+operationId, BusinessOperation+SO/version/audit/outbox atomic; no stock/reservation/payment execution.
 - **Điểm đặt BE:** `src/modules/external-payment-confirmations` [đề xuất, chưa có route]; model/data: PAYMENT_CONFIRMATION; BusinessOperation; deliveredOrderVersion.
 - **Điểm kiểm chứng:** Warehouse/Accountant/Owner không confirm thay Sales; prepayment/partial không complete; version cũ vô hiệu.
-- **Truy vết:** Report 3 phần II, UC-111 (dòng 1858 tại snapshot đọc); nhánh BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
+- **Truy vết:** Report 3 phần II, UC-130; nhánh BF-06-A3. Áp dụng BR chung và EX-01–05 khi liên quan.
 
 ## 8. Checklist triển khai theo một UC
 
@@ -1765,7 +1678,7 @@ Các ví dụ/T01–T56 là tiêu chí thiết kế, không phải lịch sử t
 
 ## 9. Duy trì context
 
-Khi UC/BR/quyền/trạng thái/contract đổi theo quyết định được chấp thuận, cập nhật đúng context FE và BE cùng nguồn chuẩn liên quan, giữ IDs/retired history; ghi rõ decision mới thay baseline nào. Khi checkout thay, đọc lại code/test/config thay vì tin snapshot này vĩnh viễn. Không dùng context để tự mở rộng scope hoặc tự cấp quyền triển khai/commit.
+Khi UC/BR/quyền/trạng thái/contract đổi theo quyết định được chấp thuận, cập nhật đúng context FE và BE cùng nguồn chuẩn liên quan, giữ nguyên mã UC hiện hành; ghi rõ decision mới thay baseline nào. Khi checkout thay, đọc lại code/test/config thay vì tin snapshot này vĩnh viễn. Không dùng context để tự mở rộng scope hoặc tự cấp quyền triển khai/commit.
 
 ### Dấu vết nguồn tại lúc tạo — snapshot 26/10 (SHA-256 rút gọn)
 

@@ -249,7 +249,7 @@ Ví dụ: SO100, không có tồn/nguồn phù hợp → hỏi bổ sung100. SO1
 
 ### 5.2. Sau kiểm kê
 
-1. Warehouse kiểm đếm/đối chiếu và xác nhận thực hiện; khi có chênh lệch Owner duyệt/chốt batch UC-92/93. Nhánh không lệch đóng hợp lệ theo BF-05. Chỉ sau commit cập nhật tồn và mở khóa mới phát đánh giá/thông báo.
+1. Warehouse kiểm đếm/đối chiếu và xác nhận thực hiện; khi có chênh lệch Owner duyệt/chốt batch UC-104/105. Nhánh không lệch đóng hợp lệ theo BF-05. Chỉ sau commit cập nhật tồn và mở khóa mới phát đánh giá/thông báo.
 2. Đánh giá toàn sản phẩm/kho theo policy gồm SKU0. Available theo STORE/GOOD, lot VERIFIED, kho/vị trí/product active, STORAGE allocatable, không hold/freeze và trừ ACTIVE reservation một lần. Không lấy một kệ làm tổng kho; DefectHold hiện chặn toàn balance có hold.
 3. Hoãn khi scope liên quan còn freeze. Hàng đã nhận chờ put-away là nguồn đang xử lý phù hợp, chưa là available; không đề nghị bù hai lần.
 4. Warehouse active đúng kho thấy Notification tổng hợp và danh sách Cảnh báo tồn thấp. Khi mở, hệ thống tính lại. Dòng đã có RR/cung đủ hiển thị đang có phương án đáp ứng; chỉ dòng còn thiếu mới có lượng gợi ý tạo.

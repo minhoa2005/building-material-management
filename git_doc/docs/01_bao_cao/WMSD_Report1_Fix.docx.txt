@@ -103,7 +103,7 @@ Date
 	09/10/26
 	M
 	TrungPH
-	Modify and revise Product Background 
+	Modify and revise Product Background
 	15/10/2026
 	M
 	Project Team
@@ -137,7 +137,7 @@ Acronym
 	Feature – identifier for an in-scope function in Section V.
 	LI
 	Limitation/Exclusion – identifier for a capability outside this release.
-	
+
 
 I. Project Overview
 1. Project Information
@@ -160,13 +160,13 @@ Full Name
 	Mobile
 	Tân Thương
 	Client
-	
+
 
 	0344449888
 	Nguyễn Thị Hải Năng
 	Supervisor
 	nangnth@fpt.edu.vn
-	
+
 
 	Đặng Trung Hiếu
 	Leader
@@ -188,7 +188,7 @@ Full Name
 	Member
 	danghhhe163301@fpt.edu.vn
 	0382381426
-	
+
 
 II. Product Background
 The store supplies wall/floor tiles for construction and renovation. Earlier project notes place it at Phố Tân An, xã Tân An, Yên Dũng, Bắc Giang; the 20 October survey does not independently verify that address or provide individual warehouse addresses.
@@ -292,7 +292,7 @@ Gap ID
 	An individual quantity cannot be followed across receiving, storage, movement, issue and return.
 	Section Summary. KiotViet and MISA eShop already offer established retail and inventory functions. The nine GAPs describe the store's unresolved physical controls and fragmented records. WMSD addresses tile-specific inspection, traceable stock events, exception resolution and count accountability, together with source-linked warehouse issue fulfilment and external-document reconciliation. Financial accounting and sales payment/debt management remain outside WMSD.
 IV. Proposed Solution
-The proposed solution supports nine features across eight linked warehouse processes, with five application roles, 133 active use cases and BR-01–33. Sales/Warehouse creates source-linked replenishment requests through one editable prefilled form; a different Owner approves before Accountant creates the purchase order. Saved sales orders and committed stocktakes provide shortage warnings and scoped in-app notifications.
+The proposed solution supports nine features across eight linked warehouse processes, with five application roles, 130 active use cases and BR-01–33. Sales/Warehouse creates source-linked replenishment requests through one editable prefilled form; a different Owner approves before Accountant creates the purchase order. Saved sales orders and committed stocktakes provide shortage warnings and scoped in-app notifications.
 
 | Gap | Feature | Proposed operational handling |
 |---|---|---|
@@ -303,7 +303,7 @@ The proposed solution supports nine features across eight linked warehouse proce
 | GAP-05 | FE-05 — Warehouse Transfer and Discrepancy Management | Approved TR → draft TD before picking → TO execution if staging → actual TD/HO → independent MWTR/put-away. Preserve allocations and resolve request remainder/transit/variances/tasks before whole-TR closure. |
 | GAP-06 | FE-06 — Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → source/shortage check → linked WIR/OD → draft GI-S, picking and PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. For uncovered quantity, offer the RR form directly from saved SO lines before WIR. GR-FD reopens original net demand without duplicating commitments; commercial pricing and payment execution remain external. |
 | GAP-07 | FE-07 — Defective Goods and Physical Returns | Immediate defect hold; Sales ordinary CR acceptance or eligible Owner exception after Warehouse inspection; GI-linked failed-delivery GR-FD with net reopening; Accountant agreement/reconciliation/closure and Warehouse actual supplier return without Owner. External finance references remain separate. |
-| GAP-08 | FE-08 — Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-92/93 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. |
+| GAP-08 | FE-08 — Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-104/105 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. |
 | GAP-09 | FE-09 — Access Administration, Audit and Operational Reporting | Five roles, exactly one role per personal account and assigned warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. In-app notifications have per-recipient read/unread status; opening a warning reevaluates current stock and supply within current access rights. |
 
 BF-01 — Replenishment, purchasing and goods receipt
@@ -312,7 +312,7 @@ Alternate/exception outcomes: Opening/cancelling the form or choosing Later crea
 
 BF-02 — Defect detection, isolation and disposition
 Main flow: Warehouse records evidence and blocks affected allocation immediately. Outside frozen stocktake, Owner approves scoped scrap/regrade/release; Warehouse executes. Supplier return routes directly to BF-08 without Owner authorization.
-Alternate/exception outcomes: B1 records balance-neutral hold/evidence, retaining snapshot and freeze; quality/location posts only in approved UC-93 closure batch, without duplicate UC-66 approval. Scrap deducts actual destruction once; supplier return deducts only at UC-82.
+Alternate/exception outcomes: B1 records balance-neutral hold/evidence, retaining snapshot and freeze; quality/location posts only in approved UC-105 closure batch, without duplicate UC-77 approval. Scrap deducts actual destruction once; supplier return deducts only at UC-91.
 
 BF-03 — Same-warehouse relocation
 Main flow: Warehouse creates/confirms TO-RELOCATE actual quantity and locations in one warehouse, preserving identity/quality/owner/reservations and total. No Owner approval, TR, TD or MWTR.
@@ -324,7 +324,7 @@ Alternate/exception outcomes: Repeat dispatch/receipt for partial trips. A match
 
 BF-05 — Stocktake, reconciliation and B1 resolution
 Main flow: Owner plans; Warehouse resolves open tasks, atomically freezes/snapshots and counts. Substantiated differences may go directly to explanation/plan; unclear/chosen recount uses Start Recount → Enter Recount → comparison with history.
-Alternate/exception outcomes: Record defect hold/evidence immediately without changing balance under freeze. Warehouse proposes/confirms execution, Owner UC-92 approves and UC-93 posts actual nonzero delta plus total-preserving RECLASS/location. Book50/count48GOOD+2broken means RECLASS2/total50; count46GOOD+2broken means delta−2 plus RECLASS2/total48. No ADJ0, false shortage or ordinary freeze bypass. Failure/open holds/tasks prevent unlock.
+Alternate/exception outcomes: Record defect hold/evidence immediately without changing balance under freeze. Warehouse proposes/confirms execution, Owner UC-104 approves and UC-105 posts actual nonzero delta plus total-preserving RECLASS/location. Book50/count48GOOD+2broken means RECLASS2/total50; count46GOOD+2broken means delta−2 plus RECLASS2/total48. No ADJ0, false shortage or ordinary freeze bypass. Failure/open holds/tasks prevent unlock.
 
 BF-06 — Copied SO, issue, customer delivery and completion
 Main flow: Sales saves a verified external SO, then checks compatible available stock, feasible sources at other warehouses, incoming supply due before the need date and existing RRs. If quantity remains uncovered, ask whether to create an RR for selected shortage lines; the form opens without creating a request. The SO then proceeds through linked WIR/OD, draft GI-S/picking/PGI, Warehouse photo POD/DELIVERED and Sales full external receipt PAY-CFM/COMPLETED.
@@ -336,8 +336,8 @@ Main flow FD (A1): Valid undelivered GI-S plus failure evidence → Warehouse AR
 Alternate/exception outcomes: CR + OPEN CR claims cannot exceed eligible customer-received quantity. FD and POD share source caps, consuming a claim never counts it again with receipt. SO10/PGI10/GR-FD10/redelivery10 retains gross dispatch20/receipt10/net10. Ordinary CR never reopens demand. D6 exclusions block both Sales and Owner; UNKNOWN waits. Reversal checks dependent POD/claims/redelivery; finance remains external.
 
 BF-08 — Supplier return and quantity reconciliation
-Main flow: Warehouse proposes/isolates; Accountant verifies source/quantity/agreement; Warehouse posts actual GI-SR or custody release/HO; Accountant records later ACK, reconciles outcomes and closes accounted warehouse quantity through UC-83, UC-107, UC-141, UC-142.
-Alternate/exception outcomes: No Owner dispatch, variance or closure approval and no UC-106 route/historical BF-02 approval prerequisite. Missing agreement or unresolved disputes keep work open. ACK/closure never deduct again; replacement/returned goods require actual receipt. External Invoice/Credit Note and financial status remain independent. On-site destruction/regrade/release still requires BF-02/B1 authority.
+Main flow: Warehouse proposes/isolates; Accountant verifies source/quantity/agreement; Warehouse posts actual GI-SR or custody release/HO; Accountant records later ACK, reconciles outcomes and closes accounted warehouse quantity through UC-92, .
+Alternate/exception outcomes: No Owner dispatch, variance or closure approval and no historical BF-02 approval prerequisite. Missing agreement or unresolved disputes keep work open. ACK/closure never deduct again; replacement/returned goods require actual receipt. External Invoice/Credit Note and financial status remain independent. On-site destruction/regrade/release still requires BF-02/B1 authority.
 
 Shared failure handling: enforce role/sub-operation/warehouse/source/version and proper decision_kind on the server. Owner approvals require distinct requester; C2 explicitly permits Sales ordinary acceptance of own inspected CR. Transfer receiver is independent of dispatcher. Failed batches roll back fully; unknown commit requires stable operation-key lookup before retry. Photo/upload/email retry cannot post stock again.
 
@@ -352,14 +352,14 @@ V. Project Scope & Limitations
 | FE-05 | Warehouse Transfer and Discrepancy Management | Approved TR → draft TD before picking → TO execution if staging → actual TD/HO → independent MWTR/put-away. Preserve allocations and resolve request remainder/transit/variances/tasks before whole-TR closure. | GAP-05 |
 | FE-06 | Copied Sales Order, Warehouse Fulfilment and Completion | Verified external source → copied SO → source/shortage check → linked WIR/OD → draft GI-S, picking and PGI → photo POD/DELIVERED → Sales PAY-CFM/COMPLETED. For uncovered quantity, offer the RR form directly from saved SO lines before WIR. GR-FD reopens original net demand without duplicating commitments; commercial pricing and payment execution remain external. | GAP-06 |
 | FE-07 | Defective Goods and Physical Returns | Immediate defect hold; Sales ordinary CR acceptance or eligible Owner exception after Warehouse inspection; GI-linked failed-delivery GR-FD with net reopening; Accountant agreement/reconciliation/closure and Warehouse actual supplier return without Owner. External finance references remain separate. | GAP-07 |
-| FE-08 | Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-92/93 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. | GAP-08 |
+| FE-08 | Stocktake and Inventory Adjustment | Owner plans monthly/targeted counts; freeze/snapshot/count sheets and direct explanation or recount retain history. Warehouse confirms resolution execution and Owner UC-104/105 clears actual delta plus RECLASS before unlock. After committed closure, evaluate minimum/target coverage, including zero-stock products, and notify Warehouse staff assigned to the affected warehouse. No ADJ=0. | GAP-08 |
 | FE-09 | Access Administration, Audit and Operational Reporting | Five roles, exactly one role per personal account and assigned warehouse scope; immutable stock ledger, evidence and external-source trace; physical/available/custody/transit and exception reports. In-app notifications have per-recipient read/unread status; opening a warning reevaluates current stock and supply within current access rights. | GAP-09 |
 
 2. Limitations & Exclusions
 | ID | Excluded item | Boundary |
 |---|---|---|
 | LI-01 | Multi-store retail management | One store with three or more reported warehouses; no multi-branch retail administration. |
-| LI-02 | Sales payments, refunds and accounting | No collection, deposits, receivables/debt, refund amount/approval/payment or financial ledgers. Accountant records verified external references/status only (UC-108, UC-143). |
+| LI-02 | Sales payments, refunds and accounting | No collection, deposits, receivables/debt, refund amount/approval/payment or financial ledgers. Accountant records verified external references/status only (UC-122, UC-123). |
 | LI-03 | Sales pricing, internal/tax invoicing and live MISA | Commercial SO, selling prices and internal/tax invoices remain external. No invoice generation/email or live MISA synchronization. Warehouse print/handover evidence remains in scope. |
 | LI-04 | Fleet and routing | Carrier/recipient and evidence may be recorded; GPS, route optimization and fleet maintenance are excluded. |
 | LI-05 | Complex approval/delegation | Only scoped Owner decisions with distinct requester; Sales ordinary inspected CR acceptance may share creator. BF-08 has no Owner approval. No extra role, dynamic delegation, tendering or multilevel approval. |
