@@ -1,6 +1,6 @@
 # Process Proposal 2 — WMSD — English
 
-**Current business baseline: 3.3.0; document revision 3.3.1, 29 October 2026. User-selected replenishment and per-recipient Notifications apply under proposal 1.4.0.**
+**Current business baseline: 3.3.0; document revision 3.3.2, 30 October 2026. User-selected replenishment and per-recipient Notifications apply under proposal 1.4.0.**
 
 Historical24–25 October context: revision3.1.2 retained baseline3.1.0; those decisions continue under current3.3.0. Baseline 3.1.0 revises flows against supervisor minutes/draw.io notes. User selections: A1, a failed-delivery intake branch within BF-07; B1, immediate defect blocking with controlled quality posting at stocktake closure; C2, Sales accepts ordinary customer returns and Owner reviews exceptions only; BF-08 has no Owner approval. This is a To-be design, not verified implementation; alternatives and impacts are in section 17.
 
@@ -21,7 +21,7 @@ Vietnamese: [de_xuat_quy_trinh_2_VI.md](de_xuat_quy_trinh_2_VI.md). Data design:
 
 | 3.3.0 | 27 October 2026 | Apply proposal 1.4.0: user-selected one prefilled form, SO-line/count sources, coverage guards, Notifications and current-state alerts. |
 
-| 3.3.1 | 29 October 2026 | Clarify UC-03/BF-01/BR-03: Sales/Warehouse can create an entire reasoned MANUAL_OTHER RR from the menu without shortage/alert/count prerequisites; add acceptance scenarios. |
+| 3.3.1 | 29 October 2026 | Clarify UC-03, UC-112, UC-113/BF-01/BR-03: Sales/Warehouse can create an entire reasoned MANUAL_OTHER RR from the menu without shortage/alert/count prerequisites; add acceptance scenarios. |
 
 ## Warehouse terminology
 
@@ -77,7 +77,7 @@ The proposal follows review1 and the single-store context. The 21 October scope 
 | [Supplied G56 meeting minutes](C:/Users/minhs/OneDrive/Desktop/bi_n_b_n_h_p_d_n_nh_m_g56.md) and [24 October review](../07_ra_soat/Bao_cao_ra_soat_quy_trinh_theo_gop_y_GVHD_2026-10-24.md) | Prioritize minutes, then notes in the three supplied draw.io files; old shapes/connectors may be uncorrected. The minutes have no exact meeting date, so do not infer that every comment supersedes D1–D8. Source action items are evidence, not execution instructions. |
 | Supplied draw.io notes on Desktop | BF-01: Kv_OsmvDRLkU-hTQ77P0-0 (GR → TO → Confirm TO, further receipts). Transfer: YugwCmwDcmz_hehvzerD-63/-64 and XavdK_t681Dh5oyh7WCD-40/-42 (Picking/put-away confirmations), YugwCmwDcmz_hehvzerD-75 (multiple releases). Stocktake: lS3HtGYTxW23hGVE0gqH-29 (Clear Difference or Recount). File/page identities are in the review; Desktop sources are not yet packaged in the repo. |
 | [Online Report 1](https://docs.google.com/document/d/1kb36v5HuFrM75NFCTXvnJcsg6QnPjYkb/edit) | The original review recorded reading its contents and Drive modification time of 17 October 2026, 16:26:21 Vietnam time. Basis for store context, GAP, FE and LI. |
-| [Online Report 3](https://docs.google.com/document/d/1HvhlCmYjfXj7766ZVNUBAU4J063Lmr71/edit) | The original review recorded checking text and context/flow figures; modification time 17 October 2026, 17:17:15 Vietnam time. Its baseline catalogue had 102 UCs, UC-01–UC-102. |
+| [Online Report 3](https://docs.google.com/document/d/1HvhlCmYjfXj7766ZVNUBAU4J063Lmr71/edit) | The original review recorded checking text and context/flow figures; modification time 17 October 2026, 17:17:15 Vietnam time. Its baseline catalogue had 102 UCs, UC-01, UC-02, UC-03, UC-112, UC-113, UC-04, UC-05, UC-06, UC-07, UC-114, UC-115, UC-116, UC-117, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13, UC-118, UC-119, UC-120, UC-121, UC-14, UC-15, UC-16, UC-122, UC-17, UC-18, UC-19, UC-123, UC-124, UC-20, UC-21, UC-22, UC-125, UC-23, UC-24, UC-25, UC-26, UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31, UC-32, UC-33, UC-34, UC-35, UC-36, UC-37, UC-38, UC-39, UC-40, UC-41, UC-42, UC-43, UC-44, UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-130, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-74, UC-75, UC-76, UC-77, UC-78, UC-79, UC-80, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-134, UC-88, UC-135, UC-89, UC-90, UC-91, UC-136, UC-92, UC-93, UC-94, UC-95, UC-96, UC-97, UC-137, UC-138, UC-98, UC-99, UC-100, UC-101, UC-102. |
 | SAP Global Bike WM I–IV v4.1, [local PDFs](../06_tham_khao/sap/) | Current citations use bundled v4.1 pages, verified on 22 October. The earlier review used external v4.2 sources; its page numbers are not carried over. Sample users, warehouse codes and organization are not store requirements. |
 | [MISA SME processes](https://helpsme.misa.vn/2022/kb/quy-trinh-nghiep-vu/) and eShop references below | References for documents, handover, stocktake and warehouse/accounting boundaries. Do not copy all finance modules or claim the store enables every feature. |
 | [Store TikTok](https://www.tiktok.com/@gachoplattanthuong), [Store Facebook](https://www.facebook.com/p/Showroom-T%C3%A2n-Th%C6%B0%C6%A1ng-61567834853149/) | The earlier review could not obtain verifiable content. Do not infer warehouses, staffing, revenue, transport or return policy from these links. |
@@ -113,7 +113,7 @@ Proposed MVP retirements do not delete historical data: selling prices UC-23–2
 | D3 | Q6–7,12,20,23: multiple responsibilities and external delegation. | Retain five roles without dynamic delegation. 24 October scope: Sales accepts inspected ordinary CR, Owner only exceptions; BF-08 no Owner approval. Independent approval remains for scoped Owner decisions and TR/RR/ST. |
 | D4 | Q13 selects both transfers and no transfers. | User confirms inter-warehouse transfers. Preserve raw survey; retain independent source/destination confirmation and discrepancy records. |
 | D5 | Q14–15: monthly counting, pausing the area, and recording movements separately if they continue. | Retain frozen scope until resolution. Monthly is an operational cadence, not a new scheduler job. Concurrent counting/movement is not selected. |
-| D6 | Q18–19: return conditions and refunds recorded in MISA. | Add conditions to BF-07, BR-29 and UC-70–73; do not invent return days. WMS stores refund references only. |
+| D6 | Q18–19: return conditions and refunds recorded in MISA. | Add conditions to BF-07, BR-29 and UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133; do not invent return days. WMS stores refund references only. |
 | D7 | Q3–11, 20, 22, 24: warehouses, coded locations, lot/color/size, conversions, collaboration and phones. | Update supported facts without inventing addresses, actual calibre, SKU conversion factors or new rights. Departments update during work through phone-suitable screens. |
 | D8 | Custody, staging/put-away, FIFO, idempotency, separation of duties, TR approval and no live MISA are not fully survey-confirmed. | Retain them as To-be, not verified current practice. |
 | BF-06 Rev (21 Oct) | Earlier 20/21 Oct text replaced internal SO with WIR and closed orders upon full issue (PGI). User requested explicit copied SO → linked WIR → delivery photo → external payment completion. | Sales Staff creates a WMSD SO copied from MISA/paper, then creates a linked WIR. Warehouse Staff confirms customer delivery with photo evidence to set SO = DELIVERED. Only Sales Staff confirms full external money receipt after DELIVERED to set SO = COMPLETED. |
@@ -132,15 +132,15 @@ The table retains the 17 October review findings. Process/database proposals, SQ
 
 | Reviewed location | Finding | Correction |
 |---|---|---|
-| R3 I.2.1, UC-03, permission matrix; R1 purchasing | Accountant still creates replenishment needs. | Sales/Warehouse originates demand; Accountant handles PO/documents after approval. |
+| R3 I.2.1, UC-03, UC-112, UC-113, permission matrix; R1 purchasing | Accountant still creates replenishment needs. | Sales/Warehouse originates demand; Accountant handles PO/documents after approval. |
 | R3 I.2.3, UC-34–44 and old figure | The old figure combines relocation and warehouse transfer, with redundant TR → approval → inter-warehouse TO. | Separate BF-03 relocation without Owner approval from BF-04 TR → TD → MWTR transfer; remove repeated inter-warehouse TO approval. |
-| R3 I.2.5, FE-06, UC-45–62; R1 I.2/IV/V | WMS still owns independent commercial Sales Orders, pricing and internal invoices, and equates issue with order completion. | Narrow SO (UC-45–48) to an internal tracking copy of a verified external order (MISA/paper) without pricing or internal billing (retire UC-23–25, UC-59–62); link WIR (UC-109) to the saved SO; add Warehouse photo-evidenced customer delivery (DELIVERED, UC-110) and Sales external payment confirmation (COMPLETED, UC-111). |
-| R3 I.2.4, UC-87–93 versus BF-05 | Text already has snapshot; UC-93 assigns Owner Clear Difference, but figure puts posting in Warehouse lane. | Do not claim snapshot is absent. Add count sheet/cutoff and align posting actor. |
-| R3 I.2.6, UC-70–73 versus BF-07 | Old text requires Owner acceptance before inspection; figure inspects before Owner disposition. | CR: custody → Warehouse inspection → Sales ordinary acceptance or eligible Owner exception → receipt by status. Undelivered FD uses GI-S/GR-FD without D6/Owner/customer custody. |
+| R3 I.2.5, FE-06, UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129, UC-59, UC-60, UC-61, UC-62; R1 I.2/IV/V | WMS still owns independent commercial Sales Orders, pricing and internal invoices, and equates issue with order completion. | Narrow SO (UC-45, UC-46, UC-47, UC-48, UC-128) to an internal tracking copy of a verified external order (MISA/paper) without pricing or internal billing (retire UC-23–25, UC-59–62); link WIR (UC-109, UC-144, UC-145, UC-146, UC-147) to the saved SO; add Warehouse photo-evidenced customer delivery (DELIVERED, UC-110) and Sales external payment confirmation (COMPLETED, UC-111). |
+| R3 I.2.4, UC-87, UC-134, UC-88, UC-135, UC-89, UC-90, UC-91, UC-136, UC-92, UC-93 versus BF-05 | Text already has snapshot; UC-93 assigns Owner Clear Difference, but figure puts posting in Warehouse lane. | Do not claim snapshot is absent. Add count sheet/cutoff and align posting actor. |
+| R3 I.2.6, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 versus BF-07 | Old text requires Owner acceptance before inspection; figure inspects before Owner disposition. | CR: custody → Warehouse inspection → Sales ordinary acceptance or eligible Owner exception → receipt by status. Undelivered FD uses GI-S/GR-FD without D6/Owner/customer custody. |
 | Existing BF-07 figure | Already contains Goods reusable? with distinct outcomes. | Do not repeat an obsolete Yes/No criticism; check permissions, documents, ownership and complete branch endings. |
 | R3 I.1 context | Cloudinary appears, but only SMTP API-01 is listed; upload/result arrows are reversed. | Add interface if used and correct direction; otherwise remove the external service. |
 | Context versus permissions | Sales sends customer-return data and Accountant sends supplier-return requests, while UC-70/81 only authorize Inventory Staff. | Align arrows and permissions rather than merely renaming actors. |
-| R3 I.3.2 entity descriptions | Old traceability: Goods Issue → UC-82–89, Stocktake → UC-70–76, PO → UC-27–32. | Remap using current catalogue/proposal without arbitrary renumbering. |
+| R3 I.3.2 entity descriptions | Old traceability: Goods Issue → UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-134, UC-88, UC-135, UC-89, Stocktake → UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-74, UC-75, UC-76, PO → UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31, UC-32. | Remap using current catalogue/proposal without arbitrary renumbering. |
 | R3 I.3.3 and V.1 | DR-04 has “UC-65–56”; GB-04 has “UC-65–50,92–95”; duplicate/invalid ranges. | Normalize IDs, deduplicate and verify each target. |
 | R1 IV versus R3 I.2 | R1 has six proposed-solution figures, missing standalone BF-02. | Use eight common BF IDs/names in R1 To-be and slides. As-is may have a different count if clearly labeled. |
 
@@ -155,7 +155,7 @@ Authorization decision, 28 October 2026: Each user, including inactive accounts,
 | Store Owner | Approves replenishment, inter-warehouse TR, defect destruction/regrade/release and stocktake plans; reviews customer-return exceptions only. Views reports. No approval of ordinary customer returns, relocation or BF-08. |
 | Sales Staff | Copies external SO; manages WIR/OD, outstanding demand and redelivery/cancellation of received-back GR-FD quantity. Accepts/rejects ordinary CR after Warehouse inspection and may be its creator; submits exceptions to Owner. Confirms PAY-CFM after DELIVERED. No physical-quality inspection or Warehouse stock posting. |
 | Warehouse Staff | Inspects, drafts GI, confirms TO/PGI, POD, GR-CR and GR-FD within assigned warehouses; records FD source/quality without Owner approval for FD/BF-08. In B1 records immediate defect holds and confirms quarantine execution against the approved closure batch, never ordinary freeze-bypassing posting. No commercial CR acceptance for Sales/Owner. |
-| Accountant | Creates/tracks approved PO; records supplier agreement, MISA reconciliation and UC-108 external references. In BF-08 verifies agreement, reconciles variances and closes warehouse work through UC-83 against Warehouse documents, without Owner approval. Does not post stock or confirm SO completion for Sales. |
+| Accountant | Creates/tracks approved PO; records supplier agreement, MISA reconciliation and UC-108, UC-143 external references. In BF-08 verifies agreement, reconciles variances and closes warehouse work through UC-83 against Warehouse documents, without Owner approval. Does not post stock or confirm SO completion for Sales. |
 | Administrator | Accounts, permissions and technical settings. No automatic business approval, stock posting or audit-editing rights. |
 
 Customer, Supplier and Carrier are business participants, potentially separate BPMN pools, with no default WMSD account. Source/destination Warehouse Staff are two warehouse responsibilities, not two application roles. Record actual users by userId, not just role labels.
@@ -196,16 +196,16 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-01-A1 | Demand already covered | Sales/Warehouse checks allocations, timely PO/TD supply; submit only the uncovered balance, no duplicate RR. | No stock change; return to steps 1–2. | UC-03, UC-103 |
+| BF-01-A1 | Demand already covered | Sales/Warehouse checks allocations, timely PO/TD supply; submit only the uncovered balance, no duplicate RR. | No stock change; return to steps 1–2. | UC-03, UC-112, UC-113, UC-103, UC-139, UC-140 |
 | BF-01-A2 | Owner rejects or requests revision | Retain reason; reject closes the proposal, revision creates a new version for review; Accountant cannot create an unapproved PO. | No stock change; step 3 or end. | UC-04 |
-| BF-01-A3 | Supplier partial fulfilment | Accountant records quantities/dates; changes beyond approval need renewed review; Owner authorizes short closure; preserve posted GRs. | Receive each delivery at step 5; no fictitious receipt for cancelled quantities. | UC-07, UC-26 |
+| BF-01-A3 | Supplier partial fulfilment | Accountant records quantities/dates; changes beyond approval need renewed review; Owner authorizes short closure; preserve posted GRs. | Receive each delivery at step 5; no fictitious receipt for cancelled quantities. | UC-07, UC-114, UC-115, UC-116, UC-117, UC-26 |
 | BF-01-E1 | Over or wrong delivery | Warehouse separates quantities, records discrepancy/custody if held; no automatic substitution or excess PO receipt. Accountant coordinates; Owner authorizes required changes before acceptance. | GR only eligible quantities; remainder pending or handed back. | UC-26 |
 | BF-01-E2 | Zero accepted quantity | Retain arrival/inspection, evidence and custody/handback outcome; PO outstanding and discrepancy remain open. | No zero-quantity GR; no increase in owned stock. | UC-10, UC-26 |
 | BF-01-A4 | Torn/open boxes; replacements | Count actual pieces; inspect quality independently. Supplier replacement is a new linked arrival/GR; never rewrite the original GR. | After GR, put-away at step 8; no second receipt on placement. | UC-26, UC-33 |
 
 #### Replenishment warnings and Notifications — revision 3.3.0
 
-The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
+The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 147 UCs (133 active/14 retired), extending UC-03, UC-112, UC-113, UC-13, UC-118, UC-119, UC-120, UC-121, UC-47, UC-48, UC-128, UC-88, UC-135, UC-93, UC-103, UC-139, UC-140, UC-109, UC-144, UC-145, UC-146, UC-147 and BR-03/25 without adding UC IDs.
 
 1. After a valid SO save, evaluate compatible, timely, uncommitted local stock, feasible other-warehouse options and incoming PO/transfer supply. The SO line is the original demand; WIR is optional context, and SO/WIR/OD releases must not multiply demand.
 2. Evaluate low stock only after committed stocktake closure, updated balances and scope unlock, including zero-stock SKUs. Defer while relevant freezes remain. Warehouse prepares/confirms execution; Owner approves/posts differences through UC-92/93. A no-variance closure remains valid under BF-05. Owner closure triggers evaluation, not RR creation.
@@ -249,8 +249,8 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-02-E1 | Defect in reserved or picked stock | Warehouse immediately blocks defective quantity, preserves demand linkage and informs Sales; seek replacement supply without awaiting quarantine approval. | Owned total unchanged; BF-06 waits/replans. | UC-65, UC-103 |
-| BF-02-A1 | Ownership or cause unclear | Keep PENDING/BLOCKED quality and recorded owner; obtain evidence, never turn custody into store stock through a note. | Wait at steps 3–4; unavailable. | UC-65 |
+| BF-02-E1 | Defect in reserved or picked stock | Warehouse immediately blocks defective quantity, preserves demand linkage and informs Sales; seek replacement supply without awaiting quarantine approval. | Owned total unchanged; BF-06 waits/replans. | UC-65, UC-130, UC-103, UC-139, UC-140 |
+| BF-02-A1 | Ownership or cause unclear | Keep PENDING/BLOCKED quality and recorded owner; obtain evidence, never turn custody into store stock through a note. | Wait at steps 3–4; unavailable. | UC-65, UC-130 |
 | BF-02-A2 | Owner returns/rejects scoped plan or approves partly | Applies to destruction/regrade/release outside stocktake; unapproved quantity stays isolated. Supplier return needs no Owner and uses BF-08; B1 uses UC-92/93. | No fictitious issue/destruction; follow branch authority. | UC-66, UC-67, UC-92 |
 | BF-02-E2 | Supplier return/destruction not executed | Supplier return needs Accountant/supplier agreement, not Owner; UC-82 deducts at dispatch. Destruction outside stocktake needs approval/actual evidence; B1 never uses ordinary scrap/reclass posting. | Keep unexecuted work open without duplicate deduction. | UC-67, UC-82, UC-93 |
 
@@ -272,7 +272,7 @@ Documents: TO-RELOCATE and location confirmation history. This process uses UC-3
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
 | BF-03-A1 | Relocating stock already reserved for an order | Warehouse preserves owner/lot/quality and moves the reservation to the new position with the goods. | Equal source/destination changes; no new free supply for another demand. | UC-36, UC-37 |
-| BF-03-E1 | Different warehouse, frozen location or insufficient source quantity | Stop confirmation. Different warehouse uses BF-04; wait for freeze release; investigate physical mismatch through BF-05 where needed. Never edit balance or bypass the freeze. | No location posting before confirmation; resolve cause and recheck. | UC-36, UC-37, UC-87 |
+| BF-03-E1 | Different warehouse, frozen location or insufficient source quantity | Stop confirmation. Different warehouse uses BF-04; wait for freeze release; investigate physical mismatch through BF-05 where needed. Never edit balance or bypass the freeze. | No location posting before confirmation; resolve cause and recheck. | UC-36, UC-37, UC-87, UC-134 |
 
 ### BF-04 — Inter-warehouse transfer and discrepancy resolution
 
@@ -296,7 +296,7 @@ Documents: TR, TD, handover, MWTR, discrepancy case. SAP WM II distinguishes STO
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-04-A1 | Direct issue from another warehouse | Sales agrees with customer; split OD by actual warehouse and run BF-06 there, no fictitious receipt at the requested warehouse. | No transit without physical transfer. | UC-51, UC-103 |
+| BF-04-A1 | Direct issue from another warehouse | Sales agrees with customer; split OD by actual warehouse and run BF-06 there, no fictitious receipt at the requested warehouse. | No transit without physical transfer. | UC-51, UC-103, UC-139, UC-140 |
 | BF-04-E1 | Rejected TR or unavailable resources | Owner records reason; Warehouse rechecks stock/freeze before dispatch. Wait or revise unexecuted quantity with authorization; absent an independent receiver, wait for staffing rather than using the dispatch user. | No posting without prerequisites; changed scope requires review. | UC-41, UC-43, UC-104 |
 | BF-04-E2 | Partial or damaged receipt | Destination posts actual quantities by quality; shortages remain transit and later MWTRs may receive them. Damaged stock physically received is quarantine, not also lost transit. | TD100, receive95GOOD+3DAMAGED → transit2. | UC-104 |
 | BF-04-E3 | Excess, wrong lot or evidenced loss | Record separate evidence; no negative transit or silent lot substitution. Owner resolves; Warehouse executes linked additional receipt, return or loss documents for authorized quantities. | Close only with accountable quantities; preserve original TD/MWTR. | UC-44, UC-43, UC-104 |
@@ -324,11 +324,11 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-05-E1 | Open tasks or overlapping freeze | Owner/Warehouse resolve before activation; reject overlap with another frozen session. Freeze blocks receipt, issue, movement and quality changes in scope. | No snapshot until atomic freeze succeeds; other scope continues. | UC-86, UC-87 |
-| BF-05-A1 | Blank, zero or newly found stock | Warehouse distinguishes uncounted from valid zero. Verified found stock gets a flagged found_after_cutoff row with book=0; original snapshot rows remain immutable. | Blank never implies total loss; recount appends a new attempt. | UC-87, UC-88 |
-| BF-05-A2 | Quality variance or unsubstantiated cause | Record immediate hold; unclear cases recount/reconcile. Substantiated cases propose delta and RECLASS/location for B1 closure; present damage is not loss. | Freeze remains until both quality and quantity resolve. | UC-65, UC-88, UC-91–93 |
+| BF-05-E1 | Open tasks or overlapping freeze | Owner/Warehouse resolve before activation; reject overlap with another frozen session. Freeze blocks receipt, issue, movement and quality changes in scope. | No snapshot until atomic freeze succeeds; other scope continues. | UC-86, UC-87, UC-134 |
+| BF-05-A1 | Blank, zero or newly found stock | Warehouse distinguishes uncounted from valid zero. Verified found stock gets a flagged found_after_cutoff row with book=0; original snapshot rows remain immutable. | Blank never implies total loss; recount appends a new attempt. | UC-87, UC-134, UC-88, UC-135 |
+| BF-05-A2 | Quality variance or unsubstantiated cause | Record immediate hold; unclear cases recount/reconcile. Substantiated cases propose delta and RECLASS/location for B1 closure; present damage is not loss. | Freeze remains until both quality and quantity resolve. | UC-65, UC-130, UC-88, UC-135, UC-91, UC-136, UC-92, UC-93 |
 | BF-05-A3 | No variance or Owner rejection/revision | Direct closure requires no quantity/quality/location variance or open hold. Revise plan or choose recount with new version; quality-only still approves/posts RECLASS without ADJ=0. | UC-93 unlocks after completed batch, not approval alone. | UC-92, UC-93 |
-| BF-05-E2 | Interrupted clearing | Recover saved session/history and retain scope freeze. Check committed batch before retry with the same operation key; do not auto-unlock or switch to concurrent-movement counting. | Failed batch rolls back; committed batch returns prior result. | UC-87, UC-93 |
+| BF-05-E2 | Interrupted clearing | Recover saved session/history and retain scope freeze. Check committed batch before retry with the same operation key; do not auto-unlock or switch to concurrent-movement counting. | Failed batch rolls back; committed batch returns prior result. | UC-87, UC-134, UC-93 |
 
 ### BF-06 — Sales order, warehouse issue, customer delivery and completion
 
@@ -368,12 +368,12 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-06-E1 | Unverified external order, duplicate SO/WIR copy, missing SO link or stock race | Sales verifies external source before creating SO (with Accountant UC-108 support for historical/reconciliation checks); reject duplicate external source+doc+line on SO, reject WIR without a saved SO or exceeding SO line demand, and reject duplicate release. Reserve atomically; later demand gets remaining supply or waits. | No WIR without saved SO; no duplicate demand/reservation; no negative availability. | UC-47, UC-109, UC-51, UC-108 |
-| BF-06-A1 | Partial, delayed or substituted fulfilment across releases | Sales records customer agreement on quantities/compatible lots on SO/WIR and splits WIR/OD releases; shortage uses UC-103→BF-01/04. Resolve bound tasks before editing/cancelling unissued SO/WIR remainder. | Reserve covered release quantity only; remainder stays outstanding on SO/WIR. | UC-48, UC-109, UC-51, UC-103 |
-| BF-06-E2 | Picking discrepancy | Warehouse records actuals and isolates defects/BF-02; unexplained mismatch triggers targeted BF-05. Sales chooses replacement/waiting; no direct balance edit. | Picking changes position/reservation only, not total. | UC-55, UC-65 |
-| BF-06-A2 | Cancelled or delayed handover before PGI | Keep staged stock or document Warehouse unpick to eligible storage; release corresponding reservation before Sales cancels unissued WIR/SO remainder with reason. | No PGI without handover; warehouse total unchanged. | UC-48, UC-109, UC-55, UC-58 |
-| BF-06-E3 | After PGI: missing photo, awaiting receipt or physical return | Missing photo updates only POD. Unreceived goods actually returning use BF-07-FD/GR-FD with shared source caps/net reopening; POD-confirmed returns use CR/D6. Sales cancels only unissued or GR-FD-received-back quantity. | No fictitious POD, GI rewrite or status-based stock restoration. | UC-58, UC-70–73, UC-109, UC-110 |
-| BF-06-A3 | External payment pending, partial, unclear or known early before DELIVERED | Only Sales Staff confirms PAY-CFM (UC-111). If payment is unpaid/partial/unclear after DELIVERED, keep SO at DELIVERED. If customer prepaid externally before full delivery, record reference note only; SO cannot become COMPLETED until DELIVERED with required photos is satisfied. Traceable correction if reference note is updated. | No stock change on DELIVERED or COMPLETED; no payment gateway or accounting ledger post in WMSD. | UC-48, UC-110, UC-111, UC-108 |
+| BF-06-E1 | Unverified external order, duplicate SO/WIR copy, missing SO link or stock race | Sales verifies external source before creating SO (with Accountant UC-108, UC-143 support for historical/reconciliation checks); reject duplicate external source+doc+line on SO, reject WIR without a saved SO or exceeding SO line demand, and reject duplicate release. Reserve atomically; later demand gets remaining supply or waits. | No WIR without saved SO; no duplicate demand/reservation; no negative availability. | UC-47, UC-109, UC-144, UC-145, UC-146, UC-147, UC-51, UC-108, UC-143 |
+| BF-06-A1 | Partial, delayed or substituted fulfilment across releases | Sales records customer agreement on quantities/compatible lots on SO/WIR and splits WIR/OD releases; shortage uses UC-103, UC-139, UC-140→BF-01/04. Resolve bound tasks before editing/cancelling unissued SO/WIR remainder. | Reserve covered release quantity only; remainder stays outstanding on SO/WIR. | UC-48, UC-128, UC-109, UC-144, UC-145, UC-146, UC-147, UC-51, UC-103, UC-139, UC-140 |
+| BF-06-E2 | Picking discrepancy | Warehouse records actuals and isolates defects/BF-02; unexplained mismatch triggers targeted BF-05. Sales chooses replacement/waiting; no direct balance edit. | Picking changes position/reservation only, not total. | UC-55, UC-65, UC-130 |
+| BF-06-A2 | Cancelled or delayed handover before PGI | Keep staged stock or document Warehouse unpick to eligible storage; release corresponding reservation before Sales cancels unissued WIR/SO remainder with reason. | No PGI without handover; warehouse total unchanged. | UC-48, UC-128, UC-109, UC-144, UC-145, UC-146, UC-147, UC-55, UC-58, UC-129 |
+| BF-06-E3 | After PGI: missing photo, awaiting receipt or physical return | Missing photo updates only POD. Unreceived goods actually returning use BF-07-FD/GR-FD with shared source caps/net reopening; POD-confirmed returns use CR/D6. Sales cancels only unissued or GR-FD-received-back quantity. | No fictitious POD, GI rewrite or status-based stock restoration. | UC-58, UC-129, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110 |
+| BF-06-A3 | External payment pending, partial, unclear or known early before DELIVERED | Only Sales Staff confirms PAY-CFM (UC-111). If payment is unpaid/partial/unclear after DELIVERED, keep SO at DELIVERED. If customer prepaid externally before full delivery, record reference note only; SO cannot become COMPLETED until DELIVERED with required photos is satisfied. Traceable correction if reference note is updated. | No stock change on DELIVERED or COMPLETED; no payment gateway or accounting ledger post in WMSD. | UC-48, UC-128, UC-110, UC-111, UC-108, UC-143 |
 
 ### BF-07 — Post-delivery customer returns and failed-delivery intake
 
@@ -398,7 +398,7 @@ Example: 10 returned boxes: Sales accepts 7 good, Owner approves 2 supplier-defe
 1. Warehouse creates FD from POSTED GI-S and the same SO/WIR/OD lines, failure/handover evidence and expected returning quantity. No commercial CR or Owner approval is required; no fictitious POD or D6 test for goods the customer never received.
 2. Atomically claim/check each GI line: effective POD + posted GR-FD + open FD claimed quantity cannot exceed valid unreversed PGI. POD-confirmed quantity cannot also use FD; customer-received goods use 07.CR.
 3. Warehouse records ARR/INS with actual returned quantity, lot, quality and dispatch-trip evidence. Track receipt against the issue, not customer-owned custody. Only verified quantities may post; wrong-source/unresolved goods remain separately held/unposted, outside owned/available balances.
-4. Warehouse posts GR-FD exactly once using UC-73 failed-delivery mode: increase actual received quantity by quality; GOOD awaits put-away TO, DAMAGED goes to quarantine/BF-02/08. Never edit the original GI/PGI or post GR-CR for the same quantity. Atomically convert received FD claim into GR-FD and release the corresponding open claim; never count both for one quantity. Cancelling an unposted claim only releases its hold, without stock/net-fulfilment changes.
+4. Warehouse posts GR-FD exactly once using UC-73, UC-133 failed-delivery mode: increase actual received quantity by quality; GOOD awaits put-away TO, DAMAGED goes to quarantine/BF-02/08. Never edit the original GI/PGI or post GR-CR for the same quantity. Atomically convert received FD claim into GR-FD and release the corresponding open claim; never count both for one quantity. Cancelling an unposted claim only releases its hold, without stock/net-fulfilment changes.
 5. In the GR-FD commit, update net fulfilment = valid PGI − posted GR-FD, reopen exactly linked SO/WIR/OD demand, increment version and recalculate status. Sales chooses wait/redeliver/cancel received-back demand without duplicate SO/WIR. Redelivery has new GI/POD within net caps; any replacement OD transfers the reopened commitment with traceable linkage rather than adding demand.
 6. Close FD only when every claimed quantity has evidenced receipt/correction/non-return outcome. Goods not physically received cannot increase stock or reduce executed fulfilment. SO becomes DELIVERED only for a fully POD-confirmed active obligation greater than zero; total cancellation with zero actual delivery means CANCELLED, never COMPLETED. Old PAY-CFM authority does not carry over to a changed version.
 
@@ -406,14 +406,14 @@ Example: 10 returned boxes: Sales accepts 7 good, Owner approves 2 supplier-defe
 
 | ID | Condition | Responsible actor and action | Outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-07-A1 | Historical external transaction | Accountant verifies delivered/returned/open quantities; no fictitious GI/POD. | Unverified waits; CR intake is customer custody. | UC-70, UC-108 |
-| BF-07-A2 | Mixed return | Sales decides ordinary portions; Owner only eligible exceptions; Warehouse splits GR-CR by quality. | No all-or-nothing outcome; rejected goods stay custody until handback. | UC-71, UC-72, UC-73 |
-| BF-07-E1 | D6 excluded or unverified | Installed/customer-damaged/verified overdue → reject; unknown → PENDING and substantiate. | No GR-CR or approval bypass of eligibility. | UC-70–73 |
-| BF-07-E2 | Changed assessment/excess claim | Serialize source claims; changed quantity/case type/terms increments version and requires the proper role's fresh decision. | Ordinary acceptance cannot authorize exceptions or stale versions. | UC-70, UC-71, UC-73 |
-| BF-07-A3 | Withdrawn request/delayed handback | Sales closes unreceived remainder; Warehouse releases custody only on actual handback. | No release on a promise. | UC-70, UC-73 |
-| BF-07-FD1 | PGI10/POD0, all10 return | Warehouse verifies failure and posts GR-FD10, without commercial CR/D6/customer custody/Owner approval. Sales decides reopened demand. | Net issue0; redelivery10 permitted, retaining PGI10 + GR-FD10 + new PGI. | UC-58, UC-72, UC-73, UC-109, UC-110 |
-| BF-07-FD2 | PGI10/POD7, unreceived3 return | FD cap3; return of any of the received7 requires separate CR. | Both caps share source controls; no same quantity in both branches. | UC-70–73, UC-110 |
-| BF-07-FD3 | Goods absent/wrong source/retry | Retain evidence/case; unverified quantities do not post; retry with same operation key. | No stock increase/demand reopening before posted GR-FD. | UC-72, UC-73 |
+| BF-07-A1 | Historical external transaction | Accountant verifies delivered/returned/open quantities; no fictitious GI/POD. | Unverified waits; CR intake is customer custody. | UC-70, UC-108, UC-143 |
+| BF-07-A2 | Mixed return | Sales decides ordinary portions; Owner only eligible exceptions; Warehouse splits GR-CR by quality. | No all-or-nothing outcome; rejected goods stay custody until handback. | UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BF-07-E1 | D6 excluded or unverified | Installed/customer-damaged/verified overdue → reject; unknown → PENDING and substantiate. | No GR-CR or approval bypass of eligibility. | UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BF-07-E2 | Changed assessment/excess claim | Serialize source claims; changed quantity/case type/terms increments version and requires the proper role's fresh decision. | Ordinary acceptance cannot authorize exceptions or stale versions. | UC-70, UC-71, UC-131, UC-73, UC-133 |
+| BF-07-A3 | Withdrawn request/delayed handback | Sales closes unreceived remainder; Warehouse releases custody only on actual handback. | No release on a promise. | UC-70, UC-73, UC-133 |
+| BF-07-FD1 | PGI10/POD0, all10 return | Warehouse verifies failure and posts GR-FD10, without commercial CR/D6/customer custody/Owner approval. Sales decides reopened demand. | Net issue0; redelivery10 permitted, retaining PGI10 + GR-FD10 + new PGI. | UC-58, UC-129, UC-72, UC-132, UC-73, UC-133, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110 |
+| BF-07-FD2 | PGI10/POD7, unreceived3 return | FD cap3; return of any of the received7 requires separate CR. | Both caps share source controls; no same quantity in both branches. | UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-110 |
+| BF-07-FD3 | Goods absent/wrong source/retry | Retain evidence/case; unverified quantities do not post; retry with same operation key. | No stock increase/demand reopening before posted GR-FD. | UC-72, UC-132, UC-73, UC-133 |
 
 ### BF-08 — Supplier return and quantity reconciliation
 
@@ -426,7 +426,7 @@ Example: 10 returned boxes: Sales accepts 7 good, Owner approves 2 supplier-defe
 5. Record actual handover/issue. Store-owned stock deducts once; goods rejected at arrival and held for supplier custody only reduce custody.
 6. Accountant records supplier receipt evidence; Warehouse provides transport evidence. Compare dispatched versus acknowledged quantity. Short/damaged/partially refused amounts remain open; do not rewrite dispatch to the supplier's desired quantity.
 7. Accountant reconciles and records supplier-agreed resolution per quantity; Warehouse confirms supporting physical documents. Unresolved disputes remain open without a BF-08 Owner approval step. Goods coming back increase stock only after linked receipt/inspection; compensation does not recreate quantities. Destruction/release of defective stock still on site uses BF-02 authorization.
-8. Accountant records Invoice/Credit Note or applicable external references through UC-108: type, ID/date, purchase/GI-SR lines and reconciled quantity, evidence/verification state. UC-107 messages do not prove debt adjustment; unverified finance remains PENDING_EXTERNAL and no Credit Note is required before dispatch. Accountant closes warehouse work through UC-83 when every quantity reconciles to Warehouse-confirmed documents, without Owner approval; finance remains independent and closure makes no further deduction.
+8. Accountant records Invoice/Credit Note or applicable external references through UC-108, UC-143: type, ID/date, purchase/GI-SR lines and reconciled quantity, evidence/verification state. UC-107, UC-141, UC-142 messages do not prove debt adjustment; unverified finance remains PENDING_EXTERNAL and no Credit Note is required before dispatch. Accountant closes warehouse work through UC-83 when every quantity reconciles to Warehouse-confirmed documents, without Owner approval; finance remains independent and closure makes no further deduction.
 
 BF-08 inventory effect: SR/agreement verification does not reduce total; actual Warehouse dispatch reduces source-correct owned/custody stock once. ACK/closure never deducts again. Replacement requires actual new receipt, never stock from agreement/money.
 
@@ -438,11 +438,11 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-08-A1 | Pending/refused/partial supplier agreement | Accountant UC-107 records agreed quantity; Warehouse UC-82 issues only source-backed agreed amounts. Unclear work stays open and defects blocked. | No Owner approval or UC-106. | UC-81, UC-82, UC-107 |
-| BF-08-A2 | Historical BF-02 decision exists | Retain reference if present, never require it for supplier return. UC-107 checks source/quantity/agreement and duplicate handling. | Historical decision permits no extra dispatch/earlier deduction. | UC-67, UC-82, UC-107 |
+| BF-08-A1 | Pending/refused/partial supplier agreement | Accountant UC-107, UC-141, UC-142 records agreed quantity; Warehouse UC-82 issues only source-backed agreed amounts. Unclear work stays open and defects blocked. | No Owner approval or UC-106. | UC-81, UC-82, UC-107, UC-141, UC-142 |
+| BF-08-A2 | Historical BF-02 decision exists | Retain reference if present, never require it for supplier return. UC-107, UC-141, UC-142 checks source/quantity/agreement and duplicate handling. | Historical decision permits no extra dispatch/earlier deduction. | UC-67, UC-82, UC-107, UC-141, UC-142 |
 | BF-08-E1 | Short pick or supplier custody | Warehouse checks ownership and actual picked quantity; revise only unexecuted scope. Supplier goods never owned by the store reduce custody only. | Owned dispatch deducts once; custody dispatch does not deduct owned stock. | UC-82 |
-| BF-08-E2 | Supplier acknowledges shortage/damage/refusal | Accountant keeps actual ACK and supplier resolution; Warehouse confirms any return-back receipt. Never rewrite GI or route to Owner; disputes stay open. | ACK never deducts again; return-back increase requires actual receipt. | UC-82, UC-83, UC-107 |
-| BF-08-A3 | Replacement/external settlement | Accountant UC-108 records documents; replacements require new GR. Accountant UC-83 closes reconciled warehouse quantity independently from finance, without Owner approval. | Money/agreement never creates stock. | UC-83, UC-108 |
+| BF-08-E2 | Supplier acknowledges shortage/damage/refusal | Accountant keeps actual ACK and supplier resolution; Warehouse confirms any return-back receipt. Never rewrite GI or route to Owner; disputes stay open. | ACK never deducts again; return-back increase requires actual receipt. | UC-82, UC-83, UC-107, UC-141, UC-142 |
+| BF-08-A3 | Replacement/external settlement | Accountant UC-108, UC-143 records documents; replacements require new GR. Accountant UC-83 closes reconciled warehouse quantity independently from finance, without Owner approval. | Money/agreement never creates stock. | UC-83, UC-108, UC-143 |
 
 
 ### 4.X — Shared failures across all processes
@@ -464,68 +464,68 @@ Retain existing IDs for traceability; mark retired/new IDs explicitly rather tha
 | Existing UC | Proposed change | Specific impact |
 |---|---|---|
 | UC-01–02: View replenishment | Revise access | Sales/Warehouse sees own/assigned requests; Owner/Accountant sees responsibility-scoped demand. |
-| UC-03: Create replenishment request | Change primary actor/trigger | Sales/Warehouse creates from issue shortage, minimum level or count. Accountant does not originate operational demand, but may record reconciliation notes. No PO before approval. Direct menu creation permits all-MANUAL_OTHER lines with reasons, without shortage/alert/count prerequisites. |
+| UC-03, UC-112, UC-113: Create replenishment request | Change primary actor/trigger | Sales/Warehouse creates from issue shortage, minimum level or count. Accountant does not originate operational demand, but may record reconciliation notes. No PO before approval. Direct menu creation permits all-MANUAL_OTHER lines with reasons, without shortage/alert/count prerequisites. |
 | UC-04: Approve/reject replenishment | Retain with constraints | Owner approves exact version, with userId different from requester. Support revision and cancellation of unexecuted remainder. |
-| UC-05–07: PO | Retain; revise sources/exceptions | Accountant uses approved demand and supplier confirmation. Partial PO stays open; excess changes require reapproval. No payments. |
+| UC-05, UC-06, UC-07, UC-114, UC-115, UC-116, UC-117: PO | Retain; revise sources/exceptions | Accountant uses approved demand and supplier confirmation. Partial PO stays open; excess changes require reapproval. No payments. |
 | UC-08–10: Receipt list/detail/create | Retain; expand delivery data | Each delivery has its own receipt, PO/line linkage, actual quantity and transport source. |
-| UC-11–13: Product/packaging | Retain; add controlled minimum | Version BOX/PIECE/m² factors. Owner configures finite thresholds, not a general policy editor. |
-| UC-14–16: Lot | Retain | Do not rewrite transacted lot/tone/calibre to conceal shortages. Corrections need evidence/history; master-data rights do not grant quality-change rights. |
-| UC-17–19: Supplier | Retain | Accountant maintains supplier information; deactivation remains Owner-controlled. |
-| UC-20–22: Customer | Narrow | Delivery/contact, MISA customer code and source references only; no CRM. |
+| UC-11, UC-12, UC-13, UC-118, UC-119, UC-120, UC-121: Product/packaging | Retain; add controlled minimum | Version BOX/PIECE/m² factors. Owner configures finite thresholds, not a general policy editor. |
+| UC-14, UC-15, UC-16, UC-122: Lot | Retain | Do not rewrite transacted lot/tone/calibre to conceal shortages. Corrections need evidence/history; master-data rights do not grant quality-change rights. |
+| UC-17, UC-18, UC-19, UC-123, UC-124: Supplier | Retain | Accountant maintains supplier information; deactivation remains Owner-controlled. |
+| UC-20, UC-21, UC-22, UC-125: Customer | Narrow | Delivery/contact, MISA customer code and source references only; no CRM. |
 | UC-23–25: Selling prices | Retire in selected MVP | Prices/margins stay in MISA; remove dependent screens/permissions/rules. Do not replace with cost pricing without requirements. |
 | UC-26: Inspect and Post Goods Receipt | Retain; clarify per-quantity outcomes | Good/pending/defective/custody have different effects. Prevent repeat posting; explicitly handle wrong code/tone and PO excess. |
-| UC-27–31: Warehouse/location/stock | Retain; expand views | Separate warehouses/locations, quality, custody, staging, reservations and transit. Sales sees authorized availability, not unrestricted internal/cost data. |
+| UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31: Warehouse/location/stock | Retain; expand views | Separate warehouses/locations, quality, custody, staging, reservations and transit. Sales sees authorized availability, not unrestricted internal/cost data. |
 | UC-32–33: Put-away TO | Rename | Create/confirm put-away tasks; suggest from receipt and confirm actual placement. Execution, not approval. |
 | UC-34–37: Location movement | Retain; no Owner approval | Same warehouse; preserve lot/status/total/reservations. Block frozen stocktake scope. |
 | UC-38–39: Warehouse transfer | Retain | Show requested/approved/dispatched/received-by-quality/transit/discrepancy amounts and two-end documents. Sales sees related progress. |
-| UC-40: Create Transfer Request | Revise trigger | Warehouse creates from UC-103 suggestion or valid transfer need; not for local relocation. |
+| UC-40: Create Transfer Request | Revise trigger | Warehouse creates from UC-103, UC-139, UC-140 suggestion or valid transfer need; not for local relocation. |
 | UC-41: Review Transfer Request | Retain; no subsequent TO approval | Authorize dispatch, separate requester/approver and validate/reserve source quantity. |
 | UC-42: Create Warehouse Transfer Order | Retired | Remove redundant order layer; execute approved TR. Preserve historical TO records. |
 | UC-43: Record Transfer Dispatch | Separate draft/post | Source Warehouse drafts TD from TR before picking, confirms TO where staging applies and posts TD/HO on actual handover; no added Owner approval. UC-104 handles destination receipt. |
 | UC-44: Review Transfer Difference Resolution | Retain | Owner decides transfer variances; UC-43/104 executes relevant warehouse actions against approved version. Loss has its own movement, not edited dispatch/receipt. |
-| UC-45–48: Sales Order list/detail/create/update | External SO and net demand | Sales copies/views/updates sourced SO; edit/cancel only unexecuted or GR-FD-received-back demand not redelivered, resolving tasks/version first. No unresolved off-site cancellation, pricing or stock posting. |
+| UC-45, UC-46, UC-47, UC-48, UC-128: Sales Order list/detail/create/update | External SO and net demand | Sales copies/views/updates sourced SO; edit/cancel only unexecuted or GR-FD-received-back demand not redelivered, resolving tasks/version first. No unresolved off-site cancellation, pricing or stock posting. |
 | UC-49–51: Outbound Delivery | Release planning/redelivery | Create/continue warehouse OD within net outstanding WIR fulfilment. GR-FD reopens original OD or traceably transfers versioned commitment to replacement OD without double-counting. |
 | UC-52–55: Picking TO | Rename picking task/list | Suggest stock; Warehouse confirms actual picking. Handle shortages/defects, partial picks and evidenced lot changes. No total deduction here. |
-| UC-56–58: Goods Issue/PGI | Split UC-58 operations | UC-58 creates/updates draft GI-S from OD before picking, then posts confirmed handover; each operation checks role/state. No repeated deduction on retry. PGI never sets DELIVERED/COMPLETED; redelivery uses net caps after GR-FD. |
-| UC-59–62: Internal Invoice | Retired | Remove invoice creation/issue/email. Warehouse document print is in UC-58; do not rename invoice as “delivery bill” while retaining billing logic. |
+| UC-56, UC-57, UC-58, UC-129: Goods Issue/PGI | Split UC-58, UC-129 operations | UC-58, UC-129 creates/updates draft GI-S from OD before picking, then posts confirmed handover; each operation checks role/state. No repeated deduction on retry. PGI never sets DELIVERED/COMPLETED; redelivery uses net caps after GR-FD. |
+| UC-59–62: Internal Invoice | Retired | Remove invoice creation/issue/email. Warehouse document print is in UC-58, UC-129; do not rename invoice as “delivery bill” while retaining billing logic. |
 | UC-63–64: Defect list/detail | Retain | Include event source, ownership/custody, unresolved quantity and linked cases. |
-| UC-65: Inspect defect/submit disposition | Revise | Immediate quarantine/evidence and affected allocation release/replacement; no self-approved destruction. |
+| UC-65, UC-130: Inspect defect/submit disposition | Revise | Immediate quarantine/evidence and affected allocation release/replacement; no self-approved destruction. |
 | UC-66: Approve defect disposition | Limit actions | Owner authorizes destruction/regrade/release outside stocktake. Supplier return uses BF-08 without Owner; B1 quality uses UC-92/93 without duplicate UC-66 approval. |
 | UC-67: Record defect disposition | Separate execution | Warehouse records approved destruction/regrade; supplier routing makes no deduction before UC-82 GI-SR. B1 quality/location posts through UC-93 closure rather than ordinary operations. |
-| UC-68–70: Customer returns | Commercial CR | Sales creates CR against customer-received/verified historical quantity and D6. UC-70 is not mandatory for Warehouse-created FD under UC-72/73. |
-| UC-71: Decide customer return acceptance | Two C2 modes | Sales accepts/rejects ordinary cases after UC-72 and may be CR creator. Owner approves eligible exceptions only, against version and a different exception proposer. Never override D6 exclusions; UC-71 does not apply to FD. |
-| UC-72: Inspect return/intake | Distinguish source | Warehouse inspects CR customer custody; FD records ARR/INS and GI-S failure evidence without assumed customer ownership/D6/Owner approval. Unverified intake remains unposted. |
-| UC-73: Post return/intake receipt | GR-CR and GR-FD | Warehouse posts GR-CR against current Sales acceptance/Owner exception; FD posts GR-FD from issued GI and actual return without commercial acceptance. Prevent POD/FD/CR source overlap; GR-FD atomically reopens net demand and never triggers refund. |
-| UC-74–78: Refund workflow | Retired in selected MVP | Replace with UC-108 external outcomes; no monetary eligibility, refund approval or payment implementation. Retaining these would expand scope. |
-| UC-79–81: Supplier returns | Retain; coordinate Accountant | Warehouse proposes physical return; Accountant sees/records agreement through UC-107 without changing physical counts. |
+| UC-68–70: Customer returns | Commercial CR | Sales creates CR against customer-received/verified historical quantity and D6. UC-70 is not mandatory for Warehouse-created FD under UC-72, UC-132, UC-73, UC-133. |
+| UC-71, UC-131: Decide customer return acceptance | Two C2 modes | Sales accepts/rejects ordinary cases after UC-72, UC-132 and may be CR creator. Owner approves eligible exceptions only, against version and a different exception proposer. Never override D6 exclusions; UC-71, UC-131 does not apply to FD. |
+| UC-72, UC-132: Inspect return/intake | Distinguish source | Warehouse inspects CR customer custody; FD records ARR/INS and GI-S failure evidence without assumed customer ownership/D6/Owner approval. Unverified intake remains unposted. |
+| UC-73, UC-133: Post return/intake receipt | GR-CR and GR-FD | Warehouse posts GR-CR against current Sales acceptance/Owner exception; FD posts GR-FD from issued GI and actual return without commercial acceptance. Prevent POD/FD/CR source overlap; GR-FD atomically reopens net demand and never triggers refund. |
+| UC-74–78: Refund workflow | Retired in selected MVP | Replace with UC-108, UC-143 external outcomes; no monetary eligibility, refund approval or payment implementation. Retaining these would expand scope. |
+| UC-79–81: Supplier returns | Retain; coordinate Accountant | Warehouse proposes physical return; Accountant sees/records agreement through UC-107, UC-141, UC-142 without changing physical counts. |
 | UC-82: Supplier return dispatch | Remove Owner approval | Warehouse drafts/posts GI-SR against source, Accountant-verified supplier agreement and actual handover. Neither UC-106 nor Owner decision is required; actual ACK follows dispatch. |
 | UC-83: Supplier return closure | Accountant executes | Accountant reconciles all quantity against Warehouse documents and ACK/settlement evidence, then closes warehouse work. Open disputes block closure; no Owner approval/extra deduction; finance remains separate. |
 | UC-84–86: Stocktake/session | Retain | Specify scope, counter and activation time. Planning is not snapshot activation. |
-| UC-87: Count and record results | Revise | Activate snapshot/frozen scope; retain count history; use UC-105 count sheet. |
-| UC-88: Reconcile stocktake | Alternatives + B1 | No quantity/quality/location variance permits closure; substantiated variance proceeds directly to plan, otherwise repeat recount. Separate shortage from total-preserving RECLASS. |
-| UC-89–91: Adjustment/resolution list/detail/request | ST plan | Warehouse proposes actual delta and evidenced RECLASS/location; quality-only is ST resolution without ADJ=0. No direct balance edit. |
+| UC-87, UC-134: Count and record results | Revise | Activate snapshot/frozen scope; retain count history; use UC-105 count sheet. |
+| UC-88, UC-135: Reconcile stocktake | Alternatives + B1 | No quantity/quality/location variance permits closure; substantiated variance proceeds directly to plan, otherwise repeat recount. Separate shortage from total-preserving RECLASS. |
+| UC-89, UC-90, UC-91, UC-136: Adjustment/resolution list/detail/request | ST plan | Warehouse proposes actual delta and evidenced RECLASS/location; quality-only is ST resolution without ADJ=0. No direct balance edit. |
 | UC-92: Approve Stocktake Resolution | B1 plan | Owner approves/returns the exact actual-delta, RECLASS and quarantine-location plan, independently from proposer; approval never bypasses snapshot/freeze. |
 | UC-93: Clear Stocktake Difference | B1 closure batch | Owner posts nonzero delta if any plus approved RECLASS/location with Warehouse execution evidence and idempotent ledger; unlock only after full resolution. Quality-only creates no ADJ=0. |
-| UC-94–98: Login/accounts/permissions | Retain; scope/SoD | Check assigned warehouses and same-user self-approval; Admin has no default business rights. Audit permission changes. |
+| UC-94, UC-95, UC-96, UC-97, UC-137, UC-138, UC-98: Login/accounts/permissions | Retain; scope/SoD | Check assigned warehouses and same-user self-approval; Admin has no default business rights. Audit permission changes. |
 | UC-99–102: Reports/movement/trace | Retain; expand content | Physical/available/custody/transit, shortages, defects, mismatch and trace across MISA source → SO → WIR → receipt/issue (PGI) → delivery (POD) → payment confirmation (PAY-CFM) → return → adjustment. No revenue/profit reports. |
 
 ### 5.1 New UCs
 
 | ID | Name / actor | Input and result |
 |---|---|---|
-| UC-103 | View and Select Shortage Fulfilment Options — Sales/Warehouse | Suggested compatible warehouse/lot supply; choose direct dispatch, transfer or replenishment. No automatic posting/purchasing. Links BF-01/04/06. |
+| UC-103, UC-139, UC-140 | View and Select Shortage Fulfilment Options — Sales/Warehouse | Suggested compatible warehouse/lot supply; choose direct dispatch, transfer or replenishment. No automatic posting/purchasing. Links BF-01/04/06. |
 | UC-104 | Inspect and Post Transfer Receipt — destination Warehouse | Dispatch lines, actual receipt/quality/evidence/put-away. Move actual quantity from transit to destination. Receiver independent from dispatcher under agreed staffing. |
-| UC-105 | Export or Print Stocktake Count Sheet — Warehouse/Owner | Activated session/snapshot; bin/lot/quality, session/cutoff and count spaces. Could be merged into UC-87 under another catalogue convention, but this version retains it separately. |
-| UC-106 | Retired — supplier-return approval | Inactive from 24 October after removing BF-08 Owner approval. No active permission/call; preserve identifier/history. UC-107 records agreement/variance, UC-82 issues and Accountant UC-83 closes. |
-| UC-107 | Record supplier agreement, ACK and variance reconciliation — Accountant | Separate pre-issue agreement and later actual receipt; record quantity/resolution evidence without stock posting or Owner/UC-106 routing. Unresolved quantities keep the case open. |
-| UC-108 | Record External Document References — Accountant | Actual Invoice/Credit Note or applicable type, ID/date, purchase/GI-SR lines, reconciled quantity, evidence/status; verify historical sources. No revenue/debt/payment creation or replacement for UC-111. |
-| UC-109 | Manage WIR and reopened demand — Sales | Create/update/cancel unexecuted or received-back GR-FD demand not yet redelivered; reuse SO/WIR, traceably transfer OD commitment and enforce net caps. No cancellation of unresolved off-site goods. |
+| UC-105 | Export or Print Stocktake Count Sheet — Warehouse/Owner | Activated session/snapshot; bin/lot/quality, session/cutoff and count spaces. Could be merged into UC-87, UC-134 under another catalogue convention, but this version retains it separately. |
+| UC-106 | Retired — supplier-return approval | Inactive from 24 October after removing BF-08 Owner approval. No active permission/call; preserve identifier/history. UC-107, UC-141, UC-142 records agreement/variance, UC-82 issues and Accountant UC-83 closes. |
+| UC-107, UC-141, UC-142 | Record supplier agreement, ACK and variance reconciliation — Accountant | Separate pre-issue agreement and later actual receipt; record quantity/resolution evidence without stock posting or Owner/UC-106 routing. Unresolved quantities keep the case open. |
+| UC-108, UC-143 | Record External Document References — Accountant | Actual Invoice/Credit Note or applicable type, ID/date, purchase/GI-SR lines, reconciled quantity, evidence/status; verify historical sources. No revenue/debt/payment creation or replacement for UC-111. |
+| UC-109, UC-144, UC-145, UC-146, UC-147 | Manage WIR and reopened demand — Sales | Create/update/cancel unexecuted or received-back GR-FD demand not yet redelivered; reuse SO/WIR, traceably transfer OD commitment and enforce net caps. No cancellation of unresolved off-site goods. |
 | UC-110 | Confirm POD — Warehouse | Posted GI-S, quantity/recipient/time/photo; effective POD + posted GR-FD + open FD claims cannot exceed valid PGI. POD-confirmed quantity returns through CR, never FD. |
 | UC-111 | Confirm Full External Payment Receipt — Sales Staff | After DELIVERED, record full external receipt with user/time and reference/evidence/note; set SO to COMPLETED. No collection or stock change. |
 
-BF-08 uses neither UC-106 nor Owner approval. Accountant UC-107 records agreement/ACK/reconciliation; Warehouse UC-82 posts actual dispatch; Accountant UC-83 closes evidenced quantities. UC-44 belongs only to BF-04. Keep UC-106 history without making old decisions a prerequisite or new posting authority.
+BF-08 uses neither UC-106 nor Owner approval. Accountant UC-107, UC-141, UC-142 records agreement/ACK/reconciliation; Warehouse UC-82 posts actual dispatch; Accountant UC-83 closes evidenced quantities. UC-44 belongs only to BF-04. Keep UC-106 history without making old decisions a prerequisite or new posting authority.
 
-Catalogue 3.1.0 retains 111 IDs, 97 active/14 retired: UC-23–25, UC-42, UC-59–62, UC-74–78 and UC-106. UC-103–111 were additions, but UC-106 is now historical only. FD/B1 add no IDs, extending UC-72/73 and UC-92/93 modes. Report 3 specifications, permissions and screens are synchronized to this catalogue on 25 October.
+Catalogue 3.1.0 retains 147 IDs, 133 active/14 retired: UC-23–25, UC-42, UC-59–62, UC-74–78 and UC-106. UC-103, UC-139, UC-140, UC-104, UC-105, UC-106, UC-107, UC-141, UC-142, UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111 were additions, but UC-106 is now historical only. FD/B1 add no IDs, extending UC-72, UC-132, UC-73, UC-133 and UC-92/93 modes. Report 3 specifications, permissions and screens are synchronized to this catalogue on 25 October.
 
 ## 6. Proposed business permission matrix
 
@@ -545,16 +545,16 @@ V = scoped view; T = create/record; D = approve; X = execute/confirm as defined 
 | Transfer dispatch | V | V progress | X source | V | — |
 | Transfer receipt | V | V progress | X destination | V | — |
 | Approve transfer variance | D | — | T proposal | V | — |
-| Copy/update external Sales Order (SO, UC-45–48) | V | T | V related | V | — |
-| Create/edit linked issue request (WIR, UC-109) and delivery releases (OD, UC-49–51) | V | T | V | V | — |
-| Pick, count, PGI and warehouse handover (GI-S/HO, UC-52–58) | V | V | X | V | — |
+| Copy/update external Sales Order (SO, UC-45, UC-46, UC-47, UC-48, UC-128) | V | T | V related | V | — |
+| Create/edit linked issue request (WIR, UC-109, UC-144, UC-145, UC-146, UC-147) and delivery releases (OD, UC-49–51) | V | T | V | V | — |
+| Pick, count, PGI and warehouse handover (GI-S/HO, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129) | V | V | X | V | — |
 | Confirm customer delivery with photo evidence (POD → DELIVERED, UC-110) | V | V | X | V | — |
 | Confirm full external money receipt and complete SO (PAY-CFM → COMPLETED, UC-111) | V | X | V | V | — |
 | Create customer return | V | T | V | V | — |
 | Inspect returned quality | V | — | T | — | — |
-| Accept ordinary CR after inspection (UC-71) | V | X (may be creator) | V | V | — |
-| Approve eligible CR exceptions (UC-71) | D | T proposal | V | V | — |
-| Receive failed-delivery GR-FD (UC-72/73) | V | V/redelivery choice | X | V | — |
+| Accept ordinary CR after inspection (UC-71, UC-131) | V | X (may be creator) | V | V | — |
+| Approve eligible CR exceptions (UC-71, UC-131) | D | T proposal | V | V | — |
+| Receive failed-delivery GR-FD (UC-72, UC-132, UC-73, UC-133) | V | V/redelivery choice | X | V | — |
 | Return receipt / customer handback | V | V | X | V | — |
 | Immediate quarantine / disposition proposal | V | — | T | V | — |
 | Approve destruction/regrade/release outside stocktake (not supplier return) | D | — | — | V | — |
@@ -562,7 +562,7 @@ V = scoped view; T = create/record; D = approve; X = execute/confirm as defined 
 | Create supplier return | V | — | T | V | — |
 | Record supplier agreement/acknowledgement | V | — | V | T | — |
 | Dispatch supplier return | V | — | X | V | — |
-| Reconcile supplier variance/close warehouse work (UC-83/107) | V | — | V/confirm documents | X | — |
+| Reconcile supplier variance/close warehouse work (UC-83, UC-107, UC-141, UC-142) | V | — | V/confirm documents | X | — |
 | Plan stocktake | T | — | V | V | — |
 | Snapshot, count sheet, count/recount | V | — | T | V reconciliation | — |
 | Explain/propose adjustment | V | — | T | V | — |
@@ -580,7 +580,7 @@ A context diagram shows **data crossing the software boundary**, not physical go
 |---|---|---|
 | Sales Staff | External-source SO copies, linked WIR/return requests, partial delivery/source decisions, source references and external payment receipt confirmations (PAY-CFM) | Availability, source suggestions, SO/WIR/delivery/DELIVERED/COMPLETED progress, shortages and outcomes |
 | Warehouse Staff | Replenishment, inspection, picking/receipt/issue (PGI), customer delivery confirmations with required photos (POD), relocation, defects, counts and explanations | Assigned tasks, lot/location, source SO/WIR documents, approvals, count sheets |
-| Accountant | PO, supplier agreement/acknowledgement, external accounting/reconciliation references (UC-108) | Outstanding PO, received/issued/delivered/returned quantities and reconciliation |
+| Accountant | PO, supplier agreement/acknowledgement, external accounting/reconciliation references (UC-108, UC-143) | Outstanding PO, received/issued/delivered/returned quantities and reconciliation |
 | Store Owner | Approvals, stocktake scope and authorized master data | Pending requests, exceptions, reports and audit |
 | Administrator | Accounts/permissions and technical configuration | Administration results and technical status |
 | SMTP (API-01) | Delivery/failure results | Post-commit notifications; no internal-invoice email |
@@ -623,41 +623,41 @@ Do not combine quality, location, ownership and delivery state in one enum. “I
 
 | Rule | SRS requirement | Affected UC/flow |
 |---|---|---|
-| BR-01 | Lot identity distinguishes product/lot/tone/calibre; do not pool different tones to fill demand. | DR-01, UC-13/16/26/30/54/55/72 |
+| BR-01 | Lot identity distinguishes product/lot/tone/calibre; do not pool different tones to fill demand. | DR-01, UC-13, UC-118, UC-119, UC-120, UC-121, UC-16, UC-122, UC-26, UC-30, UC-54, UC-55, UC-72, UC-132 |
 | BR-02 | Version product/packaging conversions and snapshot them on lines. Whole tiles cannot be fractional pieces. Use product area specifications; calibre does not determine m² factors. | DR-02, GB-03 |
-| BR-03 | Evaluate sources after SO save/count closure; an uncovered need prompts or warns. Sales/Warehouse may also open the same form directly from the menu and create the entire RR using MANUAL_OTHER with a reason per line, without shortage/low-stock/count prerequisites. Only valid Save draft/Submit persists RR; validate warehouse/date/positive quantities and duplicate coverage. Source-backed lines retain actual refs/snapshots; MANUAL_OTHER requires no fabricated source. A different Owner approves before Accountant creates a PO; no automatic PO. | UC-03/04/13/47/48/93/103 |
+| BR-03 | Evaluate sources after SO save/count closure; an uncovered need prompts or warns. Sales/Warehouse may also open the same form directly from the menu and create the entire RR using MANUAL_OTHER with a reason per line, without shortage/low-stock/count prerequisites. Only valid Save draft/Submit persists RR; validate warehouse/date/positive quantities and duplicate coverage. Source-backed lines retain actual refs/snapshots; MANUAL_OTHER requires no fabricated source. A different Owner approves before Accountant creates a PO; no automatic PO. | UC-03, UC-112, UC-113, UC-04, UC-13, UC-118, UC-119, UC-120, UC-121, UC-47, UC-48, UC-128, UC-93, UC-103, UC-139, UC-140 |
 | BR-04 | Do not double-count demand already covered by PO/transfer/allocation. Planned receipts are not current availability. | BF-01/04/06 |
-| BR-05 | Same-user approval prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans. C2 permits Sales ordinary acceptance of own CR after Warehouse inspection, never exception/Owner approval. BF-08 has no Owner approval. | UC-04/41/66/71/92 |
+| BR-05 | Same-user approval prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans. C2 permits Sales ordinary acceptance of own CR after Warehouse inspection, never exception/Owner approval. BF-08 has no Owner approval. | UC-04, UC-41, UC-66, UC-71, UC-131, UC-92 |
 | BR-06 | Post receipt/issue/return/adjustment once, atomically with ledger/balance. No negative availability; retry returns prior result. | DR-09/10/13, GB-09/10/13 |
-| BR-07 | Separate actual delivery, accepted ownership, custody and rejection. Uninspected/not-ready stock is unavailable. | DR-04, GB-04, UC-26/33/73 |
-| BR-08 | PO supports multiple receipts; posted parts are immutable. Short closure/excess change requires reasons and authorization. | DR-03, GB-05, UC-07/10/26 |
+| BR-07 | Separate actual delivery, accepted ownership, custody and rejection. Uninspected/not-ready stock is unavailable. | DR-04, GB-04, UC-26, UC-33, UC-73, UC-133 |
+| BR-08 | PO supports multiple receipts; posted parts are immutable. Short closure/excess change requires reasons and authorization. | DR-03, GB-05, UC-07, UC-114, UC-115, UC-116, UC-117, UC-10, UC-26 |
 | BR-09 | Local relocation preserves total/lot/quality and reservations; no Owner approval. | DR-06, GB-06, UC-36/37 |
 | BR-10 | Approved TR → draft TD before picking → execution confirmation → TD/HO post at handover → MWTR → confirmed put-away TO. No Owner TO approval or additional GI for the same TD. | UC-41/43/104 |
 | BR-11 | Posted TD cannot exceed approved TR after cancellation. Dispatch = valid receipt + transit/unresolved + documented other outcomes. TR closes only after demand, dispatched quantities and related TOs are resolved; a matched release alone is insufficient. | UC-43/44/104 |
 | BR-12 | Destination confirmation is independent of source dispatch under verified staffing; one confirm cannot update both ends. | UC-43/104, permissions |
-| BR-13 | Compatibility precedes FIFO. Record exception reasons/consent; do not assume LIFO without evidence. | UC-54/55/103 |
-| BR-14 | SO/WIR/draft GI change no stock; picking TO only relocates; PGI deducts actual handover once. GR-FD increases actual receipt and reopens exact net demand; POD/PAY-CFM change no stock. Retain redelivery ledger history. | UC-47/109/55/58/73/110/111 |
+| BR-13 | Compatibility precedes FIFO. Record exception reasons/consent; do not assume LIFO without evidence. | UC-54, UC-55, UC-103, UC-139, UC-140 |
+| BR-14 | SO/WIR/draft GI change no stock; picking TO only relocates; PGI deducts actual handover once. GR-FD increases actual receipt and reopens exact net demand; POD/PAY-CFM change no stock. Retain redelivery ledger history. | UC-47, UC-109, UC-144, UC-145, UC-146, UC-147, UC-55, UC-58, UC-129, UC-73, UC-133, UC-110, UC-111 |
 | BR-15 | Picking shortage/defects block affected quantity, preserve evidence and reallocate/wait; never silently change balance. | BF-02/05/06 |
-| BR-16 | Ordinary CR cap is customer-received POD/verified historical quantity less returned/open claims. FD uses PGI not covered by POD/GR-FD/open FD. Atomically share source controls; no quantity belongs to both branches. | UC-70/72/73/108/110 |
-| BR-17 | Sales accepts/rejects ordinary CR after Warehouse inspection and may be creator; Owner approves eligible exceptions only. Warehouse GR-CR requires proper decision kind/version. FD needs no commercial acceptance/Owner approval. | UC-70–73 |
-| BR-18 | CR splits good/quarantine/custody-rejection, preserving original POD/GI/invoice. FD uses GI/failure evidence, not customer custody or automatic refund; post GR-FD once and atomically reopen net demand. | UC-73/108/109 |
-| BR-19 | Block defects immediately; outside stocktake destruction/regrade/release requires Owner. B1 retains hold until UC-93 closure. BF-08 supplier return has no Owner approval and deducts only at GI-SR, never also BF-02. | UC-65/66/67/82/93 |
-| BR-20 | Supplier return requires source/quantity agreement verified by Accountant and actual Warehouse dispatch; no Owner approval, UC-106 retired. Accountant reconciles/closes UC-83/107 when all quantities resolve; UC-108 finance stays separate. Custody release never deducts owned stock. | UC-82/83/107/108 |
-| BR-21 | Snapshot is immutable at activation; export count sheet with time/scope. Never replace snapshot with current balance. | DR-08, GB-08, UC-87/105 |
-| BR-22 | Freeze ordinary stocktake-scope postings; record balance-neutral defect hold/evidence immediately. B1 only approved closure posts delta/RECLASS/location, retaining freeze/holds until resolution. Uncounted differs from zero; preserve recount history. | UC-87/88/92/93 |
-| BR-23 | Substantiated variance may proceed directly to a plan; unclear variance recounts. Warehouse proposes, Owner approves/posts version-matched actual delta plus total-preserving RECLASS without duplicate deductions; quality-only creates no ADJ=0. | UC-88/91/92/93 |
-| BR-24 | Posted documents cannot be edited/deleted to remove history. Authorized linked reversal/adjustment corrects errors; inactive masters preserve history. | DR-14, GB-02/13, UC-97/100–102 |
-| BR-25 | Post-commit outbox persists recipient/scope-filtered Notifications with stable dedupKey; readAt does not resolve demand. Opening reevaluates stock; retry never recreates RR or stock postings. | UC-03/47/48/93/103, JOB-01 |
-| BR-26 | Carrier handover or PGI is not customer delivery (DELIVERED), and customer delivery alone is not Sales Order completion (COMPLETED); return receipt is not refund; supplier replacement agreement is not received stock. | BF-06/07/08, UC-58/110/111 |
+| BR-16 | Ordinary CR cap is customer-received POD/verified historical quantity less returned/open claims. FD uses PGI not covered by POD/GR-FD/open FD. Atomically share source controls; no quantity belongs to both branches. | UC-70, UC-72, UC-132, UC-73, UC-133, UC-108, UC-143, UC-110 |
+| BR-17 | Sales accepts/rejects ordinary CR after Warehouse inspection and may be creator; Owner approves eligible exceptions only. Warehouse GR-CR requires proper decision kind/version. FD needs no commercial acceptance/Owner approval. | UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BR-18 | CR splits good/quarantine/custody-rejection, preserving original POD/GI/invoice. FD uses GI/failure evidence, not customer custody or automatic refund; post GR-FD once and atomically reopen net demand. | UC-73, UC-133, UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147 |
+| BR-19 | Block defects immediately; outside stocktake destruction/regrade/release requires Owner. B1 retains hold until UC-93 closure. BF-08 supplier return has no Owner approval and deducts only at GI-SR, never also BF-02. | UC-65, UC-130, UC-66, UC-67, UC-82, UC-93 |
+| BR-20 | Supplier return requires source/quantity agreement verified by Accountant and actual Warehouse dispatch; no Owner approval, UC-106 retired. Accountant reconciles/closes UC-83, UC-107, UC-141, UC-142 when all quantities resolve; UC-108, UC-143 finance stays separate. Custody release never deducts owned stock. | UC-82, UC-83, UC-107, UC-141, UC-142, UC-108, UC-143 |
+| BR-21 | Snapshot is immutable at activation; export count sheet with time/scope. Never replace snapshot with current balance. | DR-08, GB-08, UC-87, UC-134, UC-105 |
+| BR-22 | Freeze ordinary stocktake-scope postings; record balance-neutral defect hold/evidence immediately. B1 only approved closure posts delta/RECLASS/location, retaining freeze/holds until resolution. Uncounted differs from zero; preserve recount history. | UC-87, UC-134, UC-88, UC-135, UC-92, UC-93 |
+| BR-23 | Substantiated variance may proceed directly to a plan; unclear variance recounts. Warehouse proposes, Owner approves/posts version-matched actual delta plus total-preserving RECLASS without duplicate deductions; quality-only creates no ADJ=0. | UC-88, UC-135, UC-91, UC-136, UC-92, UC-93 |
+| BR-24 | Posted documents cannot be edited/deleted to remove history. Authorized linked reversal/adjustment corrects errors; inactive masters preserve history. | DR-14, GB-02/13, UC-97, UC-137, UC-138, UC-100–102 |
+| BR-25 | Post-commit outbox persists recipient/scope-filtered Notifications with stable dedupKey; readAt does not resolve demand. Opening reevaluates stock; retry never recreates RR or stock postings. | UC-03, UC-112, UC-113, UC-47, UC-48, UC-128, UC-93, UC-103, UC-139, UC-140, JOB-01 |
+| BR-26 | Carrier handover or PGI is not customer delivery (DELIVERED), and customer delivery alone is not Sales Order completion (COMPLETED); return receipt is not refund; supplier replacement agreement is not received stock. | BF-06/07/08, UC-58, UC-129, UC-110, UC-111 |
 | BR-27 | Only evidence-authorized users retrieve files; URLs are not public by default. | API-02 evidence storage, GB-NEW-02 |
-| BR-28 | Source system/document/line, version and correlation ID prevent duplicate WMS/MISA recording across SO, WIR, OD, GI-S, `CR` and `EXT-REF`. | UC-47/109/51/58/70/108 |
-| BR-29 | CR sealed/unused goods are individually assessed; installed/customer-damaged/verified overdue is rejected and unknown waits. C2 Sales decides eligible ordinary cases; Owner only substantiated exceptions, never excluded conditions. D6 does not apply to FD never received by customer. | BF-07, UC-70–73 |
-| BR-30 | Torn/opened packaging alone is not tile damage. Count actual pieces and inspect quality. BOX/PIECE/m² conversions follow product/version, not inferred calibre. | D7, BF-01/05/06/07, UC-13/26/55/72/87 |
-| BR-31 | Verified SO and line-linked WIR/OD commitments stay within SO after cancellation. Execution caps use valid PGI less posted GR-FD; redelivery reuses original SO/WIR demand without adding replacement OD as new demand. | UC-45–48/51/58/73/109 |
-| BR-32 | POD requires POSTED GI-S, recipient/time/quantity/photo. Effective POD + posted GR-FD + open FD ≤ valid PGI per line. DELIVERED requires full active quantity > 0; full cancellation at zero delivery → CANCELLED. | UC-58/73/110 |
-| BR-33 | Only Sales confirms full external receipt after DELIVERED to set COMPLETED. Partial payment or prepayment before full delivery cannot complete SO. POD/PAY-CFM change no stock; corrections preserve history and recalculate order progress. | BF-06, UC-48/110/111/108 |
+| BR-28 | Source system/document/line, version and correlation ID prevent duplicate WMS/MISA recording across SO, WIR, OD, GI-S, `CR` and `EXT-REF`. | UC-47, UC-109, UC-144, UC-145, UC-146, UC-147, UC-51, UC-58, UC-129, UC-70, UC-108, UC-143 |
+| BR-29 | CR sealed/unused goods are individually assessed; installed/customer-damaged/verified overdue is rejected and unknown waits. C2 Sales decides eligible ordinary cases; Owner only substantiated exceptions, never excluded conditions. D6 does not apply to FD never received by customer. | BF-07, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BR-30 | Torn/opened packaging alone is not tile damage. Count actual pieces and inspect quality. BOX/PIECE/m² conversions follow product/version, not inferred calibre. | D7, BF-01/05/06/07, UC-13, UC-118, UC-119, UC-120, UC-121, UC-26, UC-55, UC-72, UC-132, UC-87, UC-134 |
+| BR-31 | Verified SO and line-linked WIR/OD commitments stay within SO after cancellation. Execution caps use valid PGI less posted GR-FD; redelivery reuses original SO/WIR demand without adding replacement OD as new demand. | UC-45, UC-46, UC-47, UC-48, UC-128, UC-51, UC-58, UC-129, UC-73, UC-133, UC-109, UC-144, UC-145, UC-146, UC-147 |
+| BR-32 | POD requires POSTED GI-S, recipient/time/quantity/photo. Effective POD + posted GR-FD + open FD ≤ valid PGI per line. DELIVERED requires full active quantity > 0; full cancellation at zero delivery → CANCELLED. | UC-58, UC-129, UC-73, UC-133, UC-110 |
+| BR-33 | Only Sales confirms full external receipt after DELIVERED to set COMPLETED. Partial payment or prepayment before full delivery cannot complete SO. POD/PAY-CFM change no stock; corrections preserve history and recalculate order progress. | BF-06, UC-48, UC-128, UC-110, UC-111, UC-108, UC-143 |
 
-BR-01–BR-33 are the canonical rule catalogue synchronized in the SRS and design; DR/GB are mapped historical aliases, not competing rule sets. These remain To-be requirements rather than implemented-service claims. GB-NEW-04 (invoice) and GB-NEW-05 (refund eligibility) cease under the narrowed MVP; use BR-18/26/28/31–33 and UC-108/109–111. GB-POLICY excludes a general policy editor while finite minimum/priority parameters remain allowed.
+BR-01–BR-33 are the canonical rule catalogue synchronized in the SRS and design; DR/GB are mapped historical aliases, not competing rule sets. These remain To-be requirements rather than implemented-service claims. GB-NEW-04 (invoice) and GB-NEW-05 (refund eligibility) cease under the narrowed MVP; use BR-18/26/28/31–33 and UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147–111. GB-POLICY excludes a general policy editor while finite minimum/priority parameters remain allowed.
 
 ## 9. Report 1 and Report 3 synchronization checklist
 
@@ -685,13 +685,13 @@ On 25 October the text of Report 1/2/3, detailed design, paired data design and 
 | I.3.1 ERD / I.3.2 Entity Descriptions | Text/reference DDL now represents CR/FD, GI/POD/GR-FD lines/claims, reopening/replacement OD, decision_kind, defect holds/B1 plans and Invoice/Credit Note EXT-REF. Mermaid ERD updated for A1/B1/C2; model schemas now exist; runtime business services/APIs remain unimplemented and MongoDB may embed bounded lifecycle concepts. |
 | I.3.3 Data Business Rules | Map section 8 (BR-01–BR-33); fix invalid ranges/duplicates; transit is not a quality enum. |
 | I.4.1 Actors | Five roles, Warehouse Staff naming, revised Sales (SO copy, linked WIR, external payment COMPLETED), Warehouse (POD photo confirmation DELIVERED), Accountant and Owner responsibilities, and source/destination independence. |
-| I.4.2 Catalogue | Align 111 IDs: 97 active/14 retired including UC-106. UC-71 Sales ordinary/Owner exception, UC-73 CR/FD, UC-83 Accountant closure, UC-92/93 B1. No new ID for FD/RECLASS. |
-| I.4.3 UC diagrams | Sales UC-71 ordinary; Owner UC-71 exceptions and scoped UC-66/92; Warehouse UC-72/73 FD and B1 execution; Accountant UC-83/107/108. Remove UC-106 and other retired UCs from active diagrams; no Owner in BF-08. |
+| I.4.2 Catalogue | Align 147 IDs: 133 active/14 retired including UC-106. UC-71, UC-131 Sales ordinary/Owner exception, UC-73, UC-133 CR/FD, UC-83 Accountant closure, UC-92/93 B1. No new ID for FD/RECLASS. |
+| I.4.3 UC diagrams | Sales UC-71, UC-131 ordinary; Owner UC-71, UC-131 exceptions and scoped UC-66/92; Warehouse UC-72, UC-132, UC-73, UC-133 FD and B1 execution; Accountant UC-83, UC-107, UC-141, UC-142, UC-108, UC-143. Remove UC-106 and other retired UCs from active diagrams; no Owner in BF-08. |
 | I.4.4 Permission Matrix | Align section 6 with sub-operations/warehouses: Owner decisions require creator≠approver; C2 permits Sales own ordinary CR acceptance; BF-08 has no Owner approval. Warehouse-only UC-110 and Sales-only UC-111. |
 | I.5.1 Screen Flow / List | Revise SC-06,08,10–19,22,23; remove SC-25 price, SC-26 invoice and SC-27 refund under narrowed MVP. Support copied SO and linked WIR, fulfilment suggestions, destination receipt at SC-13, count sheet at SC-14, customer delivery photo confirmation (POD), Sales external payment confirmation (PAY-CFM) and external references. |
 | I.5.2 External API Inventory | SMTP only warehouse notifications if retained; declare Cloudinary/file storage interface for evidence/delivery photos or remove it. No automatic MISA API or payment gateway. |
 | I.5.3 Background Jobs | Remove invoice events from JOB-01. Describe threshold evaluation periodically or after balance changes; no duplicate proposals or automatic posting. |
-| II Use Case Specifications | Revise actors, triggers, conditions, normal/alternate flows, outcomes, sources and posting events for UC-45–58 and add UC-109–111. Replace vague “update inventory if applicable” with exact effects. |
+| II Use Case Specifications | Revise actors, triggers, conditions, normal/alternate flows, outcomes, sources and posting events for UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129 and add UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111. Replace vague “update inventory if applicable” with exact effects. |
 | III Functional Requirements | Forms need source refs, SO↔WIR line links, lot/tone/calibre, quantity categories, snapshot/cutoff, user/time/version, required delivery photos, external payment confirmation fields and statuses. Align names/mockups/contracts. |
 | IV Non-functional Requirements | Concurrency, idempotency, warehouse scope, evidence security, traceability and end-to-end checks. Add phone-responsive quantity/photo entry during work, not assumed native/offline support. |
 | V Business Rules / Messages | Align catalogue (BR-01–BR-33); add self-approval, frozen scope, wrong lot/tone, duplicate SO/WIR/receipt/issue, missing SO link, missing delivery photo, unauthorized/premature completion, over-return and unverified external-source errors. |
@@ -1055,7 +1055,7 @@ Survey evidence establishes current-practice facts; D1–D8 and the 21 October B
 1. Confirm To-be scope/assumptions with supervisor/store; record scope differences from 17 October and the 21 October BF-06 revision.
 2. Establish one glossary, five roles, quantity categories and posting events (distinguishing PGI, POD → DELIVERED and PAY-CFM → COMPLETED).
 3. Review eight BFs using section 11 scenarios; keep R1 IV, R3 I.2 and current figures synchronized whenever a flow changes.
-4. Align the 111-ID catalogue: 97 active/14 retired including UC-106, revised UC-71/73/83/92/93, C2/B1/BF-08 permissions, specifications, context, screens and rules. Preserve history and five roles.
+4. Align the 111-ID catalogue: 133 active/14 retired including UC-106, revised UC-71, UC-131, UC-73, UC-133, UC-83, UC-92, UC-93, C2/B1/BF-08 permissions, specifications, context, screens and rules. Preserve history and five roles.
 5. Align model, screens, API/jobs, NFR and acceptance criteria in Report 3, database design proposals and reference SQL. Every UC/FE/BF/SC/BR reference must resolve.
 6. When figures are within update scope, publish the same versioned set for reports/slides using identified subprocesses for simplification. The follow-up updates Mermaid and related exports; only draw.io files stay unchanged with explicit version limits.
 
@@ -1089,14 +1089,14 @@ No email, message or external review request was sent in preparing this proposal
 | ADJ | Stocktake quantity adjustment | Warehouse proposes; Owner approves/posts | Count/snapshot and current B1 plan | Only nonzero total delta; separate total-preserving RECLASS in same batch |
 | RECLASS | B1 quality/location movement | Warehouse confirms execution; Owner UC-93 posts | UC-92-approved plan, count/snapshot, DC/hold and evidence | Equal source/destination quantities preserve total; no ADJ=0 |
 | CR / GR-CR | Customer-return request / receipt | Sales ordinary acceptance; Owner exceptions only; Warehouse posts | POD/GI or verified delivered history, D6 and proper decision/version | Increase accepted quantity only; no automatic sales-demand reopening |
-| FD / GR-FD | Failed-delivery case / receipt | Warehouse UC-72/73 | Posted GI-S, unused POD/FD cap, failure evidence and actual returned quantity; no D6/Owner/customer custody | GR-FD increases by quality and atomically reopens exact net demand; draft/claim changes no stock |
+| FD / GR-FD | Failed-delivery case / receipt | Warehouse UC-72, UC-132, UC-73, UC-133 | Posted GI-S, unused POD/FD cap, failure evidence and actual returned quantity; no D6/Owner/customer custody | GR-FD increases by quality and atomically reopens exact net demand; draft/claim changes no stock |
 | CUS-IN / CUS-OUT | Custody intake / release | Warehouse | ARR or CR and owner | Custody ledger only, not store-owned total |
 | SR / GI-SR | Supplier request / return issue | Warehouse; Accountant verifies agreement | Source GR/lot + quantity-matched agreement; no Owner/UC-106 | GI-SR deducts owned stock once; custody uses CUS-OUT |
 | ACK / VAR | Supplier acknowledgement / discrepancy | Accountant / Warehouse | Return dispatch or transfer lines | No automatic stock change |
-| EXT-REF | External Invoice/Credit Note reference | Accountant UC-108 | Type/ID/date, purchase/GI-SR lines, reconciled quantity, evidence/state | No inventory/debt/money posting; finance status is independent |
+| EXT-REF | External Invoice/Credit Note reference | Accountant UC-108, UC-143 | Type/ID/date, purchase/GI-SR lines, reconciled quantity, evidence/state | No inventory/debt/money posting; finance status is independent |
 | REV | Reversal document | Authorized user after resolution | Posted batch and reason | Controlled reversal, no history deletion |
 
-TO and MWTR are not interchangeable. BF-04: approved TR → draft TD → picking TO confirmation with staging → post TD/HO at handover → MWTR → create/confirm put-away TO. No second GR-P for MWTR. Without staging record actual picking on TD without another Owner approval layer. FD/GR-FD is UC-72/73 failed-delivery mode, not post-receipt customer GR-CR.
+TO and MWTR are not interchangeable. BF-04: approved TR → draft TD → picking TO confirmation with staging → post TD/HO at handover → MWTR → create/confirm put-away TO. No second GR-P for MWTR. Without staging record actual picking on TD without another Owner approval layer. FD/GR-FD is UC-72, UC-132, UC-73, UC-133 failed-delivery mode, not post-receipt customer GR-CR.
 
 ### 15.2 Document and quantity links
 
@@ -1160,7 +1160,7 @@ Draw.io files remain the 22 October 3.0.0 snapshot: [VI/EN draw.io, 16 pages](..
 
 | Alternative | Organization | Benefit | Cost / decision |
 |---|---|---|---|
-| A1 — BF-07-FD branch | GI-S/failure evidence → ARR/INS → GR-FD through UC-72/73 FD mode, without D6/Owner/customer custody. | Retains eight BFs and reuses source-linked inspection/receipt. | **Selected by user.** Requires distinct POD/FD/CR caps and net reopening, not merely another connector. |
+| A1 — BF-07-FD branch | GI-S/failure evidence → ARR/INS → GR-FD through UC-72, UC-132, UC-73, UC-133 FD mode, without D6/Owner/customer custody. | Retains eight BFs and reuses source-linked inspection/receipt. | **Selected by user.** Requires distinct POD/FD/CR caps and net reopening, not merely another connector. |
 | A2 — BF-06 exception | Handle incoming failed-delivery goods in delivery flow, keeping BF-07 post-receipt CR only. | Entire delivery/failure lifecycle in one BF. | Not selected; expands receipt operations and related UC/screens in BF-06. |
 | A3 — Separate BF-09 | Dedicated failed-delivery intake process. | Clear separation for larger operational responsibility. | Not selected; adds a BF and more report/diagram synchronization than the retained-eight-flow scope. |
 
@@ -1185,7 +1185,7 @@ Book50 good/count48 good+2 broken → RECLASS2, total50, no ADJ=0. Count 46 good
 - **Ordinary CR:** Sales individually accepts after Warehouse inspection and may be CR creator. Require verified source/quantity, unused good goods, substantiated deadline/terms and no dispute/deviation. Owner only reviews eligible exceptions; D6 exclusions still block. Owner self-approval constraints cannot negate explicitly selected ordinary Sales authority.
 - **FD:** Warehouse receives against GI-S/evidence without commercial acceptance or Owner approval. Sales decides outstanding demand only after GR-FD.
 - **BF-08:** no Owner dispatch, variance or closure approval. Accountant verifies agreement/reconciles/closes; Warehouse posts actual stock events. Retire UC-106, retain ID/history and five roles. Destruction/release of defective goods still on site remains BF-02; removing BF-08 approval does not permit unauthorized destruction.
-- **Catalogue:** 111 IDs, 97 active/14 retired: UC-23–25, UC-42, UC-59–62, UC-74–78, UC-106.
+- **Catalogue:** 147 IDs, 133 active/14 retired: UC-23–25, UC-42, UC-59–62, UC-74–78, UC-106.
 
 ### 17.4 Scope and follow-up synchronization
 
@@ -1196,3 +1196,5 @@ Book50 good/count48 good+2 broken → RECLASS2, total50, no ADJ=0. Count 46 good
 | Data/API implementation assessment | Reference DDL now represents A1/B1/C2 and API/authority/acceptance contracts are aligned. Runtime MongoDB/API/backend remain unmodified and untested; service/transaction controls still require implementation. |
 | Verification criteria | Section 11 draft/post, two stocktake paths, capped GR-FD/redelivery, disjoint CR/FD, Sales ordinary/Owner exceptions, Owner-free BF-08 and B1 quality-only/rollback scenarios. Proposed criteria, not software test results. |
 | Schedule | Implement/verify R-01–26/T01–T56 against current processes; revise draw.io separately when requested. No invented story-point/deadline/Report 2 effort re-estimate. |
+
+Truy vết phân rã UC hiện hành: [CR-2026-10-30-UC-SPLIT](../07_ra_soat/CR-2026-10-30-UC-SPLIT.md). 147 mã gồm 133 ACTIVE và 14 RETIRED; quyền/luồng chi tiết theo Report 3.

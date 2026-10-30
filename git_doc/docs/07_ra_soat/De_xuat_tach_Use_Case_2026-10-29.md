@@ -1,5 +1,7 @@
 # Rà soát và đề xuất tách Use Case — 29/10/2026
 
+Đã áp dụng nhóm P1/P2 ngày 30/10/2026; mã chính thức và phạm vi hiện hành tại [crosswalk](CR-2026-10-30-UC-SPLIT.md). Nội dung đánh giá dưới đây giữ theo thời điểm đề xuất.
+
 ## 1. Kết quả và phạm vi
 
 Rà soát catalogue 111 mã trong Report 3, gồm **97 ACTIVE và 14 RETIRED**, cùng ma trận quyền và đặc tả từng UC. Đề xuất **11 UC ưu tiên tách (P1)** và **10 UC chuẩn hóa tiếp (P2)**. Có **7 UC cần cân nhắc theo cách vận hành**; 69 UC ACTIVE còn lại giữ cấu trúc hiện tại trong lượt rà soát này.

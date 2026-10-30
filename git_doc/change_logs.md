@@ -1,3 +1,9 @@
+# Áp dụng phân rã UC — 30/10/2026
+
+Áp dụng P1/P2 đã chấp thuận: 21 UC thành 57 mục tiêu, tăng ròng 36; 147 mã = 133 active + 14 retired. Giữ mã cha cho mục tiêu kế thừa, thêm UC-112–147. Cập nhật SRS catalogue/quyền/actor/spec/screen, quy trình VI/EN, thiết kế/dữ liệu, Report 1/2, README và context BE/FE. Crosswalk/impact/QA tại docs/07_ra_soat/CR-2026-10-30-UC-SPLIT.md. Giữ nguyên effort/ngày và dòng WBS cũ ở cấp nhóm, không nhân estimate hoặc tuyên bố hoàn thành UC con. Không sửa runtime, spreadsheet, Word/cloud hoặc draw.io lịch sử; không commit/push.
+
+---
+
 # Chuyển ví dụ model sang tình huống thực tế — 29/10/2026
 
 Theo điều chỉnh của người dùng, sửa [MO_TA_DATABASE_MODELS.md](../MO_TA_DATABASE_MODELS.md): thay toàn bộ 39 ví dụ JSON bằng tình huống vận hành cửa hàng gạch, có nhân vật, hàng hóa, số lượng và giải thích model ghi nhận điều gì. Đổi quy ước ví dụ và sơ đồ dạng khối sang diễn giải/bảng dễ đọc; bỏ các minh họa gọi hàm, tạo object và định danh giả. Giữ mô tả trường/quan hệ/ràng buộc và các luồng nghiệp vụ để đối chiếu source.

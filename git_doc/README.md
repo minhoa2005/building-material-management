@@ -2,7 +2,7 @@
 
 Kho tài liệu của Warehouse Management System Development — SEP490_G56, cửa hàng gạch ốp lát Tân Thương.
 
-**Chuẩn nghiệp vụ hiện hành: baseline 3.3.0, đồng bộ ngày 27/10/2026.** Áp dụng một form RR điền sẵn, lời hỏi sau lưu SO, thêm sản phẩm có căn cứ riêng và Notification theo đề xuất 1.4.0; giữ 8 BF, 5 role, 111 UC (97 active/14 retired), BR-01–33, SC-01–31 (28 active/3 retired). Model/seed hỗ trợ cấu trúc mới; API/consumer/UI mới chưa triển khai.
+**Chuẩn nghiệp vụ hiện hành: baseline 3.3.0; bản tài liệu 3.3.2, cập nhật ngày 30/10/2026.** Áp dụng một form RR điền sẵn, lời hỏi sau lưu SO, thêm sản phẩm có căn cứ riêng và Notification theo đề xuất 1.4.0; giữ 8 BF, 5 role, 147 UC (133 active/14 retired), BR-01–33, SC-01–31 (28 active/3 retired). Model/seed hỗ trợ cấu trúc mới; API/consumer/UI mới chưa triển khai.
 
 Luồng đơn: SO nhập lại từ nguồn ngoài đã xác minh → WIR liên kết → OD/soạn/PGI → Warehouse xác nhận POD có ảnh (DELIVERED) → Sales xác nhận đủ tiền ngoài hệ thống (PAY-CFM, COMPLETED). Giá bán, hóa đơn, thu/chuyển tiền và kế toán vẫn bên ngoài; không live MISA.
 
@@ -24,15 +24,15 @@ Quyết định phân quyền 28/10/2026: Mỗi user bắt buộc có đúng m�
 
 | Tài liệu | Vai trò / trạng thái |
 |---|---|
-| [Quy trình VI](docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) / [EN](docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | Chuẩn nghiệp vụ/tài liệu 3.3.0; 8 BF, CR/FD, B1, C2, quyền/chứng từ/BR và Mermaid |
+| [Quy trình VI](docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) / [EN](docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | Baseline nghiệp vụ 3.3.0, tài liệu 3.3.2; 8 BF, CR/FD, B1, C2, quyền/chứng từ/BR và Mermaid |
 | [Report 1](docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | Bối cảnh, GAP, 9 FE, phạm vi và 8 To-be |
-| [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | Catalogue/permission/spec đủ 111 UC, màn hình, BR, NFR và lỗi |
-| [Thiết kế hệ thống chi tiết](docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | Bản tài liệu/baseline 3.3.0; API/trạng thái/transaction/MongoDB, GR-FD/B1 và truy vết 111 UC |
+| [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | Catalogue/permission/spec đủ 147 UC, màn hình, BR, NFR và lỗi |
+| [Thiết kế hệ thống chi tiết](docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | Tài liệu 3.3.2 / baseline nghiệp vụ 3.3.0; API/trạng thái/transaction/MongoDB, GR-FD/B1 và truy vết 147 UC |
 | [Thiết kế database VI](docs/03_thiet_ke/de_xuat_database_design_VI.md) / [EN](docs/03_thiet_ke/de_xuat_database_design_EN.md) | Mô hình tham chiếu và MongoDB mapping; 30 quy tắc, 64 case nghiệm thu |
 | [SQL tham chiếu](docs/03_thiet_ke/WMSD_SQL_schema.sql) | 84 bảng, 2 view; T-SQL tham chiếu 3.3.0 có A1/B1/C2, chưa chạy SQL Server/MongoDB |
 | [Nhật ký](change_logs.md) | Thay đổi, kiểm tra thực tế và giới hạn theo từng mốc |
 | [Report 2](docs/01_bao_cao/WMSD_Report2.docx.txt) | Kế hoạch còn lại 5 tuần 26/10–29/11/2026 (tuần 8–12); 5 người theo nhóm nghiệp vụ; 92,25 pd / 100 pd khả dụng; review thử tuần 13 chưa chốt ngày |
-| [Project Tracking](docs/01_bao_cao/Project_Tracking_Template.xlsx) | Điền trực tiếp 97 UC active theo format gốc; danghh chỉ bán/xuất hàng, bachhm nhận UC-20–22 danh mục khách hàng; giữ nguyên phông chữ và các sheet |
+| [Project Tracking](docs/01_bao_cao/Project_Tracking_Template.xlsx) | Giữ 97 nhóm công việc gốc, đối chiếu 133 mục tiêu active bằng crosswalk 30/10/2026; danghh chỉ bán/xuất hàng, bachhm nhận UC-20, UC-21, UC-22, UC-125 danh mục khách hàng; giữ nguyên phông chữ và các sheet |
 
 Các file .docx.txt là bản văn bản, không phải Word .docx. Bản Google Docs/Word báo cáo bên ngoài repo cần phát hành riêng từ nội dung đã đồng bộ; không suy ra đã sửa các bản trực tuyến.
 
@@ -82,3 +82,5 @@ Quy trình/database hiện hành trích bộ SAP v4.1 trong repo và số trang 
 ## Duy trì đồng bộ
 
 Đọc quy trình → Report 1/2/3 → thiết kế chi tiết/dữ liệu → nghiệm thu; đồng bộ sơ đồ ở lượt riêng khi nằm trong yêu cầu. Thay BF/UC/BR/SC hoặc quyền phải cập nhật mọi phần hiện hành tương ứng, ghi change log; chỉ xuất lại hình khi sơ đồ nằm trong phạm vi được yêu cầu. Giữ nội dung As-is, biên bản và bản chụp lịch sử theo đúng thời điểm.
+
+Truy vết phân rã UC hiện hành: [CR-2026-10-30-UC-SPLIT](docs/07_ra_soat/CR-2026-10-30-UC-SPLIT.md). 147 mã gồm 133 ACTIVE và 14 RETIRED; quyền/luồng chi tiết theo Report 3.

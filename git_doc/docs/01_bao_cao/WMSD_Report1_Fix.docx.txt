@@ -292,7 +292,7 @@ Gap ID
 	An individual quantity cannot be followed across receiving, storage, movement, issue and return.
 	Section Summary. KiotViet and MISA eShop already offer established retail and inventory functions. The nine GAPs describe the store's unresolved physical controls and fragmented records. WMSD addresses tile-specific inspection, traceable stock events, exception resolution and count accountability, together with source-linked warehouse issue fulfilment and external-document reconciliation. Financial accounting and sales payment/debt management remain outside WMSD.
 IV. Proposed Solution
-The proposed solution supports nine features across eight linked warehouse processes, with five application roles, 97 active use cases and BR-01–33. Sales/Warehouse creates source-linked replenishment requests through one editable prefilled form; a different Owner approves before Accountant creates the purchase order. Saved sales orders and committed stocktakes provide shortage warnings and scoped in-app notifications.
+The proposed solution supports nine features across eight linked warehouse processes, with five application roles, 133 active use cases and BR-01–33. Sales/Warehouse creates source-linked replenishment requests through one editable prefilled form; a different Owner approves before Accountant creates the purchase order. Saved sales orders and committed stocktakes provide shortage warnings and scoped in-app notifications.
 
 | Gap | Feature | Proposed operational handling |
 |---|---|---|
@@ -336,7 +336,7 @@ Main flow FD (A1): Valid undelivered GI-S plus failure evidence → Warehouse AR
 Alternate/exception outcomes: CR + OPEN CR claims cannot exceed eligible customer-received quantity. FD and POD share source caps, consuming a claim never counts it again with receipt. SO10/PGI10/GR-FD10/redelivery10 retains gross dispatch20/receipt10/net10. Ordinary CR never reopens demand. D6 exclusions block both Sales and Owner; UNKNOWN waits. Reversal checks dependent POD/claims/redelivery; finance remains external.
 
 BF-08 — Supplier return and quantity reconciliation
-Main flow: Warehouse proposes/isolates; Accountant verifies source/quantity/agreement; Warehouse posts actual GI-SR or custody release/HO; Accountant records later ACK, reconciles outcomes and closes accounted warehouse quantity through UC-83/107.
+Main flow: Warehouse proposes/isolates; Accountant verifies source/quantity/agreement; Warehouse posts actual GI-SR or custody release/HO; Accountant records later ACK, reconciles outcomes and closes accounted warehouse quantity through UC-83, UC-107, UC-141, UC-142.
 Alternate/exception outcomes: No Owner dispatch, variance or closure approval and no UC-106 route/historical BF-02 approval prerequisite. Missing agreement or unresolved disputes keep work open. ACK/closure never deduct again; replacement/returned goods require actual receipt. External Invoice/Credit Note and financial status remain independent. On-site destruction/regrade/release still requires BF-02/B1 authority.
 
 Shared failure handling: enforce role/sub-operation/warehouse/source/version and proper decision_kind on the server. Owner approvals require distinct requester; C2 explicitly permits Sales ordinary acceptance of own inspected CR. Transfer receiver is independent of dispatcher. Failed batches roll back fully; unknown commit requires stable operation-key lookup before retry. Photo/upload/email retry cannot post stock again.
@@ -359,7 +359,7 @@ V. Project Scope & Limitations
 | ID | Excluded item | Boundary |
 |---|---|---|
 | LI-01 | Multi-store retail management | One store with three or more reported warehouses; no multi-branch retail administration. |
-| LI-02 | Sales payments, refunds and accounting | No collection, deposits, receivables/debt, refund amount/approval/payment or financial ledgers. Accountant records verified external references/status only (UC-108). |
+| LI-02 | Sales payments, refunds and accounting | No collection, deposits, receivables/debt, refund amount/approval/payment or financial ledgers. Accountant records verified external references/status only (UC-108, UC-143). |
 | LI-03 | Sales pricing, internal/tax invoicing and live MISA | Commercial SO, selling prices and internal/tax invoices remain external. No invoice generation/email or live MISA synchronization. Warehouse print/handover evidence remains in scope. |
 | LI-04 | Fleet and routing | Carrier/recipient and evidence may be recorded; GPS, route optimization and fleet maintenance are excluded. |
 | LI-05 | Complex approval/delegation | Only scoped Owner decisions with distinct requester; Sales ordinary inspected CR acceptance may share creator. BF-08 has no Owner approval. No extra role, dynamic delegation, tendering or multilevel approval. |

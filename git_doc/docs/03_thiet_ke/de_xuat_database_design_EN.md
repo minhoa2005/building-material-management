@@ -22,9 +22,9 @@ Updated 27 October 2026, baseline3.3.0: apply source-backed replenishment and No
 
 | ID | Source | Use |
 |---|---|---|
-| S1 | [Process Proposal 2 — EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), baseline3.3.0, synchronized27 October2026 | Current business source: eight BFs, five roles, 111 UCs (97 active/14 retired), BR-01–33; no live MISA integration. |
+| S1 | [Process Proposal 2 — EN](../02_nghiep_vu/de_xuat_quy_trinh_2_EN.md), baseline3.3.0, synchronized27 October2026 | Current business source: eight BFs, five roles, 147 UCs (133 active/14 retired), BR-01–33; no live MISA integration. |
 | S2 | [Report 1 text](../01_bao_cao/WMSD_Report1_Fix.docx.txt), synchronized27 October2026 | One-store context, at least three reported warehouses, eight BF flows and current copied-SO/POD/PAY-CFM scope; As-is is not deployed To-be. |
-| S3 | [Report 3 text](../01_bao_cao/WMSD_Report3_Fix.docx.txt), baseline3.3.0, synchronized27 October2026 | 111 UC IDs (97 active/14 retired), BR-01–33, SC-01–31; SO UC-45–48, WIR/POD/PAY-CFM UC-109–111. MongoDB runtime. |
+| S3 | [Report 3 text](../01_bao_cao/WMSD_Report3_Fix.docx.txt), baseline3.3.0, synchronized27 October2026 | 147 UC IDs (133 active/14 retired), BR-01–33, SC-01–31; SO UC-45, UC-46, UC-47, UC-48, UC-128, WIR/POD/PAY-CFM UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111. MongoDB runtime. |
 | S4 | [WMSD_Bangach.drawio](../04_so_do/WMSD_Bangach.drawio), 21 historically labelled pages | Prior alternatives only; old System/WMSD lanes, prices and inter-warehouse TO do not define current behavior. |
 | S5 | [SAP WM I](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_I_en_v4.1.pdf), [II](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_II_en_v4.1.pdf), [III](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_III_en_v4.1.pdf), [IV](../06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_IV_en_v4.1.pdf) | Local **v4.1** set: I GR p.10, TO pp.18/21; II STO p.6, GI p.12, GR p.18, TO pp.26/29; III picking pp.14/19, shipping p.25; IV snapshot/count/recount/clearing pp.4/12/14/21/27. Do not reuse v4.2 page references from the older proposal. |
 | S6 | [Process compilation](../06_tham_khao/quy_trinh/Tổng%20hợp%20quy%20trình.pdf), four pages | Handover documents and business context. Debt, payments and fleet management are not automatically added to the MVP. |
@@ -32,7 +32,7 @@ Updated 27 October 2026, baseline3.3.0: apply source-backed replenishment and No
 | S8 | [Database drawing](WMSD_database_design.drawio), 10 pages | Preserved 3.0.0 snapshot: 73 tables/173 FKs/2 views on 22 October. Diagrams excluded; 3.3.0 DDL has 84 tables/2 views and is not claimed to match the old drawing. |
 | S9 | [VI/EN mainflows](../04_so_do/WMSD_Mainflows_VI_EN.drawio), 16 pages | Preserved 3.0.0 snapshot, not updated to 3.1.0; layout reference only. Current process text takes precedence. |
 
-Priority: current instruction → S1/D1–D8 and the [change log](../../change_logs.md) → Report 1/3 at the same baseline → design/S8/S9 → survey and reference evidence. S4 is historical and cannot override current decisions. The current catalogue has 111 UCs (97 active/14 retired). SQL is the reference model; MongoDB remains runtime.
+Priority: current instruction → S1/D1–D8 and the [change log](../../change_logs.md) → Report 1/3 at the same baseline → design/S8/S9 → survey and reference evidence. S4 is historical and cannot override current decisions. The current catalogue has 147 UCs (133 active/14 retired). SQL is the reference model; MongoDB remains runtime.
 
 ### 1.2 Scope and architecture impact
 
@@ -59,7 +59,7 @@ Priority: current instruction → S1/D1–D8 and the [change log](../../change_l
 | BF-03 | Same-warehouse relocation: Warehouse TO-RELOCATE, no Owner approval; preserve total and reservations; UC-34–37. |
 | BF-04 | Inter-warehouse transfer: Owner-approved TR → source TD → independent destination MWTR → put-away; UC-38–44/104. |
 | BF-05 | Owner plans; Warehouse counts, directly explains or recounts, proposes/confirms B1 execution; Owner UC-92/93 approves/posts delta and RECLASS before unlock. |
-| BF-06 | Sales copies external SO → linked WIR → picking/PGI → Warehouse photo POD → DELIVERED → Sales PAY-CFM → COMPLETED. UC-45–48/109–111; BR-31–33. |
+| BF-06 | Sales copies external SO → linked WIR → picking/PGI → Warehouse photo POD → DELIVERED → Sales PAY-CFM → COMPLETED. UC-45, UC-46, UC-47, UC-48, UC-128, UC-109, UC-144, UC-145, UC-146, UC-147–111; BR-31–33. |
 | BF-07 | CR after POD/verified delivery: Sales ordinary acceptance or Owner eligible exception; GR-CR never reopens demand. FD against undelivered GI-S: Warehouse GR-FD without D6/Owner/customer custody, atomic net reopening. |
 | BF-08 | Warehouse proposes/posts actual dispatch; Accountant verifies agreement, reconciles ACK and closes UC-83. No Owner approval/UC-106. |
 | Persistence | MongoDB is runtime; SQL is the analysis model and reference DDL |
@@ -219,7 +219,7 @@ Retain original confirmation facts when voiding a mistake; record a new business
 
 | 3.1.0 table / contract | Content and control |
 |---|---|
-| `failed_delivery`, `failed_delivery_line` | FD receiving warehouse, failure reason/evidence; line → valid POSTED GI-S not customer-received. No fabricated CR/D6/POD or customer custody. Warehouse UC-72/73 records ARR/INS and actual receipt. |
+| `failed_delivery`, `failed_delivery_line` | FD receiving warehouse, failure reason/evidence; line → valid POSTED GI-S not customer-received. No fabricated CR/D6/POD or customer custody. Warehouse UC-72, UC-132, UC-73, UC-133 records ARR/INS and actual receipt. |
 | `return_source_claim` | Request line, GI-S XOR historical source, CR/FD kind, qty, OPEN/CONSUMED/RELEASED, business operation. FD requires GI-S; CR requires received POD or verified historical delivery. Claim changes neither stock nor demand. |
 | `failed_delivery_receipt_line` | GR-FD line belongs to FAILED_DELIVERY goods_receipt and links FD/GI-S, inspection and optional claim. Partial receipts/quality splits retain actual document_line quantities. |
 | `demand_reopening` | Unique posted GR-FD receipt line with original SO/WIR/OD lines, reopened qty, source_version and posting_batch; committed with receipt/claim/balance/ledger/progress. Claim alone never permits replacement dispatch. |
@@ -230,13 +230,13 @@ One shared conditional GI-line write guard enforces **effective POD + valid GR-F
 
 SO10 → PGI10/POD0 → GR-FD10 → new PGI10/POD10 retains gross dispatch20, return receipt10 and net fulfilment10. GR-FD reopens original SO/WIR/OD and increments version; stale PAY-CFM never completes the new version. Sales chooses wait/redelivery/cancel received-back, not-redelivered remainder; unresolved off-site quantity cannot be cancelled. Ordinary GR-CR never automatically reopens demand.
 
-SR: DRAFT → AGREEMENT_PENDING → READY → PARTIAL/COMPLETED; READY requires Accountant-verified agreement/source/qty plus Warehouse source checks. Accountant UC-83 closes accounted warehouse quantities after UC-107 reconciliation, without Owner/UC-106. FD: OPEN → INSPECTED → PARTIAL/RECEIVED → CLOSED per actual quantity. CR retains DRAFT/SUBMITTED/APPROVED/REJECTED/REVISION_REQUIRED but APPROVED requires proper kind/role/version after inspection, not a status flag alone.
+SR: DRAFT → AGREEMENT_PENDING → READY → PARTIAL/COMPLETED; READY requires Accountant-verified agreement/source/qty plus Warehouse source checks. Accountant UC-83 closes accounted warehouse quantities after UC-107, UC-141, UC-142 reconciliation, without Owner/UC-106. FD: OPEN → INSPECTED → PARTIAL/RECEIVED → CLOSED per actual quantity. CR retains DRAFT/SUBMITTED/APPROVED/REJECTED/REVISION_REQUIRED but APPROVED requires proper kind/role/version after inspection, not a status flag alone.
 
 External Invoice/Credit Note uses external_reference, external_reference_line and document_external_reference: kind/number/reference_date, purchase/GI-SR source, matched quantity, verifier/evidence and independent financial status. No monetary document execution or financial prerequisite for warehouse closure.
 
 ### 3.4.4 Bổ sung hàng theo nguồn và Notification / Source-backed replenishment — 3.3.0
 
-The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
+The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 147 UCs (133 active/14 retired), extending UC-03, UC-112, UC-113, UC-13, UC-118, UC-119, UC-120, UC-121, UC-47, UC-48, UC-128, UC-88, UC-135, UC-93, UC-103, UC-139, UC-140, UC-109, UC-144, UC-145, UC-146, UC-147 and BR-03/25 without adding UC IDs.
 
 1. After a valid SO save, evaluate compatible, timely, uncommitted local stock, feasible other-warehouse options and incoming PO/transfer supply. The SO line is the original demand; WIR is optional context, and SO/WIR/OD releases must not multiply demand.
 2. Evaluate low stock only after committed stocktake closure, updated balances and scope unlock, including zero-stock SKUs. Defer while relevant freezes remain. Warehouse prepares/confirms execution; Owner approves/posts differences through UC-92/93. A no-variance closure remains valid under BF-05. Owner closure triggers evaluation, not RR creation.
@@ -537,7 +537,7 @@ The SQL DDL illustrates PK/FK/UNIQUE constraints, exact numeric types, local CHE
 | R-12 | Ledger/balance and batch consistency | batch.document_id=movement.document_id; balance deltas equal movement and before/after; no standalone balance updates |
 | R-13 | D6 and typed CR decision match | Validate latest assessment, inspection, customer-received source, role/decision_kind and approval_line. PENDING/INELIGIBLE cannot post; FD is outside D6. |
 | R-14 | Actual packaging/units | Record packaging_condition and actual quantity; torn packaging alone does not change quality; conversion versions preserve history |
-| R-15 | UC and role boundary | Exactly 5 roles; 14 retired UCs have no active permissions; UC-107/108 do not post stock; D2 departmental entry |
+| R-15 | UC and role boundary | Exactly 5 roles; 14 retired UCs have no active permissions; UC-107, UC-141, UC-142, UC-108, UC-143 do not post stock; D2 departmental entry |
 | R-16 | SO and WIR source | Unique SO/source line; composite parent FKs; Sales source verification/evidence; reuse SO for correction/reopening |
 | R-17 | Net SO→WIR→OD→GI caps | Commitments ≤ SO less cancellations; valid PGI − valid GR-FD ≤ OD/WIR. Replacement OD transfers versioned commitment, not new demand; no cancellation of unresolved off-site quantity. |
 | R-18 | POD photo and shared FD cap | Assigned Warehouse, valid POSTED GI-S and stored same-POD image; atomically enforce effective POD + GR-FD + OPEN FD ≤ PGI per source line. |
@@ -546,7 +546,7 @@ The SQL DDL illustrates PK/FK/UNIQUE constraints, exact numeric types, local CHE
 | R-21 | Traceable correction | VOIDED with reason; recalculate SO and invalidate stale completion authority. Normal BF-07 preserves original delivery/payment history |
 | R-22 | Shared CR/FD/POD source caps | Use one GI-line guard: effective POD + valid GR-FD + OPEN FD ≤ valid PGI; GR-CR + OPEN CR ≤ eligible customer-received quantity. Never count CONSUMED claims again with receipts. |
 | R-23 | Atomic GR-FD net reopening | Commit actual receipt and demand_reopening on original SO/WIR/OD together; net PGI = valid PGI − valid GR-FD. Version replacement OD commitment transfers without new demand; reversal checks downstream. |
-| R-24 | C2 and BF-08 authority | STANDARD_ACCEPTANCE is Sales ordinary CR after inspection, including own creation; EXCEPTION_APPROVAL is distinct-requester Owner only, never overriding D6. SR has no Owner approval; Accountant UC-83/107 reconciles/closes. |
+| R-24 | C2 and BF-08 authority | STANDARD_ACCEPTANCE is Sales ordinary CR after inspection, including own creation; EXCEPTION_APPROVAL is distinct-requester Owner only, never overriding D6. SR has no Owner approval; Accountant UC-83, UC-107, UC-141, UC-142 reconciles/closes. |
 | R-25 | Balance-neutral B1 hold | Record defect_hold/evidence immediately under freeze and block allocation, preserving snapshot. Only approved UC-93 batch posts nonzero actual delta plus RECLASS/location; no ADJ=0 or ordinary freeze bypass. |
 | R-26 | Whole-scope B1/TR closure | B1 requires current count/plan/version/UC-92 and Warehouse execution, no unresolved task/hold; rollback retains freeze. TR requires resolved demand, transit, variances and TOs; one matched trip is insufficient. |
 
@@ -639,7 +639,7 @@ Reports cover stock/availability/custody/transit, outstanding PO/SO/WIR demand, 
 | T20 | Unverified deadline or conditions | PENDING; no invented 7/15/30 days; obtain evidence |
 | T21 | Evidence-complete sealed/unused loose tiles | CASE_REVIEW; Sales decides ordinary cases after inspection, including own creation; Owner only eligible exceptions; no automatic receipt. |
 | T22 | Changed assessment/quantity/decision_kind | New version and proper-role decision required; old decision cannot post. |
-| T23 | Missing or mismatched supplier ACK | BF-08 remains open; Accountant UC-107 reconciles/resolves and UC-83 closes accounted quantity. No Owner/UC-106 or closure deduction. |
+| T23 | Missing or mismatched supplier ACK | BF-08 remains open; Accountant UC-107, UC-141, UC-142 reconciles/resolves and UC-83 closes accounted quantity. No Owner/UC-106 or closure deduction. |
 | T24 | Torn carton with intact inspected tiles | Quality from inspection, not automatic DAMAGED; quantity from actual pieces/version |
 | T25 | Connection loss between commit and response | Look up batch/operation key; no repeat posting or lost audit |
 | T26 | Monthly stocktake | Owner manually creates session; D5 scope freeze; no automatic session job |
@@ -685,7 +685,7 @@ The 3.1.0 BF-01–08 branches and EX-01–05 in process section 4 supply data ac
 
 
 
-Cases T27–T56 cover the revised BF-06 contracts and UC-109–111/BR-31–33. Local SQL checks do not replace MongoDB backend authorization, transaction/concurrency and upload tests.
+Cases T27–T56 cover the revised BF-06 contracts and UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111/BR-31–33. Local SQL checks do not replace MongoDB backend authorization, transaction/concurrency and upload tests.
 
 ## 7. Implementation order and decisions to confirm
 
@@ -739,3 +739,5 @@ New operation catalogue entries: replenishment_request:evaluate, notification:re
 | T67 | Extra product in source-backed RR | Each added line has its own source or other-need reason; a product outside SO never inherits its sales quantity link. |
 | T68 | Stale open form | Save returns changed evaluation/invalid lines, retaining entered quantity/date/reasons for reconfirmation. |
 | T69 | Strict current create contract | No creation-method field; source/UOM/reason/permission/version and idempotency still apply. |
+
+Truy vết phân rã UC hiện hành: [CR-2026-10-30-UC-SPLIT](../07_ra_soat/CR-2026-10-30-UC-SPLIT.md). 147 mã gồm 133 ACTIVE và 14 RETIRED; quyền/luồng chi tiết theo Report 3.

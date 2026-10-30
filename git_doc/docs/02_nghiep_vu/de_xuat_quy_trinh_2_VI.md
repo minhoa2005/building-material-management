@@ -1,6 +1,6 @@
 # Đề xuất quy trình 2 — WMSD — Tiếng Việt
 
-**Hiện hành: baseline nghiệp vụ 3.3.0; bản tài liệu 3.3.1, ngày 29/10/2026. Áp dụng bổ sung hàng theo lựa chọn người dùng và Notification theo đề xuất 1.4.0.**
+**Hiện hành: baseline nghiệp vụ 3.3.0; bản tài liệu 3.3.2, ngày 30/10/2026. Áp dụng bổ sung hàng theo lựa chọn người dùng và Notification theo đề xuất 1.4.0.**
 
 Lịch sử24–25/10: bản tài liệu3.1.2 giữ baseline3.1.0; các quyết định dưới đây tiếp tục áp dụng trong3.3.0. Baseline 3.1.0 sửa luồng theo biên bản góp ý GVHD và note draw.io. Người dùng chốt A1: nhận hàng giao thất bại bằng nhánh riêng trong BF-07; B1: chặn hàng lỗi ngay, chuyển quality có kiểm soát khi chốt kiểm kê; C2: Sales chấp nhận trả thông thường, Owner chỉ duyệt ngoại lệ; BF-08 bỏ Owner duyệt. Đây là thiết kế To-be, chưa phải xác nhận triển khai; phương án thay thế và tác động tại mục 17.
 
@@ -21,7 +21,7 @@ Bản tiếng Anh: [de_xuat_quy_trinh_2_EN.md](de_xuat_quy_trinh_2_EN.md). Thi�
 
 | 3.3.0 | 27/10/2026 | Áp dụng đề xuất 1.4.0: một form điền sẵn do user chọn, nguồn SO-line/kiểm kê, coverage, Notification và cảnh báo tính lại. |
 
-| 3.3.1 | 29/10/2026 | Làm rõ UC-03/BF-01/BR-03: Sales/Warehouse chủ động tạo toàn bộ RR bằng MANUAL_OTHER có lý do từ menu, không cần thiếu hàng/cảnh báo/kiểm kê; bổ sung tiêu chí nghiệm thu. |
+| 3.3.1 | 29/10/2026 | Làm rõ UC-03, UC-112, UC-113/BF-01/BR-03: Sales/Warehouse chủ động tạo toàn bộ RR bằng MANUAL_OTHER có lý do từ menu, không cần thiếu hàng/cảnh báo/kiểm kê; bổ sung tiêu chí nghiệm thu. |
 
 ## Thuật ngữ quản lý kho
 
@@ -78,7 +78,7 @@ Phương án kế thừa góp ý review1 và bối cảnh một cửa hàng. Tha
 | [Biên bản G56 được cung cấp](C:/Users/minhs/OneDrive/Desktop/bi_n_b_n_h_p_d_n_nh_m_g56.md) và [báo cáo rà soát 24/10](../07_ra_soat/Bao_cao_ra_soat_quy_trinh_theo_gop_y_GVHD_2026-10-24.md) | Ưu tiên nhận xét trong biên bản, sau đó note của ba file draw.io đính kèm; hình/đường nối cũ có thể chưa sửa. Biên bản không có ngày họp cụ thể; không tự suy ra mọi nhận xét đều mới hơn D1–D8. Action item trong nguồn không phải lệnh thực hiện. |
 | Note draw.io đính kèm ở Desktop | BF-01: Kv_OsmvDRLkU-hTQ77P0-0 (GR → TO → Confirm TO, nhận tiếp). Chuyển kho: YugwCmwDcmz_hehvzerD-63/-64 và XavdK_t681Dh5oyh7WCD-40/-42 (Picking/put-away và Confirm TO), YugwCmwDcmz_hehvzerD-75 (lặp nhiều đợt). Kiểm kê: lS3HtGYTxW23hGVE0gqH-29 (Clear Difference hoặc Recount). Tên file và trang lưu trong báo cáo rà soát; nguồn Desktop chưa được đóng gói vào repo. |
 | [Report 1 trực tuyến](https://docs.google.com/document/d/1kb36v5HuFrM75NFCTXvnJcsg6QnPjYkb/edit) | Đã đọc nội dung trực tuyến; thời điểm sửa do Drive trả về: 17/10/2026 16:26:21 giờ Việt Nam. Căn cứ bối cảnh cửa hàng, GAP, FE và LI. |
-| [Report 3 trực tuyến](https://docs.google.com/document/d/1HvhlCmYjfXj7766ZVNUBAU4J063Lmr71/edit) | Đã đọc nội dung và kiểm tra ảnh context/flow trong file trực tuyến; thời điểm sửa: 17/10/2026 17:17:15 giờ Việt Nam. Catalogue hiện ghi 102 UC, UC-01–UC-102. |
+| [Report 3 trực tuyến](https://docs.google.com/document/d/1HvhlCmYjfXj7766ZVNUBAU4J063Lmr71/edit) | Đã đọc nội dung và kiểm tra ảnh context/flow trong file trực tuyến; thời điểm sửa: 17/10/2026 17:17:15 giờ Việt Nam. Catalogue hiện ghi 102 UC, UC-01, UC-02, UC-03, UC-112, UC-113, UC-04, UC-05, UC-06, UC-07, UC-114, UC-115, UC-116, UC-117, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13, UC-118, UC-119, UC-120, UC-121, UC-14, UC-15, UC-16, UC-122, UC-17, UC-18, UC-19, UC-123, UC-124, UC-20, UC-21, UC-22, UC-125, UC-23, UC-24, UC-25, UC-26, UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31, UC-32, UC-33, UC-34, UC-35, UC-36, UC-37, UC-38, UC-39, UC-40, UC-41, UC-42, UC-43, UC-44, UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-130, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-74, UC-75, UC-76, UC-77, UC-78, UC-79, UC-80, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-134, UC-88, UC-135, UC-89, UC-90, UC-91, UC-136, UC-92, UC-93, UC-94, UC-95, UC-96, UC-97, UC-137, UC-138, UC-98, UC-99, UC-100, UC-101, UC-102. |
 | SAP Global Bike WM I–IV v4.1, [PDF trong repo](../06_tham_khao/sap/)| Đọc 4 case chính, đối chiếu trang tổng quan và các bước nghiệp vụ; các Data Sheet/Notes phục vụ bối cảnh bài thực hành. Không lấy tài khoản, mã kho hoặc cơ cấu doanh nghiệp mẫu làm yêu cầu của Tân Thương. |
 | [MISA SME – Quy trình nghiệp vụ](https://helpsme.misa.vn/2022/kb/quy-trinh-nghiep-vu/) và các hướng dẫn eShop ở cuối tài liệu | Tham khảo loại chứng từ, giao nhận, kiểm kê và ranh giới kho/kế toán. Không sao chép toàn bộ phân hệ tài chính hoặc khẳng định cửa hàng đã bật mọi tính năng. |
 | [TikTok cửa hàng](https://www.tiktok.com/@gachoplattanthuong), [Facebook cửa hàng](https://www.facebook.com/p/Showroom-T%C3%A2n-Th%C6%B0%C6%A1ng-61567834853149/) | Đã thử truy cập/tìm kiếm, nhưng TikTok bị chặn và Facebook không trả nội dung có thể kiểm chứng. Không suy ra số kho, nhân sự, doanh thu, vận tải hay chính sách trả hàng từ hai liên kết này. |
@@ -114,7 +114,7 @@ Các chức năng bỏ khỏi MVP được đề xuất, không phải lệnh x�
 | D3 | Câu 6–7,12,20,23: kiêm nhiệm và ủy quyền thực tế. | Giữ 5 role, không thêm ủy quyền động. Quyết định 24/10 cập nhật phạm vi: Sales chấp nhận CR thường sau kiểm, Owner chỉ ngoại lệ; BF-08 không Owner duyệt. Cấm tự duyệt vẫn áp cho các quyết định Owner và TR/RR/ST. |
 | D4 | Câu 13 chọn cả có và không chuyển hàng. | Người dùng xác nhận có chuyển hàng giữa các kho; không sửa dữ liệu khảo sát gốc. Giữ xuất/nhận độc lập và hồ sơ chênh lệch. |
 | D5 | Câu 14–15: kiểm hằng tháng, tạm dừng khu đếm; nếu vẫn nhập/xuất thì ghi riêng phát sinh. | Giữ MVP khóa phạm vi đến khi xử lý xong. Kiểm hằng tháng là lịch nghiệp vụ, không tự tạo job mới. Phương án vừa đếm vừa nhập/xuất chưa được chọn. |
-| D6 | Câu 18–19: điều kiện trả hàng và hoàn tiền trên MISA. | Bổ sung điều kiện tại BF-07, BR-29 và UC-70–73; chưa đặt số ngày trả hàng. WMS chỉ lưu tham chiếu hoàn tiền. |
+| D6 | Câu 18–19: điều kiện trả hàng và hoàn tiền trên MISA. | Bổ sung điều kiện tại BF-07, BR-29 và UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133; chưa đặt số ngày trả hàng. WMS chỉ lưu tham chiếu hoàn tiền. |
 | D7 | Câu 3–11, 20, 22, 24: nhiều kho, mã vị trí, lô/màu/kích thước, quy đổi, phối hợp, điện thoại. | Cập nhật dữ kiện có căn cứ; không suy diễn địa chỉ kho, calibre, hệ số từng SKU hoặc quyền mới. Các bộ phận cập nhật ngay khi làm việc bằng giao diện phù hợp điện thoại. |
 | D8 | Custody, staging/put-away, FIFO, chống post trùng, không tự duyệt, duyệt TR và không live MISA chưa được khảo sát xác nhận đầy đủ. | Giữ nguyên dưới nhãn To-be, không trình bày là hiện trạng đã xác nhận. |
 | BF-06 Rev (21/10) | Bản 20/10 và đầu 21/10 thay SO bằng WIR và đóng đơn ngay khi xuất đủ (PGI). Người dùng yêu cầu bắt đầu bằng tạo SO sao chép từ bên ngoài → tạo WIR liên kết → giao hàng chụp ảnh → xác nhận tiền ngoài hệ thống. | Sales Staff tạo SO trong WMSD (sao chép từ MISA/giấy tờ) rồi mới tạo WIR liên kết với SO. Warehouse Staff xác nhận giao khách kèm ảnh chụp để chuyển SO sang DELIVERED. Chỉ Sales Staff xác nhận đã nhận đủ tiền ngoài hệ thống sau DELIVERED để chuyển SO sang COMPLETED. |
@@ -133,15 +133,15 @@ Bảng dưới lưu phát hiện của lần review 17/10. Hai bản quy trình,
 
 | Vị trí đã kiểm tra | Phát hiện | Hướng sửa |
 |---|---|---|
-| R3 I.2.1, UC-03, permission matrix; R1 Proposed purchasing | Accountant vẫn là người tạo nhu cầu bổ sung. | Sales/Warehouse Staff lập nhu cầu; Accountant tiếp tục PO và chứng từ sau khi được duyệt. |
+| R3 I.2.1, UC-03, UC-112, UC-113, permission matrix; R1 Proposed purchasing | Accountant vẫn là người tạo nhu cầu bổ sung. | Sales/Warehouse Staff lập nhu cầu; Accountant tiếp tục PO và chứng từ sau khi được duyệt. |
 | R3 I.2.3, UC-34–44 và hình cũ | Hình cũ gộp chuyển vị trí và điều chuyển liên kho, còn vòng TR → duyệt → TO liên kho. | Tách BF-03 chuyển vị trí không Owner duyệt và BF-04 điều chuyển qua TR → TD → MWTR; bỏ vòng duyệt TO liên kho lặp. |
-| R3 I.2.5, FE-06, UC-45–62; R1 I.2/IV/V | WMS vẫn giữ SO thương mại độc lập, tính giá bán, hóa đơn nội bộ và coi xuất kho xong là hoàn thành đơn bán. | Thu hẹp SO (UC-45–48) thành bản ghi theo dõi sao chép từ đơn bán bên ngoài đã xác minh (MISA/giấy tờ), bỏ tính giá và hóa đơn nội bộ (retire UC-23–25, UC-59–62); tạo WIR (UC-109) liên kết với SO đã lưu; bổ sung bước Warehouse Staff chụp ảnh xác nhận giao khách (DELIVERED, UC-110) và Sales Staff xác nhận nhận đủ tiền ngoài hệ thống (COMPLETED, UC-111). |
-| R3 I.2.4, UC-87–93 so với hình BF-05 | Phần chữ đã có snapshot; UC-93 giao Owner Clear Difference, hình đặt Post approved adjustment ở lane thực hiện phía nhân viên kho. | Không nói “chưa có snapshot” cho bản mới; bổ sung danh sách kiểm kê, cơ chế cutoff và thống nhất người ghi nhận điều chỉnh. |
-| R3 I.2.6, UC-70–73 so với hình BF-07 | Chữ cũ quy định Owner duyệt tiếp nhận trước kiểm tra; hình lại thể hiện kiểm tra rồi Owner duyệt disposition. | CR: giữ hộ → Warehouse kiểm → Sales chấp nhận thông thường hoặc Owner ngoại lệ đủ điều kiện → nhập theo trạng thái. FD chưa khách nhận dùng GI-S/GR-FD, không D6/Owner/custody khách. |
+| R3 I.2.5, FE-06, UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129, UC-59, UC-60, UC-61, UC-62; R1 I.2/IV/V | WMS vẫn giữ SO thương mại độc lập, tính giá bán, hóa đơn nội bộ và coi xuất kho xong là hoàn thành đơn bán. | Thu hẹp SO (UC-45, UC-46, UC-47, UC-48, UC-128) thành bản ghi theo dõi sao chép từ đơn bán bên ngoài đã xác minh (MISA/giấy tờ), bỏ tính giá và hóa đơn nội bộ (retire UC-23–25, UC-59–62); tạo WIR (UC-109, UC-144, UC-145, UC-146, UC-147) liên kết với SO đã lưu; bổ sung bước Warehouse Staff chụp ảnh xác nhận giao khách (DELIVERED, UC-110) và Sales Staff xác nhận nhận đủ tiền ngoài hệ thống (COMPLETED, UC-111). |
+| R3 I.2.4, UC-87, UC-134, UC-88, UC-135, UC-89, UC-90, UC-91, UC-136, UC-92, UC-93 so với hình BF-05 | Phần chữ đã có snapshot; UC-93 giao Owner Clear Difference, hình đặt Post approved adjustment ở lane thực hiện phía nhân viên kho. | Không nói “chưa có snapshot” cho bản mới; bổ sung danh sách kiểm kê, cơ chế cutoff và thống nhất người ghi nhận điều chỉnh. |
+| R3 I.2.6, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 so với hình BF-07 | Chữ cũ quy định Owner duyệt tiếp nhận trước kiểm tra; hình lại thể hiện kiểm tra rồi Owner duyệt disposition. | CR: giữ hộ → Warehouse kiểm → Sales chấp nhận thông thường hoặc Owner ngoại lệ đủ điều kiện → nhập theo trạng thái. FD chưa khách nhận dùng GI-S/GR-FD, không D6/Owner/custody khách. |
 | Hình BF-07 hiện tại | Đã có nhánh Goods reusable? với hai kết quả khác nhau. | Không lặp lại nguyên xi lỗi Yes/No của bản review cũ; kiểm tra tiếp quyền, chứng từ, ownership và nối nhánh đến trạng thái kết thúc rõ. |
 | R3 I.1 context diagram | Có Cloudinary, nhưng I.5.2 chỉ liệt kê API-01 SMTP. Chiều “Evidence Upload” và “Asset URL / Upload Status” đang ngược luồng kỳ vọng. | Bổ sung interface nếu thực sự dùng, sửa hướng; nếu không dùng dịch vụ ngoài thì bỏ thực thể này. |
 | Context diagram so với permission matrix | Có Sales Return Data từ Sales, Supplier Return Request Data từ Accountant, nhưng UC-70/81 chỉ giao Inventory Staff. | Đồng bộ mọi mũi tên với quyền mới, không chỉ đổi tên actor. |
-| R3 I.3.2 Entity Descriptions | Traceability còn mã cũ: Goods Issue → UC-82–89, Stocktake → UC-70–76, PO → UC-27–32. | Remap bằng catalogue hiện tại và bản đề xuất, không đánh số lại tùy ý. |
+| R3 I.3.2 Entity Descriptions | Traceability còn mã cũ: Goods Issue → UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-134, UC-88, UC-135, UC-89, Stocktake → UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-74, UC-75, UC-76, PO → UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31, UC-32. | Remap bằng catalogue hiện tại và bản đề xuất, không đánh số lại tùy ý. |
 | R3 I.3.3 và V.1 | DR-04 có “UC-65–56”; GB-04 có “UC-65–50,92–95”; có tham chiếu lặp và khoảng số sai. | Chuẩn hóa ID, bỏ trùng, xác minh từng tham chiếu. |
 | R1 IV so với R3 I.2 | Phần Proposed Solution của R1 hiện có 6 hình; thiếu BF-02 độc lập trong chuỗi tương ứng 7 flow R3. | R1 To-be và slide dùng cùng 7 mã/tên; As-is có thể khác số flow vì mô tả hiện trạng, phải ghi rõ. |
 
@@ -156,7 +156,7 @@ Quyết định phân quyền 28/10/2026: Mỗi user bắt buộc có đúng m�
 | Store Owner | Duyệt bổ sung, TR liên kho, hủy/tái phân loại/giải phóng hàng lỗi và phương án kiểm kê; chỉ duyệt ngoại lệ nhận trả khách. Xem báo cáo. Không duyệt ca trả khách thông thường, đổi kệ hoặc nghiệp vụ BF-08. |
 | Sales Staff | Nhập SO nguồn ngoài; quản lý WIR/OD, nhu cầu còn lại và giao lại/hủy phần đã GR-FD nhận về. Chấp nhận hoặc từ chối ca CR thông thường sau Warehouse kiểm, có thể là người lập CR; đề xuất Owner xét ngoại lệ. Xác nhận PAY-CFM sau DELIVERED. Không kiểm chất lượng vật lý hoặc post tồn thay Warehouse. |
 | Warehouse Staff | Kiểm nhận, GI nháp, xác nhận TO/PGI, POD, GR-CR và GR-FD theo kho được giao; ghi nguồn FD và quality, không cần Owner ở FD/BF-08. Khi kiểm kê B1 ghi defect hold ngay, xác nhận thực hiện cách ly theo batch chốt đã duyệt, không vượt khóa bằng giao dịch thường. Không chấp nhận thương mại CR thay Sales/Owner. |
-| Accountant | Lập/theo dõi PO sau duyệt; ghi thỏa thuận NCC; đối chiếu MISA và tham chiếu ngoài UC-108. BF-08: xác minh thỏa thuận, đối chiếu sai lệch và đóng phần kho UC-83 dựa chứng từ Warehouse; không cần Owner. Không tự post tồn hoặc xác nhận COMPLETED thay Sales. |
+| Accountant | Lập/theo dõi PO sau duyệt; ghi thỏa thuận NCC; đối chiếu MISA và tham chiếu ngoài UC-108, UC-143. BF-08: xác minh thỏa thuận, đối chiếu sai lệch và đóng phần kho UC-83 dựa chứng từ Warehouse; không cần Owner. Không tự post tồn hoặc xác nhận COMPLETED thay Sales. |
 | Administrator | Tài khoản, phân quyền và cấu hình kỹ thuật. Không tự có quyền duyệt nghiệp vụ, ghi tăng/giảm kho hoặc sửa nhật ký. |
 
 Customer, Supplier, Carrier là bên tham gia nghiệp vụ, có thể có pool trong BPMN nhưng không có tài khoản WMSD mặc định. Warehouse Staff tại kho đi và kho nhận là hai trách nhiệm theo kho, chưa cần hai loại role. Người làm bước thực tế phải được lưu bằng userId, không chỉ lưu nhãn role.
@@ -197,16 +197,16 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-01-A1 | Nhu cầu đã có nguồn đáp ứng | Sales/Warehouse đối chiếu allocation, PO và TD đúng hạn; chỉ gửi phần thiếu, không tạo RR trùng. | Không đổi tồn; trở về bước 1–2. | UC-03, UC-103 |
+| BF-01-A1 | Nhu cầu đã có nguồn đáp ứng | Sales/Warehouse đối chiếu allocation, PO và TD đúng hạn; chỉ gửi phần thiếu, không tạo RR trùng. | Không đổi tồn; trở về bước 1–2. | UC-03, UC-112, UC-113, UC-103, UC-139, UC-140 |
 | BF-01-A2 | Owner từ chối hoặc trả sửa | Lưu lý do; từ chối thì kết thúc đề nghị, trả sửa thì tăng phiên bản và gửi lại; Accountant không lập PO chưa duyệt. | Không đổi tồn; bước 3 hoặc kết thúc. | UC-04 |
-| BF-01-A3 | NCC chỉ giao một phần/hủy phần còn lại | Accountant ghi lịch/lượng xác nhận; phần thay đổi vượt duyệt trình lại, chốt thiếu cần Owner cho phép; bảo toàn GR đã post. | Nhận từng đợt ở bước 5; không nhận giả phần hủy. | UC-07, UC-26 |
+| BF-01-A3 | NCC chỉ giao một phần/hủy phần còn lại | Accountant ghi lịch/lượng xác nhận; phần thay đổi vượt duyệt trình lại, chốt thiếu cần Owner cho phép; bảo toàn GR đã post. | Nhận từng đợt ở bước 5; không nhận giả phần hủy. | UC-07, UC-114, UC-115, UC-116, UC-117, UC-26 |
 | BF-01-E1 | Giao thừa, sai hàng/lô/màu | Warehouse tách lượng, ghi chênh lệch và custody nếu đang giữ; không tự thay thế hoặc vượt nguồn PO. Accountant phối hợp, Owner duyệt phần thay đổi cần thiết trước nhận. | Chỉ GR phần hợp lệ; phần khác chờ hoặc giao trả. | UC-26 |
 | BF-01-E2 | Không có lượng nào được nhận | Vẫn lưu arrival/inspection, bằng chứng và kết quả giữ hộ/giao trả; PO còn thiếu và hồ sơ sai lệch tiếp tục mở. | Không tạo GR lượng 0; không tăng tồn sở hữu. | UC-10, UC-26 |
 | BF-01-A4 | Bao bì rách/thùng mở; nhận hàng thay thế | Đếm viên thực tế, kiểm chất lượng riêng; hàng NCC thay thế là arrival/GR mới liên kết hồ sơ cũ, không sửa GR gốc. | Sau GR, put-away bước 8; không cộng lại ở put-away. | UC-26, UC-33 |
 
 #### Cảnh báo và Notification — quyết định 3.3.0
 
-Quyết định 3.3.0 ngày 27/10/2026 đã được người dùng yêu cầu áp dụng từ [đề xuất bổ sung hàng 1.4.0](../03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Giữ 8 BF, 5 role và 111 UC (97 active/14 retired); mở rộng UC-03/13/47/48/88/93/103/109, BR-03/25 và màn hình liên quan, không thêm UC hay quyền tự đặt PO.
+Quyết định 3.3.0 ngày 27/10/2026 đã được người dùng yêu cầu áp dụng từ [đề xuất bổ sung hàng 1.4.0](../03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Giữ 8 BF, 5 role và 147 UC (133 active/14 retired); mở rộng UC-03, UC-112, UC-113, UC-13, UC-118, UC-119, UC-120, UC-121, UC-47, UC-48, UC-128, UC-88, UC-135, UC-93, UC-103, UC-139, UC-140, UC-109, UC-144, UC-145, UC-146, UC-147, BR-03/25 và màn hình liên quan, không thêm UC hay quyền tự đặt PO.
 
 1. Khi SO được lưu hợp lệ, kiểm tồn cùng kho, phương án kho khác có thể thực hiện và PO/transfer tương thích, đúng hạn, chưa dành cho nhu cầu khác. Nguồn thiếu bán là SO line; WIR là ngữ cảnh tùy chọn. Không đếm SO/WIR/OD thành nhiều nhu cầu.
 2. Sau khi kiểm kê đã chốt, tồn cập nhật và mở khóa thành công, đánh giá toàn sản phẩm/kho gồm SKU tồn0; hoãn khi phạm vi liên quan còn freeze. Có chênh lệch thì Warehouse lập/xác nhận thực hiện, Owner UC-92/93 duyệt/chốt; nhánh không lệch vẫn đóng theo BF-05. Owner chốt chỉ kích hoạt đánh giá, không tự tạo RR.
@@ -250,8 +250,8 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-02-E1 | Phát hiện lỗi trên hàng đã giữ/đang soạn | Warehouse chặn ngay lượng lỗi, giữ liên kết nhu cầu và báo Sales thiếu; lập phương án nguồn thay thế, không chờ duyệt mới cách ly. | Tổng sở hữu không đổi; BF-06 chờ/soạn lại. | UC-65, UC-103 |
-| BF-02-A1 | Chưa rõ chủ hàng/nguyên nhân | Giữ quality PENDING/BLOCKED và đúng chủ hàng hiện có; bổ sung bằng chứng, không chuyển custody thành hàng cửa hàng chỉ bằng ghi chú. | Chờ bước 3–4; không usable. | UC-65 |
+| BF-02-E1 | Phát hiện lỗi trên hàng đã giữ/đang soạn | Warehouse chặn ngay lượng lỗi, giữ liên kết nhu cầu và báo Sales thiếu; lập phương án nguồn thay thế, không chờ duyệt mới cách ly. | Tổng sở hữu không đổi; BF-06 chờ/soạn lại. | UC-65, UC-130, UC-103, UC-139, UC-140 |
+| BF-02-A1 | Chưa rõ chủ hàng/nguyên nhân | Giữ quality PENDING/BLOCKED và đúng chủ hàng hiện có; bổ sung bằng chứng, không chuyển custody thành hàng cửa hàng chỉ bằng ghi chú. | Chờ bước 3–4; không usable. | UC-65, UC-130 |
 | BF-02-A2 | Owner trả/từ chối phương án thuộc quyền hoặc duyệt một phần | Chỉ áp hủy/đổi phẩm cấp/giải phóng ngoài kiểm kê; giữ phần chưa duyệt cách ly. Trả NCC không cần Owner và chuyển BF-08; B1 dùng UC-92/93. | Không xuất/hủy khống; xử lý theo đúng nhánh. | UC-66, UC-67, UC-92 |
 | BF-02-E2 | Trả NCC/hủy chưa thực hiện | Trả NCC cần thỏa thuận Accountant/NCC, không Owner; UC-82 chỉ giảm khi xuất. Hủy ngoài kiểm kê cần duyệt và bằng chứng thực hủy; B1 không post hủy/reclass bằng giao dịch thường. | Chưa thực hiện thì mở, không trừ lặp. | UC-67, UC-82, UC-93 |
 
@@ -273,7 +273,7 @@ Chứng từ: nhiệm vụ TO-RELOCATE và nhật ký xác nhận vị trí. Quy
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
 | BF-03-A1 | Chuyển hàng đã giữ cho đơn | Warehouse giữ nguyên chủ/lô/chất lượng và chuyển reservation theo hàng đến vị trí mới. | Hai vế bằng nhau; không tạo thêm hàng khả dụng cho đơn khác. | UC-36, UC-37 |
-| BF-03-E1 | Khác kho, vị trí bị khóa hoặc lượng nguồn không đủ | Dừng xác nhận; khác kho chuyển BF-04, khóa kiểm kê thì chờ mở khóa, lệch thực tế thì kiểm tra và chuyển BF-05 khi cần. Không sửa số dư hoặc bỏ khóa để chuyển. | Chưa xác nhận thì chưa ghi di chuyển; xử lý nguyên nhân rồi kiểm tra lại. | UC-36, UC-37, UC-87 |
+| BF-03-E1 | Khác kho, vị trí bị khóa hoặc lượng nguồn không đủ | Dừng xác nhận; khác kho chuyển BF-04, khóa kiểm kê thì chờ mở khóa, lệch thực tế thì kiểm tra và chuyển BF-05 khi cần. Không sửa số dư hoặc bỏ khóa để chuyển. | Chưa xác nhận thì chưa ghi di chuyển; xử lý nguyên nhân rồi kiểm tra lại. | UC-36, UC-37, UC-87, UC-134 |
 
 ### BF-04 — Điều chuyển giữa các kho và xử lý chênh lệch
 
@@ -297,7 +297,7 @@ Chứng từ: TR; phiếu xuất điều chuyển; biên bản bàn giao; phiế
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-04-A1 | Xuất trực tiếp kho khác | Sales thống nhất khách, tách OD theo kho thực xuất; Warehouse kho đó làm BF-06, không tạo nhận giả tại kho yêu cầu. | Không transit nếu không có chuyển vật lý. | UC-51, UC-103 |
+| BF-04-A1 | Xuất trực tiếp kho khác | Sales thống nhất khách, tách OD theo kho thực xuất; Warehouse kho đó làm BF-06, không tạo nhận giả tại kho yêu cầu. | Không transit nếu không có chuyển vật lý. | UC-51, UC-103, UC-139, UC-140 |
 | BF-04-E1 | TR bị từ chối, tồn nguồn giảm hoặc chưa có người nhận độc lập | Owner lưu lý do; Warehouse kiểm lại tồn/khóa trước xuất. Thiếu nguồn thì chờ/giảm phần chưa thực hiện có kiểm soát; chưa có người nhận độc lập thì chờ bố trí, không dùng cùng user xác nhận hai đầu. | Không post thiếu điều kiện; duyệt lại khi đổi phạm vi. | UC-41, UC-43, UC-104 |
 | BF-04-E2 | Nhận thiếu/hỏng hoặc nhiều chuyến | Kho đích nhận đúng lượng và từng quality; còn thiếu giữ transit, có thể nhận MWTR tiếp theo. Hỏng đã hiện diện ở đích là quarantine, không đồng thời coi mất transit. | TD100, nhận95GOOD+3DAMAGED → transit2. | UC-104 |
 | BF-04-E3 | Nhận thừa/sai lô hoặc thất lạc đã xác minh | Ghi chứng cứ riêng; không âm transit hay tự nhận thay lô. Owner quyết định; Warehouse thực hiện chứng từ bổ sung/trả nguồn/tổn thất đúng lượng. | Chỉ đóng khi mọi lượng có kết quả; không sửa TD/MWTR cũ. | UC-44, UC-43, UC-104 |
@@ -325,11 +325,11 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-05-E1 | Task dở dang hoặc khóa kiểm kê chồng lấn | Owner/Warehouse giải quyết trước kích hoạt; từ chối phạm vi đã khóa phiên khác. Khi khóa, cả nhập/xuất/chuyển/đổi quality trong phạm vi phải bị chặn. | Chưa snapshot nếu chưa khóa nguyên tử được; kho khác tiếp tục. | UC-86, UC-87 |
-| BF-05-A1 | Chưa đếm, đếm 0 hoặc tìm thấy hàng mới | Warehouse lưu trạng thái chưa đếm riêng; 0 là kết quả hợp lệ. Hàng tìm thấy bổ sung dòng có dấu found_after_cutoff, book=0 sau xác minh, không sửa dòng snapshot gốc. | Chưa đếm thì không tự tính mất toàn bộ; đếm lại lưu attempt mới. | UC-87, UC-88 |
-| BF-05-A2 | Lệch chất lượng hoặc chưa rõ nguyên nhân | Ghi defect hold ngay; chưa rõ thì recount/đối chiếu. Đủ căn cứ lập phương án delta và RECLASS/vị trí cho batch B1; hỏng đủ lượng không ghi mất. | Giữ khóa đến khi chốt cả quality và lượng. | UC-65, UC-88, UC-91–93 |
+| BF-05-E1 | Task dở dang hoặc khóa kiểm kê chồng lấn | Owner/Warehouse giải quyết trước kích hoạt; từ chối phạm vi đã khóa phiên khác. Khi khóa, cả nhập/xuất/chuyển/đổi quality trong phạm vi phải bị chặn. | Chưa snapshot nếu chưa khóa nguyên tử được; kho khác tiếp tục. | UC-86, UC-87, UC-134 |
+| BF-05-A1 | Chưa đếm, đếm 0 hoặc tìm thấy hàng mới | Warehouse lưu trạng thái chưa đếm riêng; 0 là kết quả hợp lệ. Hàng tìm thấy bổ sung dòng có dấu found_after_cutoff, book=0 sau xác minh, không sửa dòng snapshot gốc. | Chưa đếm thì không tự tính mất toàn bộ; đếm lại lưu attempt mới. | UC-87, UC-134, UC-88, UC-135 |
+| BF-05-A2 | Lệch chất lượng hoặc chưa rõ nguyên nhân | Ghi defect hold ngay; chưa rõ thì recount/đối chiếu. Đủ căn cứ lập phương án delta và RECLASS/vị trí cho batch B1; hỏng đủ lượng không ghi mất. | Giữ khóa đến khi chốt cả quality và lượng. | UC-65, UC-130, UC-88, UC-135, UC-91, UC-136, UC-92, UC-93 |
 | BF-05-A3 | Không chênh hoặc Owner trả/từ chối | Chỉ đóng thẳng khi không lệch lượng/quality/vị trí và không hold mở. Trả phương án thì bổ sung hoặc chọn recount, tăng version; quality-only vẫn duyệt/post RECLASS không ADJ=0. | UC-93 mở khóa sau batch hoàn tất, không chỉ sau approval. | UC-92, UC-93 |
-| BF-05-E2 | Đứt kết nối hoặc lỗi khi Clear Difference | Khôi phục phiên và lịch sử đã lưu; giữ khóa phạm vi. Kiểm kết quả batch trước retry cùng operation key; không tự mở khóa hoặc dùng mô hình vừa đếm vừa giao dịch. | Rollback toàn batch lỗi; đã commit thì trả kết quả cũ. | UC-87, UC-93 |
+| BF-05-E2 | Đứt kết nối hoặc lỗi khi Clear Difference | Khôi phục phiên và lịch sử đã lưu; giữ khóa phạm vi. Kiểm kết quả batch trước retry cùng operation key; không tự mở khóa hoặc dùng mô hình vừa đếm vừa giao dịch. | Rollback toàn batch lỗi; đã commit thì trả kết quả cũ. | UC-87, UC-134, UC-93 |
 
 ### BF-06 — Lập đơn bán, xuất kho, giao hàng và hoàn thành đơn
 
@@ -369,12 +369,12 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-06-E1 | Đơn nguồn chưa xác minh, trùng bản sao SO/WIR, thiếu liên kết SO hoặc tranh chấp giữ hàng | Sales xác minh đơn nguồn bên ngoài trước khi tạo SO (phối hợp Accountant UC-108 khi cần tra lịch sử/đối chiếu); chặn trùng nguồn+đơn+dòng trên SO, chặn tạo WIR khi chưa có SO đã lưu hoặc vượt lượng dòng SO, và chặn trùng đợt giao. Reservation kiểm nguyên tử, bên đến sau chỉ được phần còn lại hoặc chờ. | Không tạo WIR thiếu SO; không nhân đôi nhu cầu/reservation; không âm khả dụng. | UC-47, UC-109, UC-51, UC-108 |
-| BF-06-A1 | Giao một phần, chờ hàng hoặc đổi lô qua các đợt xuất | Sales ghi chấp thuận của khách về số lượng/lô tương thích trên SO/WIR, tách đợt WIR/OD; thiếu hàng thì UC-103 chọn BF-01/04; sửa/hủy phần chưa xuất trên SO/WIR phải giải phóng task đang gắn trước. | Chỉ giữ phần có nguồn cho đợt giao; phần còn lại tiếp tục chờ thực hiện trên SO/WIR. | UC-48, UC-109, UC-51, UC-103 |
-| BF-06-E2 | Soạn thiếu/hỏng hoặc hàng không đúng yêu cầu | Warehouse ghi thực tế, chặn lượng nghi lỗi/BF-02; lệch chưa rõ chuyển BF-05 mục tiêu; Sales chọn soạn thay hoặc chờ, không sửa balance trực tiếp. | Picking chỉ đổi vị trí/reservation, không trừ tổng. | UC-55, UC-65 |
-| BF-06-A2 | Hủy/trễ bàn giao trước PGI | Hàng giữ staging hoặc Warehouse unpick có chứng từ về vị trí hợp lệ; giải phóng đúng reservation rồi Sales hủy phần chưa xuất trên WIR/SO có lý do. | Chưa bàn giao thì chưa PGI; tổng kho không đổi. | UC-48, UC-109, UC-55, UC-58 |
-| BF-06-E3 | Sau PGI: thiếu ảnh, chưa nhận hoặc quay về | Thiếu ảnh chỉ bổ sung POD. Lượng chưa POD thực về dùng BF-07-FD/GR-FD, kiểm trần chung nguồn và tái mở ròng; phần đã POD muốn trả dùng CR/D6. Sales chỉ hủy phần chưa xuất hoặc GR-FD đã nhận lại. | Không POD giả, sửa GI hoặc tăng tồn bằng trạng thái. | UC-58, UC-70–73, UC-109, UC-110 |
-| BF-06-A3 | Chưa nhận tiền, mới nhận một phần, thông tin tiền chưa rõ hoặc biết trả trước khi DELIVERED | Chỉ Sales Staff xác nhận PAY-CFM (UC-111). Nếu sau DELIVERED khách chưa trả/mới trả một phần/chưa rõ thì giữ SO ở DELIVERED. Nếu khách trả trước bên ngoài khi chưa giao đủ hàng thì chỉ ghi chú tham chiếu; SO không được sang COMPLETED khi chưa DELIVERED đủ lượng kèm ảnh. Đính chính tham chiếu lưu vết đầy đủ. | Không thay đổi tồn khi chuyển DELIVERED hoặc COMPLETED; không chạy cổng thanh toán hay bút toán công nợ trong WMSD. | UC-48, UC-110, UC-111, UC-108 |
+| BF-06-E1 | Đơn nguồn chưa xác minh, trùng bản sao SO/WIR, thiếu liên kết SO hoặc tranh chấp giữ hàng | Sales xác minh đơn nguồn bên ngoài trước khi tạo SO (phối hợp Accountant UC-108, UC-143 khi cần tra lịch sử/đối chiếu); chặn trùng nguồn+đơn+dòng trên SO, chặn tạo WIR khi chưa có SO đã lưu hoặc vượt lượng dòng SO, và chặn trùng đợt giao. Reservation kiểm nguyên tử, bên đến sau chỉ được phần còn lại hoặc chờ. | Không tạo WIR thiếu SO; không nhân đôi nhu cầu/reservation; không âm khả dụng. | UC-47, UC-109, UC-144, UC-145, UC-146, UC-147, UC-51, UC-108, UC-143 |
+| BF-06-A1 | Giao một phần, chờ hàng hoặc đổi lô qua các đợt xuất | Sales ghi chấp thuận của khách về số lượng/lô tương thích trên SO/WIR, tách đợt WIR/OD; thiếu hàng thì UC-103, UC-139, UC-140 chọn BF-01/04; sửa/hủy phần chưa xuất trên SO/WIR phải giải phóng task đang gắn trước. | Chỉ giữ phần có nguồn cho đợt giao; phần còn lại tiếp tục chờ thực hiện trên SO/WIR. | UC-48, UC-128, UC-109, UC-144, UC-145, UC-146, UC-147, UC-51, UC-103, UC-139, UC-140 |
+| BF-06-E2 | Soạn thiếu/hỏng hoặc hàng không đúng yêu cầu | Warehouse ghi thực tế, chặn lượng nghi lỗi/BF-02; lệch chưa rõ chuyển BF-05 mục tiêu; Sales chọn soạn thay hoặc chờ, không sửa balance trực tiếp. | Picking chỉ đổi vị trí/reservation, không trừ tổng. | UC-55, UC-65, UC-130 |
+| BF-06-A2 | Hủy/trễ bàn giao trước PGI | Hàng giữ staging hoặc Warehouse unpick có chứng từ về vị trí hợp lệ; giải phóng đúng reservation rồi Sales hủy phần chưa xuất trên WIR/SO có lý do. | Chưa bàn giao thì chưa PGI; tổng kho không đổi. | UC-48, UC-128, UC-109, UC-144, UC-145, UC-146, UC-147, UC-55, UC-58, UC-129 |
+| BF-06-E3 | Sau PGI: thiếu ảnh, chưa nhận hoặc quay về | Thiếu ảnh chỉ bổ sung POD. Lượng chưa POD thực về dùng BF-07-FD/GR-FD, kiểm trần chung nguồn và tái mở ròng; phần đã POD muốn trả dùng CR/D6. Sales chỉ hủy phần chưa xuất hoặc GR-FD đã nhận lại. | Không POD giả, sửa GI hoặc tăng tồn bằng trạng thái. | UC-58, UC-129, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110 |
+| BF-06-A3 | Chưa nhận tiền, mới nhận một phần, thông tin tiền chưa rõ hoặc biết trả trước khi DELIVERED | Chỉ Sales Staff xác nhận PAY-CFM (UC-111). Nếu sau DELIVERED khách chưa trả/mới trả một phần/chưa rõ thì giữ SO ở DELIVERED. Nếu khách trả trước bên ngoài khi chưa giao đủ hàng thì chỉ ghi chú tham chiếu; SO không được sang COMPLETED khi chưa DELIVERED đủ lượng kèm ảnh. Đính chính tham chiếu lưu vết đầy đủ. | Không thay đổi tồn khi chuyển DELIVERED hoặc COMPLETED; không chạy cổng thanh toán hay bút toán công nợ trong WMSD. | UC-48, UC-128, UC-110, UC-111, UC-108, UC-143 |
 
 ### BF-07 — Khách trả sau nhận hàng và nhận quay về do giao thất bại
 
@@ -399,7 +399,7 @@ Ví dụ: 10 thùng trả gồm 7 đạt được Sales chấp nhận, 2 lỗi N
 1. Warehouse lập hồ sơ FD từ GI-S đã POSTED, cùng dòng SO/WIR/OD, lý do/giao nhận thất bại và lượng dự kiến quay về. Không yêu cầu Sales lập CR thương mại hoặc Owner duyệt; không tạo POD giả và không áp D6 cho lượng khách chưa nhận.
 2. Giữ chỗ/kiểm đồng thời theo dòng GI: POD có hiệu lực + GR-FD đã post + lượng hồ sơ FD đang giữ chỗ không vượt PGI hợp lệ chưa đảo. Một lượng đã POD không thể đồng thời nhận theo FD; hàng đã khách nhận phải dùng 07.CR.
 3. Warehouse ghi ARR/INS về lượng thực về, lô, chất lượng và chứng cứ liên kết chuyến xuất. Đây là hàng nhận quay về theo nguồn xuất, không ghi là custody thuộc khách. Chỉ post phần xác minh; phần sai nguồn/chưa rõ ở hồ sơ chờ riêng, chưa vào tồn sở hữu/khả dụng.
-4. Warehouse post GR-FD qua chế độ nhận quay về của UC-73, đúng một lần: tăng lượng thực nhận theo quality; GOOD chờ TO put-away, DAMAGED cách ly/BF-02 hoặc BF-08. Không sửa GI/PGI cũ và không đồng thời post GR-CR cho cùng lượng. Cùng commit, chuyển claim FD đã nhận sang GR-FD và giảm lượng giữ chỗ tương ứng; không cộng cả claim lẫn receipt cho một lượng. Hủy claim trước post chỉ giải phóng giữ chỗ, không đổi tồn/thực hiện ròng.
+4. Warehouse post GR-FD qua chế độ nhận quay về của UC-73, UC-133, đúng một lần: tăng lượng thực nhận theo quality; GOOD chờ TO put-away, DAMAGED cách ly/BF-02 hoặc BF-08. Không sửa GI/PGI cũ và không đồng thời post GR-CR cho cùng lượng. Cùng commit, chuyển claim FD đã nhận sang GR-FD và giảm lượng giữ chỗ tương ứng; không cộng cả claim lẫn receipt cho một lượng. Hủy claim trước post chỉ giải phóng giữ chỗ, không đổi tồn/thực hiện ròng.
 5. Cùng commit GR-FD, cập nhật liên kết lượng thực hiện ròng = PGI hợp lệ − GR-FD đã post; mở lại đúng phần SO/WIR/OD liên quan, tăng phiên bản và tính lại trạng thái. Sales chọn chờ/giao lại/hủy phần đã tái mở; không tạo SO/WIR trùng. Đợt giao lại có GI/POD mới, trong trần ròng; nếu đổi OD, chuyển cam kết tái mở có liên kết thay vì cộng nhu cầu mới.
 6. Chỉ đóng FD khi toàn bộ lượng khai báo có kết quả nhận/đính chính/không quay về kèm bằng chứng; lượng chưa thực về không được tăng tồn hoặc khấu trừ khỏi trần thực hiện. SO chỉ DELIVERED khi phần còn phải giao > 0 được POD đủ; hủy toàn bộ khi giao thực bằng 0 thì CANCELLED, không COMPLETED. PAY-CFM cũ không tự áp cho phiên bản đơn đã đổi.
 
@@ -407,14 +407,14 @@ Ví dụ: 10 thùng trả gồm 7 đạt được Sales chấp nhận, 2 lỗi N
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-07-A1 | Giao dịch lịch sử ngoài WMS | Accountant xác minh dòng/lượng đã giao, đã trả và hồ sơ mở; không GI/POD giả. | Chưa rõ thì chờ; đã giữ là custody khách ở nhánh CR. | UC-70, UC-108 |
-| BF-07-A2 | Trả hỗn hợp | Sales quyết định phần thông thường; Owner chỉ phần ngoại lệ đủ điều kiện; Warehouse tách GR-CR theo quality. | Không cho cả chuyến cùng một kết quả; phần từ chối custody đến giao trả. | UC-71, UC-72, UC-73 |
-| BF-07-E1 | D6 không đủ hoặc chưa rõ | Đã thi công/hỏng do khách/quá hạn xác minh → từ chối; chưa rõ → PENDING, bổ sung nguồn. | Không GR-CR hoặc dùng approval để vượt điều kiện. | UC-70–73 |
-| BF-07-E2 | Thay đánh giá/nhận vượt nguồn | Khóa theo dòng nguồn; thay lượng/loại ca/điều kiện tăng version và lấy lại quyết định đúng vai trò. | Không dùng Sales acceptance cho ngoại lệ hoặc approval cũ cho bản mới. | UC-70, UC-71, UC-73 |
-| BF-07-A3 | Rút yêu cầu/trả khách muộn | Sales đóng phần chưa nhận; Warehouse chỉ giảm custody khi bàn giao thực tế. | Không tự đóng giữ hộ bằng lời hứa. | UC-70, UC-73 |
-| BF-07-FD1 | PGI 10, POD 0, về thực 10 | Warehouse xác minh thất bại, post GR-FD 10; không CR/D6/custody khách/Owner duyệt. Sales quyết định nhu cầu tái mở. | Ròng đã xuất 0; giao lại 10 được phép, giữ lịch sử PGI10 + GR-FD10 + PGI mới. | UC-58, UC-72, UC-73, UC-109, UC-110 |
-| BF-07-FD2 | PGI 10, POD 7, chỉ 3 chưa giao quay về | FD tối đa 3; muốn trả phần trong 7 đã nhận phải tạo CR riêng. | Hai trần dùng chung nguồn, không nhận một lượng ở cả hai nhánh. | UC-70–73, UC-110 |
-| BF-07-FD3 | Hàng chưa về/nguồn sai/retry | Lưu hồ sơ/bằng chứng, chưa post phần chưa xác minh; retry dùng operation key. | Không tăng tồn/mở lại nhu cầu trước GR-FD đã post. | UC-72, UC-73 |
+| BF-07-A1 | Giao dịch lịch sử ngoài WMS | Accountant xác minh dòng/lượng đã giao, đã trả và hồ sơ mở; không GI/POD giả. | Chưa rõ thì chờ; đã giữ là custody khách ở nhánh CR. | UC-70, UC-108, UC-143 |
+| BF-07-A2 | Trả hỗn hợp | Sales quyết định phần thông thường; Owner chỉ phần ngoại lệ đủ điều kiện; Warehouse tách GR-CR theo quality. | Không cho cả chuyến cùng một kết quả; phần từ chối custody đến giao trả. | UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BF-07-E1 | D6 không đủ hoặc chưa rõ | Đã thi công/hỏng do khách/quá hạn xác minh → từ chối; chưa rõ → PENDING, bổ sung nguồn. | Không GR-CR hoặc dùng approval để vượt điều kiện. | UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BF-07-E2 | Thay đánh giá/nhận vượt nguồn | Khóa theo dòng nguồn; thay lượng/loại ca/điều kiện tăng version và lấy lại quyết định đúng vai trò. | Không dùng Sales acceptance cho ngoại lệ hoặc approval cũ cho bản mới. | UC-70, UC-71, UC-131, UC-73, UC-133 |
+| BF-07-A3 | Rút yêu cầu/trả khách muộn | Sales đóng phần chưa nhận; Warehouse chỉ giảm custody khi bàn giao thực tế. | Không tự đóng giữ hộ bằng lời hứa. | UC-70, UC-73, UC-133 |
+| BF-07-FD1 | PGI 10, POD 0, về thực 10 | Warehouse xác minh thất bại, post GR-FD 10; không CR/D6/custody khách/Owner duyệt. Sales quyết định nhu cầu tái mở. | Ròng đã xuất 0; giao lại 10 được phép, giữ lịch sử PGI10 + GR-FD10 + PGI mới. | UC-58, UC-129, UC-72, UC-132, UC-73, UC-133, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110 |
+| BF-07-FD2 | PGI 10, POD 7, chỉ 3 chưa giao quay về | FD tối đa 3; muốn trả phần trong 7 đã nhận phải tạo CR riêng. | Hai trần dùng chung nguồn, không nhận một lượng ở cả hai nhánh. | UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-110 |
+| BF-07-FD3 | Hàng chưa về/nguồn sai/retry | Lưu hồ sơ/bằng chứng, chưa post phần chưa xác minh; retry dùng operation key. | Không tăng tồn/mở lại nhu cầu trước GR-FD đã post. | UC-72, UC-132, UC-73, UC-133 |
 
 ### BF-08 — Trả nhà cung cấp và đối chiếu lượng giao nhận
 
@@ -427,7 +427,7 @@ Ví dụ: 10 thùng trả gồm 7 đạt được Sales chấp nhận, 2 lỗi N
 5. Bàn giao và ghi nhận xuất trả đúng lượng thực tế. Hàng đã nằm trong tồn cửa hàng giảm một lần; hàng từ chối lúc nhập, chỉ giữ hộ NCC, thì giảm hồ sơ giữ hộ, không giảm tồn của cửa hàng.
 6. Accountant ghi bằng chứng NCC nhận; Warehouse Staff cung cấp hồ sơ vận chuyển. So lượng xuất với NCC xác nhận. Thiếu/hỏng/từ chối một phần giữ hồ sơ chờ xử lý; không sửa số xuất cho bằng số NCC muốn nhận.
 7. Accountant đối chiếu và ghi kết quả xử lý với NCC theo từng lượng; Warehouse xác nhận chứng từ vật lý cần thiết. Tranh chấp còn mở thì chưa đóng; không chờ Owner duyệt trong BF-08. Hàng quay về chỉ tăng tồn sau kiểm nhận/chứng từ liên kết; tiền bồi thường không tạo lại lượng. Nếu cần hủy hoặc giải phóng hàng lỗi còn ở kho thì chuyển BF-02 theo quyền của luồng đó.
-8. Accountant ghi tham chiếu Invoice/Credit Note hoặc chứng từ phù hợp qua UC-108: loại, mã/ngày, nguồn mua/GI-SR và lượng đối chiếu, bằng chứng/trạng thái xác minh. Tin nhắn UC-107 không tự chứng minh điều chỉnh công nợ; chưa rõ thì PENDING_EXTERNAL, không bắt có Credit Note trước xuất. Accountant đóng phần kho qua UC-83 khi mọi lượng đã đối chiếu bằng chứng từ Warehouse xác nhận, không cần Owner; tài chính độc lập, đóng không giảm tồn thêm.
+8. Accountant ghi tham chiếu Invoice/Credit Note hoặc chứng từ phù hợp qua UC-108, UC-143: loại, mã/ngày, nguồn mua/GI-SR và lượng đối chiếu, bằng chứng/trạng thái xác minh. Tin nhắn UC-107, UC-141, UC-142 không tự chứng minh điều chỉnh công nợ; chưa rõ thì PENDING_EXTERNAL, không bắt có Credit Note trước xuất. Accountant đóng phần kho qua UC-83 khi mọi lượng đã đối chiếu bằng chứng từ Warehouse xác nhận, không cần Owner; tài chính độc lập, đóng không giảm tồn thêm.
 
 Tác động tồn BF-08: lập SR/xác minh thỏa thuận không giảm tổng; Warehouse thực xuất mới giảm owned hoặc custody đúng nguồn một lần. ACK/đóng không giảm thêm. Hàng thay thế phải receipt mới sau thực nhận, không tăng từ thỏa thuận/tiền.
 
@@ -439,11 +439,11 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 
 | Mã | Điều kiện | Người xử lý và hành động | Kết quả tồn / điểm tiếp tục | UC |
 |---|---|---|---|---|
-| BF-08-A1 | NCC chưa đồng ý/từ chối/đồng ý một phần | Accountant UC-107 ghi lượng được thỏa thuận; Warehouse UC-82 chỉ xuất lượng có nguồn và thỏa thuận hợp lệ. Chưa rõ thì giữ mở; hàng lỗi vẫn chặn. | Không Owner approval hoặc UC-106. | UC-81, UC-82, UC-107 |
-| BF-08-A2 | Có quyết định BF-02 lịch sử | Lưu tham chiếu nếu có; không đòi quyết định này để trả NCC. Kiểm nguồn/lượng/thỏa thuận ở UC-107 và tránh xử lý trùng. | Quyết định cũ không tạo quyền xuất thêm hoặc giảm trước. | UC-67, UC-82, UC-107 |
+| BF-08-A1 | NCC chưa đồng ý/từ chối/đồng ý một phần | Accountant UC-107, UC-141, UC-142 ghi lượng được thỏa thuận; Warehouse UC-82 chỉ xuất lượng có nguồn và thỏa thuận hợp lệ. Chưa rõ thì giữ mở; hàng lỗi vẫn chặn. | Không Owner approval hoặc UC-106. | UC-81, UC-82, UC-107, UC-141, UC-142 |
+| BF-08-A2 | Có quyết định BF-02 lịch sử | Lưu tham chiếu nếu có; không đòi quyết định này để trả NCC. Kiểm nguồn/lượng/thỏa thuận ở UC-107, UC-141, UC-142 và tránh xử lý trùng. | Quyết định cũ không tạo quyền xuất thêm hoặc giảm trước. | UC-67, UC-82, UC-107, UC-141, UC-142 |
 | BF-08-E1 | Soạn không đủ hoặc hàng là custody NCC | Warehouse kiểm chủ hàng và thực soạn; thiếu thì sửa phần chưa thực hiện đúng phạm vi. Hàng NCC chưa từng thuộc cửa hàng chỉ xuất giảm custody. | Xuất owned giảm owned một lần; custody không giảm owned. | UC-82 |
-| BF-08-E2 | NCC nhận thiếu/hỏng/từ chối sau xuất | Accountant giữ ACK thực tế, ghi đối chiếu và kết quả xử lý với NCC; Warehouse xác nhận chứng từ quay về nếu có. Không sửa GI hoặc chuyển Owner duyệt; còn tranh chấp thì mở. | ACK không trừ thêm; hàng quay về chỉ tăng sau receipt thực tế. | UC-82, UC-83, UC-107 |
-| BF-08-A3 | Đổi hàng/bồi thường ngoài WMS | Accountant UC-108 ghi chứng từ; hàng thay thế là GR mới. UC-83 do Accountant đóng phần kho khi lượng có kết quả; tài chính độc lập, không Owner duyệt. | Tiền/thỏa thuận không tạo tồn. | UC-83, UC-108 |
+| BF-08-E2 | NCC nhận thiếu/hỏng/từ chối sau xuất | Accountant giữ ACK thực tế, ghi đối chiếu và kết quả xử lý với NCC; Warehouse xác nhận chứng từ quay về nếu có. Không sửa GI hoặc chuyển Owner duyệt; còn tranh chấp thì mở. | ACK không trừ thêm; hàng quay về chỉ tăng sau receipt thực tế. | UC-82, UC-83, UC-107, UC-141, UC-142 |
+| BF-08-A3 | Đổi hàng/bồi thường ngoài WMS | Accountant UC-108, UC-143 ghi chứng từ; hàng thay thế là GR mới. UC-83 do Accountant đóng phần kho khi lượng có kết quả; tài chính độc lập, không Owner duyệt. | Tiền/thỏa thuận không tạo tồn. | UC-83, UC-108, UC-143 |
 
 
 ### 4.X — Lỗi dùng chung cho mọi quy trình
@@ -460,73 +460,73 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 
 ## 5. Ma trận thay đổi use case theo catalogue hiện tại
 
-Catalogue 3.1.0 giữ UC-01–111: 97 active và 14 retired, gồm UC-106 ngừng áp dụng ngày 24/10; Report 3 đã đồng bộ cùng catalogue ngày 25/10. Không đổi số để tránh mất truy vết; mã retired không có quyền/luồng thực thi.
+Catalogue 3.1.0 giữ UC-01, UC-02, UC-03, UC-112, UC-113, UC-04, UC-05, UC-06, UC-07, UC-114, UC-115, UC-116, UC-117, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13, UC-118, UC-119, UC-120, UC-121, UC-14, UC-15, UC-16, UC-122, UC-17, UC-18, UC-19, UC-123, UC-124, UC-20, UC-21, UC-22, UC-125, UC-23, UC-24, UC-25, UC-26, UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31, UC-32, UC-33, UC-34, UC-35, UC-36, UC-37, UC-38, UC-39, UC-40, UC-41, UC-42, UC-43, UC-44, UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-130, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133, UC-74, UC-75, UC-76, UC-77, UC-78, UC-79, UC-80, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-134, UC-88, UC-135, UC-89, UC-90, UC-91, UC-136, UC-92, UC-93, UC-94, UC-95, UC-96, UC-97, UC-137, UC-138, UC-98, UC-99, UC-100, UC-101, UC-102, UC-103, UC-139, UC-140, UC-104, UC-105, UC-106, UC-107, UC-141, UC-142, UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111: 133 active và 14 retired, gồm UC-106 ngừng áp dụng ngày 24/10; Report 3 đã đồng bộ cùng catalogue ngày 25/10. Không đổi số để tránh mất truy vết; mã retired không có quyền/luồng thực thi.
 
 | UC hiện tại | Thay đổi đề xuất | Tác động cụ thể |
 |---|---|---|
 | UC-01–02: View replenishment | Sửa quyền xem | Sales/Warehouse xem đề nghị của mình và nhu cầu được giao; Owner/Accountant xem theo trách nhiệm. |
-| UC-03: Create replenishment request | Sửa primary actor và trigger | Sales/Warehouse tạo từ thiếu xuất, mức tối thiểu, kết quả kiểm kê. Accountant bỏ quyền tự tạo nhu cầu, có thể ghi chú đối chiếu. Chưa duyệt không tạo PO. Bổ sung nhánh mở từ menu, toàn bộ dòng MANUAL_OTHER kèm lý do; không bắt buộc thiếu hàng/cảnh báo/kiểm kê. |
+| UC-03, UC-112, UC-113: Create replenishment request | Sửa primary actor và trigger | Sales/Warehouse tạo từ thiếu xuất, mức tối thiểu, kết quả kiểm kê. Accountant bỏ quyền tự tạo nhu cầu, có thể ghi chú đối chiếu. Chưa duyệt không tạo PO. Bổ sung nhánh mở từ menu, toàn bộ dòng MANUAL_OTHER kèm lý do; không bắt buộc thiếu hàng/cảnh báo/kiểm kê. |
 | UC-04: Approve/reject replenishment | Giữ, siết điều kiện | Owner duyệt đúng phiên bản, userId khác người đề xuất. Có trả về sửa và hủy phần chưa thực hiện. |
-| UC-05–07: PO | Giữ, sửa nguồn và ngoại lệ | Accountant lập từ đề nghị đã duyệt, ghi NCC xác nhận; PO thiếu một phần mở tiếp; thay đổi vượt duyệt phải duyệt lại. Không xử lý thanh toán. |
+| UC-05, UC-06, UC-07, UC-114, UC-115, UC-116, UC-117: PO | Giữ, sửa nguồn và ngoại lệ | Accountant lập từ đề nghị đã duyệt, ghi NCC xác nhận; PO thiếu một phần mở tiếp; thay đổi vượt duyệt phải duyệt lại. Không xử lý thanh toán. |
 | UC-08–10: Receipt list/detail/create | Giữ, mở rộng dữ liệu đợt nhận | Mỗi lần giao có receipt riêng, tham chiếu PO/dòng, lượng thực nhận và nguồn vận chuyển. |
-| UC-11–13: Product/packaging | Giữ, bổ sung mức tồn tối thiểu có kiểm soát | Lưu hệ số thùng/viên/m² và phiên bản. Mức tối thiểu do Owner cấu hình hữu hạn, không phải trình biên tập policy tổng quát. |
-| UC-14–16: Lot | Giữ | Không sửa lot/tone/calibre đã có giao dịch để hợp thức hóa thiếu hàng. Đính chính cần lịch sử và chứng cứ; quyền quản lý master không tự cấp quyền đổi chất lượng tồn. |
-| UC-17–19: Supplier | Giữ | Accountant duy trì thông tin NCC trong phạm vi hiện có; quyền ngừng sử dụng vẫn theo Owner. |
-| UC-20–22: Customer | Thu gọn | Chỉ dữ liệu nhận/giao, liên hệ, mã khách bên MISA và nguồn chứng từ; không xây CRM. |
+| UC-11, UC-12, UC-13, UC-118, UC-119, UC-120, UC-121: Product/packaging | Giữ, bổ sung mức tồn tối thiểu có kiểm soát | Lưu hệ số thùng/viên/m² và phiên bản. Mức tối thiểu do Owner cấu hình hữu hạn, không phải trình biên tập policy tổng quát. |
+| UC-14, UC-15, UC-16, UC-122: Lot | Giữ | Không sửa lot/tone/calibre đã có giao dịch để hợp thức hóa thiếu hàng. Đính chính cần lịch sử và chứng cứ; quyền quản lý master không tự cấp quyền đổi chất lượng tồn. |
+| UC-17, UC-18, UC-19, UC-123, UC-124: Supplier | Giữ | Accountant duy trì thông tin NCC trong phạm vi hiện có; quyền ngừng sử dụng vẫn theo Owner. |
+| UC-20, UC-21, UC-22, UC-125: Customer | Thu gọn | Chỉ dữ liệu nhận/giao, liên hệ, mã khách bên MISA và nguồn chứng từ; không xây CRM. |
 | UC-23–25: Selling prices | Đề xuất ngừng trong MVP | Giá bán và margin nằm ở MISA; bỏ screen/permission/rule phụ thuộc. Không thay thành “giá vốn” nếu chưa có yêu cầu. |
 | UC-26: Inspect and Post Goods Receipt | Giữ, làm rõ kết quả từng lượng | Receipt đạt/chờ kiểm/lỗi/giữ hộ có hiệu lực khác nhau; chống post trùng; trường hợp sai mã/tone hoặc vượt PO có đường xử lý rõ. |
-| UC-27–31: Warehouse/location/stock | Giữ, mở rộng view | Phân biệt kho vật lý và vị trí, stock quality, custody, staging, reservation, in-transit; Sales chỉ thấy tồn dùng được/phần được phép, không thấy giá vốn hoặc hồ sơ nội bộ tùy ý. |
+| UC-27, UC-28, UC-29, UC-126, UC-127, UC-30, UC-31: Warehouse/location/stock | Giữ, mở rộng view | Phân biệt kho vật lý và vị trí, stock quality, custody, staging, reservation, in-transit; Sales chỉ thấy tồn dùng được/phần được phép, không thấy giá vốn hoặc hồ sơ nội bộ tùy ý. |
 | UC-32–33: Put-away TO | Đổi thuật ngữ | “Tạo nhiệm vụ xếp hàng” và “Xác nhận xếp hàng”; đề nghị hệ thống tự sinh gợi ý từ receipt, nhân viên xác nhận thực tế. Đây là thực hiện, không phải approval. |
 | UC-34–37: Location movement | Giữ, làm rõ không Owner approval | Cùng kho; bảo toàn lot/status/tổng lượng và reservation. Chặn nếu phạm vi kiểm kê đang khóa. |
 | UC-38–39: Warehouse transfer | Giữ | Hiện riêng số lượng yêu cầu, duyệt, đã xuất, đã nhận theo chất lượng, đang chuyển, chênh lệch và phiếu hai đầu. Sales được xem tiến độ liên quan yêu cầu xuất của mình. |
-| UC-40: Create Transfer Request | Sửa nguồn phát sinh | Warehouse tạo từ gợi ý UC-103 hoặc nhu cầu điều chuyển hợp lệ. Không tạo khi chỉ đổi vị trí nội bộ. |
+| UC-40: Create Transfer Request | Sửa nguồn phát sinh | Warehouse tạo từ gợi ý UC-103, UC-139, UC-140 hoặc nhu cầu điều chuyển hợp lệ. Không tạo khi chỉ đổi vị trí nội bộ. |
 | UC-41: Review Transfer Request | Giữ, bỏ điều kiện tạo TO tiếp | Duyệt để thực hiện xuất; kiểm tra người duyệt khác người đề xuất, xác minh/giữ lượng nguồn. |
 | UC-42: Create Warehouse Transfer Order | Retired | Bỏ lớp chứng từ/lệnh lặp; thực hiện trực tiếp từ TR đã duyệt. Không xóa nhật ký TO lịch sử nếu đã có dữ liệu. |
 | UC-43: Record Transfer Dispatch | Sửa tách nháp/post | Warehouse kho nguồn tạo TD nháp từ TR trước Picking, xác nhận TO nếu dùng staging, post TD/HO khi thực bàn giao. Không thêm lớp Owner duyệt; UC-104 nhận đích. |
 | UC-44: Review Transfer Difference Resolution | Giữ | Owner quyết định chênh lệch; UC-43/104 thực hiện phần xử lý thuộc kho tương ứng, đúng phiên bản duyệt. Phương án mất hàng có movement riêng, không sửa số đã xuất/nhận. |
-| UC-45–48: Sales Order list/detail/create/update | SO nguồn ngoài và nhu cầu ròng | Sales nhập/xem/sửa SO có nguồn; chỉ hủy/sửa phần chưa thực hiện hoặc đã GR-FD nhận về chưa giao lại, xử lý task/version trước. Không hủy lượng ngoài kho chưa rõ; không định giá hoặc post tồn. |
+| UC-45, UC-46, UC-47, UC-48, UC-128: Sales Order list/detail/create/update | SO nguồn ngoài và nhu cầu ròng | Sales nhập/xem/sửa SO có nguồn; chỉ hủy/sửa phần chưa thực hiện hoặc đã GR-FD nhận về chưa giao lại, xử lý task/version trước. Không hủy lượng ngoài kho chưa rõ; không định giá hoặc post tồn. |
 | UC-49–51: Outbound Delivery | Kế hoạch và giao lại | Lập/tiếp tục OD theo kho, trong lượng WIR còn phải thực hiện ròng. GR-FD tái mở trên OD gốc hoặc chuyển cam kết sang OD thay thế có version; không cộng phần thay thế hai lần. |
 | UC-52–55: Picking TO | Đổi thành picking task/list | Hệ thống gợi ý nguồn, Warehouse xác nhận soạn thực tế; xử lý thiếu/hỏng, partial picking, đổi lot có chứng cứ. Không đổi tổng kho ở bước này. |
-| UC-56–58: Goods Issue/PGI | Tách thao tác UC-58 | UC-58 tạo/cập nhật GI-S nháp theo OD trước Picking, sau đó post lượng bàn giao đã xác nhận; mỗi thao tác kiểm role/state riêng. Retry không xuất lại. PGI không tự DELIVERED/COMPLETED; giao lại kiểm trần ròng sau GR-FD. |
-| UC-59–62: Internal Invoice | Đề xuất retired | Bỏ tạo/issue hóa đơn và email hóa đơn; xuất/in phiếu kho nằm trong UC-58, không tái đặt tên invoice thành delivery bill mà giữ logic billing. |
+| UC-56, UC-57, UC-58, UC-129: Goods Issue/PGI | Tách thao tác UC-58, UC-129 | UC-58, UC-129 tạo/cập nhật GI-S nháp theo OD trước Picking, sau đó post lượng bàn giao đã xác nhận; mỗi thao tác kiểm role/state riêng. Retry không xuất lại. PGI không tự DELIVERED/COMPLETED; giao lại kiểm trần ròng sau GR-FD. |
+| UC-59–62: Internal Invoice | Đề xuất retired | Bỏ tạo/issue hóa đơn và email hóa đơn; xuất/in phiếu kho nằm trong UC-58, UC-129, không tái đặt tên invoice thành delivery bill mà giữ logic billing. |
 | UC-63–64: Defect list/detail | Giữ | Thêm nguồn sự cố, ownership/custody, lượng chưa xử lý và hồ sơ liên quan. |
-| UC-65: Inspect defect/submit disposition | Sửa | Quyền cách ly ngay, ghi chứng cứ, giải phóng/thay phân bổ liên quan; không được tự duyệt hủy. |
+| UC-65, UC-130: Inspect defect/submit disposition | Sửa | Quyền cách ly ngay, ghi chứng cứ, giải phóng/thay phân bổ liên quan; không được tự duyệt hủy. |
 | UC-66: Approve defect disposition | Giới hạn hành động | Owner duyệt hủy/đổi phẩm cấp/giải phóng ngoài kiểm kê. Trả NCC dùng BF-08 không Owner; quality trong B1 dùng UC-92/93, không duyệt trùng UC-66. |
 | UC-67: Record defect disposition | Tách thực hiện | Warehouse ghi hủy/đổi phẩm cấp đã duyệt; chuyển trả NCC không trừ tại đây mà chỉ GI-SR ở UC-82. Trong B1 quality/vị trí post qua batch UC-93, không giao dịch thường. |
-| UC-68–70: Customer returns | CR thương mại | Sales lập CR theo lượng khách đã nhận/nguồn lịch sử xác minh, kiểm D6; UC-70 không bắt buộc cho FD do Warehouse tạo theo UC-72/73. |
-| UC-71: Decide customer return acceptance | Hai chế độ C2 | Sales chấp nhận/từ chối ca thông thường sau UC-72, có thể là người lập CR; Owner chỉ duyệt ngoại lệ đủ điều kiện đúng phiên bản và khác người đề xuất ngoại lệ. Không vượt điều cấm D6; không dùng UC-71 cho FD. |
-| UC-72: Inspect return/intake | Phân biệt nguồn | Warehouse kiểm CR thuộc custody khách; với FD ghi ARR/INS và bằng chứng từ GI-S, không mặc định custody khách hoặc cần D6/Owner. Chưa đủ căn cứ thì giữ hồ sơ chờ, không post. |
-| UC-73: Post return/intake receipt | GR-CR và GR-FD | Warehouse post GR-CR theo Sales acceptance hoặc Owner exception đúng phiên bản; FD post GR-FD theo GI đã xuất và lượng thực về, không cần quyết định thương mại. Chặn nguồn trùng giữa POD/FD/CR; GR-FD tái mở ròng trong cùng commit, không tự hoàn tiền. |
-| UC-74–78: Refund workflow | Đề xuất retired trong MVP | Thay bằng UC-108 lưu kết quả xử lý ngoài WMS; không tính eligibility theo số tiền, duyệt hoàn tiền hoặc triển khai payment. Nếu giữ nguyên đây là phạm vi mở rộng cần đồng bộ lại ranh giới. |
-| UC-79–81: Supplier return list/detail/create | Giữ, thêm phối hợp Accountant | Warehouse đề xuất vật lý; Accountant xem/ghi thỏa thuận qua UC-107, không thay số kiểm thực tế. |
+| UC-68–70: Customer returns | CR thương mại | Sales lập CR theo lượng khách đã nhận/nguồn lịch sử xác minh, kiểm D6; UC-70 không bắt buộc cho FD do Warehouse tạo theo UC-72, UC-132, UC-73, UC-133. |
+| UC-71, UC-131: Decide customer return acceptance | Hai chế độ C2 | Sales chấp nhận/từ chối ca thông thường sau UC-72, UC-132, có thể là người lập CR; Owner chỉ duyệt ngoại lệ đủ điều kiện đúng phiên bản và khác người đề xuất ngoại lệ. Không vượt điều cấm D6; không dùng UC-71, UC-131 cho FD. |
+| UC-72, UC-132: Inspect return/intake | Phân biệt nguồn | Warehouse kiểm CR thuộc custody khách; với FD ghi ARR/INS và bằng chứng từ GI-S, không mặc định custody khách hoặc cần D6/Owner. Chưa đủ căn cứ thì giữ hồ sơ chờ, không post. |
+| UC-73, UC-133: Post return/intake receipt | GR-CR và GR-FD | Warehouse post GR-CR theo Sales acceptance hoặc Owner exception đúng phiên bản; FD post GR-FD theo GI đã xuất và lượng thực về, không cần quyết định thương mại. Chặn nguồn trùng giữa POD/FD/CR; GR-FD tái mở ròng trong cùng commit, không tự hoàn tiền. |
+| UC-74–78: Refund workflow | Đề xuất retired trong MVP | Thay bằng UC-108, UC-143 lưu kết quả xử lý ngoài WMS; không tính eligibility theo số tiền, duyệt hoàn tiền hoặc triển khai payment. Nếu giữ nguyên đây là phạm vi mở rộng cần đồng bộ lại ranh giới. |
+| UC-79–81: Supplier return list/detail/create | Giữ, thêm phối hợp Accountant | Warehouse đề xuất vật lý; Accountant xem/ghi thỏa thuận qua UC-107, UC-141, UC-142, không thay số kiểm thực tế. |
 | UC-82: Supplier return dispatch | Bỏ Owner duyệt | Warehouse tạo/post GI-SR đúng nguồn, lượng NCC đã thỏa thuận do Accountant xác minh và lượng thực bàn giao. Không cần UC-106 hoặc quyết định Owner; ACK thực nhận là mốc sau xuất. |
 | UC-83: Supplier return closure | Accountant thực hiện | Accountant đối chiếu toàn bộ lượng theo chứng từ Warehouse và ACK/thỏa thuận giải quyết rồi đóng phần kho; tranh chấp còn mở chưa đóng. Không cần Owner, không post giảm thêm; tài chính riêng. |
 | UC-84–86: Stocktake/session | Giữ | Rõ phạm vi, người đếm, thời điểm kích hoạt; không nhầm tạo kế hoạch với chụp snapshot. |
-| UC-87: Count and record results | Sửa | Kích hoạt snapshot, khóa phạm vi theo phương án MVP, đếm/đếm lại có lịch sử; gọi UC-105 để xuất phiếu. |
-| UC-88: Reconcile stocktake | Hai hướng + B1 | Không chênh lượng/quality/vị trí thì đóng; chênh đủ căn cứ lập phương án trực tiếp, chưa rõ recount lặp. Phân biệt thiếu lượng với RECLASS bảo toàn tổng. |
-| UC-89–91: Adjustment/resolution list/detail/request | Phương án ST | Warehouse lập delta thực tế và RECLASS/vị trí có bằng chứng; quality-only là phương án ST không tạo ADJ=0. Chưa được sửa balance trực tiếp. |
+| UC-87, UC-134: Count and record results | Sửa | Kích hoạt snapshot, khóa phạm vi theo phương án MVP, đếm/đếm lại có lịch sử; gọi UC-105 để xuất phiếu. |
+| UC-88, UC-135: Reconcile stocktake | Hai hướng + B1 | Không chênh lượng/quality/vị trí thì đóng; chênh đủ căn cứ lập phương án trực tiếp, chưa rõ recount lặp. Phân biệt thiếu lượng với RECLASS bảo toàn tổng. |
+| UC-89, UC-90, UC-91, UC-136: Adjustment/resolution list/detail/request | Phương án ST | Warehouse lập delta thực tế và RECLASS/vị trí có bằng chứng; quality-only là phương án ST không tạo ADJ=0. Chưa được sửa balance trực tiếp. |
 | UC-92: Approve Stocktake Resolution | Mở rộng phương án B1 | Owner duyệt/trả đúng phiên bản gồm delta thực tế, RECLASS và vị trí cách ly, khác người lập; không approval cho phép bỏ snapshot/khóa. |
 | UC-93: Clear Stocktake Difference | Batch chốt B1 | Owner post delta khác 0 nếu có và RECLASS/vị trí đã duyệt, với xác nhận thực hiện của Warehouse và idempotency/ledger; chỉ mở khóa khi toàn bộ được giải quyết. Quality-only không ADJ=0. |
-| UC-94–98: Login/accounts/permissions | Giữ, bổ sung data scope/SoD | Kiểm kho được giao và cấm tự duyệt theo userId; admin không tự có quyền nghiệp vụ; thay đổi quyền có nhật ký. |
+| UC-94, UC-95, UC-96, UC-97, UC-137, UC-138, UC-98: Login/accounts/permissions | Giữ, bổ sung data scope/SoD | Kiểm kho được giao và cấm tự duyệt theo userId; admin không tự có quyền nghiệp vụ; thay đổi quyền có nhật ký. |
 | UC-99–102: Reports/movement/trace | Giữ, mở rộng nội dung | Tồn vật lý/khả dụng/giữ hộ/đang chuyển; yêu cầu còn thiếu; hàng lỗi; mismatch; trace xuyên nguồn MISA–SO–WIR–receipt/issue (PGI)–giao khách (POD)–xác nhận tiền (PAY-CFM)–return–adjustment. Không bổ sung doanh thu/lợi nhuận. |
 
 ### 5.1 UC mới đề xuất
 
 | Mã đề xuất | Tên / Actor | Đầu vào và kết quả chính |
 |---|---|---|
-| UC-103 | Xem và chọn phương án đáp ứng hàng thiếu — Sales/Warehouse | Hệ thống tự tính gợi ý khi thiếu; người dùng xem tồn theo kho/lot và chọn xuất trực tiếp, điều chuyển hoặc bổ sung. Gợi ý chưa duyệt không tự post hoặc tự đặt mua. Liên kết BF-01/04/06. |
+| UC-103, UC-139, UC-140 | Xem và chọn phương án đáp ứng hàng thiếu — Sales/Warehouse | Hệ thống tự tính gợi ý khi thiếu; người dùng xem tồn theo kho/lot và chọn xuất trực tiếp, điều chuyển hoặc bổ sung. Gợi ý chưa duyệt không tự post hoặc tự đặt mua. Liên kết BF-01/04/06. |
 | UC-104 | Kiểm nhận và ghi nhận nhập điều chuyển — Warehouse kho đích | Phiếu xuất nguồn; nhận thực tế, quality, biên bản, put-away; chuyển đúng lượng từ in-transit về kho đích. Người xác nhận nhận độc lập người xuất theo bố trí đã chốt. |
-| UC-105 | Xuất/in danh sách kiểm kê — Warehouse/Owner | Phiên đã kích hoạt và snapshot; danh sách theo bin/lot/quality, mã phiên/cutoff và chỗ ghi kết quả. Có thể gộp thao tác này trong UC-87 nếu quy ước catalogue không tách xuất/in, nhưng phải có requirement cụ thể. |
-| UC-106 | Retired — duyệt trả NCC | Ngừng active ngày 24/10 theo yêu cầu bỏ Owner duyệt BF-08. Không cấp permission hoặc gọi từ luồng mới; giữ ID/lịch sử. UC-107 ghi thỏa thuận/sai lệch; UC-82 xuất; Accountant UC-83 đóng. |
-| UC-107 | Ghi thỏa thuận, ACK và đối chiếu sai lệch NCC — Accountant | Tách mốc đồng ý trước xuất và thực nhận sau xuất. Ghi lượng/kết quả xử lý và chứng cứ; không post tồn, không chuyển Owner/UC-106. Chưa giải quyết đủ thì hồ sơ mở. |
-| UC-108 | Ghi tham chiếu chứng từ ngoài — Accountant | Lưu Invoice/Credit Note hoặc chứng từ phù hợp: loại, mã/ngày, nguồn mua/GI-SR và lượng đối chiếu, bằng chứng/trạng thái; xác minh lịch sử. Không tạo doanh thu/công nợ/chi tiền hoặc thay UC-111. |
-| UC-109 | Quản lý WIR và nhu cầu tái mở — Sales | Tạo/sửa/hủy phần chưa thực hiện và phần đã GR-FD nhận về chưa giao lại; giữ SO/WIR cũ, chuyển cam kết OD có liên kết, kiểm trần ròng. Không hủy lượng đang ngoài kho chưa giải quyết. |
+| UC-105 | Xuất/in danh sách kiểm kê — Warehouse/Owner | Phiên đã kích hoạt và snapshot; danh sách theo bin/lot/quality, mã phiên/cutoff và chỗ ghi kết quả. Có thể gộp thao tác này trong UC-87, UC-134 nếu quy ước catalogue không tách xuất/in, nhưng phải có requirement cụ thể. |
+| UC-106 | Retired — duyệt trả NCC | Ngừng active ngày 24/10 theo yêu cầu bỏ Owner duyệt BF-08. Không cấp permission hoặc gọi từ luồng mới; giữ ID/lịch sử. UC-107, UC-141, UC-142 ghi thỏa thuận/sai lệch; UC-82 xuất; Accountant UC-83 đóng. |
+| UC-107, UC-141, UC-142 | Ghi thỏa thuận, ACK và đối chiếu sai lệch NCC — Accountant | Tách mốc đồng ý trước xuất và thực nhận sau xuất. Ghi lượng/kết quả xử lý và chứng cứ; không post tồn, không chuyển Owner/UC-106. Chưa giải quyết đủ thì hồ sơ mở. |
+| UC-108, UC-143 | Ghi tham chiếu chứng từ ngoài — Accountant | Lưu Invoice/Credit Note hoặc chứng từ phù hợp: loại, mã/ngày, nguồn mua/GI-SR và lượng đối chiếu, bằng chứng/trạng thái; xác minh lịch sử. Không tạo doanh thu/công nợ/chi tiền hoặc thay UC-111. |
+| UC-109, UC-144, UC-145, UC-146, UC-147 | Quản lý WIR và nhu cầu tái mở — Sales | Tạo/sửa/hủy phần chưa thực hiện và phần đã GR-FD nhận về chưa giao lại; giữ SO/WIR cũ, chuyển cam kết OD có liên kết, kiểm trần ròng. Không hủy lượng đang ngoài kho chưa giải quyết. |
 | UC-110 | Xác nhận POD — Warehouse | GI-S đã post, lượng/người/thời điểm/ảnh; kiểm POD hiệu lực + GR-FD đã post + FD đang giữ chỗ không vượt PGI hợp lệ. Đã POD thì muốn trả dùng CR, không FD. |
 | UC-111 | Xác nhận nhận tiền ngoài hệ thống — Sales Staff | Sau DELIVERED, Sales ghi đã nhận đủ tiền cùng người/thời điểm và tham chiếu/bằng chứng/ghi chú; SO sang COMPLETED. Không thực hiện thu tiền hoặc đổi tồn. |
 
-BF-08 không dùng UC-106 hoặc Owner approval. Accountant UC-107 ghi thỏa thuận/ACK/kết quả đối chiếu; Warehouse UC-82 post xuất theo thực tế; Accountant UC-83 đóng khi mọi lượng có chứng cứ. UC-44 chỉ thuộc BF-04. Giữ lịch sử UC-106 nhưng không dùng quyết định cũ như một điều kiện hoặc quyền post mới.
+BF-08 không dùng UC-106 hoặc Owner approval. Accountant UC-107, UC-141, UC-142 ghi thỏa thuận/ACK/kết quả đối chiếu; Warehouse UC-82 post xuất theo thực tế; Accountant UC-83 đóng khi mọi lượng có chứng cứ. UC-44 chỉ thuộc BF-04. Giữ lịch sử UC-106 nhưng không dùng quyết định cũ như một điều kiện hoặc quyền post mới.
 
-Catalogue 3.1.0: 111 ID, 97 active/14 retired. Retired: UC-23–25, UC-42, UC-59–62, UC-74–78 và UC-106. UC-103–111 là nhóm ID từng bổ sung, UC-106 nay chỉ lịch sử. Không thêm ID cho FD/B1: mở rộng chế độ UC-72/73 và UC-92/93; các đặc tả, permission, màn hình trong Report 3 cần đồng bộ, chưa được sửa ở lượt này.
+Catalogue 3.1.0: 111 ID, 133 active/14 retired. Retired: UC-23–25, UC-42, UC-59–62, UC-74–78 và UC-106. UC-103, UC-139, UC-140, UC-104, UC-105, UC-106, UC-107, UC-141, UC-142, UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111 là nhóm ID từng bổ sung, UC-106 nay chỉ lịch sử. Không thêm ID cho FD/B1: mở rộng chế độ UC-72, UC-132, UC-73, UC-133 và UC-92/93; các đặc tả, permission, màn hình trong Report 3 cần đồng bộ, chưa được sửa ở lượt này.
 
 ## 6. Permission matrix nghiệp vụ đề xuất
 
@@ -546,16 +546,16 @@ V = xem theo phạm vi; T = tạo/ghi nhận nghiệp vụ; D = duyệt; X = th�
 | Phiếu xuất điều chuyển | V | V (tiến độ) | X kho đi | V | — |
 | Phiếu nhập điều chuyển | V | V (tiến độ) | X kho nhận | V | — |
 | Duyệt xử lý chênh lệch liên kho | D | — | T đề xuất | V | — |
-| Sao chép/cập nhật đơn bán từ nguồn ngoài (SO, UC-45–48) | V | T | V (liên quan) | V | — |
-| Tạo/sửa yêu cầu xuất hàng liên kết (WIR, UC-109) và đợt giao (OD, UC-49–51) | V | T | V | V | — |
-| Soạn, kiểm đếm, PGI và bàn giao kho (GI-S/HO, UC-52–58) | V | V | X | V | — |
+| Sao chép/cập nhật đơn bán từ nguồn ngoài (SO, UC-45, UC-46, UC-47, UC-48, UC-128) | V | T | V (liên quan) | V | — |
+| Tạo/sửa yêu cầu xuất hàng liên kết (WIR, UC-109, UC-144, UC-145, UC-146, UC-147) và đợt giao (OD, UC-49–51) | V | T | V | V | — |
+| Soạn, kiểm đếm, PGI và bàn giao kho (GI-S/HO, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129) | V | V | X | V | — |
 | Xác nhận giao hàng cho khách kèm ảnh (POD → DELIVERED, UC-110) | V | V | X | V | — |
 | Xác nhận đã nhận đủ tiền ngoài hệ thống và hoàn thành SO (PAY-CFM → COMPLETED, UC-111) | V | X | V | V | — |
 | Tạo đề nghị khách trả | V | T | V | V | — |
 | Kiểm chất lượng hàng trả | V | — | T | — | — |
-| Chấp nhận CR thông thường sau kiểm (UC-71) | V | X (có thể là người lập) | V | V | — |
-| Duyệt ngoại lệ CR đủ điều kiện (UC-71) | D | T đề xuất | V | V | — |
-| Nhận hàng giao thất bại GR-FD (UC-72/73) | V | V/chọn giao lại | X | V | — |
+| Chấp nhận CR thông thường sau kiểm (UC-71, UC-131) | V | X (có thể là người lập) | V | V | — |
+| Duyệt ngoại lệ CR đủ điều kiện (UC-71, UC-131) | D | T đề xuất | V | V | — |
+| Nhận hàng giao thất bại GR-FD (UC-72, UC-132, UC-73, UC-133) | V | V/chọn giao lại | X | V | — |
 | Nhập hàng trả / bàn giao lại khách | V | V | X | V | — |
 | Cách ly ngay và đề xuất xử lý lỗi | V | — | T | V | — |
 | Duyệt hủy/đổi phẩm cấp/giải phóng ngoài kiểm kê (không trả NCC) | D | — | — | V | — |
@@ -563,7 +563,7 @@ V = xem theo phạm vi; T = tạo/ghi nhận nghiệp vụ; D = duyệt; X = th�
 | Tạo đề nghị trả NCC | V | — | T | V | — |
 | Ghi thỏa thuận/acknowledgement NCC | V | — | V | T | — |
 | Xuất trả NCC | V | — | X | V | — |
-| Đối chiếu sai lệch và đóng phần kho trả NCC (UC-83/107) | V | — | V/xác nhận chứng từ | X | — |
+| Đối chiếu sai lệch và đóng phần kho trả NCC (UC-83, UC-107, UC-141, UC-142) | V | — | V/xác nhận chứng từ | X | — |
 | Tạo kế hoạch kiểm kê | T | — | V | V | — |
 | Snapshot, xuất phiếu, đếm/đếm lại | V | — | T | V (đối chiếu) | — |
 | Giải trình và đề nghị điều chỉnh | V | — | T | V | — |
@@ -581,7 +581,7 @@ Context diagram mô tả **dữ liệu vượt biên phần mềm**, không mô 
 |---|---|---|
 | Sales Staff | Bản sao đơn bán nguồn ngoài (SO); yêu cầu xuất liên kết (WIR); đề nghị khách trả; xác nhận giao từng phần/thay nguồn; tham chiếu đơn nguồn và xác nhận đã nhận tiền ngoài hệ thống (PAY-CFM) | Tồn khả dụng; nguồn gợi ý; tiến độ SO/WIR/giao khách (DELIVERED)/hoàn thành (COMPLETED); thiếu hàng; kết quả trả |
 | Warehouse Staff | Nhu cầu bổ sung; kiểm nhận; soạn/nhập/xuất (PGI); xác nhận giao hàng cho khách kèm ảnh bắt buộc (POD); chuyển vị trí; hàng lỗi; đếm; giải trình | Nhiệm vụ được giao; thông tin lô/vị trí; chứng từ SO/WIR nguồn; quyết định duyệt; danh sách kiểm kê |
-| Accountant | PO; xác nhận/thỏa thuận NCC; chứng từ tham chiếu kế toán/đối chiếu ngoài WMS (UC-108) | PO còn thiếu; số liệu nhận/xuất/đã giao/trả; sai lệch và dữ liệu đối chiếu |
+| Accountant | PO; xác nhận/thỏa thuận NCC; chứng từ tham chiếu kế toán/đối chiếu ngoài WMS (UC-108, UC-143) | PO còn thiếu; số liệu nhận/xuất/đã giao/trả; sai lệch và dữ liệu đối chiếu |
 | Store Owner | Quyết định duyệt; phạm vi kiểm kê; master data được phép | Đề nghị chờ duyệt; hồ sơ sai lệch; báo cáo và nhật ký |
 | Administrator | Quản lý tài khoản/quyền và cấu hình kỹ thuật | Kết quả thao tác quản trị, trạng thái kỹ thuật |
 | SMTP (API-01) | Kết quả gửi/lỗi | Nội dung thông báo nghiệp vụ sau commit; không gửi hóa đơn nội bộ |
@@ -624,41 +624,41 @@ Không gộp chất lượng, vị trí, quyền sở hữu và tình trạng gi
 
 | Mã đề xuất | Nội dung có thể đưa vào SRS | UC/flow bị tác động |
 |---|---|---|
-| BR-01 | Lot identity phải phân biệt product/lot/tone/calibre; không gộp hàng khác tone để đủ lượng. | DR-01, UC-13/16/26/30/54/55/72 |
+| BR-01 | Lot identity phải phân biệt product/lot/tone/calibre; không gộp hàng khác tone để đủ lượng. | DR-01, UC-13, UC-118, UC-119, UC-120, UC-121, UC-16, UC-122, UC-26, UC-30, UC-54, UC-55, UC-72, UC-132 |
 | BR-02 | Quy đổi theo sản phẩm và phiên bản đóng gói; chốt hệ số ở dòng chứng từ. Với gạch nguyên viên, không tạo số viên phân số. Dùng diện tích theo quy cách sản phẩm; calibre là thuộc tính tương thích, không tự thay hệ số m². | DR-02, GB-03 |
-| BR-03 | Sau lưu SO/chốt kiểm kê, hệ thống đánh giá nguồn và hỏi/cảnh báo nếu còn thiếu. Sales/Warehouse cũng được mở cùng form từ menu và tạo toàn bộ RR bằng MANUAL_OTHER có lý do từng dòng, không cần SO thiếu/cảnh báo tồn thấp/kiểm kê. Chỉ Lưu nháp/Gửi duyệt hợp lệ mới ghi RR; kiểm kho/ngày cần/số lượng dương và chống trùng. Dòng có nguồn phải giữ refs/snapshot thật; MANUAL_OTHER không bị buộc tạo giả nguồn. Owner khác người đề xuất duyệt trước khi Accountant lập PO; không tự phát hành PO. | UC-03/04/13/47/48/93/103 |
+| BR-03 | Sau lưu SO/chốt kiểm kê, hệ thống đánh giá nguồn và hỏi/cảnh báo nếu còn thiếu. Sales/Warehouse cũng được mở cùng form từ menu và tạo toàn bộ RR bằng MANUAL_OTHER có lý do từng dòng, không cần SO thiếu/cảnh báo tồn thấp/kiểm kê. Chỉ Lưu nháp/Gửi duyệt hợp lệ mới ghi RR; kiểm kho/ngày cần/số lượng dương và chống trùng. Dòng có nguồn phải giữ refs/snapshot thật; MANUAL_OTHER không bị buộc tạo giả nguồn. Owner khác người đề xuất duyệt trước khi Accountant lập PO; không tự phát hành PO. | UC-03, UC-112, UC-113, UC-04, UC-13, UC-118, UC-119, UC-120, UC-121, UC-47, UC-48, UC-128, UC-93, UC-103, UC-139, UC-140 |
 | BR-04 | Không tính trùng nhu cầu đã có PO/điều chuyển/phân bổ; lượng dự kiến về chưa phải khả dụng hiện tại. | BF-01/04/06 |
-| BR-05 | Cấm tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê theo userId. Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm, theo C2; không tự duyệt ngoại lệ hoặc cấp quyền Owner. BF-08 không có approval Owner. | UC-04/41/66/71/92 |
+| BR-05 | Cấm tự duyệt RR/TR, ngoại lệ CR, hủy/đổi phẩm cấp và phương án kiểm kê theo userId. Sales được chấp nhận CR thông thường mình lập sau Warehouse kiểm, theo C2; không tự duyệt ngoại lệ hoặc cấp quyền Owner. BF-08 không có approval Owner. | UC-04, UC-41, UC-66, UC-71, UC-131, UC-92 |
 | BR-06 | Receipt/issue/return/adjustment chỉ post một lần, nguyên tử cùng ledger và balance. Không âm tồn khả dụng; retry trả lại kết quả cũ. | DR-09/10/13, GB-09/10/13 |
-| BR-07 | Nhận hàng phân tách thực giao, nhận vào tồn, giữ hộ, từ chối; chưa kiểm hoặc chưa sẵn sàng vị trí thì không khả dụng. | DR-04, GB-04, UC-26/33/73 |
-| BR-08 | PO nhận nhiều đợt; phần đã ghi nhận bất biến. Chốt thiếu hoặc sửa vượt duyệt có lý do và quyết định phù hợp. | DR-03, GB-05, UC-07/10/26 |
+| BR-07 | Nhận hàng phân tách thực giao, nhận vào tồn, giữ hộ, từ chối; chưa kiểm hoặc chưa sẵn sàng vị trí thì không khả dụng. | DR-04, GB-04, UC-26, UC-33, UC-73, UC-133 |
+| BR-08 | PO nhận nhiều đợt; phần đã ghi nhận bất biến. Chốt thiếu hoặc sửa vượt duyệt có lý do và quyết định phù hợp. | DR-03, GB-05, UC-07, UC-114, UC-115, UC-116, UC-117, UC-10, UC-26 |
 | BR-09 | Chuyển vị trí cùng kho không đổi tổng, lot, chất lượng; không cần Owner duyệt. Bảo toàn liên kết giữ hàng. | DR-06, GB-06, UC-36/37 |
 | BR-10 | TR duyệt → TD nháp trước Picking → xác nhận thực hiện → post TD/HO khi bàn giao → MWTR → xác nhận TO put-away. Không thêm Owner duyệt TO hoặc GI thứ hai cho cùng TD. | UC-41/43/104 |
 | BR-11 | Tổng TD đã post không vượt TR được duyệt sau hủy. Đã xuất = nhận hợp lệ + transit/chưa giải quyết + kết quả khác có chứng từ. TR chỉ đóng khi yêu cầu hết phần còn phải làm, mọi lượng xuất đã đối chiếu và TO liên quan đã xử lý; khớp một đợt chưa đủ. | UC-43/44/104 |
 | BR-12 | Người kho nhận xác nhận độc lập người xuất theo phương án nhân sự đã chốt; không một confirm cập nhật cả hai đầu. | UC-43/104, permissions |
-| BR-13 | Chọn nguồn theo tương thích lot/tone/calibre trước, FIFO trong tập hợp đó sau. Ghi lý do/chấp thuận khi ngoại lệ; không dùng LIFO làm mặc định nếu chưa khảo sát. | UC-54/55/103 |
-| BR-14 | SO/WIR/GI nháp không đổi tồn; TO Picking chỉ đổi vị trí; PGI giảm thực bàn giao một lần. GR-FD tăng lượng thực nhận và tái mở ròng đúng nguồn; POD/PAY-CFM không đổi tồn. Không sửa ledger để giấu giao lại. | UC-47/109/55/58/73/110/111 |
+| BR-13 | Chọn nguồn theo tương thích lot/tone/calibre trước, FIFO trong tập hợp đó sau. Ghi lý do/chấp thuận khi ngoại lệ; không dùng LIFO làm mặc định nếu chưa khảo sát. | UC-54, UC-55, UC-103, UC-139, UC-140 |
+| BR-14 | SO/WIR/GI nháp không đổi tồn; TO Picking chỉ đổi vị trí; PGI giảm thực bàn giao một lần. GR-FD tăng lượng thực nhận và tái mở ròng đúng nguồn; POD/PAY-CFM không đổi tồn. Không sửa ledger để giấu giao lại. | UC-47, UC-109, UC-144, UC-145, UC-146, UC-147, UC-55, UC-58, UC-129, UC-73, UC-133, UC-110, UC-111 |
 | BR-15 | Thiếu/hỏng khi soạn phải chặn lượng ảnh hưởng, ghi bằng chứng, phân bổ lại hoặc chờ; không tự chỉnh balance. | BF-02/05/06 |
-| BR-16 | CR thông thường lấy trần khách đã nhận (POD/nguồn lịch sử xác minh) trừ lượng trả/đang giữ chỗ; FD dùng phần PGI chưa POD, chưa GR-FD hoặc giữ chỗ FD. Kiểm trần nguyên tử chung nguồn; một lượng không thuộc cả hai nhánh. | UC-70/72/73/108/110 |
-| BR-17 | Sales chấp nhận/từ chối CR thông thường sau Warehouse kiểm, có thể là người lập; Owner chỉ duyệt ngoại lệ đủ điều kiện. Warehouse post GR-CR theo quyết định đúng loại/version. FD không cần chấp nhận thương mại hoặc Owner approval. | UC-70–73 |
-| BR-18 | CR phân từng lượng: đạt/cách ly/custody-từ chối; giữ POD/GI/hóa đơn gốc. FD theo GI và bằng chứng thất bại, không ghi custody khách, không tự hoàn tiền; chỉ post GR-FD một lần và mở lại ròng cùng commit. | UC-73/108/109 |
-| BR-19 | Chặn lượng lỗi ngay; ngoài kiểm kê hủy/đổi phẩm cấp/giải phóng cần Owner. B1 giữ hold đến batch UC-93. Trả NCC theo BF-08 không Owner approval, chỉ GI-SR giảm tồn; không giảm tại BF-02 rồi giảm lại. | UC-65/66/67/82/93 |
-| BR-20 | Trả NCC cần thỏa thuận đúng nguồn/lượng do Accountant xác minh, Warehouse xác nhận thực xuất; không Owner approval, UC-106 retired. Accountant đối chiếu/đóng UC-83/107 khi mọi lượng có kết quả; tài chính UC-108 độc lập. Custody không giảm owned. | UC-82/83/107/108 |
-| BR-21 | Snapshot bất biến tại kích hoạt; xuất danh sách kiểm kê; lưu thời gian và phạm vi. Không lấy tồn hiện tại để thay số snapshot. | DR-08, GB-08, UC-87/105 |
-| BR-22 | Khóa giao dịch thường trong kiểm kê; defect hold/evidence không đổi balance được ghi ngay. B1 chỉ batch chốt đã duyệt post delta/RECLASS/vị trí; giữ khóa/hold đến hoàn tất. Chưa đếm khác 0; lưu recount. | UC-87/88/92/93 |
-| BR-23 | Chênh đủ căn cứ có thể lập phương án trực tiếp hoặc recount nếu chưa rõ. Warehouse đề xuất, Owner duyệt/post đúng version. Batch delta thực tế + RECLASS bảo toàn tổng không ghi giảm hai lần; quality-only không ADJ=0. | UC-88/91/92/93 |
-| BR-24 | Chứng từ đã post không sửa/xóa để xóa dấu vết. Sai sót cần đảo/điều chỉnh liên kết có thẩm quyền. Master inactive giữ nguyên lịch sử. | DR-14, GB-02/13, UC-97/100–102 |
-| BR-25 | Outbox sau commit sinh Notification theo recipient/scope và dedupKey; readAt không giải quyết thiếu hàng. Mở cảnh báo tính lại; lỗi/retry không tạo RR hay post lại tồn. | UC-03/47/48/93/103, JOB-01 |
-| BR-26 | Không suy ra tình trạng đã giao khách (DELIVERED) chỉ từ PGI/bàn giao cho nhà vận chuyển, và không suy ra hoàn thành đơn bán (COMPLETED) chỉ từ đã giao hàng; không suy ra hoàn tiền từ phiếu nhập trả; không suy ra tăng tồn từ NCC đồng ý đổi hàng. | BF-06/07/08, UC-58/110/111 |
+| BR-16 | CR thông thường lấy trần khách đã nhận (POD/nguồn lịch sử xác minh) trừ lượng trả/đang giữ chỗ; FD dùng phần PGI chưa POD, chưa GR-FD hoặc giữ chỗ FD. Kiểm trần nguyên tử chung nguồn; một lượng không thuộc cả hai nhánh. | UC-70, UC-72, UC-132, UC-73, UC-133, UC-108, UC-143, UC-110 |
+| BR-17 | Sales chấp nhận/từ chối CR thông thường sau Warehouse kiểm, có thể là người lập; Owner chỉ duyệt ngoại lệ đủ điều kiện. Warehouse post GR-CR theo quyết định đúng loại/version. FD không cần chấp nhận thương mại hoặc Owner approval. | UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BR-18 | CR phân từng lượng: đạt/cách ly/custody-từ chối; giữ POD/GI/hóa đơn gốc. FD theo GI và bằng chứng thất bại, không ghi custody khách, không tự hoàn tiền; chỉ post GR-FD một lần và mở lại ròng cùng commit. | UC-73, UC-133, UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147 |
+| BR-19 | Chặn lượng lỗi ngay; ngoài kiểm kê hủy/đổi phẩm cấp/giải phóng cần Owner. B1 giữ hold đến batch UC-93. Trả NCC theo BF-08 không Owner approval, chỉ GI-SR giảm tồn; không giảm tại BF-02 rồi giảm lại. | UC-65, UC-130, UC-66, UC-67, UC-82, UC-93 |
+| BR-20 | Trả NCC cần thỏa thuận đúng nguồn/lượng do Accountant xác minh, Warehouse xác nhận thực xuất; không Owner approval, UC-106 retired. Accountant đối chiếu/đóng UC-83, UC-107, UC-141, UC-142 khi mọi lượng có kết quả; tài chính UC-108, UC-143 độc lập. Custody không giảm owned. | UC-82, UC-83, UC-107, UC-141, UC-142, UC-108, UC-143 |
+| BR-21 | Snapshot bất biến tại kích hoạt; xuất danh sách kiểm kê; lưu thời gian và phạm vi. Không lấy tồn hiện tại để thay số snapshot. | DR-08, GB-08, UC-87, UC-134, UC-105 |
+| BR-22 | Khóa giao dịch thường trong kiểm kê; defect hold/evidence không đổi balance được ghi ngay. B1 chỉ batch chốt đã duyệt post delta/RECLASS/vị trí; giữ khóa/hold đến hoàn tất. Chưa đếm khác 0; lưu recount. | UC-87, UC-134, UC-88, UC-135, UC-92, UC-93 |
+| BR-23 | Chênh đủ căn cứ có thể lập phương án trực tiếp hoặc recount nếu chưa rõ. Warehouse đề xuất, Owner duyệt/post đúng version. Batch delta thực tế + RECLASS bảo toàn tổng không ghi giảm hai lần; quality-only không ADJ=0. | UC-88, UC-135, UC-91, UC-136, UC-92, UC-93 |
+| BR-24 | Chứng từ đã post không sửa/xóa để xóa dấu vết. Sai sót cần đảo/điều chỉnh liên kết có thẩm quyền. Master inactive giữ nguyên lịch sử. | DR-14, GB-02/13, UC-97, UC-137, UC-138, UC-100–102 |
+| BR-25 | Outbox sau commit sinh Notification theo recipient/scope và dedupKey; readAt không giải quyết thiếu hàng. Mở cảnh báo tính lại; lỗi/retry không tạo RR hay post lại tồn. | UC-03, UC-112, UC-113, UC-47, UC-48, UC-128, UC-93, UC-103, UC-139, UC-140, JOB-01 |
+| BR-26 | Không suy ra tình trạng đã giao khách (DELIVERED) chỉ từ PGI/bàn giao cho nhà vận chuyển, và không suy ra hoàn thành đơn bán (COMPLETED) chỉ từ đã giao hàng; không suy ra hoàn tiền từ phiếu nhập trả; không suy ra tăng tồn từ NCC đồng ý đổi hàng. | BF-06/07/08, UC-58, UC-129, UC-110, UC-111 |
 | BR-27 | Chỉ các vai trò được phép xem chứng cứ mới lấy được tệp; URL không mặc định công khai. | API-02 lưu chứng cứ, GB-NEW-02 |
-| BR-28 | Có source system, source document/line, version và correlation ID để chống nhập/ghi nhận trùng giữa WMS và hồ sơ MISA trên SO, WIR, OD, GI-S, `CR` và `EXT-REF`. | UC-47/109/51/58/70/108 |
-| BR-29 | CR: nguyên thùng/viên chưa dùng xét từng ca; không nhận đã thi công/hỏng do khách/quá hạn xác minh, chưa rõ thì chờ. C2 Sales quyết định ca đạt thông thường; Owner chỉ ngoại lệ đủ căn cứ, không vượt điều cấm. D6 không áp cho FD chưa khách nhận. | BF-07, UC-70–73 |
-| BR-30 | Bao bì rách/thùng mở không tự đồng nghĩa gạch hỏng. Ghi số viên thực tế; phân loại chất lượng sau kiểm tra. Hệ số thùng/viên/m² theo sản phẩm và phiên bản, không suy từ calibre. | D7, BF-01/05/06/07, UC-13/26/55/72/87 |
-| BR-31 | SO nguồn xác minh, WIR/OD liên kết dòng; cam kết không vượt SO sau hủy. Trần thực hiện dùng PGI hợp lệ trừ GR-FD đã post; giao lại dùng phần tái mở trên SO/WIR cũ, không cộng OD thay thế thành nhu cầu mới. | UC-45–48/51/58/73/109 |
-| BR-32 | POD cần GI-S POSTED, người/thời điểm/lượng/ảnh. POD hiệu lực + GR-FD đã post + FD giữ chỗ ≤ PGI hợp lệ mỗi dòng. Chỉ DELIVERED nếu phần active > 0 đã giao đủ; hủy toàn bộ giao 0 → CANCELLED. | UC-58/73/110 |
-| BR-33 | Chỉ Sales xác nhận nhận đủ tiền ngoài hệ thống sau DELIVERED để chuyển SO sang COMPLETED. Chưa đủ tiền hoặc trả trước khi chưa giao đủ không làm hoàn thành đơn. POD/PAY-CFM không đổi tồn; đính chính phải giữ lịch sử và tính lại tiến độ đơn. | BF-06, UC-48/110/111/108 |
+| BR-28 | Có source system, source document/line, version và correlation ID để chống nhập/ghi nhận trùng giữa WMS và hồ sơ MISA trên SO, WIR, OD, GI-S, `CR` và `EXT-REF`. | UC-47, UC-109, UC-144, UC-145, UC-146, UC-147, UC-51, UC-58, UC-129, UC-70, UC-108, UC-143 |
+| BR-29 | CR: nguyên thùng/viên chưa dùng xét từng ca; không nhận đã thi công/hỏng do khách/quá hạn xác minh, chưa rõ thì chờ. C2 Sales quyết định ca đạt thông thường; Owner chỉ ngoại lệ đủ căn cứ, không vượt điều cấm. D6 không áp cho FD chưa khách nhận. | BF-07, UC-70, UC-71, UC-131, UC-72, UC-132, UC-73, UC-133 |
+| BR-30 | Bao bì rách/thùng mở không tự đồng nghĩa gạch hỏng. Ghi số viên thực tế; phân loại chất lượng sau kiểm tra. Hệ số thùng/viên/m² theo sản phẩm và phiên bản, không suy từ calibre. | D7, BF-01/05/06/07, UC-13, UC-118, UC-119, UC-120, UC-121, UC-26, UC-55, UC-72, UC-132, UC-87, UC-134 |
+| BR-31 | SO nguồn xác minh, WIR/OD liên kết dòng; cam kết không vượt SO sau hủy. Trần thực hiện dùng PGI hợp lệ trừ GR-FD đã post; giao lại dùng phần tái mở trên SO/WIR cũ, không cộng OD thay thế thành nhu cầu mới. | UC-45, UC-46, UC-47, UC-48, UC-128, UC-51, UC-58, UC-129, UC-73, UC-133, UC-109, UC-144, UC-145, UC-146, UC-147 |
+| BR-32 | POD cần GI-S POSTED, người/thời điểm/lượng/ảnh. POD hiệu lực + GR-FD đã post + FD giữ chỗ ≤ PGI hợp lệ mỗi dòng. Chỉ DELIVERED nếu phần active > 0 đã giao đủ; hủy toàn bộ giao 0 → CANCELLED. | UC-58, UC-129, UC-73, UC-133, UC-110 |
+| BR-33 | Chỉ Sales xác nhận nhận đủ tiền ngoài hệ thống sau DELIVERED để chuyển SO sang COMPLETED. Chưa đủ tiền hoặc trả trước khi chưa giao đủ không làm hoàn thành đơn. POD/PAY-CFM không đổi tồn; đính chính phải giữ lịch sử và tính lại tiến độ đơn. | BF-06, UC-48, UC-128, UC-110, UC-111, UC-108, UC-143 |
 
-BR-01–BR-33 là catalogue quy tắc chuẩn đã đồng bộ trong SRS và thiết kế; DR/GB chỉ là alias lịch sử có mapping, không duy trì bộ quy tắc cạnh tranh. Đây vẫn là yêu cầu To-be, không phải xác nhận service đã triển khai. GB-NEW-04 (internal invoice) và GB-NEW-05 (refund eligibility) ngừng áp dụng trong MVP thu hẹp; thay bằng BR-18/26/28/31–33 và UC-108/109–111. GB-POLICY giữ giới hạn không có trình chỉnh sửa policy tổng quát; định mức và ưu tiên kho là cấu hình hữu hạn.
+BR-01–BR-33 là catalogue quy tắc chuẩn đã đồng bộ trong SRS và thiết kế; DR/GB chỉ là alias lịch sử có mapping, không duy trì bộ quy tắc cạnh tranh. Đây vẫn là yêu cầu To-be, không phải xác nhận service đã triển khai. GB-NEW-04 (internal invoice) và GB-NEW-05 (refund eligibility) ngừng áp dụng trong MVP thu hẹp; thay bằng BR-18/26/28/31–33 và UC-108, UC-143, UC-109, UC-144, UC-145, UC-146, UC-147–111. GB-POLICY giữ giới hạn không có trình chỉnh sửa policy tổng quát; định mức và ưu tiên kho là cấu hình hữu hạn.
 
 ## 9. Danh mục đồng bộ Report 1 và Report 3
 
@@ -686,13 +686,13 @@ Ngày 25/10 đã đồng bộ phần văn bản Report 1/2/3, thiết kế chi t
 | I.3.1 ERD / I.3.2 Entity Descriptions | Mô tả/DDL tham chiếu đã có CR/FD, dòng GI/POD/GR-FD và claim, tái mở/OD thay thế, decision_kind, defect hold/phương án B1, Invoice/Credit Note EXT-REF. ERD Mermaid đã cập nhật A1/B1/C2; schema/API runtime chưa triển khai, MongoDB có thể embed theo vòng đời. |
 | I.3.3 Data Business Rules | Ánh xạ mục 8 (BR-01–BR-33), sửa range UC sai và loại trùng; không coi In Transit là một quality status đơn lẻ. |
 | I.4.1 Actors | Giữ 5 role, thay tên Warehouse Staff; cập nhật nhiệm vụ Sales (sao chép SO, lập WIR liên kết, xác nhận tiền ngoài COMPLETED), Warehouse (xác nhận giao khách kèm ảnh DELIVERED), Accountant, Owner; mô tả trách nhiệm nguồn/đích và quy tắc mỗi user một role. |
-| I.4.2 Catalogue | Đồng bộ 111 ID: 97 active/14 retired, bổ sung UC-106 vào retired; UC-71 Sales thường/Owner ngoại lệ, UC-73 CR/FD, UC-83 Accountant đóng, UC-92/93 B1. Không thêm ID cho nhánh FD hoặc RECLASS. |
-| I.4.3 UC diagrams | Sales nối UC-71 ca thường; Owner UC-71 ngoại lệ và UC-66/92 theo phạm vi; Warehouse UC-72/73 FD và xác nhận B1; Accountant UC-83/107/108; bỏ UC-106 cùng các retired khỏi sơ đồ active, không nối Owner vào BF-08. |
+| I.4.2 Catalogue | Đồng bộ 111 ID: 133 active/14 retired, bổ sung UC-106 vào retired; UC-71, UC-131 Sales thường/Owner ngoại lệ, UC-73, UC-133 CR/FD, UC-83 Accountant đóng, UC-92/93 B1. Không thêm ID cho nhánh FD hoặc RECLASS. |
+| I.4.3 UC diagrams | Sales nối UC-71, UC-131 ca thường; Owner UC-71, UC-131 ngoại lệ và UC-66/92 theo phạm vi; Warehouse UC-72, UC-132, UC-73, UC-133 FD và xác nhận B1; Accountant UC-83, UC-107, UC-141, UC-142, UC-108, UC-143; bỏ UC-106 cùng các retired khỏi sơ đồ active, không nối Owner vào BF-08. |
 | I.4.4 Permission Matrix | Đồng bộ mục 6 với từng thao tác/kho: quyết định Owner cần creator≠approver, Sales được chấp nhận CR thông thường mình lập theo C2; BF-08 không Owner. Warehouse riêng UC-110, Sales riêng UC-111. |
 | I.5.1 Screen Flow / Screen List | Cập nhật SC-06,08,10–19,22,23; bỏ SC-25 giá, SC-26 invoice, SC-27 refund. Hỗ trợ màn hình SO sao chép và WIR liên kết, gợi ý đáp ứng, phiếu nhận điều chuyển tại SC-13, danh sách kiểm kê tại SC-14, xác nhận giao khách kèm ảnh (POD), xác nhận tiền ngoài hệ thống của Sales (PAY-CFM) và tham chiếu bên ngoài. |
 | I.5.2 External API Inventory | SMTP chỉ còn thông báo kho nếu giữ; Cloudinary/lưu tệp phải có interface tương ứng cho bằng chứng và ảnh giao hàng hoặc xóa khỏi context. Không thêm MISA API hay cổng thanh toán mặc định. |
 | I.5.3 Background Jobs | JOB-01 bỏ event invoice; thêm đánh giá ngưỡng nếu chạy định kỳ hoặc mô tả rõ đánh giá sau thay đổi tồn. Chống tạo đề nghị trùng, không tự post. |
-| II Use Case Specifications | Sửa primary actor, trigger, precondition, normal/alternate flows, postcondition, nguồn dữ liệu và điểm post cho UC-45–58 và thêm đặc tả UC-109–111. Không để các mô tả chung “update inventory if applicable” thay kết quả tồn cụ thể. |
+| II Use Case Specifications | Sửa primary actor, trigger, precondition, normal/alternate flows, postcondition, nguồn dữ liệu và điểm post cho UC-45, UC-46, UC-47, UC-48, UC-128, UC-49, UC-50, UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-57, UC-58, UC-129 và thêm đặc tả UC-109, UC-144, UC-145, UC-146, UC-147, UC-110, UC-111. Không để các mô tả chung “update inventory if applicable” thay kết quả tồn cụ thể. |
 | III Functional Requirements | Form cần nguồn tham chiếu, liên kết dòng SO↔WIR, lot/tone/calibre, quantity theo từng loại, snapshot/cutoff, user/time/version, ảnh giao hàng bắt buộc, thông tin xác nhận tiền ngoài và trạng thái. Sửa title/mockup/field contract theo UC mới. |
 | IV Non-functional Requirements | Khóa đồng thời, idempotency, giới hạn dữ liệu theo kho, bảo vệ chứng cứ, khả năng truy vết; kiểm thử từ yêu cầu đến balance/log thật. Bổ sung responsive trên điện thoại, nhập đơn vị và chụp/tải ảnh giao hàng thuận tiện ngay khi thao tác; không mặc định native/offline. |
 | V Business Rules / Messages | Đồng bộ catalogue rules (BR-01–BR-33), thêm lỗi tự duyệt, đang kiểm kê, sai lot/tone, trùng SO/WIR/xuất/nhận, thiếu liên kết SO, thiếu ảnh giao hàng, xác nhận hoàn thành sai quyền/chưa đủ điều kiện, nhận trả vượt nguồn, nguồn bên ngoài chưa xác minh. |
@@ -1056,7 +1056,7 @@ Khảo sát xác nhận dữ kiện hiện trạng; quyết định D1–D8 và 
 1. Chốt phạm vi To-be và giả định với GVHD/cửa hàng; ghi delta scope rõ so với bản 17/10/2026 và sửa đổi BF-06 ngày 21/10/2026.
 2. Chốt glossary, 5 role, các loại quantity và sự kiện post (phân biệt rõ PGI, POD → DELIVERED và PAY-CFM → COMPLETED); dùng làm nguồn chuẩn chung.
 3. Duyệt logic 8 BF bằng các tình huống ở mục 11; giữ đồng bộ R1 IV, R3 I.2 và sơ đồ khi thay đổi.
-4. Đồng bộ catalogue 111 mã: 97 active/14 retired (UC-106 mới retired), UC-71/73/83/92/93 và permissions C2/B1/BF-08 với đặc tả, context, màn hình và rules. Không xóa lịch sử hoặc phát sinh role thứ sáu.
+4. Đồng bộ catalogue 147 mã: 133 active/14 retired (UC-106 mới retired), UC-71, UC-131, UC-73, UC-133, UC-83, UC-92, UC-93 và permissions C2/B1/BF-08 với đặc tả, context, màn hình và rules. Không xóa lịch sử hoặc phát sinh role thứ sáu.
 5. Sửa model, màn hình, API/job, NFR và acceptance criteria phụ thuộc trong Report 3, thiết kế database và SQL tham chiếu. Kiểm mọi tham chiếu UC/FE/BF/SC/BR có đích hợp lệ.
 6. Khi hình nằm trong phạm vi cập nhật, xuất cùng bộ có version cho report/slide; slide chỉ rút gọn bằng subprocess có mã. Lượt bổ sung 25/10 cập nhật Mermaid/bản xuất liên quan, chỉ giữ nguyên file draw.io và ghi rõ giới hạn phiên bản.
 
@@ -1090,14 +1090,14 @@ Không có email, tin nhắn hay yêu cầu review gửi ra ngoài trong quá tr
 | ADJ | Phiếu điều chỉnh lượng kiểm kê | Warehouse đề xuất; Owner duyệt/post | Count/snapshot và phương án B1 hiện hành | Chỉ delta tổng khác 0; RECLASS riêng bảo toàn tổng trong cùng batch |
 | RECLASS | Phân loại/đổi vị trí theo kiểm kê B1 | Warehouse xác nhận thực hiện; Owner UC-93 post | Phương án UC-92 đã duyệt, count/snapshot, DC/hold và bằng chứng | Các vế nguồn/đích bằng nhau, giữ tổng; không ADJ=0 |
 | CR / GR-CR | Đề nghị khách trả / nhập trả | Sales chấp nhận ca thường; Owner chỉ ngoại lệ; Warehouse post | POD/GI hoặc lịch sử giao xác minh, D6 và quyết định đúng loại/version | Chỉ tăng phần chấp nhận; không tái mở nhu cầu bán tự động |
-| FD / GR-FD | Hồ sơ giao thất bại / nhận quay về | Warehouse UC-72/73 | GI-S đã post, trần chưa POD/FD, bằng chứng thất bại và lượng thực về; không D6/Owner/custody khách | GR-FD tăng theo quality và tái mở đúng lượng ròng cùng commit; nháp/claim không tăng tồn |
+| FD / GR-FD | Hồ sơ giao thất bại / nhận quay về | Warehouse UC-72, UC-132, UC-73, UC-133 | GI-S đã post, trần chưa POD/FD, bằng chứng thất bại và lượng thực về; không D6/Owner/custody khách | GR-FD tăng theo quality và tái mở đúng lượng ròng cùng commit; nháp/claim không tăng tồn |
 | CUS-IN / CUS-OUT | Phiếu giữ hộ / bàn giao trả giữ hộ | Warehouse | ARR hoặc CR và chủ hàng | Chỉ thay đổi sổ giữ hộ, không tăng/giảm tồn của cửa hàng |
 | SR / GI-SR | Đề nghị / xuất trả NCC | Warehouse; Accountant xác minh thỏa thuận | GR/lô nguồn + thỏa thuận đúng lượng; không Owner/UC-106 | GI-SR giảm owned một lần; custody dùng CUS-OUT |
 | ACK / VAR | NCC xác nhận nhận / biên bản sai lệch | Accountant / Warehouse | Dòng xuất trả hoặc điều chuyển | Không tự giảm/tăng tồn |
-| EXT-REF | Tham chiếu Invoice/Credit Note bên ngoài | Accountant UC-108 | Loại/mã/ngày, dòng nguồn mua/GI-SR, lượng đối chiếu, chứng cứ/trạng thái | Không post tồn/công nợ/tiền; trạng thái tài chính độc lập |
+| EXT-REF | Tham chiếu Invoice/Credit Note bên ngoài | Accountant UC-108, UC-143 | Loại/mã/ngày, dòng nguồn mua/GI-SR, lượng đối chiếu, chứng cứ/trạng thái | Không post tồn/công nợ/tiền; trạng thái tài chính độc lập |
 | REV | Chứng từ đảo | Người có quyền sau quyết định xử lý | Batch đã post, lý do | Đảo có kiểm soát; không xóa lịch sử |
 
-TO và MWTR không thay thế nhau. BF-04: TR duyệt → TD nháp → xác nhận Picking TO khi dùng staging → post TD/HO khi bàn giao → MWTR → tạo/xác nhận TO put-away. Không post GR-P thứ hai cho MWTR. Khi không staging, ghi lượng thực soạn trên TD, không thêm lớp Owner duyệt. FD/GR-FD là chế độ nhận quay về của UC-72/73, không phải GR-CR khách trả sau nhận.
+TO và MWTR không thay thế nhau. BF-04: TR duyệt → TD nháp → xác nhận Picking TO khi dùng staging → post TD/HO khi bàn giao → MWTR → tạo/xác nhận TO put-away. Không post GR-P thứ hai cho MWTR. Khi không staging, ghi lượng thực soạn trên TD, không thêm lớp Owner duyệt. FD/GR-FD là chế độ nhận quay về của UC-72, UC-132, UC-73, UC-133, không phải GR-CR khách trả sau nhận.
 
 ### 15.2 Liên kết chứng từ và lượng
 
@@ -1161,7 +1161,7 @@ Các file draw.io giữ snapshot 3.0.0 ngày 22/10: [draw.io VI/EN, 16 trang](..
 
 | Phương án | Cách tổ chức | Ưu điểm | Hạn chế / trạng thái |
 |---|---|---|---|
-| A1 — Nhánh BF-07-FD | GI-S + bằng chứng thất bại → ARR/INS → GR-FD; UC-72/73 theo chế độ FD, không D6/Owner/custody khách. | Giữ tám BF, dùng lại năng lực kiểm/nhận và liên kết nguồn. | **Người dùng đã chọn.** Phải tách trần POD/FD/CR và tái mở ròng, không chỉ thêm một đường nối. |
+| A1 — Nhánh BF-07-FD | GI-S + bằng chứng thất bại → ARR/INS → GR-FD; UC-72, UC-132, UC-73, UC-133 theo chế độ FD, không D6/Owner/custody khách. | Giữ tám BF, dùng lại năng lực kiểm/nhận và liên kết nguồn. | **Người dùng đã chọn.** Phải tách trần POD/FD/CR và tái mở ròng, không chỉ thêm một đường nối. |
 | A2 — Ngoại lệ BF-06 | Nhận quay về trong quy trình giao hàng, BF-07 chỉ CR sau nhận. | Giữ vòng đời giao và nhận thất bại cùng một BF. | Chưa chọn; phải đưa thao tác receipt vào BF-06 và sửa phạm vi UC/nhóm màn hình liên quan. |
 | A3 — BF-09 độc lập | Luồng riêng nhận hàng giao thất bại. | Tách trách nhiệm/tình huống lớn rõ. | Chưa chọn; thêm BF và nhiều điểm đồng bộ report/sơ đồ, vượt mục tiêu giữ tám BF. |
 
@@ -1186,7 +1186,7 @@ Sổ50 đạt, đếm48 đạt+2 vỡ → RECLASS2, tổng vẫn50, không ADJ=0
 - **CR thông thường:** Sales chấp nhận từng ca sau Warehouse kiểm; được là người tạo CR. Đủ nguồn/lượng, chưa dùng, đạt chất lượng, thời hạn/điều kiện xác minh, không tranh chấp/khác thỏa thuận. Owner chỉ ngoại lệ đủ điều kiện; điều cấm D6 vẫn chặn. Không dùng quy tắc cấm tự duyệt của Owner để vô hiệu quyền Sales thông thường đã chốt.
 - **FD:** Warehouse nhận lại theo GI-S và bằng chứng, không chấp nhận thương mại hoặc Owner approval. Sales chỉ quyết định nhu cầu sau GR-FD.
 - **BF-08:** không Owner duyệt xuất, sai lệch hoặc đóng. Accountant xác minh thỏa thuận/đối chiếu/đóng; Warehouse post thực tế. UC-106 retired; không thêm role, không xóa ID/lịch sử. Các quyết định hủy/giải phóng hàng lỗi còn trong kho vẫn theo BF-02, không lấy việc bỏ duyệt BF-08 để tự hủy.
-- **Catalogue:** 111 ID, 97 active/14 retired; nhóm retired UC-23–25, UC-42, UC-59–62, UC-74–78, UC-106.
+- **Catalogue:** 111 ID, 133 active/14 retired; nhóm retired UC-23–25, UC-42, UC-59–62, UC-74–78, UC-106.
 
 ### 17.4 Phạm vi và đồng bộ tiếp
 
@@ -1197,3 +1197,5 @@ Sổ50 đạt, đếm48 đạt+2 vỡ → RECLASS2, tổng vẫn50, không ADJ=0
 | Dữ liệu/API cần đánh giá khi triển khai | DDL tham chiếu đã bổ sung A1/B1/C2, hợp đồng API/quyền và nghiệm thu đã đồng bộ. Model/seed MongoDB đã cập nhật và có kiểm tra local cho3.3.0; API/consumer/UI và kiểm soát transaction liên collection vẫn cần triển khai. Chưa migrate database đang có dữ liệu. |
 | Kiểm thử | Dùng các tình huống mục 11: nháp/post, hai hướng kiểm kê, GR-FD/giao lại không vượt, CR/FD không trùng, Sales thường/Owner ngoại lệ, BF-08 không Owner, B1 quality-only và rollback. Đây là tiêu chí, không phải kết quả test phần mềm. |
 | Kế hoạch | Triển khai/kiểm thử theo R-01–30/T01–T64 và quy trình hiện hành; cập nhật draw.io ở lượt riêng khi được yêu cầu. Chưa tự ước lượng lại story point/thời hạn hoặc effort Report 2. |
+
+Truy vết phân rã UC hiện hành: [CR-2026-10-30-UC-SPLIT](../07_ra_soat/CR-2026-10-30-UC-SPLIT.md). 147 mã gồm 133 ACTIVE và 14 RETIRED; quyền/luồng chi tiết theo Report 3.
