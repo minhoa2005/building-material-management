@@ -34,6 +34,22 @@ Kiểm chứng: rà soát các mục đã sửa, đối chiếu VI/EN, kiểm c�
 
 # Cập nhật hướng dẫn agent và changelog — 28/10/2026
 
+## 2026-10-30 — Revised BF04 backend main flow
+
+Implemented request/review/outbound/internal requirement/generated TO/dispatch/receipt/putaway/closure commands.
+Step 7 confirms dispatch into transit; damage is received in destination QUARANTINE with a linked defect report.
+API contract and boundaries are in `src/modules/transfers/BF04_API.md`; additive model changes are logged in `src/models/CHANGELOG.md`.
+
+Updated BE/FE agent contexts with the latest BF04 decisions and API handoff (frontend command screens are not implemented in this change). Tests cover BF03 lifecycle and BF04 posting/receipt/quarantine/putaway, with isolated replica-set databases; schema and read/validation tests also run. Test setup now explicitly creates the relevant collections before indexes, avoiding unrelated full-registry initialization.
+
+## 2026-10-29 — BF03 same-warehouse relocation lifecycle
+
+Added scoped list/form options and creator-only edit, confirm and cancel APIs for
+RELOCATE Transfer Orders. Confirmation posts exact source/destination balance
+movements and carries reservations in a MongoDB transaction; only the unposted
+remainder can be cancelled. The FE location-move routes now use live API data.
+Updated the module README and backend context for the implemented lifecycle.
+
 ## 2026-10-29 — FE-06 Iteration 1 read API contract
 
 Documented UC-46/49/50 routes, scoped SO/OD source-chain reads, decimal quantities,

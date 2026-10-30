@@ -288,7 +288,12 @@ const shapes = {
     details: details({
       dispatchLineId: ref("DocumentLine"),
       qualityCode: quality(),
+      destinationBalanceId: ref("StockBalance", false),
+      receivingLocationId: ref("Location", false),
     }),
+  },
+  TRANSFER_OUTBOUND: {
+    details: details({ requestLineId: ref("DocumentLine"), sourceBalanceId: ref("StockBalance"), stagingLocationId: ref("Location") }),
   },
   ISSUE_REQUEST: {
     details: details({

@@ -7,3 +7,11 @@ Record future changes to model files here, including the date, affected models, 
 - WAREHOUSE_TASK details add optional sourceBalanceId, sourceBalanceVersion and ownerPartyId. New UC-36 tasks always record them; existing tasks remain readable. No quantity or reservation is changed on creation.
 - Location adds planningVersion (default 0) to serialize overlapping task planners. Existing rows acquire it on the first guarded write; no bulk migration or new collection/index is required. Future stocktake/task/posting writers must share this guard.
 - API and verification contract: [location movements](../modules/location-movements/README.md).
+
+## 2026-10-30 — BF04 internal requirements
+
+Added INTERNAL_TRANSFER_REQUIREMENT with warehouse, source document and PICK/PUTAWAY kind.
+Added TRANSFER_OUTBOUND line details linking TR line, source balance and staging bin.
+TRANSFER_RECEIPT optionally stores destination balance and receiving location;
+TRANSFER_REQUEST optionally stores approvedVersion so read projections retain the
+approved quantity after closure. Existing records remain valid. No production data migration was run.

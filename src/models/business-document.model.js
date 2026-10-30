@@ -44,6 +44,7 @@ const transferRequestHeader = new Schema(
     sourceWarehouseId: ref("Warehouse"),
     destinationWarehouseId: ref("Warehouse"),
     neededOn: date(false),
+    approvedVersion: integer(1, { required: false }),
   },
   embeddedOptions,
 );
@@ -162,6 +163,9 @@ const shapes = {
     }),
   },
   TRANSFER_REQUEST: { header: { type: transferRequestHeader, required: true } },
+  INTERNAL_TRANSFER_REQUIREMENT: {
+    header: header({ ...warehouse(), sourceDocumentId: ref("BusinessDocument"), taskKind: code(["PICK", "PUTAWAY"]) }),
+  },
   TRANSFER_DISPATCH: {
     header: header({
       requestId: ref("BusinessDocument"),

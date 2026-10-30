@@ -1,0 +1,24 @@
+import { Router } from 'express';
+import { authenticate } from '../../middlewares/auth.js';
+import { catchAsync } from '../../shared/utils/catchAsync.js';
+import { formatApiResponse } from '../../shared/utils/ApiResponse.js';
+import { ApiError } from '../../shared/utils/ApiError.js';
+import * as validation from './transfer-write.validation.js';
+import * as service from './transfer-write.service.js';
+const router = Router();
+router.use(authenticate);
+const handle = (schema, action, hasId = true) => catchAsync(async (req, res) => {
+  const parsed = schema.safeParse(req.body);
+  const parameter = hasId ? validation.params.safeParse(req.params) : null;
+  if (!parsed.success || (parameter && !parameter.success)) throw new ApiError(400, 'Dữ liệu chuyển kho không hợp lệ');
+  const result = hasId ? await action(req.user, parameter.data.id, parsed.data) : await action(req.user, parsed.data);
+  formatApiResponse(res, { data: result });
+});
+router.post('/', handle(validation.createRequestBody, service.createRequest, false));
+router.post('/:id/review', handle(validation.reviewBody, service.reviewRequest));
+router.post('/:id/outbound-deliveries', handle(validation.dispatchBody, service.createDispatch));
+router.post('/documents/:id/internal-requirements', handle(validation.requirementBody, service.createRequirement));
+router.post('/tasks/:id/confirm', handle(validation.commandBody, service.confirmTask));
+router.post('/dispatches/:id/receipts', handle(validation.receiptBody, service.receiveTransfer));
+router.post('/:id/close', handle(validation.commandBody, service.closeRequest));
+export default router;
