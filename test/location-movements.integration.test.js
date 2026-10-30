@@ -18,8 +18,10 @@ test('UC-35/36 HTTP and MongoDB transactions on an isolated replica-set database
   const dbName = `sep490_relocation_verification_${oid()}`;
   let server;
   try {
-    await mongoose.connect(process.env.MONGODB_TEST_URI, { dbName, autoIndex: false, serverSelectionTimeoutMS: 5000 });
-    for (const Model of Object.values(models).filter((model) => model?.modelName)) await Model.createIndexes();
+    await mongoose.connect(process.env.MONGODB_TEST_URI, { dbName, autoCreate: false, autoIndex: false, serverSelectionTimeoutMS: 5000 });
+    for (const Model of [models.BusinessDocument, models.DocumentLine, models.BusinessOperation, models.StockAccount,
+      models.StockBalance, models.PostingBatch, models.StockMovement, models.Reservation, models.AuditEvent,
+      models.OutboxEvent, models.LocationLock]) { await Model.createCollection(); await Model.createIndexes(); }
     const readPermission = await models.Permission.create({ code: 'stock_relocation:read' });
     const createPermission = await models.Permission.create({ code: 'stock_relocation:create' });
     const roles = {};

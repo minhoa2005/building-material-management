@@ -1,9 +1,45 @@
-# Location movements — UC-35 / UC-36
+# Location movements — BF03 / UC-34–37
+
+## Current BF03 flow
+
+Warehouse Staff creates a same-warehouse RELOCATE Transfer Order and its creator
+confirms the actual movement. No Transfer Request or Store Owner approval is used.
+The creator may edit the order while it remains OPEN and unposted, or cancel an
+OPEN/PARTIAL order's unperformed remainder. A confirmed posting is immutable;
+cancellation never reverses stock already moved. Other Warehouse Staff in the
+same assigned warehouse may read but cannot edit, confirm or cancel that order.
+
+Additional endpoints:
+
+- `GET /api/location-movements?page=1&limit=20&q=&status=&warehouseId=` lists
+  scoped RELOCATE orders. Owner may read all; Warehouse Staff see assigned warehouses.
+- `GET /api/location-movements/options?warehouseId=<id>` gives assigned warehouses,
+  active locations, source balances and current unit conversions for the create form.
+  It is a selection aid; create and confirm revalidate all live data.
+- `PATCH /api/location-movements/:id` takes `expectedVersion`, `idempotencyKey`,
+  `reason` and `lines` in the same structure as create, without `warehouseId`.
+  Only the creator may replace lines/reason before any stock posting. Active
+  reservations directly linked to its lines block editing.
+- `POST /api/location-movements/:id/confirm` takes `expectedVersion`,
+  `idempotencyKey` and `lines:[{lineId,actualQtyBase}]`. Quantities are positive
+  decimal strings in base units. The operation posts a two-ended movement batch,
+  source decrease, destination increase and reservation carry in one transaction.
+  Partial confirmation leaves the order PARTIAL; full confirmation makes it
+  CONFIRMED. A retry with the same key does not move stock again.
+- `POST /api/location-movements/:id/cancel` takes `expectedVersion`,
+  `idempotencyKey` and a nonempty `reason`. OPEN/PARTIAL orders only. Existing
+  movements remain; active reservations linked to order lines block cancellation.
+
+All mutations enforce current WAREHOUSE role, assigned warehouse and actual
+creator identity on the server. A stale version returns 409. A foreign creator
+or out-of-scope record returns 404. Stocktake locks, holds, source shortage and
+destination suitability are rechecked at confirmation. FE now uses these APIs
+on `/location-moves` instead of the demo local store.
 
 Implemented endpoints use `/api` and the existing `{success,message,data}` envelope.
 They operate on `BusinessDocument(documentKind=TO, header.taskKind=RELOCATE)` and
 `DocumentLine(lineKind=WAREHOUSE_TASK)`. No new document collection, TR or Owner
-approval is introduced. UC-34 list and UC-37 confirmation are separate work.
+approval is introduced. UC-34 list and UC-37 confirmation are implemented above.
 
 ## Access
 
@@ -57,7 +93,7 @@ model does not contain capacity or product compatibility rules.
 
 Reserved stock can be relocated (BF-03-A1). Creation neither releases nor moves
 reservations, and does not subtract the same reserved quantity a second time as
-an open task. UC-37 must recheck and carry reservations when actually moving it.
+an open task. UC-37 rechecks and carries reservations when actually moving it.
 Open tasks for the same source/lot/quality/owner consume planning allowance;
 legacy tasks without owner metadata are treated conservatively as conflicts.
 
@@ -104,9 +140,10 @@ Endpoint warehouse scope is also checked. GET performs no writes.
   unsuitable destination or idempotency payload mismatch.
 
 Errors retain the current `{success:false,message}` contract; no new error-code
-or fieldErrors contract is assumed. The existing FE `locationMoveStore.ts` is a
-local mock and is not wired by this BE-only change. Its display-name actors,
-`quantityBoxes:number` and demo warehouse IDs must not be sent to this API.
+or fieldErrors contract is assumed. The legacy FE `locationMoveStore.ts` is a
+local mock kept for old component tests; active routes use `location-moves/live`.
+Its display-name actors, `quantityBoxes:number` and demo warehouse IDs are not
+sent to this API.
 Map real stock-balance/UOM IDs and decimal strings; render OPEN/PARTIAL/CONFIRMED
 explicitly instead of assuming the FE's demo status vocabulary is authoritative.
 

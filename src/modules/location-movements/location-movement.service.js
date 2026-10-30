@@ -33,7 +33,7 @@ function hasWarehouse(user, warehouseId) {
 
 // A relocation preserves the storage purpose. Receiving -> storage, staging
 // and quarantine workflow transitions use their dedicated task/decision UCs.
-function checkLocations(source, destination, warehouseId) {
+export function checkLocations(source, destination, warehouseId) {
   if (!source || !destination || !same(source.warehouseId, warehouseId)
     || !same(destination.warehouseId, warehouseId)) {
     throw new ApiError(400, 'Vị trí nguồn và đích phải thuộc cùng kho đã chọn');
@@ -68,7 +68,7 @@ export function netMovedQuantity(movements, batches) {
   }, exact('0'));
 }
 
-async function pendingTaskQuantity(balance, sourceLocationId, session) {
+export async function pendingTaskQuantity(balance, sourceLocationId, session, excludeDocumentId = null) {
   const lines = await read(DocumentLine.find({
     lineKind: 'WAREHOUSE_TASK', lotId: balance.lotId,
     'details.fromLocationId': sourceLocationId, 'details.qualityCode': balance.qualityCode,
@@ -81,6 +81,7 @@ async function pendingTaskQuantity(balance, sourceLocationId, session) {
   let pending = exact('0');
   for (const line of lines) {
     if (!openIds.has(id(line.documentId))) continue;
+    if (excludeDocumentId && same(line.documentId, excludeDocumentId)) continue;
     if (line.details.ownerPartyId && !same(line.details.ownerPartyId, balance.ownerPartyId)) continue;
     // Legacy tasks without owner/source cannot safely be attributed to another owner.
     const movements = await read(StockMovement.find({ documentId: line.documentId, lineId: line._id }), session);
@@ -91,7 +92,7 @@ async function pendingTaskQuantity(balance, sourceLocationId, session) {
   return pending;
 }
 
-async function validateLines(input, session) {
+export async function validateLines(input, session, excludeDocumentId = null) {
   const warehouse = await read(Warehouse.findById(input.warehouseId), session);
   if (!warehouse?.isActive) conflict('Kho không tồn tại hoặc đã ngừng hoạt động');
   const balances = await read(StockBalance.find({ _id: { $in: input.lines.map((line) => line.sourceBalanceId) } }), session);
@@ -157,7 +158,7 @@ async function validateLines(input, session) {
     // reservations; UC-37 must re-read and carry them with the actual stock.
     const requested = (totals.get(id(balance)) ?? exact('0')).plus(qty);
     totals.set(id(balance), requested);
-    const pending = await pendingTaskQuantity(balance, source._id, session);
+    const pending = await pendingTaskQuantity(balance, source._id, session, excludeDocumentId);
     if (requested.plus(pending).gt(exact(balance.qtyBase))) conflict('Không đủ lượng nguồn sau các nhiệm vụ đang mở');
     prepared.push({
       lineNo: index + 1, lineKind: 'WAREHOUSE_TASK', productId: product._id, lotId: lot._id,
@@ -242,6 +243,7 @@ async function detailWithinSession(user, documentId, session) {
   const warehouse = await read(Warehouse.findById(document.header.warehouseId), session);
   const lines = await read(DocumentLine.find({ documentId, lineKind: 'WAREHOUSE_TASK' }).sort({ lineNo: 1 }), session);
   const batches = await read(PostingBatch.find({ documentId }).sort({ postedAt: 1, _id: 1 }), session);
+  const operations = await read(BusinessOperation.find({ documentId }).sort({ performedAt: 1, _id: 1 }), session);
   const movements = await read(StockMovement.find({ documentId, batchId: { $in: batches.map((batch) => batch._id) } }).sort({ createdAt: 1, _id: 1 }), session);
   // Authorize ledger endpoints as well as the header: a corrupt/source-mismatched
   // historical link must not disclose another warehouse's balance history.
@@ -282,6 +284,9 @@ async function detailWithinSession(user, documentId, session) {
     workflowStatus: document.workflowStatus, version: document.version, reason: document.note ?? null,
     createdBy: id(document.createdBy), assignedTo: id(document.header.assignedTo), createdAt: document.createdAt,
     lines: resultLines,
+    operations: operations.map((operation) => ({ id: id(operation), operation: operation.operation,
+      reason: operation.reason ?? null, performedBy: id(operation.performedBy),
+      performedAt: operation.performedAt, documentVersion: operation.documentVersion })),
     postings: batches.map((batch) => ({
       id: id(batch), operation: batch.operation, operationKey: batch.operationKey,
       postedBy: id(batch.postedBy), postedAt: batch.postedAt, reversalOf: id(batch.reversalOf),
@@ -302,4 +307,85 @@ export async function getLocationMovement(user, documentId) {
   } finally {
     await session.endSession();
   }
+}
+
+export async function listLocationMovements(user, filters) {
+  requirePermission(user, 'read');
+  const warehouseIds = currentRole(user)?.code === 'OWNER'
+    ? null : (user.warehouseIds ?? []).map(id);
+  if (filters.warehouseId && !hasWarehouse(user, filters.warehouseId)) {
+    throw new ApiError(403, 'Bạn không được phân công kho này');
+  }
+  const query = { documentKind: 'TO', 'header.taskKind': 'RELOCATE' };
+  if (filters.warehouseId) query['header.warehouseId'] = filters.warehouseId;
+  else if (warehouseIds) query['header.warehouseId'] = { $in: warehouseIds };
+  if (filters.status) query.workflowStatus = filters.status;
+  if (filters.q) query.documentNo = { $regex: filters.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
+  const [documents, total] = await Promise.all([
+    BusinessDocument.find(query).sort({ createdAt: -1, _id: -1 })
+      .skip((filters.page - 1) * filters.limit).limit(filters.limit).lean(),
+    BusinessDocument.countDocuments(query),
+  ]);
+  const warehouses = await Warehouse.find({ _id: { $in: documents.map((doc) => doc.header.warehouseId) } }).lean();
+  const names = new Map(warehouses.map((warehouse) => [id(warehouse), warehouse.name]));
+  return {
+    items: documents.map((doc) => ({
+      id: id(doc), documentNo: doc.documentNo, warehouseId: id(doc.header.warehouseId),
+      warehouseName: names.get(id(doc.header.warehouseId)) ?? null,
+      workflowStatus: doc.workflowStatus, version: doc.version, reason: doc.note ?? null,
+      createdBy: id(doc.createdBy), createdAt: doc.createdAt,
+    })),
+    total, page: filters.page, limit: filters.limit,
+  };
+}
+
+export async function locationMovementOptions(user, warehouseId) {
+  requirePermission(user, 'create');
+  const assigned = (user.warehouseIds ?? []).map(id);
+  const warehouses = await Warehouse.find({ _id: { $in: assigned }, isActive: true }).sort({ name: 1 }).lean();
+  if (!warehouseId) return { warehouses: warehouses.map((warehouse) => ({ id: id(warehouse), name: warehouse.name, code: warehouse.code })), locations: [], balances: [] };
+  if (!hasWarehouse(user, warehouseId)) throw new ApiError(403, 'Bạn không được phân công kho này');
+  const warehouse = warehouses.find((item) => same(item, warehouseId));
+  if (!warehouse) conflict('Kho đã ngừng hoạt động');
+  const locations = await Location.find({ warehouseId, isActive: true }).sort({ code: 1 }).lean();
+  const accounts = await StockAccount.find({ locationId: { $in: locations.map((item) => item._id) } }).lean();
+  const balances = await StockBalance.find({ accountId: { $in: accounts.map((item) => item._id) }, qtyBase: { $gt: 0 } }).lean();
+  const lots = await Lot.find({ _id: { $in: balances.map((item) => item.lotId) } }).lean();
+  const products = await Product.find({ _id: { $in: lots.map((item) => item.productId) } }).lean();
+  const versions = await ProductUomVersion.find({ productId: { $in: products.map((item) => item._id) }, validFrom: { $lte: new Date() } })
+    .sort({ validFrom: -1, version: -1 }).lean();
+  const uoms = await Uom.find({ _id: { $in: versions.map((item) => item.uomId) } }).lean();
+  const lotById = new Map(lots.map((item) => [id(item), item]));
+  const productById = new Map(products.map((item) => [id(item), item]));
+  const locationById = new Map(locations.map((item) => [id(item), item]));
+  const accountById = new Map(accounts.map((item) => [id(item), item]));
+  const uomById = new Map(uoms.map((item) => [id(item), item]));
+  const latest = new Map();
+  for (const version of versions) {
+    const key = `${id(version.productId)}:${id(version.uomId)}`;
+    if (!latest.has(key)) latest.set(key, version);
+  }
+  const holds = await DefectHold.find({ balanceId: { $in: balances.map((item) => item._id) }, status: 'ACTIVE' }).lean();
+  const held = new Set(holds.map((item) => id(item.balanceId)));
+  return {
+    warehouses: warehouses.map((item) => ({ id: id(item), name: item.name, code: item.code })),
+    locations: locations.map((item) => ({ id: id(item), code: item.code, kind: item.kind, allocatable: item.allocatable })),
+    balances: balances.map((balance) => {
+      const account = accountById.get(id(balance.accountId));
+      const location = locationById.get(id(account?.locationId));
+      const lot = lotById.get(id(balance.lotId));
+      const product = productById.get(id(lot?.productId));
+      return {
+        id: id(balance), version: balance.version, qtyBase: balance.qtyBase.toString(),
+        locationId: id(location), locationCode: location?.code ?? null,
+        productId: id(product), productName: product?.name ?? null, productSku: product?.sku ?? null,
+        lotId: id(lot), manufacturerLot: lot?.manufacturerLot ?? null, tone: lot?.tone ?? null,
+        calibre: lot?.calibre ?? null, qualityCode: balance.qualityCode, held: held.has(id(balance)),
+        conversions: [...latest.values()].filter((version) => same(version.productId, product?._id)).map((version) => ({
+          id: id(version), uomCode: uomById.get(id(version.uomId))?.code ?? null,
+          basePerUnit: version.basePerUnit.toString(),
+        })),
+      };
+    }),
+  };
 }
