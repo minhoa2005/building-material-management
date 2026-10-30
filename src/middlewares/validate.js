@@ -1,9 +1,9 @@
-import { ApiError } from '../shared/utils/ApiError.js';
+import { validationError } from "../shared/utils/ApiError.js";
 
 export const validate = (schema) => (req, _res, next) => {
   try {
     const parsed = schema.parse({
-      body: req.body,
+      body: req.body ?? {},
       query: req.query,
       params: req.params,
     });
@@ -15,9 +15,16 @@ export const validate = (schema) => (req, _res, next) => {
     if (parsed.params) Object.assign(req.params, parsed.params);
     next();
   } catch (error) {
-    const message = error.issues
-      ? error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ')
-      : error.message;
-    next(new ApiError(400, message));
+    if (!error.issues) {
+      return next(validationError(error.message || "Dữ liệu không hợp lệ"));
+    }
+    const fieldErrors = error.issues.map((issue) => ({
+      path: issue.path.join("."),
+      message: issue.message,
+    }));
+    const summary = fieldErrors
+      .map((issue) => `${issue.path}: ${issue.message}`)
+      .join(", ");
+    next(validationError(summary, fieldErrors));
   }
 };

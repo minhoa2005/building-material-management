@@ -2,6 +2,11 @@ import {
   Schema, options, model, text, ref, integer, decimal, date, appendOnly,
 } from "./model-utils.js";
 
+const operationResultSchema = new Schema({
+  workflowStatus: text(30, { required: false }),
+  approvalId: ref("Approval", false),
+}, { _id: false, versionKey: false, strict: "throw" });
+
 // Records non-stock operations; a retry must compare payloadHash in the service.
 const operationSchema = new Schema({
   documentId: ref("BusinessDocument"),
@@ -13,6 +18,7 @@ const operationSchema = new Schema({
   performedBy: ref("User"),
   performedAt: date(true, { default: Date.now }),
   reason: text(2000, { required: false }),
+  result: { type: operationResultSchema, required: false },
 }, options("business_operations"));
 operationSchema.index({ documentId: 1, operation: 1, operationKey: 1 }, { unique: true });
 appendOnly(operationSchema);

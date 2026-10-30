@@ -15,7 +15,7 @@ names are camelCase; timestamps use UTC Date values.
 
 Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.3.0
 (27 October 2026), with the single-role decision of 28 October 2026. The SQL is a relational design reference; persistence stays
-MongoDB. All 84 SQL tables have a representation below, using 39 collections,
+MongoDB. All 84 SQL tables have a representation below, using 40 collections,
 35 document discriminators and 19 line discriminators. Representation does not
 mean that all foreign keys or business workflows are enforced by these schemas.
 
@@ -55,6 +55,7 @@ mean that all foreign keys or business workflows are enforced by these schemas.
 | replenishment_line | REPLENISHMENT typed DocumentLine details |
 | notification | Notification; per-recipient history/readAt, no stored live alert |
 | replenishment_planning_guard | ReplenishmentPlanningGuard; one warehouse/product version guard |
+| replenishment_submissions (Iteration 1) | ReplenishmentSubmission; append-only immutable snapshot of each submitted RR version |
 
 Document headers share the `business_documents` collection through internal
 Mongoose discriminators keyed by `documentKind`. Use the exported base model;
@@ -194,7 +195,35 @@ const inspection = new DocumentLine({
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **40 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification, replenishment_planning_guard and the Iteration 1 replenishment_submissions. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+
+## Iteration 1 contracts (2026-10-30)
+
+- Product adds `version` (default 1), optional category/brand/material/surface/
+  origin/description and positive mm dimensions. New SKU input is trim+uppercase;
+  lengthMm and widthMm are both present or both absent.
+- ProductUomVersion adds optional `createdBy` and `verificationReference` for new
+  records; old records remain without invented verification. It stays append-only.
+- ProductWarehousePolicy keeps target >= minimum, version and actual updatedBy.
+- Party adds version and supplier-only contact/cooperation fields. Existing
+  non-supplier behavior is unchanged. Supplier state is ACTIVE/SUSPENDED/TERMINATED
+  and `isActive = cooperationStatus === "ACTIVE"` in the service.
+- Lot adds version, createdBy, notes, verificationReference, verifiedBy/At and
+  identityLocked. Identity uniqueness remains product+manufacturer lot+tone+calibre.
+  Writers that reference a lot must lock identity in the same transaction before
+  creating the reference; UC-27 checks both the flag and real references.
+- Approval lines may carry an optional per-line reason.
+- BusinessOperation may carry `result.workflowStatus` and `result.approvalId`.
+- AuditEvent may carry entityType/entityId/changes for master history while RR
+  audit retains documentId.
+- ReplenishmentSubmission is a new append-only collection with unique
+  `(documentId, documentVersion)`. It stores warehouse/product/UOM/conversion/
+  quantity/reason snapshots; no unbounded history is embedded in an RR document.
+- REPLENISHMENT line details add `removedAt`; current-line queries exclude removed
+  lines and omitted lines are soft-deleted instead of erased.
+- Migration `iteration-1-master-data` maps legacy supplier state, adds master
+  versions and locks referenced lot identities without fabricating verification or
+  submission history. See [Iteration 1 migration](../../docs/iteration-1/MIGRATION.md).
 
 
 The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../../git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.

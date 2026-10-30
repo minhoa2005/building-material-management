@@ -1,3 +1,13 @@
+# Triển khai backend Iteration 1 — 30/10/2026
+
+Triển khai backend UC-01–UC-07 và UC-17–UC-32 trên nhánh `codex/uc-01-32-iteration-1`; frontend chưa nối. Thêm API RR thủ công (tạo nháp/gửi trực tiếp, sửa, gửi, Owner duyệt lượng từng dòng), snapshot bất biến theo version, lịch sử submission; PO list đọc lượng nhận từ chuỗi PO→ARRIVAL→INSPECTION→GR→ledger/reversal; product/master, conversion, policy, lot, supplier và history/documents. Bổ sung model/version/audit/submission và migration mặc định dry-run.
+
+Tài liệu mới: [đặc tả Iteration 1](docs/iteration-1/README.md), [API reference](docs/api/iteration-1/README.md), [use-case cards](docs/iteration-1/use-cases.md), [migration guide](docs/iteration-1/MIGRATION.md), [verification](docs/iteration-1/VERIFICATION.md). Cập nhật context BE/FE, model README/changelog và ánh xạ UC trong permission metadata; giữ nguyên permission keys runtime. Số collection MongoDB tăng 39→40 do `replenishment_submissions`.
+
+Kiểm chứng: `npm test` (90 test, 75 pass, 15 skip khi không có DB); với MongoDB replica set cục bộ (DB random) 158 test, 157 pass, 1 skip Cloudinary live. Không chạy frontend/browser, không apply migration lên DB dùng chung, không commit/push thay đổi implementation.
+
+---
+
 # Bỏ nhóm UC-107 cũ khỏi catalogue — 30/10/2026
 
 Theo yêu cầu người dùng, bỏ ba mục UC độc lập Verify Supplier Return Agreement, Record Supplier Receipt Acknowledgement và Reconcile Supplier Return Variance (mã trước lượt này UC-122/123/124, tách từ UC-107 cũ). Không khôi phục dòng UC-107 gộp. Catalogue còn 130 UC, mã liên tục UC-01–UC-130; chín mã cuối được dịch xuống ba số. Đồng bộ catalogue/quyền/spec/actor/screen/BR/BF, phụ lục thiết kế, VI/EN, context và crosswalk. Không loại bỏ bằng chứng/thỏa thuận/ACK hay kiểm soát đang có trong luồng trả NCC, không cấp thêm quyền.

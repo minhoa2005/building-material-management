@@ -8,6 +8,10 @@ import uploadRouter from './modules/upload/upload.routes.js';
 import usersRouter from './modules/users/user.routes.js';
 import rolesRouter from './modules/roles/role.routes.js';
 import replenishmentsRouter from './modules/replenishments/replenishment.routes.js';
+import productsRouter from './modules/products/product.routes.js';
+import suppliersRouter from './modules/suppliers/supplier.routes.js';
+import lotsRouter from './modules/lots/lot.routes.js';
+import purchaseOrdersRouter from './modules/purchase-orders/purchase-order.routes.js';
 
 const router = Router();
 router.use('/location-movements', locationMovementRouter);
@@ -21,5 +25,9 @@ router.use('/upload', uploadRouter);
 router.use('/users', usersRouter);
 router.use('/roles', rolesRouter);
 router.use('/replenishments', replenishmentsRouter);
+router.use('/products', productsRouter);
+router.use('/suppliers', suppliersRouter);
+router.use('/lots', lotsRouter);
+router.use('/purchase-orders', purchaseOrdersRouter);
 
 export default router;

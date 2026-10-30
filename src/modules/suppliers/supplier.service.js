@@ -1,0 +1,486 @@
+import mongoose from "mongoose";
+import {
+  AuditEvent,
+  BusinessDocument,
+  DocumentLine,
+  LineLink,
+  Party,
+  Warehouse,
+} from "../../models/index.js";
+import { currentRole } from "../../shared/utils/userRole.js";
+import {
+  ApiError,
+  duplicateError,
+  notFoundError,
+  versionConflict,
+} from "../../shared/utils/ApiError.js";
+import {
+  escapeRegex,
+  idString,
+  isoDate,
+} from "../../shared/utils/domain.js";
+import {
+  hasPermission,
+  requirePermission,
+} from "../../shared/utils/access.js";
+import { appendAudit, changedFields } from "../../shared/utils/audit.js";
+import {
+  mapSupplierDetail,
+  mapSupplierDocument,
+  mapSupplierSummary,
+  supplierStatus,
+} from "./supplier.mapper.js";
+
+const transactionOptions = {
+  readConcern: { level: "snapshot" },
+  writeConcern: { w: "majority" },
+};
+const editableFields = [
+  "name",
+  "phone",
+  "email",
+  "address",
+  "taxCode",
+  "contactPerson",
+  "notes",
+];
+const supplierReadRoles = ["OWNER", "ACCOUNTANT"];
+const documentPermissions = {
+  PO: "purchase_order:read",
+  GR_PURCHASE: "goods_receipt_inspection:read",
+  SUPPLIER_RETURN: "supplier_return:read",
+};
+const isDuplicateKey = (error) => error?.code === 11000;
+
+const requireSupplierReader = (user) =>
+  requirePermission(user, "supplier:read", supplierReadRoles);
+const requireSupplierCreator = (user) =>
+  requirePermission(user, "supplier:create", ["ACCOUNTANT"]);
+const requireSupplierEditor = (user) =>
+  requirePermission(user, "supplier:update", ["ACCOUNTANT"]);
+const requireSupplierStatusEditor = (user) =>
+  requirePermission(user, "supplier:activate", ["OWNER"]);
+
+function withSession(query, session) {
+  return session ? query.session(session) : query;
+}
+
+function warehouseScope(user) {
+  if (currentRole(user)?.code === "OWNER") return {};
+  return {
+    "header.warehouseId": {
+      $in: (user.warehouseIds || []).map(
+        (id) => new mongoose.Types.ObjectId(idString(id)),
+      ),
+    },
+  };
+}
+
+function supplierFilter(supplierId) {
+  return { "header.supplierId": supplierId };
+}
+
+async function findSupplier(id, session = null) {
+  const query = Party.findOne({ _id: id, kind: "SUPPLIER" }).lean();
+  const supplier = await withSession(query, session);
+  if (!supplier) throw notFoundError("Không tìm thấy nhà cung cấp");
+  return supplier;
+}
+
+export async function listSuppliers(user, query) {
+  requireSupplierReader(user);
+  const filter = { kind: "SUPPLIER" };
+  const and = [];
+  if (query.cooperationStatus === "ACTIVE") {
+    and.push({
+      $or: [
+        { cooperationStatus: "ACTIVE" },
+        { cooperationStatus: null, isActive: { $ne: false } },
+      ],
+    });
+  } else if (query.cooperationStatus === "SUSPENDED") {
+    and.push({
+      $or: [
+        { cooperationStatus: "SUSPENDED" },
+        { cooperationStatus: null, isActive: false },
+      ],
+    });
+  } else if (query.cooperationStatus === "TERMINATED") {
+    filter.cooperationStatus = "TERMINATED";
+  }
+  if (query.search) {
+    const search = new RegExp(escapeRegex(query.search), "i");
+    and.push({ $or: [{ code: search }, { name: search }] });
+  }
+  if (and.length) filter.$and = and;
+  const [items, total] = await Promise.all([
+    Party.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip((query.page - 1) * query.limit)
+      .limit(query.limit)
+      .lean(),
+    Party.countDocuments(filter),
+  ]);
+  return {
+    items: items.map(mapSupplierSummary),
+    total,
+    page: query.page,
+    limit: query.limit,
+  };
+}
+
+export async function getSupplier(user, id) {
+  requireSupplierReader(user);
+  return mapSupplierDetail(await findSupplier(id));
+}
+
+export async function createSupplier(user, input) {
+  requireSupplierCreator(user);
+  const session = await mongoose.startSession();
+  let supplier;
+  try {
+    supplier = await session.withTransaction(async () => {
+      const duplicate = await Party.findOne({
+        code: { $regex: `^${escapeRegex(input.code)}$`, $options: "i" },
+      })
+        .session(session)
+        .lean();
+      if (duplicate) throw duplicateError("Mã nhà cung cấp đã tồn tại");
+      const created = await new Party({
+        code: input.code,
+        name: input.name,
+        kind: "SUPPLIER",
+        ...(input.phone != null && { phone: input.phone }),
+        ...(input.email != null && { email: input.email }),
+        ...(input.address != null && { address: input.address }),
+        ...(input.taxCode != null && { taxCode: input.taxCode }),
+        ...(input.contactPerson != null && {
+          contactPerson: input.contactPerson,
+        }),
+        ...(input.notes != null && { notes: input.notes }),
+        cooperationStatus: "ACTIVE",
+        isActive: true,
+        version: 1,
+      }).save({ session });
+      await appendAudit({
+        actorId: user._id,
+        action: "CREATE_SUPPLIER",
+        entityType: "SUPPLIER",
+        entityId: created._id,
+        details: {
+          code: created.code,
+          name: created.name,
+          cooperationStatus: created.cooperationStatus,
+        },
+        session,
+      });
+      return created.toObject();
+    }, transactionOptions);
+  } catch (error) {
+    if (isDuplicateKey(error)) {
+      throw duplicateError("Mã nhà cung cấp đã tồn tại");
+    }
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+  return mapSupplierDetail(supplier);
+}
+
+export async function updateSupplier(user, id, input) {
+  requireSupplierEditor(user);
+  const session = await mongoose.startSession();
+  let updated;
+  try {
+    updated = await session.withTransaction(async () => {
+      const current = await findSupplier(id, session);
+      if (current.version !== input.expectedVersion) {
+        throw versionConflict(
+          "Dữ liệu đã thay đổi, vui lòng tải lại.",
+          current.version,
+        );
+      }
+      const set = { name: input.name };
+      const unset = {};
+      for (const field of editableFields.filter((field) => field !== "name")) {
+        if (input[field] != null) set[field] = input[field];
+        else unset[field] = "";
+      }
+      const update = { $set: set, $inc: { version: 1 } };
+      if (Object.keys(unset).length) update.$unset = unset;
+      const next = await Party.findOneAndUpdate(
+        { _id: id, kind: "SUPPLIER", version: input.expectedVersion },
+        update,
+        { returnDocument: "after", runValidators: true, session },
+      ).lean();
+      if (!next) {
+        throw versionConflict(
+          "Dữ liệu đã thay đổi, vui lòng tải lại.",
+          current.version,
+        );
+      }
+      await appendAudit({
+        actorId: user._id,
+        action: "UPDATE_SUPPLIER",
+        entityType: "SUPPLIER",
+        entityId: next._id,
+        changes: changedFields(current, next, editableFields),
+        session,
+      });
+      return next;
+    }, transactionOptions);
+  } finally {
+    await session.endSession();
+  }
+  return mapSupplierDetail(updated);
+}
+
+export async function changeSupplierStatus(user, id, input) {
+  requireSupplierStatusEditor(user);
+  const session = await mongoose.startSession();
+  let updated;
+  try {
+    updated = await session.withTransaction(async () => {
+      const current = await findSupplier(id, session);
+      if (current.version !== input.expectedVersion) {
+        throw versionConflict(
+          "Dữ liệu đã thay đổi, vui lòng tải lại.",
+          current.version,
+        );
+      }
+      if (supplierStatus(current) === input.cooperationStatus) return current;
+      const isActive = input.cooperationStatus === "ACTIVE";
+      const next = await Party.findOneAndUpdate(
+        { _id: id, kind: "SUPPLIER", version: input.expectedVersion },
+        {
+          $set: {
+            cooperationStatus: input.cooperationStatus,
+            isActive,
+            statusReason: input.reason,
+          },
+          $inc: { version: 1 },
+        },
+        { returnDocument: "after", runValidators: true, session },
+      ).lean();
+      if (!next) {
+        throw versionConflict(
+          "Dữ liệu đã thay đổi, vui lòng tải lại.",
+          current.version,
+        );
+      }
+      await appendAudit({
+        actorId: user._id,
+        action: "CHANGE_SUPPLIER_STATUS",
+        entityType: "SUPPLIER",
+        entityId: next._id,
+        changes: [
+          {
+            path: "cooperationStatus",
+            before: supplierStatus(current),
+            after: next.cooperationStatus,
+          },
+          {
+            path: "isActive",
+            before: current.isActive,
+            after: next.isActive,
+          },
+        ],
+        details: { reason: input.reason },
+        session,
+      });
+      return next;
+    }, transactionOptions);
+  } finally {
+    await session.endSession();
+  }
+  return mapSupplierDetail(updated);
+}
+
+export async function getSupplierHistory(user, id, query) {
+  requireSupplierReader(user);
+  await findSupplier(id);
+  const filter = { entityType: "SUPPLIER", entityId: id };
+  const [events, total] = await Promise.all([
+    AuditEvent.find(filter)
+      .sort({ eventAt: -1, _id: -1 })
+      .skip((query.page - 1) * query.limit)
+      .limit(query.limit)
+      .lean(),
+    AuditEvent.countDocuments(filter),
+  ]);
+  return {
+    items: events.map((event) => ({
+      id: idString(event._id),
+      action: event.action,
+      actorId: idString(event.actorId),
+      eventAt: isoDate(event.eventAt),
+      changes: (event.changes || []).map((change) => ({
+        path: change.path,
+        before: change.before ?? null,
+        after: change.after ?? null,
+      })),
+      details: event.details ?? null,
+    })),
+    total,
+    page: query.page,
+    limit: query.limit,
+  };
+}
+
+async function linkedSourceLines(targetLineIds, session = null) {
+  const links = await withSession(
+    LineLink.find({ targetLineId: { $in: targetLineIds } }).lean(),
+    session,
+  );
+  if (!links.length) return { links, lines: [] };
+  const lines = await withSession(
+    DocumentLine.find({
+      _id: { $in: links.map((link) => link.sourceLineId) },
+    }).lean(),
+    session,
+  );
+  return { links, lines };
+}
+
+// Resolve a GR to its PO through LineLink only when every traversed hop keeps
+// the same product/warehouse and the PO supplier is unambiguous.
+async function grSupplierIds(grLine, grWarehouseId) {
+  const suppliers = new Set();
+  const seen = new Set();
+  let frontier = [grLine._id];
+  while (frontier.length && suppliers.size <= 1) {
+    const { links, lines } = await linkedSourceLines(frontier);
+    if (!links.length) break;
+    const documents = await BusinessDocument.find({
+      _id: { $in: lines.map((line) => line.documentId) },
+    }).lean();
+    const lineById = new Map(lines.map((line) => [idString(line._id), line]));
+    const documentById = new Map(
+      documents.map((document) => [idString(document._id), document]),
+    );
+    const next = [];
+    for (const link of links) {
+      const source = lineById.get(idString(link.sourceLineId));
+      if (!source || idString(source.productId) !== idString(grLine.productId)) {
+        continue;
+      }
+      if (seen.has(idString(source._id))) continue;
+      const sourceDocument = documentById.get(idString(source.documentId));
+      if (!sourceDocument) continue;
+      const sourceWarehouse = sourceDocument.header?.warehouseId;
+      if (sourceWarehouse && idString(sourceWarehouse) !== idString(grWarehouseId)) {
+        continue;
+      }
+      if (sourceDocument.documentKind === "PO") {
+        if (
+          sourceDocument.header?.supplierId &&
+          sourceWarehouse &&
+          idString(sourceWarehouse) === idString(grWarehouseId)
+        ) {
+          suppliers.add(idString(sourceDocument.header.supplierId));
+        }
+        continue;
+      }
+      if (["ARRIVAL", "INSPECTION"].includes(sourceDocument.documentKind)) {
+        seen.add(idString(source._id));
+        next.push(source._id);
+      }
+    }
+    frontier = next;
+  }
+  return suppliers;
+}
+
+async function supplierDocumentIdsForGr(supplierId, scope) {
+  const grDocuments = await BusinessDocument.find({
+    documentKind: "GR_PURCHASE",
+    ...scope,
+  })
+    .sort({ createdAt: -1, _id: -1 })
+    .lean();
+  if (!grDocuments.length) return { documents: [], total: 0 };
+  const lines = await DocumentLine.find({
+    documentId: { $in: grDocuments.map((document) => document._id) },
+  }).lean();
+  const linesByDocument = new Map();
+  for (const line of lines) {
+    const key = idString(line.documentId);
+    const values = linesByDocument.get(key) || [];
+    values.push(line);
+    linesByDocument.set(key, values);
+  }
+  const matched = [];
+  for (const document of grDocuments) {
+    const supplierIds = new Set();
+    for (const line of linesByDocument.get(idString(document._id)) || []) {
+      for (const found of await grSupplierIds(
+        line,
+        document.header.warehouseId,
+      )) {
+        supplierIds.add(found);
+      }
+    }
+    if (supplierIds.size === 1 && supplierIds.has(idString(supplierId))) {
+      matched.push(document);
+    }
+  }
+  return { documents: matched, total: matched.length };
+}
+
+export async function getSupplierDocuments(user, id, query) {
+  requireSupplierReader(user);
+  await findSupplier(id);
+  const permission = documentPermissions[query.kind];
+  if (!hasPermission(user, permission)) {
+    throw new ApiError(403, "Bạn không có quyền xem loại chứng từ này");
+  }
+  const scope = warehouseScope(user);
+  let documents;
+  let total;
+  if (query.kind === "GR_PURCHASE") {
+    const result = await supplierDocumentIdsForGr(id, scope);
+    total = result.total;
+    documents = result.documents.slice(
+      (query.page - 1) * query.limit,
+      query.page * query.limit,
+    );
+  } else {
+    const filter = {
+      documentKind: query.kind,
+      ...supplierFilter(id),
+      ...scope,
+    };
+    [documents, total] = await Promise.all([
+      BusinessDocument.find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip((query.page - 1) * query.limit)
+        .limit(query.limit)
+        .lean(),
+      BusinessDocument.countDocuments(filter),
+    ]);
+  }
+  const warehouses = new Map(
+    (
+      await Warehouse.find({
+        _id: {
+          $in: documents
+            .map((document) => document.header?.warehouseId)
+            .filter(Boolean),
+        },
+      })
+        .select("_id code name")
+        .lean()
+    ).map((warehouse) => [idString(warehouse._id), warehouse]),
+  );
+  return {
+    items: documents.map((document) =>
+      mapSupplierDocument(
+        document,
+        warehouses.get(idString(document.header?.warehouseId)),
+      ),
+    ),
+    total,
+    page: query.page,
+    limit: query.limit,
+  };
+}

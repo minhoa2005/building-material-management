@@ -11,10 +11,14 @@ import { databaseHasData, runSeeds, syncExistingRolePermissions } from '../src/s
 const dataset = buildDemoData();
 const byName = async () => new Map((await dataset).map(({ Model, documents }) => [Model.modelName, documents]));
 
-test('demo seed covers all 39 collections, 35 document kinds and 19 line kinds with valid schemas', async () => {
+test('demo seed covers all 40 collections, 35 document kinds and 19 line kinds with valid schemas', async () => {
   const groups = await dataset;
-  assert.equal(groups.length, 39);
+  assert.equal(groups.length, 40);
   for (const { Model, documents } of groups) {
+    if (Model.modelName === 'ReplenishmentSubmission') {
+      assert.equal(documents.length, 0, 'Historical RR snapshots must not be fabricated');
+      continue;
+    }
     assert.ok(documents.length > 0, Model.modelName);
     for (const document of documents) await document.validate();
   }

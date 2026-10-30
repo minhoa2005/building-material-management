@@ -9,6 +9,7 @@ import {
 import { exact } from '../../models/model-utils.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
+import { lockLotIdentity } from '../../shared/utils/lotIdentity.js';
 
 const id = (value) => value == null ? null : String(value._id ?? value);
 const same = (a, b) => id(a) === id(b);
@@ -209,6 +210,9 @@ export async function createLocationMovement(user, input) {
         header: { warehouseId: input.warehouseId, taskKind: 'RELOCATE', assignedTo: user._id },
       });
       await document.save({ session });
+      for (const lotId of new Set(lines.map((line) => id(line.lotId)))) {
+        await lockLotIdentity(lotId, session);
+      }
       for (const line of lines) await new DocumentLine({ ...line, documentId }).save({ session });
       const operation = new BusinessOperation({
         documentId, operation: operationName, operationKey: input.idempotencyKey,
