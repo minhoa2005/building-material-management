@@ -163,6 +163,12 @@ test('seed separates closed-count notifications, explicit user-created RRs and a
   assert.ok(!extraLine.productId.equals(sourceLine.productId));
   assert.equal(extraLine.details.sourceSalesOrderLineId, undefined);
   assert.ok(extraLine.details.reasonNote);
+  assert.equal(extraLine.details.evaluationKey, 'demo:manual-reserve:product2:v1');
+  assert.equal(extraLine.details.availableQtySnapshot.toString(), '0');
+  assert.equal(extraLine.details.minimumQtySnapshot.toString(), '20');
+  assert.equal(extraLine.details.targetQtySnapshot.toString(), '20');
+  assert.equal(extraLine.details.suggestedQty.toString(), '20');
+  assert.ok(extraLine.details.quantityAdjustmentReason);
   assert.ok(!data.get('LineLink').some((link) => link.targetLineId.equals(extraLine._id)));
   const zeroCount = data.get('CountAttempt').find((item) => item.countedQty.toString() === '0');
   assert.ok(zeroCount);

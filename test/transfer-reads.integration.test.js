@@ -11,7 +11,7 @@ test('UC-38/39 HTTP read scope, posted quantities and side-effect-free detail', 
   const dbName = `sep490_transfer_read_${oid()}`;
   let server;
   try {
-    await mongoose.connect(process.env.MONGODB_TEST_URI, { dbName, autoIndex: false, serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(process.env.MONGODB_TEST_URI, { dbName, autoCreate: false, autoIndex: false, serverSelectionTimeoutMS: 5000 });
     const permission = await m.Permission.create({ code: 'stock_transfer:read' });
     const users = {};
     const source = await m.Warehouse.create({ code: 'A', name: 'Source' });

@@ -48,13 +48,15 @@ Không dùng đề xuất 7 quy trình, tài liệu đánh giá cũ hoặc draw.
 | BF-01 | RR UC-03 → Owner UC-04 → Accountant PO UC-07 → Warehouse arrival/GR UC-10/26 → put-away UC-32/33; partial/mismatch vẫn giữ nguồn. |
 | BF-02 | Warehouse defect/hold UC-65 → Owner disposition UC-66 → Warehouse execute UC-67 ngoài freeze; SR đi BF-08; B1 chỉ UC-92/93. |
 | BF-03 | Warehouse TO-RELOCATE UC-36/37 giữa hai vị trí cùng kho; không Owner/TR. |
-| BF-04 | Warehouse TR UC-40 → Owner UC-41 → TD draft/picking/handover UC-43 → receiver độc lập MWTR UC-104 → put-away/Owner variance UC-44 → đủ điều kiện toàn TR mới đóng. |
+| BF-04 | Quyết định 30/10: Warehouse TR → Owner duyệt/từ chối có lý do → TD nháp tham chiếu TR → internal requirement tự sinh PICK TO → confirm TO đồng thời thực xuất → MWTR tại kho đích → internal requirement tự sinh PUTAWAY TO → confirm → đủ điều kiện toàn TR mới đóng. Hàng lỗi nhận vào QUARANTINE trong kho đích. |
 | BF-05 | Owner plan UC-86 → Warehouse freeze/snapshot/count/sheet UC-87/105 → reconcile/recount UC-88 → plan/execution UC-91 → Owner approval UC-92/clear UC-93; B1 giữ khóa tới commit. |
 | BF-06 | Sales SO UC-47/48 → WIR UC-109 → OD UC-51 → Warehouse GI draft/picking/PGI UC-54/55/58 → photo POD UC-110 → Sales PAY-CFM UC-111. |
 | BF-07 | CR từ khách đã nhận: Sales UC-70 → Warehouse custody/inspection UC-72 → Sales ordinary hoặc Owner exception UC-71 → Warehouse GR-CR UC-73. FD chưa POD: Warehouse UC-72/73 GR-FD → tái mở ròng cùng commit → Sales chọn chờ/giao lại/hủy phần đủ điều kiện. |
 | BF-08 | Warehouse SR UC-81 → Accountant agreement UC-107 → Warehouse actual GI-SR UC-82 → Accountant ACK/reconcile UC-107/close UC-83 → external reference UC-108; không Owner/UC-106. |
 
 ## 2. Ngôn ngữ nghiệp vụ và quyền
+
+Quyết định BF04 ngày 30/10/2026 thay luồng bàn giao riêng trước đây: bước 7 confirm PICK TO đồng thời xác nhận xuất đi; ghi nguồn → staging → transit trong một transaction. Bước 8 nhận GOOD vào RECEIVING, DAMAGED vào QUARANTINE và tạo DEFECT_CASE. Bước 9–11 tự sinh và confirm PUTAWAY TO cho hàng tốt. Owner chỉ duyệt TR trong luồng chính mới; xử lý mất hàng/đảo giao dịch ngoài phạm vi lượt này. Nhiều phiếu xuất có thể thực hiện cùng TR theo vòng lặp sơ đồ mới; không đóng khi thiếu hàng hoặc chưa putaway. API đã triển khai ở `src/modules/transfers/BF04_API.md`; các thẻ UC cũ bên dưới là baseline để đối chiếu, không dùng để khôi phục bước bàn giao độc lập hoặc duyệt TO. Phạm vi hiện tại chưa thực hiện chuyển reservation/allocation gắn SO; hàng giữ cho nhu cầu khác bị chặn. Duyệt TR không giữ số dư cụ thể; kiểm tra tồn và nhiệm vụ đang mở khi lập TO rồi kiểm lại khi confirm.
 
 Quyết định 28/10/2026: Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp quyền hoặc cho người dùng chọn role hoạt động trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử.
 
@@ -309,6 +311,8 @@ Runtime mount **/api**, không /api/v1. Có:
 | POST /api/auth/refresh | Cookie refresh; access token và user mới. |
 | GET/POST /api/users, GET/PUT /api/users/:id, PATCH /api/users/:id/status | Account module; list data={items,total,page,limit}. |
 | GET /api/roles, PUT /api/roles/:code/permissions | Catalogue/ma trận role hiện tại. |
+| GET /api/replenishments | UC-01; scoped list; data={items,total,page,limit}; optional code/warehouse/creator/status/latest-decision/Vietnam-date filters. |
+| GET /api/replenishments/:id | UC-02; saved RR/source/coverage snapshots/versioned approvals, stored demand records/PO links and separate live product/warehouse available stock. |
 | POST /api/upload | multipart field file, image/*, memory5MB; trả url/publicId/format/width/height. |
 
 Success hiện {success:true,message,data?,meta?}; lỗi {success:false,message,stack?} (stack chỉ development). Không hứa field code/fieldErrors/correlationId đã có.
@@ -325,7 +329,7 @@ Permission catalogue thực ở src/seeds/data/permissions.data.js, dạng resou
 
 **Các độ lệch xác minh bằng đọc code; context này chỉ ghi nhận, chưa sửa:**
 
-1. middlewares/permission.js hiện đã sửa các lỗi user-before-declaration/requiredRoles.map/permission.push ghi trong snapshot cũ; xử lý role/permission ref bị thiếu và không log permission list. Không suy middleware operation thay được record/warehouse scope.
+1. RR reuse authenticate/checkPermission với roleId đơn hiện tại để kiểm active user, role và replenishment_request:read. Service dùng currentRole dựng scope kho/người tạo, không gom role thành mảng hoặc kiểm lại permission endpoint. Chứng từ liên quan dùng rolePermissions chung và scope riêng; quyền RR không cấp quyền SO/PO/stocktake.
 2. users/roles routes còn allow OWNER ở outer authorize và một số read gate khác baseline UC-95–98 Admin-only. role.service tự tạo Permission khi gặp code lạ; cần whitelist catalogue/role-operation compatibility và audit, cấm retired/arbitrary quyền. Giao diện hay seed không thay kiểm server.
 3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode gán/thay đúng một roleId. Cần thiết kế assignment đúng UC-98 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
 4. upload route hiện chưa authenticate/parent scope và trả Cloudinary secure_url; middleware chỉ kiểm MIME khai báo image/*, giới hạn5MB kỹ thuật. Chưa đạt private Evidence/hash/ownership/authorized download của API-02/POD. Mức5MB có trong implementation, không phải cửa hàng đã chốt mọi hạn mức.
@@ -411,7 +415,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — Own / assigned scope; Sales Staff — Own / assigned scope.
 - **Mã quyền trong seed hiện tại:** `replenishment_request:read`→OWNER/ACCOUNTANT/WAREHOUSE/SALES.
 - **Đầu vào/điều kiện:** Filter ngày tạo/người lập/status/decision, phân trang tùy chọn.
-- **Logic/kết quả:** Danh sách mã RR/sản phẩm/lượng/quyết định; Sales/Warehouse chỉ own/assigned, Owner/Accountant theo trách nhiệm. Read-only.
+- **Logic/kết quả:** Danh sách mã RR/sản phẩm/lượng/quyết định. UC-01/02: Owner xem RR mọi kho không phụ thuộc warehouseIds; Accountant xem RR trong warehouseIds; Sales/Warehouse chỉ RR createdBy chính mình VÀ kho còn trong warehouseIds. Không thêm giao người phụ trách từng RR. Read-only.
 - **Thiết kế BE:** Scoped find + count cùng predicate; không trả mọi RR rồi nhờ FE lọc.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
@@ -423,11 +427,13 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Quyền theo Report 3:** Store Owner — View; Accountant — View; Warehouse Staff — Own / assigned scope; Sales Staff — Own / assigned scope.
 - **Mã quyền trong seed hiện tại:** `replenishment_request:read`→OWNER/ACCOUNTANT/WAREHOUSE/SALES.
 - **Đầu vào/điều kiện:** RR ID đã lưu.
-- **Logic/kết quả:** Chi tiết nguồn thiếu/available/pending supply, dòng hàng và versioned approval history; không coi inbound là available.
+- **Logic/kết quả:** Chi tiết nguồn, coverage snapshot đã lưu, reservation ACTIVE/allocation đã lưu, dòng hàng, PO links và versioned approval history. Available hiện tại là sản phẩm/kho; không coi inbound là available, không tính lại current shortage/suggested purchase. Lượng duyệt chỉ áp dụng đúng version/dòng, giữ lịch sử cũ.
 - **Thiết kế BE:** Validate ID + scope trước populate nguồn/approval/evidence; derive lượng từ transaction.
 - **Điểm đặt BE:** `src/modules/replenishments` [đề xuất, chưa có route]; model/data: REPLENISHMENT; Approval; DemandSupplyAllocation.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-02 (dòng 904 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
+
+**Contract UC-01/02 đã triển khai:** [replenishment read API](src/modules/replenishments/README.md). Owner đọc/lọc RR mọi kho; metadata nguồn liên quan trong UC-02 theo permission riêng, không phụ thuộc warehouseIds cho Owner. Quyết định này giới hạn ở hai UC đọc, không tự mở rộng quyền duyệt, xuất/evidence hay scope UC khác. Prefix `/api/replenishments`; list filter `page/limit/search/warehouseId/createdBy/status/approvalDecision/createdFrom/createdTo`, strict query và ngày Asia/Saigon. List dùng preview ba dòng, latest RR decision trước count/pagination; detail tách `evaluationSnapshot` khỏi `currentStock`, nguồn/PO thiếu quyền chỉ giữ saved reference với `access=UNAVAILABLE`. Không download evidence hoặc backfill history trong GET. Middleware validate giữ `req.validated` để không mất defaults/transforms qua getter req.query của Express5. UI hiện vẫn demo; API/model không chứng minh UI đã nối.
 
 ### UC-03 — Create replenishment request
 
@@ -791,7 +797,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** Warehouse/movement/date/status tùy chọn.
 - **Logic/kết quả:** Danh sách move cùng kho planned/actual; không TR.
 - **Thiết kế BE:** Query TO relocation kind trong assigned warehouse, không lẫn transfer records.
-- **Điểm đặt BE:** `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: TO, WAREHOUSE_TASK lines; StockBalance/Reservation.
+- **Điểm đặt BE:** `src/modules/location-movements` — GET `/api/location-movements` đã triển khai; danh sách TO-RELOCATE theo kho được phân công. Xem README module.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-34 (dòng 1389 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -803,7 +809,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** Relocation TO ID.
 - **Logic/kết quả:** Lot/from/to/planned/actual/posting history; read-only.
 - **Thiết kế BE:** Scope cả hai location và immutable operation/movement links.
-- **Điểm đặt BE:** `src/modules/location-movements` — GET `/api/location-movements/:id` đã triển khai 29/10/2026; xem README trong module. Model TO/WAREHOUSE_TASK, actual từ ledger; FE còn mock.
+- **Điểm đặt BE:** `src/modules/location-movements` — GET `/api/location-movements/:id` đã triển khai; xem README trong module. Model TO/WAREHOUSE_TASK, actual từ ledger; FE dùng API thật.
 - **Điểm kiểm chứng:** Empty hợp lệ; invalid filter/date giữ input; truy cập detail/export/evidence ngoài scope bị chặn; GET không đổi trạng thái hoặc stock.
 - **Truy vết:** Report 3 phần II, UC-35 (dòng 1406 tại snapshot đọc). Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -815,7 +821,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** Warehouse: from/to cùng kho, lot/quality/owner/qty/reason.
 - **Logic/kết quả:** Lập relocation sau kiểm nguồn/reservation/freeze; khác kho đi BF-04. Chưa move cho đến confirm.
 - **Thiết kế BE:** Validate distinct locations same assigned warehouse, quantity/source/suitability; create TO not stock mutation.
-- **Điểm đặt BE:** `src/modules/location-movements` — POST `/api/location-movements` đã triển khai 29/10/2026; stock-neutral OPEN TO + lines + idempotent BusinessOperation + audit trong transaction. Location.planningVersion khóa planner cạnh tranh; các UC xác nhận/kiểm kê triển khai sau phải dùng chung guard. Xem README module; UC-37 chưa triển khai.
+- **Điểm đặt BE:** `src/modules/location-movements` — POST `/api/location-movements` đã triển khai; stock-neutral OPEN TO + lines + idempotent BusinessOperation + audit trong transaction. GET `/options` cấp dữ liệu chọn kho, vị trí và tồn nguồn cho FE; lúc lưu luôn kiểm lại dữ liệu thực. Location.planningVersion khóa planner cạnh tranh; xác nhận UC-37 dùng cùng guard. Xem README module.
 - **Điểm kiểm chứng:** Sai role/kho/version/nguồn/evidence phải từ chối; retry cùng key không nhân thao tác; kiểm boundary theo EX-01–05.
 - **Truy vết:** Report 3 phần II, UC-36 (dòng 1423 tại snapshot đọc); nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 
@@ -827,7 +833,7 @@ Mỗi ID xuất hiện một thẻ, giữ thứ tự 01–111 để tìm bằng 
 - **Đầu vào/điều kiện:** Open relocation và actual moved qty/location.
 - **Logic/kết quả:** Post source-q/destination+q, giữ owner/lot/quality và reservation; partial còn mở/hủy phần chưa làm có lý do.
 - **Thiết kế BE:** Single batch two legs + reservation relocation + TO progress; blocked freeze/source shortage rollback.
-- **Điểm đặt BE:** `src/modules/warehouse-tasks` [đề xuất, chưa có route]; model/data: TO, WAREHOUSE_TASK lines; StockBalance/Reservation.
+- **Điểm đặt BE:** `src/modules/location-movements` — POST `/:id/confirm` đã triển khai; xác nhận tồn thực chuyển bằng batch hai đầu, giữ reservation, trạng thái PARTIAL/CONFIRMED. PATCH và POST `/:id/cancel` chỉ cho người tạo, với điều kiện trạng thái/phiên bản. Xem README module.
 - **Điểm kiểm chứng:** Chuyển stock reserved không tạo available mới; khác kho không dùng relocate. Có stock effect: kiểm batch/ledger/balance/reservation/progress đồng nhất và rollback toàn bộ.
 - **Truy vết:** Report 3 phần II, UC-37 (dòng 1438 tại snapshot đọc); nhánh BF-03-A1, BF-03-E1. Áp dụng BR chung và EX-01–05 khi liên quan.
 

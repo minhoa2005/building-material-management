@@ -407,7 +407,7 @@ export async function buildDemoData() {
   link(tdLine, line('discrepancy', discrepancy, '2', 'DISCREPANCY', { sourceLineId: tdLine._id, discrepancyKind: 'SHORT', resolutionStatus: 'OPEN' }));
 
   // BF-02/BF-08: disposition is separate from Accountant's supplier agreement.
-  const defect = doc('DEFECT', 'DEFECT_CASE', dispatcher, { discoveredAt: at(21), reason: 'Kiểm tra hàng hỏng demo' }, 'OPEN', 21);
+  const defect = doc('DEFECT', 'DEFECT_CASE', dispatcher, { discoveredAt: at(21), reason: 'Kiểm tra hàng hỏng demo', warehouseId: wh('WH01') }, 'OPEN', 21);
   const defectLine = line('defect', defect, '8');
   evidence('defect', defect);
   const disposition = doc('DISPOSITION', 'DISPOSITION', dispatcher, null, 'APPROVED', 21);
@@ -460,7 +460,7 @@ export async function buildDemoData() {
   const count = add('CountAttempt', 'stocktake:1', {
     snapshotId: snapshot._id, attemptNo: 1, countedQty: '58', countedBy: receiver, countedAt: at(25, 9),
   });
-  const frozenDefect = doc('DEFECT-B1', 'DEFECT_CASE', receiver, { discoveredAt: at(25, 9), reason: 'Phát hiện lỗi trong kiểm kê demo' }, 'OPEN', 25);
+  const frozenDefect = doc('DEFECT-B1', 'DEFECT_CASE', receiver, { discoveredAt: at(25, 9), reason: 'Phát hiện lỗi trong kiểm kê demo', warehouseId: wh('WH03') }, 'OPEN', 25);
   line('defect:b1', frozenDefect, '2', 'STANDARD', undefined, 1);
   const frozenEvidence = evidence('defect:b1', frozenDefect, receiver);
   add('DefectHold', 'b1', {
@@ -534,7 +534,13 @@ export async function buildDemoData() {
     quantityAdjustmentReason: 'Đề nghị trước một phần; 4 viên còn lại chờ Sales xác nhận với khách (demo).',
   });
   line('rr:sales:extra', salesRr, '5', 'REPLENISHMENT', {
-    triggerType: 'MANUAL_OTHER', reasonNote: 'Mua dự trữ mẫu gạch khác ngoài đơn bán, người dùng thêm trên cùng form.',
+    triggerType: 'MANUAL_OTHER',
+    evaluationKey: 'demo:manual-reserve:product2:v1', evaluatedAt: at(27, 9),
+    availableQtySnapshot: '0', onHandCoverageQtySnapshot: '0', otherWarehouseCoverageQtySnapshot: '0',
+    remainingDemandQtySnapshot: '20', reservedForDemandQtySnapshot: '0', incomingCoverageQtySnapshot: '0',
+    pendingRequestCoverageQtySnapshot: '0', minimumQtySnapshot: '20', targetQtySnapshot: '20', suggestedQty: '20',
+    reasonNote: 'Mua dự trữ mẫu gạch khác ngoài đơn bán, người dùng thêm trên cùng form.',
+    quantityAdjustmentReason: 'Chỉ đề nghị 5 viên để bổ sung thử; 15 viên còn lại chưa đưa vào yêu cầu demo.',
   }, 1);
   operation('rr:sales:create', salesRr, sales, 'CREATE_REPLENISHMENT');
   add('DocumentLink', 'so:rr', {

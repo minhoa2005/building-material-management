@@ -15,3 +15,11 @@ Record future changes to model files here, including the date, affected models, 
 - API and verification contract: [location movements](../modules/location-movements/README.md).
 - 2026-10-29 — `DEFECT_CASE`/`DISPOSITION`/`DefectHold`: added defect source and warehouse references, disposition target quality, and a unique active hold per stock balance.
 - 2026-10-29 — `ReturnSourceGuard`: added a per-issued-line transaction guard for concurrent customer-return claims.
+
+## 2026-10-30 — BF04 internal requirements
+
+Added INTERNAL_TRANSFER_REQUIREMENT with warehouse, source document and PICK/PUTAWAY kind.
+Added TRANSFER_OUTBOUND line details linking TR line, source balance and staging bin.
+TRANSFER_RECEIPT optionally stores destination balance and receiving location;
+TRANSFER_REQUEST optionally stores approvedVersion so read projections retain the
+approved quantity after closure. Existing records remain valid. No production data migration was run.
