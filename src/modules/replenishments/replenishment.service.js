@@ -11,6 +11,7 @@ import {
   LineLink,
   Reservation,
   DemandSupplyAllocation,
+  ReplenishmentSubmission,
   REPLENISHMENT_RELATIONS,
 } from "../../models/index.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
@@ -115,6 +116,7 @@ export function buildListPipeline(user, query) {
               {
                 $match: {
                   lineKind: "REPLENISHMENT",
+                  "details.removedAt": null,
                   $expr: { $eq: ["$documentId", "$$documentId"] },
                 },
               },
@@ -132,6 +134,7 @@ export function buildListPipeline(user, query) {
               {
                 $match: {
                   lineKind: "REPLENISHMENT",
+                  "details.removedAt": null,
                   $expr: { $eq: ["$documentId", "$$documentId"] },
                 },
               },
@@ -510,13 +513,18 @@ export async function getReplenishment(user, id) {
     _id: objectId(id),
   }).lean();
   if (!document) throw new ApiError(404, "Không tìm thấy yêu cầu bổ sung hàng");
-  const [lines, approvals] = await Promise.all([
-    DocumentLine.find({ documentId: document._id, lineKind: "REPLENISHMENT" })
+  const [lines, approvals, submissionCount] = await Promise.all([
+    DocumentLine.find({
+      documentId: document._id,
+      lineKind: "REPLENISHMENT",
+      "details.removedAt": null,
+    })
       .sort({ lineNo: 1 })
       .lean(),
     Approval.find({ documentId: document._id, decisionKind: APPROVAL_KIND })
       .sort(approvalSort)
       .lean(),
+    ReplenishmentSubmission.countDocuments({ documentId: document._id }),
   ]);
   const [masters, availability, relations] = await Promise.all([
     loadMasters([document], lines, approvals),
@@ -573,6 +581,142 @@ export async function getReplenishment(user, id) {
     approvalHistory: approvals.map((approval) =>
       mapApproval(approval, document.version, masters.users, true),
     ),
+    submissionHistoryAvailable: submissionCount > 0,
+    submissionCount,
     ...mapRelations(document, lines, relations, user),
+  };
+}
+
+async function scopedReplenishmentDocument(user, id) {
+  const document = await BusinessDocument.findOne({
+    ...replenishmentScope(user),
+    _id: objectId(id),
+  }).lean();
+  if (!document) throw new ApiError(404, "Không tìm thấy yêu cầu bổ sung hàng");
+  return document;
+}
+
+function mapSubmissionSummary(submission, users, warehouse) {
+  return {
+    id: idString(submission._id),
+    documentVersion: submission.documentVersion,
+    submittedBy: mapUser(submission.submittedBy, users),
+    submittedAt: isoDate(submission.submittedAt),
+    warehouse: {
+      id: idString(submission.warehouseId),
+      code: submission.warehouseCodeSnapshot,
+      name: submission.warehouseNameSnapshot,
+      isActive: warehouse?.isActive ?? null,
+    },
+    neededOn: isoDate(submission.neededOn),
+    triggerReason: submission.triggerReason,
+    note: submission.note ?? null,
+    lineCount: submission.lines.length,
+  };
+}
+
+export async function listReplenishmentSubmissions(user, id, query) {
+  const document = await scopedReplenishmentDocument(user, id);
+  const [submissions, total] = await Promise.all([
+    ReplenishmentSubmission.find({ documentId: document._id })
+      .sort({ documentVersion: -1, _id: -1 })
+      .skip((query.page - 1) * query.limit)
+      .limit(query.limit)
+      .lean(),
+    ReplenishmentSubmission.countDocuments({ documentId: document._id }),
+  ]);
+  const userIds = distinctIds(
+    submissions.map((submission) => submission.submittedBy),
+  );
+  const [users, warehouses] = await Promise.all([
+    User.find({ _id: { $in: userIds } }).select("_id fullName").lean(),
+    Warehouse.find({
+      _id: { $in: distinctIds(submissions.map((item) => item.warehouseId)) },
+    })
+      .select("_id code name isActive")
+      .lean(),
+  ]);
+  const userMap = indexById(users);
+  const warehouseMap = indexById(warehouses);
+  return {
+    items: submissions.map((submission) =>
+      mapSubmissionSummary(
+        submission,
+        userMap,
+        warehouseMap.get(idString(submission.warehouseId)),
+      ),
+    ),
+    total,
+    page: query.page,
+    limit: query.limit,
+  };
+}
+
+export async function getReplenishmentSubmission(user, id, version) {
+  const document = await scopedReplenishmentDocument(user, id);
+  const submission = await ReplenishmentSubmission.findOne({
+    documentId: document._id,
+    documentVersion: version,
+  }).lean();
+  if (!submission) {
+    return {
+      available: false,
+      documentVersion: version,
+      availabilityStatus: "UNAVAILABLE",
+      snapshot: null,
+      approval: null,
+    };
+  }
+  const [submitter, approval] = await Promise.all([
+    User.findById(submission.submittedBy).select("_id fullName").lean(),
+    Approval.findOne({
+      documentId: document._id,
+      documentVersion: version,
+      decisionKind: APPROVAL_KIND,
+    }).lean(),
+  ]);
+  const userMap = new Map(
+    submitter ? [[idString(submitter._id), submitter]] : [],
+  );
+  if (approval) {
+    const approvalUsers = await User.find({
+      _id: { $in: distinctIds([approval.requestedBy, approval.decidedBy]) },
+    })
+      .select("_id fullName")
+      .lean();
+    for (const item of approvalUsers) userMap.set(idString(item._id), item);
+  }
+  return {
+    available: true,
+    availabilityStatus: "AVAILABLE",
+    documentVersion: version,
+    snapshot: {
+      ...mapSubmissionSummary(submission, userMap, null),
+      warehouse: {
+        id: idString(submission.warehouseId),
+        code: submission.warehouseCodeSnapshot,
+        name: submission.warehouseNameSnapshot,
+        isActive: null,
+      },
+      lines: submission.lines.map((line) => ({
+        lineId: idString(line.lineId),
+        lineNo: line.lineNo,
+        productId: idString(line.productId),
+        productSkuSnapshot: line.productSkuSnapshot,
+        productNameSnapshot: line.productNameSnapshot,
+        baseUomId: idString(line.baseUomId),
+        baseUomCodeSnapshot: line.baseUomCodeSnapshot,
+        enteredUomId: idString(line.enteredUomId),
+        enteredUomCodeSnapshot: line.enteredUomCodeSnapshot,
+        conversionId: idString(line.conversionId),
+        conversionVersion: line.conversionVersion,
+        enteredQty: decimalString(line.enteredQty),
+        conversionSnapshot: decimalString(line.conversionSnapshot),
+        qtyBase: decimalString(line.qtyBase),
+        triggerType: line.triggerType,
+        reasonNote: line.reasonNote,
+      })),
+    },
+    approval: mapApproval(approval, version, userMap, true),
   };
 }
