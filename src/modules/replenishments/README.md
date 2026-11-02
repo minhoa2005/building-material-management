@@ -1,144 +1,100 @@
-# UC-01 / UC-02: replenishment read API
+# Replenishment request backend — UC-01–UC-06
 
-The module reads existing `BusinessDocument` / `DocumentLine` REPLENISHMENT
-discriminators. It does not create or change requests, stock, reservations,
-approvals, operations, notifications or planning guards. It does not evaluate a
-new purchase requirement. Database data must already follow revision 3.3.
+This module reads and writes `BusinessDocument` / `DocumentLine` REPLENISHMENT
+discriminators. It never changes stock, reservations, allocations, posting batches,
+stock movements, approvals of other kinds, notifications or POs.
 
-## Authentication and record scope
+Full wire contract: [Iteration 1 API reference](../../../docs/api/iteration-1/README.md).
 
-Both GETs use the existing authenticate/checkPermission middleware to require an
-active user and `replenishment_request:read` on the single populated `User.roleId`.
-The service derives record scope from that current role without repeating the
-endpoint permission check. OWNER can read RR records in all warehouses, including
-historical inactive warehouses, without requiring warehouse assignments.
-ACCOUNTANT can read RR records in `User.warehouseIds`.
-SALES/WAREHOUSE can read only their own (`createdBy`) RR records in those
-warehouses. No per-RR assignment exists in this release. ADMIN does not bypass
-business permissions. Linked documents still require their own operation through
-the shared rolePermissions helper, as well as their warehouse/record scope.
+## Routes
 
-Empty warehouse assignments yield an empty list and 404 detail for ACCOUNTANT,
-SALES and WAREHOUSE; OWNER remains able to read all RR records. Historical
-inactive masters remain readable. Inactive masters cannot contribute live stock.
+| Method/path | Permission | Notes |
+|---|---|---|
+| GET `/api/replenishments` | read | scoped list, max 3 current-line preview |
+| GET `/api/replenishments/options?mode=CREATE|FILTER` | create/update or read | warehouse lookup only |
+| POST `/api/replenishments` | create | SAVE_DRAFT or direct SUBMIT |
+| GET `/api/replenishments/:id` | read | current lines, approvals, live stock, submission summary |
+| PUT `/api/replenishments/:id` | update | creator edits DRAFT/REVISION_REQUIRED |
+| POST `/:id/submit` | update | saved RR submit + snapshot |
+| POST `/:id/review` | approve | Owner decision |
+| GET `/:id/submissions` | read | paged snapshots, newest version first |
+| GET `/:id/submissions/:version` | read | immutable snapshot + approval; unavailable when historical data is missing |
 
-## GET /api/replenishments
+Routes are declared before `/:id` where needed. Validation is strict, quantities are
+decimal strings and dates are Asia/Saigon calendar dates on the wire.
 
-| Query | Meaning/default |
-| --- | --- |
-| page | Positive integer, default 1; bounded to a safe pagination offset |
-| limit | Integer 1–100, default 10 |
-| search | Literal case-insensitive RR document number search; trimmed, max 100 characters |
-| warehouseId | Optional ObjectId; OWNER may filter any warehouse; an explicitly unauthorized warehouse returns 403 for other roles |
-| createdBy | Optional ObjectId; intersects rather than replaces creator scope |
-| status | DRAFT, SUBMITTED, APPROVED, REJECTED, REVISION_REQUIRED |
-| approvalDecision | APPROVE, REJECT, REVISE, NONE; newest RR decision only |
-| createdFrom / createdTo | Optional valid YYYY-MM-DD dates; inclusive Asia/Saigon calendar dates |
+## Scope
 
-Unknown parameters, repeated scalar parameters, operator/object inputs and
-reversed dates return 400. Dates become a UTC interval with exclusive next-day
-end. Sorting is `createdAt DESC, _id DESC`. All filters precede count/pagination.
+- Owner reads/reviews all warehouses.
+- Accountant reads assigned warehouses.
+- Sales/Warehouse read only their own records in assigned warehouses.
+- RR write is creator-only, with the current Warehouse/Sales role and permission;
+  the current/new warehouse must be active and assigned.
+- Review requires a different userId from both `createdBy` and submittedBy, even
+  after a role change.
 
-Success uses the existing envelope:
+## Manual form
 
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": { "items": [], "total": 0, "page": 1, "limit": 10 }
-}
+- Every new line has `triggerType=MANUAL_OTHER` and a nonblank reason.
+- One to 100 current lines.
+- Product must be active; selected conversion must be the current version for the
+  same product/UOM; quantity is calculated exactly and whole-piece output must be
+  integral.
+- A RR may include a product above minimum; no shortage/coverage check is made.
+- New source/SO/stocktake RR creation is not part of this iteration.
+
+## State, version and history
+
+```text
+DRAFT -> SUBMITTED -> APPROVED | REJECTED | REVISION_REQUIRED
+REVISION_REQUIRED -> (edit) REVISION_REQUIRED -> SUBMITTED
 ```
 
-Each item contains `id`, `documentNo`, `workflowStatus`, `version`,
-`warehouse: {id, code, name}`, `createdBy: {id, fullName}`, `createdAt`, `neededOn`,
-`lineCount`, `linePreview` (first three lines by lineNo) and `latestDecision`.
+- Create v1; edit/submit increment version; review does not.
+- Only DRAFT/REVISION_REQUIRED can be edited/submitted.
+- Omitted current lines are soft-deleted via `details.removedAt`; IDs are never
+  reused and a new line number exceeds all historical line numbers.
+- Submit stores an immutable ReplenishmentSubmission for that exact version with
+  warehouse/product/UOM/conversion/quantity/reason snapshots.
+- Review uses that snapshot, not current conversions/stock; a partial approval keeps
+  requested and approved quantities separately.
+- Approval lines use approvedQty>0 => APPROVE, 0 => REJECT; per-line reason is
+  required if reduced/zero. All-zero approval is rejected; use REJECT instead.
 
-The latest decision is ordered by `documentVersion DESC, decidedAt DESC, _id
-DESC`, with `decisionKind=REPLENISHMENT_APPROVAL`. `NONE` means no such decision,
-not merely that the current version is undecided. `latestDecision` contains
-`id`, `documentVersion`, `isForCurrentVersion`, `decisionKind`, `decision`,
-`requestedBy`, `decidedBy`, `decidedAt` and `reason`.
+## Transactions and idempotency
 
-## GET /api/replenishments/:id
+RR commands write document/lines, snapshot when submitting, approval when reviewing,
+BusinessOperation and AuditEvent under one MongoDB transaction
+(`snapshot` read concern, `majority` write concern). No parallel operations run in
+the transaction.
 
-`:id` is an ObjectId. The response `data` extends the list header with
-`updatedAt`, `submittedBy`, `submittedAt`, `triggerReason`, `note` and:
+- `creationKey` is unique per creator; same payload replays the committed receipt,
+  changed payload/action conflicts.
+- Existing-document commands hash `operationKey` per actor and compare a canonical
+  payload (action, actor, target, expectedVersion, ordered line business fields).
+- Replay is checked before expectedVersion, so a lost-response retry returns the
+  previous result. A changed payload uses a new key.
+- Conditional document filters include `_id`, state, version and creator.
 
-| Field | Contents |
-| --- | --- |
-| lines | Saved quantities/conversions, source identity and evaluation snapshot; live stock kept separate |
-| latestDecision | Same decision summary as the list |
-| approvalHistory | Newest first; decision summaries plus `lines: [{lineId, approvedQtyBase, outcome}]` |
-| reservations | ACTIVE stored records: id, demandLineId, canonicalSalesOrderLineId, qtyBase, status |
-| allocations | Stored records in all statuses: same demand fields plus a permission-scoped supply reference |
-| purchaseReferences | Deduplicated PO references from both header and line links |
-| purchaseLineLinks | id, replenishmentLineId, purchaseLineId, linkedQtyBase, purchaseOrder |
-| sourceDocumentLinks | Stored relationCode and scoped source reference |
-| sourceLineLinks | Stored id, relationCode, sourceLineId, replenishmentLineId, linkedQtyBase |
+## Read behavior
 
-### Line fields
+List filters intersect role scope; removed lines are excluded from count/preview.
+Detail returns:
 
-- `id`, `lineNo`, `product: {id, sku, name, isActive}`. Name prefers the saved
-  `productNameSnapshot`; SKU is current master data if available.
-- `enteredQty`, `enteredUom: {id, code, name}`, `conversionId`,
-  `conversionVersion`, `conversionSnapshot`, `qtyBase`, `baseUom`.
-  Units come from the referenced conversion/product, never an assumed BOX/M2
-  factor or the latest conversion version.
-- `approvedQtyBase` comes only from APPROVE on this document version and this
-  line ID. A real zero is `"0"`; no applicable approval is `null`.
-- `reasonNote`, `quantityAdjustmentReason`.
-- `source`: saved `triggerType`, source SO-line/WIR-line/stocktake IDs and
-  versions, policy ID/version, and permission-scoped `references`.
-- `evaluationSnapshot`: `evaluationKey`, `evaluatedAt`, `suggestedQtyBase`,
-  `availableQtyBase`, `otherWarehouseCoverageQtyBase`, `remainingDemandQtyBase`,
-  `reservedForDemandQtyBase`, `onHandCoverageQtyBase`, `incomingCoverageQtyBase`,
-  `pendingRequestCoverageQtyBase`, `minimumQtyBase`, `targetQtyBase`.
-  Absent historical values are null; these values are never recalculated by GET.
-- `currentStock`: `warehouseId`, `productId`, `scope: PRODUCT_WAREHOUSE`,
-  `baseUom`, `availableQtyBase`, `computedAt`.
+- current line snapshots and approved quantity only from the APPROVE decision for
+  the current version;
+- live availability as an independent reference;
+- approval history and submission count/history availability.
 
-Quantities/factors are decimal strings, IDs are strings and dates are UTC ISO.
-No totals mix different products/units. No current shortage or current suggested
-purchase quantity is returned. Multiple lines for the same product/warehouse
-share the same live stock reference, not independent available capacity.
+A sourced historical RR remains readable and keeps source links; manual commands
+on its current non-MANUAL_OTHER lines return `ERR-RR-409-003`. It is never converted
+to manual. Missing historical submission snapshots return `available=false`; the
+reader does not invent history from current data.
 
-### Live stock and related records
+## Tests
 
-Available means STORE-owned, GOOD, VERIFIED lot, active product/warehouse and
-active allocatable STORAGE location, with no location lock or ACTIVE defect
-hold. A hold excludes the entire balance. Subtract ACTIVE reservations once;
-exclude transit, custody, receiving, staging and incoming PO supply. Empty
-eligible stock is `"0"`; a query failure is an error, and reservation exceeding
-eligible balance returns 500 rather than a fabricated zero.
-
-Availability is a computed live reference, not a reservation or a multi-command
-planning snapshot. Matching tone/calibre, delivery deadlines, outstanding demand
-and coverage must be evaluated separately before a later create/submit command.
-
-Demand records are resolved to a canonical SO line. Only typed, same-product WIR
-releases in the same SO chain and with readable parent scope extend its demand
-IDs. Each stored allocation/reservation ID appears once; no combined coverage
-total is inferred. A source without read access yields no hydrated demand records.
-
-RR permission never grants access to another UC. Linked references keep saved
-identity with `access: UNAVAILABLE` when missing or restricted, with no document
-number/status/private file URL. Readable references additionally expose only
-documentNo/workflowStatus/version. PO and stocktake require their own operation,
-role and warehouse scope. In UC-02, OWNER can read related metadata across
-warehouses only when its separate document permission is granted. SO metadata is conservatively restricted to its creator
-or responsibility-scoped OWNER/ACCOUNTANT through the authorized RR. A hidden
-allocation supply is only `{access: UNAVAILABLE}`. Broken PO line links retain
-purchaseLineId and use `purchaseOrder: null`.
-
-## Errors and deployment
-
-Errors retain `{success:false,message}`: 400 validation, 401 authentication,
-403 operation/explicit warehouse filter, 404 for missing/wrong-kind/out-of-scope
-RR using the same message. Missing linked records do not make the RR a 404.
-
-The two declared compound list indexes must be deployed through the normal
-schema/index procedure. GET does not migrate data or create indexes. Importing
-the application in tests avoids startup seeding. Run `npm test`; set
-`MONGODB_TEST_URI` to a disposable MongoDB test server to enable integration
-tests, which always override the database name and clean up only their own
-random database.
+- `test/replenishment.test.js`
+- `test/replenishment-read.test.js`
+- `test/replenishment-read.integration.test.js`
+- `test/iteration1-replenishment.integration.test.js`
+- `test/iteration1-foundation.test.js`
