@@ -46,6 +46,7 @@ const replenishmentDetails = new Schema({
   suggestedQty: decimal({ positive: true, required: false }),
   reasonNote: text(2000),
   quantityAdjustmentReason: text(2000, { required: false }),
+  removedAt: date(false),
 }, embeddedOptions);
 rules(replenishmentDetails, function validateReplenishmentSource() {
   const requireFields = (fields) => {

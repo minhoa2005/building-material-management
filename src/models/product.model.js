@@ -18,17 +18,39 @@ const uomSchema = new Schema(
   options("uoms"),
 );
 
+const optionalText = (maxlength, extra = {}) =>
+  text(maxlength, { required: false, ...extra });
+
 const productSchema = new Schema(
   {
-    sku: text(60, { unique: true }),
+    sku: text(60, { unique: true, uppercase: true }),
     name: text(200),
     baseUomId: ref("Uom"),
     wholeBaseUnits: { type: Boolean, required: true, default: true },
-    nominalSize: text(60, { required: false }),
+    nominalSize: optionalText(60),
+    category: optionalText(100),
+    brand: optionalText(100),
+    material: optionalText(100),
+    surface: optionalText(100),
+    lengthMm: decimal({ positive: true, required: false }),
+    widthMm: decimal({ positive: true, required: false }),
+    thicknessMm: decimal({ positive: true, required: false }),
+    origin: optionalText(100),
+    description: optionalText(2000),
     isActive: { type: Boolean, required: true, default: true },
+    version: integer(1, { default: 1 }),
   },
   options("products"),
 );
+productSchema.index({ isActive: 1, createdAt: -1, _id: -1 });
+rules(productSchema, function validateProductDimensions() {
+  if (Boolean(this.lengthMm) !== Boolean(this.widthMm)) {
+    this.invalidate(
+      "widthMm",
+      "Chiều dài và chiều rộng phải cùng có hoặc cùng không có",
+    );
+  }
+});
 
 const conversionSchema = new Schema(
   {
@@ -37,6 +59,8 @@ const conversionSchema = new Schema(
     version: integer(1),
     basePerUnit: decimal({ positive: true, precision: 24, scale: 12 }),
     validFrom: date(),
+    createdBy: ref("User", false),
+    verificationReference: optionalText(2000),
   },
   options("product_uom_versions"),
 );
@@ -44,6 +68,7 @@ conversionSchema.index(
   { productId: 1, uomId: 1, version: 1 },
   { unique: true },
 );
+conversionSchema.index({ productId: 1, uomId: 1, validFrom: -1, version: -1 });
 appendOnly(conversionSchema);
 
 const policySchema = new Schema(
@@ -72,6 +97,13 @@ const lotSchema = new Schema(
     calibre: text(60),
     identificationStatus: code(["VERIFIED", "UNKNOWN"]),
     manufacturedOn: date(false),
+    version: integer(1, { default: 1 }),
+    createdBy: ref("User", false),
+    notes: optionalText(2000),
+    verificationReference: optionalText(2000),
+    verifiedBy: ref("User", false),
+    verifiedAt: date(false),
+    identityLocked: { type: Boolean, required: true, default: false },
   },
   options("lots"),
 );
@@ -79,6 +111,12 @@ lotSchema.index(
   { productId: 1, manufacturerLot: 1, tone: 1, calibre: 1 },
   { unique: true },
 );
+lotSchema.index({ productId: 1, identificationStatus: 1, createdAt: -1, _id: -1 });
+rules(lotSchema, function validateLotVerificationPair() {
+  if (Boolean(this.verifiedBy) !== Boolean(this.verifiedAt)) {
+    this.invalidate("verifiedAt", "Thông tin xác minh phải có người và thời điểm");
+  }
+});
 
 export const Uom = model("Uom", uomSchema);
 export const Product = model("Product", productSchema);
