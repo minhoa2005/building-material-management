@@ -107,6 +107,16 @@ Per-UC cards: [use-cases.md](use-cases.md).
 Migration: [MIGRATION.md](MIGRATION.md).  
 Check results: [VERIFICATION.md](VERIFICATION.md).
 
+Independent review on 2026-10-31: [REVIEW_2026-10-31.md](REVIEW_2026-10-31.md).
+All 23 UCs have endpoints/services, but four confirmed findings remain in PO
+ledger validation, RR creation replay scope, and supplier GR source traversal.
+The review includes fresh test results, reproducible probes and detailed module
+flows/model relationships; it does not change application behavior.
+
+Detailed explanation of the four findings (business expectations, code paths,
+model joins, examples, root causes and proposed fixes):
+[BAO_CAO_GIAI_THICH_VAN_DE_2026-11-01.md](BAO_CAO_GIAI_THICH_VAN_DE_2026-11-01.md).
+
 ## Model changes
 
 - Product adds version and optional tile attributes; SKU is normalized for new records.

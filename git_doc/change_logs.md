@@ -1,3 +1,19 @@
+# Giải thích chi tiết nghiệp vụ và luồng code của các finding — 01/11/2026
+
+Thêm [báo cáo giải thích bốn vấn đề](../docs/iteration-1/BAO_CAO_GIAI_THICH_VAN_DE_2026-11-01.md): nghiệp vụ đúng, vai trò model, chuỗi gọi function và vị trí source, ví dụ tính từng bước, nguyên nhân RV-01/02/03/04, phạm vi tác động thực tế, hướng sửa và regression cases. Làm rõ dữ liệu bất thường trong probe khác dữ liệu thật, GET sai kết quả khác post sai tồn, quyền record khác idempotency; giải thích nguy cơ đảo dấu reversal hai lần khi sửa và yêu cầu kiểm scope cả replay fallback. Bổ sung liên kết trong README iteration, giữ nguyên review và bằng chứng lịch sử.
+
+Kiểm chứng: đối chiếu checkout HEAD `2e31d79`, chạy lại sáu probe trên database localhost random và nhận lại kết quả cũ; kiểm liên kết source và git diff --check. Số157 pass/1 skip là kết quả full suite của lượt review trước, không phải full suite mới trong lượt viết giải thích này. Không sửa logic/model/API ứng dụng, không apply migration vào DB dùng chung, không commit/push.
+
+---
+
+# Review backend Iteration 1 và giải thích module — 31/10/2026
+
+Thêm [báo cáo review](../docs/iteration-1/REVIEW_2026-10-31.md) đối chiếu bản plan chi tiết trong chat `01a18c8f-8d7c-7032-965b-95a746e96ae6` với checkout `2e31d79`: đủ 23 UC có endpoint/service; giải thích kiến trúc, logic/flow/function, transaction/retry/version và quan hệ model của replenishments, products, lots, suppliers, purchase-orders. Ghi bốn phát hiện P2 đã tái hiện: PO tính dương movement sai chiều; PO thiếu kiểm lot-product/batch-document; replay tạo RR bỏ qua scope kho hiện tại; supplier GR traversal chấp nhận nguồn thiếu ARRIVAL/INSPECTION. Kèm JSON bằng chứng và script probe chỉ dùng DB localhost random, cập nhật liên kết tại README iteration.
+
+Kiểm chứng mới: `npm test` 90 test/75 pass/15 skip; replica set cục bộ 158 test/157 pass/1 skip Cloudinary; sáu probe gồm một control và năm ca xác nhận bốn phát hiện. Các DB test riêng được dọn sau chạy. Không sửa logic/model ứng dụng, không apply migration vào DB dùng chung, không commit/push. Báo cáo cũng ghi các ca race/rollback/reversal còn thiếu và giới hạn hiệu năng chưa benchmark.
+
+---
+
 # Triển khai backend Iteration 1 — 30/10/2026
 
 Triển khai backend UC-01–UC-07 và UC-17–UC-32 trên nhánh `codex/uc-01-32-iteration-1`; frontend chưa nối. Thêm API RR thủ công (tạo nháp/gửi trực tiếp, sửa, gửi, Owner duyệt lượng từng dòng), snapshot bất biến theo version, lịch sử submission; PO list đọc lượng nhận từ chuỗi PO→ARRIVAL→INSPECTION→GR→ledger/reversal; product/master, conversion, policy, lot, supplier và history/documents. Bổ sung model/version/audit/submission và migration mặc định dry-run.

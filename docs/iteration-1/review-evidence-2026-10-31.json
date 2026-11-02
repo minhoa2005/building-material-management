@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-31",
+  "timezone": "Asia/Saigon",
+  "branch": "codex/uc-01-32-iteration-1",
+  "head": "2e31d79",
+  "existingTests": {
+    "default": { "tests": 90, "pass": 75, "fail": 0, "skip": 15 },
+    "localReplicaSet": { "tests": 158, "pass": 157, "fail": 0, "skip": 1 },
+    "remainingSkip": "Live Cloudinary provider test"
+  },
+  "probeEnvironment": {
+    "databasePattern": "sep490_review_it1_<random ObjectId>",
+    "mongo": "localhost replica set rs0",
+    "cleanup": "Only the isolated database was dropped after each run",
+    "sharedDatabaseTouched": false
+  },
+  "probes": [
+    {
+      "case": "PO normal receipt",
+      "input": "Ordered 100; valid receipt into STORE 60",
+      "actual": { "http": 200, "receivedQtyBase": "60", "outstandingQtyBase": "40", "quantityState": "KNOWN" },
+      "verdict": "Control passed"
+    },
+    {
+      "case": "PO outbound root movement",
+      "input": "Ordered 100; GR-linked root POST removes 60 from STORE instead of receiving",
+      "actual": { "http": 200, "receivedQtyBase": "60", "outstandingQtyBase": "40", "quantityState": "KNOWN" },
+      "expected": "Reject inconsistent receipt evidence as INCOMPLETE; do not report positive receipt",
+      "finding": "RV-01"
+    },
+    {
+      "case": "PO wrong-product balance",
+      "input": "PO/ARR/INS/GR lines identify product A; ledger balance lot identifies product B",
+      "actual": { "http": 200, "receivedQtyBase": "60", "outstandingQtyBase": "40", "quantityState": "KNOWN" },
+      "expected": "INCOMPLETE because the ledger cannot prove receipt of product A",
+      "finding": "RV-02"
+    },
+    {
+      "case": "PO wrong posting batch document",
+      "input": "Movement identifies GR; its PostingBatch.documentId identifies PO",
+      "actual": { "http": 200, "receivedQtyBase": "60", "outstandingQtyBase": "40", "quantityState": "KNOWN" },
+      "expected": "INCOMPLETE because batch and movement do not identify the same receipt",
+      "finding": "RV-02"
+    },
+    {
+      "case": "Supplier GR source shortcut",
+      "input": "Only a direct SOURCE LineLink PO-to-GR exists; no connected ARRIVAL/INSPECTION chain",
+      "actual": { "http": 200, "shortcutGrIncluded": true },
+      "expected": "Exclude this GR until the required typed source chain is established",
+      "finding": "RV-04"
+    },
+    {
+      "case": "RR creation replay after assignment revoked",
+      "input": "Sales creates draft in WH01; warehouseIds is then emptied; exact same create payload/key is retried",
+      "actual": { "firstCreateHttp": 201, "replayHttp": 200, "replayed": true, "detailGetHttp": 404 },
+      "expected": "Enforce current warehouse scope before returning a replay receipt",
+      "finding": "RV-03"
+    }
+  ]
+}
