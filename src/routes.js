@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import locationMovementRouter from './modules/location-movements/location-movement.routes.js';
 import transferReadRouter from './modules/transfers/transfer-read.routes.js';
+import transferWriteRouter from './modules/transfers/transfer-write.routes.js';
 import { salesOrderRouter, outboundDeliveryRouter } from './modules/sales-orders/sales-read.routes.js';
 import healthRouter from './modules/health/health.routes.js';
 import authRouter from './modules/auth/auth.routes.js';
@@ -11,7 +12,7 @@ import replenishmentsRouter from './modules/replenishments/replenishment.routes.
 
 const router = Router();
 router.use('/location-movements', locationMovementRouter);
-router.use('/warehouse-transfers', transferReadRouter);
+router.use('/warehouse-transfers', transferWriteRouter, transferReadRouter);
 router.use('/sales-orders', salesOrderRouter);
 router.use('/outbound-deliveries', outboundDeliveryRouter);
 

@@ -2,7 +2,7 @@
 
 GET `/api/warehouse-transfers` and GET `/api/warehouse-transfers/:id` use the
 existing `{success,message,data}` response envelope and authentication.
-There are no write endpoints in this module.
+Write endpoints for the revised BF04 main flow are described in [BF04_API.md](BF04_API.md).
 
 List query: optional sourceWarehouseId, destinationWarehouseId, status, from/to
 (ISO timestamps with timezone), page (default 1), limit (default 20, maximum 100).
@@ -36,7 +36,7 @@ Missing approval quantity is null, not implicitly equal to requested quantity.
 The stored status is displayed; receiving one batch never closes a TR on read.
 Read operations use a snapshot transaction and require a MongoDB replica set.
 
-Iteration 1 supplies reads before dispatch/receipt write modules exist. Reversal,
+The original Iteration 1 read API is now accompanied by BF04 main-flow writes. Reversal,
 cancellation and variance execution writers must maintain their source documents
 and balances consistently. The current projection does not recalculate a complete
 closure decision or authorize a new posting. There is no evidence download route
