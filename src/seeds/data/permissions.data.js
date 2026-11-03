@@ -55,18 +55,18 @@ export const PERMISSION_CATALOGUE = [
   { code: 'putaway_task:confirm', description: 'Xác nhận cất hàng thực tế', uc: ['UC-33'], roles: [WAREHOUSE] },
 
   // ---------- FE-02: Dữ liệu chủ ----------
-  { code: 'product:read', description: 'Xem sản phẩm', uc: ['UC-11', 'UC-12'], roles: BUSINESS_ROLES },
-  { code: 'product:create', description: 'Tạo sản phẩm/quy cách', uc: ['UC-13'], roles: [OWNER] },
-  { code: 'product:update', description: 'Cập nhật sản phẩm/quy cách/ngưỡng', uc: ['UC-13'], roles: [OWNER] },
+  { code: 'product:read', description: 'Xem sản phẩm', uc: ['UC-17', 'UC-18'], roles: BUSINESS_ROLES },
+  { code: 'product:create', description: 'Tạo sản phẩm/quy cách', uc: ['UC-19'], roles: [OWNER] },
+  { code: 'product:update', description: 'Cập nhật sản phẩm/quy cách/ngưỡng', uc: ['UC-20', 'UC-21', 'UC-22', 'UC-23'], roles: [OWNER] },
 
   { code: 'product_lot:read', description: 'Xem lô hàng', uc: ['UC-14', 'UC-15'], roles: [OWNER, WAREHOUSE] },
   { code: 'product_lot:create', description: 'Tạo lô hàng', uc: ['UC-16'], roles: [OWNER, WAREHOUSE] },
   { code: 'product_lot:update', description: 'Cập nhật lô hàng (Warehouse chỉ được tạo)', uc: ['UC-16'], roles: [OWNER] },
 
-  { code: 'supplier:read', description: 'Xem nhà cung cấp', uc: ['UC-17', 'UC-18'], roles: [OWNER, ACCOUNTANT] },
-  { code: 'supplier:create', description: 'Tạo nhà cung cấp', uc: ['UC-19'], roles: [ACCOUNTANT] },
-  { code: 'supplier:update', description: 'Cập nhật thông tin nhà cung cấp', uc: ['UC-19'], roles: [ACCOUNTANT] },
-  { code: 'supplier:activate', description: 'Kích hoạt/ngừng nhà cung cấp', uc: ['UC-19'], roles: [OWNER] },
+  { code: 'supplier:read', description: 'Xem nhà cung cấp', uc: ['UC-28', 'UC-29'], roles: [OWNER, ACCOUNTANT] },
+  { code: 'supplier:create', description: 'Tạo nhà cung cấp', uc: ['UC-30'], roles: [ACCOUNTANT] },
+  { code: 'supplier:update', description: 'Cập nhật thông tin nhà cung cấp', uc: ['UC-31'], roles: [ACCOUNTANT] },
+  { code: 'supplier:activate', description: 'Kích hoạt/ngừng nhà cung cấp', uc: ['UC-32'], roles: [OWNER] },
 
   { code: 'customer:read', description: 'Xem khách hàng (theo phạm vi)', uc: ['UC-20', 'UC-21'], roles: BUSINESS_ROLES },
   { code: 'customer:create', description: 'Tạo khách hàng (liên hệ/địa chỉ giao)', uc: ['UC-22'], roles: [SALES] },
