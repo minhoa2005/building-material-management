@@ -2,7 +2,7 @@ import { catchAsync } from "../../shared/utils/catchAsync.js";
 import { formatApiResponse } from "../../shared/utils/ApiResponse.js";
 import * as authService from "./auth.service.js";
 import { verifyRefreshToken } from "../../config/jwt.js";
-import { setCookie } from "../../config/cookie.js";
+import { setCookie, clearCookie } from "../../config/cookie.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
 
 export const login = catchAsync(async (req, res) => {
@@ -23,6 +23,12 @@ export const getMe = catchAsync(async (req, res) => {
   const result = await authService.getCurrentUser(req.user._id);
   formatApiResponse(res, { data: result });
 });
+
+export const logout = (_req, res) => {
+  clearCookie(res, "refresh_token");
+  clearCookie(res, "claim_access_token");
+  formatApiResponse(res, { message: "Logout successful" });
+};
 
 export const refreshToken = catchAsync(async (req, res) => {
   const decoded = verifyRefreshToken(req.cookies.refresh_token);

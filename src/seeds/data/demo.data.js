@@ -72,8 +72,15 @@ export async function buildDemoData() {
   const conversions = [];
   const policies = new Map();
   for (const [index, size, factor] of [[1, '600x600', '4'], [2, '300x600', '8']]) {
+    const [dimL, dimW] = size.split('x').map(Number);
     const product = add('Product', `${index}`, {
-      sku: `GACH-DEMO-${index}`, name: `Gạch mẫu ${size}`, baseUomId: piece._id, nominalSize: size,
+      sku: `GACH-DEMO-${index}`,
+      name: `Gạch mẫu ${size}`,
+      baseUomId: piece._id,
+      nominalSize: size,
+      lengthMm: `${Math.max(dimL, dimW)}`,
+      widthMm: `${Math.min(dimL, dimW)}`,
+      thicknessMm: index === 1 ? '10' : '9',
     });
     products.push(product);
     conversions.push(add('ProductUomVersion', `${index}:PIECE`, {
