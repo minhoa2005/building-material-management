@@ -1,3 +1,93 @@
+# PO draft edit and confirmation UI — 05/11/2026
+
+Added Accountant-only draft edit and confirmation actions to PO detail. The editor changes supplier, expected date and entered quantities while preserving line IDs and saved RR/approval references. Existing PUT and POST /confirm commands retain permission, assigned-warehouse, version and idempotency checks. The PO detail reader adds scoped draftEdit source data. Success refreshes purchase/replenishment queries; errors preserve input, and uncertain outcomes retry the exact request. Confirmation opens Warehouse receiving without posting stock.
+
+Verification: 16 focused FE tests and 33 BE integration tests passed; BE used an isolated MongoDB replica set. Typecheck, production build and targeted ESLint passed. A real browser exercised live edit/confirm and Warehouse receiving availability at desktop/mobile sizes using temporary demo data; no browser runtime errors. Full-repo lint retains 7 existing errors and 2 warnings outside this change. Legacy ui:check/ui:cleanup scripts are absent and host Bash fails. No shared demo database reset, commit or push.
+
+---
+
+# Mở quyền xem chuỗi mua cho Owner và Accountant — 05/11/2026
+
+Owner/Accountant xem PO, kiểm nhận, GR và put-away mua ở mọi kho, gồm chi tiết task, lịch sử và chứng cứ có xác thực. Thêm `putaway_task:read` cho Accountant trong catalogue và permissions.json; chỉ reader dùng scope mua mở rộng, command và phạm vi kho Warehouse giữ nguyên. FE hiển thị workspace put-away cho Accountant trên trang GR; tab PO vẫn hỗ trợ chế độ xem. Cập nhật context FE/BE.
+
+Thêm `npm run seed:purchase-read-permissions` để bổ sung ba quyền đọc vào OWNER/ACCOUNTANT bằng $addToSet, chỉ cập nhật role còn thiếu quyền; không ghi đè quyền khác hoặc seed/reset dữ liệu. Đã áp dụng trên database local sep490, một role được bổ sung. Kiểm tra: 32 bài BE (HTTP/MongoDB trên database thử riêng và seed unit), 17 bài FE (RTL/MSW), typecheck và lint các file FE sửa đều đạt. Kiểm role không có warehouseIds vẫn đọc được; lệnh post/tạo/xác nhận/hủy put-away bị403, Warehouse ngoài kho không đọc task/chứng cứ, Sales/Admin không được đọc. Không kiểm storage live hoặc giao diện bằng trình duyệt; không commit/push.
+
+---
+
+# Review và giải thích nhận mua v3 — 03/11/2026
+
+Thêm docs/po-receiving-proposal/REVIEW_GIAI_THICH_NHAN_HANG_V3.md: giải thích bằng tiếng Việt các nghiệp vụ đã triển khai, người thực hiện, luồng chứng từ, vai trò/liên kết model, hàm xử lý, bảng lượng trước/sau và ví dụ theo từng tình huống. Có mục riêng cho quyền, phiên bản, gửi lại an toàn, chứng cứ, cất từng phần, sửa sai và đối soát.
+
+Đã đối chiếu source và tái hiện hai vấn đề trên database thử ngẫu nhiên: xóa dòng inspection DRAFT để Evidence.lineId tham chiếu dòng đã mất; chốt thiếu trước đợt nhập cuối làm trạng thái PO thành COMPLETED trong khi đường chốt thiếu chọn CLOSED. Báo cáo ghi rõ ảnh hưởng, hướng sửa, kiểm thử cần bổ sung và các giới hạn đã biết. Chỉ thêm tài liệu/changelog; không sửa code nghiệp vụ, không thay sep490, không chạy lại full suite hoặc upload storage thật trong lượt này. Không commit/push.
+
+---
+
+# BE nhận mua v3 theo plan điều chỉnh — 03/11/2026
+
+Thực hiện yêu cầu chỉ ghi lượng cửa hàng đồng ý nhập: bỏ stock custody của nhận mua, giữ confirm riêng với post. Bổ sung PO từ RR duyệt có guard allowance, amendment/schedule/chốt thiếu có quyết định Owner, DTO summary/trips/queue/history/operation recovery, evidence private có kiểm bytes và cleanup intent, put-away mua partial/split với projection/claim và bảo vệ Receiving relocation, reversal toàn GR do Warehouse thực hiện có chứng cứ/dependency guards, correction cùng chuyến gốc. Không triển khai hàng sai/lỗi/unknown/custody resolution và không đổi UI.
+
+Thêm contract BACKEND_V3.md, báo cáo VERIFICATION_V3.md, benchmark-v3.json; cập nhật IMPLEMENTATION, context BE, model README/changelog và đánh dấu phần plan v2 được thay thế. Kết quả test/reset và manifest ghi trong báo cáo. Không commit/push.
+
+---
+
+# Loại bỏ nhận mua cũ và tạo lại DB local — 03/11/2026
+
+Theo yêu cầu, xóa ARRIVAL khỏi model/catalogue/seed; bỏ traversal PO→ARRIVAL→INSPECTION→GR ở reader PO/NCC, bắt buộc direct PO/PO_INSPECTION/supplier refs cho GR mua. INSPECTION chung chỉ giữ cho CR/FD. Chuyển fixture và regression sang chuỗi mới, có ca từ chối ARRIVAL và GR thiếu nguồn. FE receipt list/detail đọc API thật; xóa các form, hooks, stores và components nhập mua localStorage cũ, thay tests bằng kiểm API/no-fallback.
+
+DB localhost sep490 đã dry-run, backup, drop và seed lại bằng CLI có kiểm target. Manifest: `C:/Users/minhs/.codex/backups/sep490-po-receiving-1793695344564/manifest.ejson`. Hậu kiểm: ARRIVAL0,PO_INSPECTION1,GR mua1 với nguồn đầy đủ,INSPECTION CR/FD2,36 document kinds. Không commit/push. Kết quả test/build cuối ghi trong bàn giao.
+
+Kiểm chứng cuối: backend178 tests/177 pass/0 fail/1 skip; focused receiving/PO/reset23/23 pass sau bổ sung kiểm lineage. Frontend11/11 pass, build và lint receipt/API pass. Các thay đổi UI nhận hàng song song được giữ; sửa các import/type không khớp để build working tree hiện tại.
+
+---
+
+# Triển khai nền tảng nháp và workspace nhận mua — 03/11/2026
+
+PO detail nối API thật cho nhiều đợt nhận, create/update/confirm inspection, chọn lô/split lượng/đích GR, review/post GR và cancel draft. Backend giữ line ID theo clientLineKey, lưu plannedReceiptLocationId, cancel DRAFT không xóa custody, scoped history/operation lookup. Cập nhật contract và context hai repo/model changelog. Các gói custody resolution, purchase put-away, reversal, evidence scoped, PO lifecycle và migration còn chưa hoàn thành; không nhận là đã triển khai toàn plan v2.
+
+Kiểm chứng: full backend177 tests/176 pass/0 fail/1 skip;7 frontend tests PO/workspace pass; build/typecheck và lint runtime frontend thay đổi pass. Database test riêng đã cleanup, không reset demo. Chưa kiểm browser end-to-end, không commit/push.
+
+---
+
+# Bổ sung lượng có thể chấp nhận trong context nhận mua — 03/11/2026
+
+Inspection context trả thêm lượng GR nháp đang cam kết và lượng còn được chấp nhận theo từng dòng PO trên cùng snapshot đọc; trả null khi nguồn không đủ căn cứ. Confirm vẫn kiểm lại trong transaction. Kiểm thử tập trung nhận mua: 9/9 pass trên database test riêng. Đây là một phần của plan v2, chưa triển khai các gói và UI còn lại; không commit/push.
+
+---
+
+# Rà soát giới hạn nhận mua và plan v2 — 03/11/2026
+
+Thêm [báo cáo18 giới hạn](../docs/po-receiving-proposal/gap-analysis-current-2026-11-03.md) và [plan v2](../docs/po-receiving-proposal/ui/design-plan-v2.md), liên kết từ tài liệu UI v1. Rà nguồn BE/FE/PO/supplier/upload/evidence/audit/BF04/relocation; phân biệt quan hệ PO nhiều đợt đã có với thiếu UI, headroom, stable draft/destination, cancel, custody resolution/actual handback, put-away mua partial, correction/reversal, evidence scoped, PO amendment/close/schedule và exception intake. Đề xuất source GR bổ sung, claims theo dòng nguồn, quyền/DTO/API, migration add-only, lộ trình W0–W5 và tiêu chí nghiệm thu; không đổi catalogue hoặc runtime theo các đề xuất này.
+
+Kiểm chứng mới: chạy hai file integration nhận mua/PO ledger trên DB replica set local riêng,18/18 pass,0 fail,0 skip (gồm hai bài cha). Ba probe DB random riêng đạt:40+35+25 trên cùng PO; GR nháp70 chặn ACCEPT40 nhưng context chưa trả headroom; save thay line ID và không lưu đích GR. DB probe đã cleanup, không reset/migrate DB sep490. Chỉ thêm/cập nhật tài liệu và script kiểm tra ngoài Git; không sửa runtime/model/test repo, không commit/push. Liên kết và whitespace kiểm riêng trước bàn giao.
+
+---
+
+# Kế hoạch UI nhận mua theo PO — 03/11/2026
+
+Thêm [kế hoạch UI](../docs/po-receiving-proposal/ui/design-plan.md), [luồng người dùng](../docs/po-receiving-proposal/ui/user-flow.md) và [wireframe](../docs/po-receiving-proposal/ui/wireframe-ascii.md). Đề xuất PO detail làm màn trung tâm, mỗi đợt có stepper Tiếp nhận → Kiểm hàng & lô → Ghi nhận GR → Xếp kho. Đối chiếu contract PO_INSPECTION hiện tại: custody NCC khi chốt kiểm, tối đa một GR nháp cho toàn bộ ACCEPT, post riêng nhận STORE, lựa chọn đích GR trước confirm và line IDs thay sau cập nhật nháp. Phân biệt PO nhận đủ với xếp kho và custody còn chờ; ghi rõ UI receipt đang dùng demo, giới hạn dữ liệu read/enrichment, cap GR nháp, evidence/audit và put-away chưa tích hợp.
+
+Đây là đề xuất thiết kế theo nội dung tham khảo người dùng gửi, không thay nghiệp vụ/quyền hoặc khẳng định đã triển khai. Kiểm chứng bằng đọc source/routes/contract hiện tại và kiểm liên kết tài liệu; không chạy test ứng dụng vì không sửa runtime. Không sửa dữ liệu, không commit/push.
+
+---
+
+# Triển khai backend PO_INSPECTION, custody và GR — 02/11/2026
+
+Theo các lựa chọn đã chốt, triển khai model/command kiểm hàng theo chuyến, intake giữ hộ toàn bộ phần keptOnSite thuộc NCC, một GR draft cho phần ACCEPT và post GR riêng chuyển custody sang STORE receiving/quarantine. Thêm API context/list/detail/create/update/confirm/handling-note/post, source PO/inspection/supplier và thông tin người giao; transaction, PO/location CAS guards, freeze, scope, idempotent receipt/batch IDs và audit. Không thêm FE UI, put-away hay command xử lý/return hàng chưa chấp nhận.
+
+Sửa reader PO/NCC cho nguồn mới và xác thực legacy; sửa direction/product/batch RV-01/02, scope replay RR RV-03, typed source traversal RV-04. Thêm test luồng ownership, accepted0, rollback, race confirm/post, sửa draft/note, quyền/freeze và regression bốn finding. Seed dùng flow mua mới; CLI migrate:po-receiving mặc định dry-run, chỉ reset localhost/sep490 khi đủ flags và backup đã hoàn tất. Đã backup và tạo lại DB demo sep490 theo lựa chọn người dùng; manifest ngoài Git tại `C:/Users/minhs/.codex/backups/sep490-po-receiving-1793619545404/manifest.ejson`.
+
+Contract, quyết định và kế hoạch thực hiện: [IMPLEMENTATION.md](../docs/po-receiving-proposal/IMPLEMENTATION.md). Cập nhật context BE/FE và model changelog. Main đã merge không commit, giữ thay đổi có sẵn; không commit/push. Kết quả kiểm thử cuối được ghi trong tài liệu implementation và bàn giao chat.
+
+---
+
+# Đánh giá đề xuất gộp nhận hàng PO_INSPECTION — 02/11/2026
+
+Thêm [gap analysis](../docs/po-receiving-proposal/gap-analysis.md) cho ý tưởng gộp ARRIVAL/INSPECTION trong nhánh mua hàng, GR tham chiếu trực tiếp PO và ghi người giao. Đánh giá nhận nhiều đợt, actual/accepted/rejected/pending, lot/quality/ownership, note xử lý lỗi, nguồn inspection cho GR, supplier từ PO, concurrency/retry và ảnh hưởng CR/FD/legacy. Đề xuất giới hạn thay đổi trong flow PO; đây là tài liệu đánh giá, chưa chấp thuận thay baseline hoặc triển khai.
+
+Kiểm chứng: đọc context và model/seed/readers liên quan, kiểm liên kết và git diff --check. Không sửa runtime/model/test, không migration hoặc thao tác DB, không commit/push.
+
+---
+
 # Bỏ nhóm UC-107 cũ khỏi catalogue — 30/10/2026
 
 Theo yêu cầu người dùng, bỏ ba mục UC độc lập Verify Supplier Return Agreement, Record Supplier Receipt Acknowledgement và Reconcile Supplier Return Variance (mã trước lượt này UC-122/123/124, tách từ UC-107 cũ). Không khôi phục dòng UC-107 gộp. Catalogue còn 130 UC, mã liên tục UC-01–UC-130; chín mã cuối được dịch xuống ba số. Đồng bộ catalogue/quyền/spec/actor/screen/BR/BF, phụ lục thiết kế, VI/EN, context và crosswalk. Không loại bỏ bằng chứng/thỏa thuận/ACK hay kiểm soát đang có trong luồng trả NCC, không cấp thêm quyền.

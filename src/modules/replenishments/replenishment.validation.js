@@ -84,6 +84,14 @@ export const listQuerySchema = z
     approvalDecision: z
       .enum(["APPROVE", "REJECT", "REVISE", "NONE"])
       .optional(),
+    hasPurchaseOrder: z
+      .union([z.boolean(), z.enum(["true", "false"])])
+      .transform((v) => v === true || v === "true")
+      .optional(),
+    poCreated: z
+      .union([z.boolean(), z.enum(["true", "false"])])
+      .transform((v) => v === true || v === "true")
+      .optional(),
     createdFrom: calendarDate.optional(),
     createdTo: calendarDate.optional(),
   })

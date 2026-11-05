@@ -11,6 +11,7 @@ import {
 const evidenceSchema = new Schema(
   {
     documentId: ref("BusinessDocument"),
+    lineId: ref('DocumentLine', false),
     objectKey: text(600),
     sha256: text(64, { match: /^[a-f\d]{64}$/i }),
     mediaType: text(100),

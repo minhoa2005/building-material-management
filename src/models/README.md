@@ -1,4 +1,10 @@
+> **Purchase receiving v3 (03/11/2026):** 44 collections, 36 document kinds, 22 line kinds. Purchase confirmation is stock-neutral; GR posts STORE/GOOD at Receiving directly. Purchase custody fields were removed. PurchaseEvent/SourceClaim/ReceiptPlacement/EvidenceUpload add authority, provenance and evidence lifecycle; see docs/po-receiving-proposal/BACKEND_V3.md. Earlier purchase-custody examples in this document are historical.
+
 # Shared Mongoose models
+
+Purchase receiving (2026-11-03): PO -> PO_INSPECTION -> GR_PURCHASE only.
+ARRIVAL and purchase legacy traversal are removed. GR headers require direct PO,
+inspection and supplier references. Shared INSPECTION remains for CR/FD.
 
 Import models from `src/models/index.js` in application modules:
 
@@ -15,8 +21,8 @@ names are camelCase; timestamps use UTC Date values.
 
 Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.3.0
 (27 October 2026), with the single-role decision of 28 October 2026. The SQL is a relational design reference; persistence stays
-MongoDB. All 84 SQL tables have a representation below, using 39 collections,
-35 document discriminators and 19 line discriminators. Representation does not
+MongoDB. All 84 SQL tables have a representation below, using 40 collections,
+36 document discriminators and 22 line discriminators. Representation does not
 mean that all foreign keys or business workflows are enforced by these schemas.
 
 | SQL tables | MongoDB model / representation |
@@ -28,7 +34,7 @@ mean that all foreign keys or business workflows are enforced by these schemas.
 | uom, product, product_uom_version, product_warehouse_policy, lot | Uom, Product, ProductUomVersion, ProductWarehousePolicy, Lot |
 | quality_status | QUALITY_STATUSES / QUALITY_CODES; finite code catalogue |
 | document, document_external_reference | BusinessDocument; externalReferenceIds holds unique references |
-| replenishment_request, purchase_order, arrival, goods_receipt | REPLENISHMENT, PO, ARRIVAL, GR_PURCHASE / GR_CUSTOMER_RETURN / GR_FAILED_DELIVERY typed document headers |
+| replenishment_request, purchase_order, goods_receipt | REPLENISHMENT, PO, PO_INSPECTION, GR_PURCHASE / GR_CUSTOMER_RETURN / GR_FAILED_DELIVERY typed document headers |
 | transfer_request, transfer_dispatch, transfer_receipt, handover | TRANSFER_REQUEST, TRANSFER_DISPATCH, MWTR, HANDOVER typed headers |
 | issue_request, outbound_delivery, goods_issue, warehouse_task | ISSUE_REQUEST, OUTBOUND_DELIVERY, GI_SALE / GI_SUPPLIER_RETURN, TO typed headers |
 | sales_order, customer_delivery, external_payment_confirmation | SALES_ORDER, DELIVERY_CONFIRMATION, PAYMENT_CONFIRMATION typed headers |
@@ -55,6 +61,7 @@ mean that all foreign keys or business workflows are enforced by these schemas.
 | replenishment_line | REPLENISHMENT typed DocumentLine details |
 | notification | Notification; per-recipient history/readAt, no stored live alert |
 | replenishment_planning_guard | ReplenishmentPlanningGuard; one warehouse/product version guard |
+| replenishment_submissions (Iteration 1) | ReplenishmentSubmission; append-only immutable snapshot of each submitted RR version |
 
 Document headers share the `business_documents` collection through internal
 Mongoose discriminators keyed by `documentKind`. Use the exported base model;
@@ -79,13 +86,13 @@ const po = new BusinessDocument({
 });
 
 const inspection = new DocumentLine({
-  documentId: inspectionDocumentId, lineNo: 1, lineKind: 'INSPECTION',
+  documentId: inspectionDocumentId, lineNo: 1, lineKind: 'PO_INSPECTION',
   productId, lotId, conversionId,
   enteredQty: '3', conversionSnapshot: '4', qtyBase: '12',
   productNameSnapshot: 'Historical product name',
   details: {
-    inspectedSourceLineId: arrivalLineId, qualityCode: 'GOOD',
-    ownershipDecision: 'ACCEPT', inspectedBy: userId, inspectedAt: new Date(),
+    poLineId, qualityCode: 'GOOD', disposition: 'ACCEPT',
+    keptOnSite: true, holdingLocationId: custodyLocationId,
   },
 });
 ```
@@ -194,7 +201,35 @@ const inspection = new DocumentLine({
 | Notification | recipientId/type/title/message/warehouseId/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; warehouse required after stocktake; unique derived dedupKey; recipient/time and unread indexes |
 | OutboxEvent | documentVersion required for STOCKTAKE_CLOSED/SALES_ORDER_SAVED; commit with source, process afterward; retries do not repeat stock or RR commands |
 
-MongoDB mapping: **39 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification and replenishment_planning_guard. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+MongoDB mapping: **40 collections, 35 document discriminators, 19 line discriminators**. Relational reference: **84 tables and 2 views**; new tables replenishment_line, notification, replenishment_planning_guard and the Iteration 1 replenishment_submissions. SQL remains a reference, not the runtime or an executed migration. Notification metadata is not a BusinessDocument and has no SYSTEM-created RR actor.
+
+## Iteration 1 contracts (2026-10-30)
+
+- Product adds `version` (default 1), optional category/brand/material/surface/
+  origin/description and positive mm dimensions. New SKU input is trim+uppercase;
+  lengthMm and widthMm are both present or both absent.
+- ProductUomVersion adds optional `createdBy` and `verificationReference` for new
+  records; old records remain without invented verification. It stays append-only.
+- ProductWarehousePolicy keeps target >= minimum, version and actual updatedBy.
+- Party adds version and supplier-only contact/cooperation fields. Existing
+  non-supplier behavior is unchanged. Supplier state is ACTIVE/SUSPENDED/TERMINATED
+  and `isActive = cooperationStatus === "ACTIVE"` in the service.
+- Lot adds version, createdBy, notes, verificationReference, verifiedBy/At and
+  identityLocked. Identity uniqueness remains product+manufacturer lot+tone+calibre.
+  Writers that reference a lot must lock identity in the same transaction before
+  creating the reference; UC-27 checks both the flag and real references.
+- Approval lines may carry an optional per-line reason.
+- BusinessOperation may carry `result.workflowStatus` and `result.approvalId`.
+- AuditEvent may carry entityType/entityId/changes for master history while RR
+  audit retains documentId.
+- ReplenishmentSubmission is a new append-only collection with unique
+  `(documentId, documentVersion)`. It stores warehouse/product/UOM/conversion/
+  quantity/reason snapshots; no unbounded history is embedded in an RR document.
+- REPLENISHMENT line details add `removedAt`; current-line queries exclude removed
+  lines and omitted lines are soft-deleted instead of erased.
+- Migration `iteration-1-master-data` maps legacy supplier state, adds master
+  versions and locks referenced lot identities without fabricating verification or
+  submission history. See [Iteration 1 migration](../../docs/iteration-1/MIGRATION.md).
 
 
 The user approved application of proposal 1.4.0 on 27 October 2026: [source-backed replenishment](../../git_doc/docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md). Business revision 3.3.0 retains eight BFs, five roles and 111 UCs (97 active/14 retired), extending UC-03/13/47/48/88/93/103/109 and BR-03/25 without adding UC IDs.
