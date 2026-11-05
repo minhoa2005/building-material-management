@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { User, Role } from '../../models/index.js';
+import { User, Role } from '../../models/legacy/index.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 import { userRoleDto } from '../../shared/utils/userRole.js';
 

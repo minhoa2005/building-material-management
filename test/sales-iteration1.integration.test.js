@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { once } from 'node:events';
 import app from '../src/app.js';
-import * as m from '../src/models/index.js';
+import * as m from '../src/models/legacy/index.js';
 import { seedSalesFixtures } from '../test-support/sales-fixtures.js';
 
 test('FE-06 iteration 1 reads: source chain, FD net fulfilment, roles and immutable GET', {

@@ -4,7 +4,7 @@ import { once } from 'node:events';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User, Role, Permission, ROLE_CODES } from '../src/models/index.js';
+import { User, Role, Permission, ROLE_CODES } from '../src/models/legacy/index.js';
 import { ROLE_PERMISSIONS } from '../src/seeds/data/permissions.data.js';
 
 test('HTTP account writes, auth profiles and existing tokens enforce one current role in MongoDB', {

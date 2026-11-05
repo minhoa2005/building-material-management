@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import * as models from '../src/models/index.js';
+import * as models from '../src/models/legacy/index.js';
 
 const id = () => new mongoose.Types.ObjectId();
 const when = new Date('2026-10-19T00:00:00Z');
@@ -26,7 +26,7 @@ const hasIndex = (Model, fields, predicate = () => true) => Model.schema.indexes
 );
 
 test('central entry point reuses models and every ObjectId reference resolves', async () => {
-  const again = await import('../src/models/index.js');
+  const again = await import('../src/models/legacy/index.js');
   assert.equal(again.User, models.User);
   assert.equal(again.BusinessDocument, models.BusinessDocument);
   const names = new Set(mongoose.modelNames());

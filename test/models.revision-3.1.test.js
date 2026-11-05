@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import * as m from '../src/models/index.js';
+import * as m from '../src/models/legacy/index.js';
 
 const id = () => new mongoose.Types.ObjectId();
 const when = new Date('2026-10-25T00:00:00Z');

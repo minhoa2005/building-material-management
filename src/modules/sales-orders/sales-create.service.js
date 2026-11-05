@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { createHash } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { BusinessDocument, DocumentLine, BusinessOperation, ExternalReference, ExternalReferenceLine,
-  Party, Product, ProductUomVersion, Evidence, AuditEvent, OutboxEvent } from '../../models/index.js';
+  Party, Product, ProductUomVersion, Evidence, AuditEvent, OutboxEvent } from '../../models/legacy/index.js';
 import { exact } from '../../models/model-utils.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';

@@ -1,0 +1,356 @@
+{
+  "migration": "approved-db-rebuild-20261102",
+  "sourceDatabase": "sep490",
+  "sourceHash": "48ae68f44b856c777a41ea5ed98388f3f1290fdee728c075619ad0931828473f",
+  "recordedAt": "2026-11-02T09:17:59.675Z",
+  "sourceCounts": {
+    "stocktake_snapshots": 1,
+    "replenishment_planning_guards": 0,
+    "external_references": 3,
+    "uoms": 3,
+    "line_links": 38,
+    "reservations": 2,
+    "return_source_guards": 0,
+    "warehouses": 3,
+    "approvals": 5,
+    "notifications": 0,
+    "sales_order_cancellations": 1,
+    "business_documents": 51,
+    "users": 6,
+    "document_links": 40,
+    "product_warehouse_policies": 6,
+    "customer_return_assessments": 1,
+    "stock_movements": 22,
+    "defect_holds": 1,
+    "od_commitment_transfers": 1,
+    "return_source_claims": 2,
+    "demand_reopenings": 1,
+    "external_reference_lines": 3,
+    "roles": 5,
+    "products": 2,
+    "locations": 15,
+    "business_operations": 6,
+    "posting_batches": 21,
+    "document_lines": 50,
+    "stock_balances": 11,
+    "stock_accounts": 16,
+    "parties": 4,
+    "count_attempts": 1,
+    "location_locks": 1,
+    "outbox_events": 51,
+    "permissions": 98,
+    "lots": 3,
+    "demand_supply_allocations": 2,
+    "evidence_refs": 5,
+    "product_uom_versions": 4,
+    "audit_events": 51
+  },
+  "targetCounts": {
+    "users": 6,
+    "roles": 5,
+    "permissions": 98,
+    "warehouses": 3,
+    "warehouse_locations": 15,
+    "products": 2,
+    "product_batches": 3,
+    "stock_thresholds": 6,
+    "stock_holding_points": 16,
+    "inventory_balances": 11,
+    "stock_transactions": 21,
+    "stock_movements": 22,
+    "stock_reservations": 2,
+    "supply_allocations": 2,
+    "approval_history": 5,
+    "attachments": 5,
+    "external_references": 3,
+    "external_reference_lines": 3,
+    "return_inspections": 1,
+    "return_quantity_claims": 2,
+    "delivery_demand_reopenings": 1,
+    "delivery_commitment_transfers": 1,
+    "sales_order_cancellations": 1,
+    "stock_holds": 1,
+    "stocktake_snapshots": 1,
+    "stocktake_counts": 1,
+    "stocktake_location_locks": 1,
+    "notifications": 0,
+    "audit_logs": 51,
+    "system_events": 51,
+    "operation_records": 6,
+    "replenishment_locks": 0,
+    "return_source_locks": 0,
+    "replenishment_requests": 1,
+    "purchase_orders": 1,
+    "goods_arrivals": 1,
+    "goods_inspections": 3,
+    "purchase_receipts": 1,
+    "transfer_orders": 5,
+    "warehouse_transfer_requests": 1,
+    "internal_transfer_requirements": 0,
+    "transfer_dispatches": 1,
+    "transfer_receipts": 1,
+    "sales_orders": 3,
+    "warehouse_issue_requests": 2,
+    "delivery_orders": 3,
+    "sales_goods_issues": 2,
+    "delivery_confirmations": 1,
+    "external_payment_confirmations": 1,
+    "defect_reports": 2,
+    "defect_resolution_plans": 2,
+    "stock_scrap_records": 1,
+    "stocktakes": 1,
+    "stock_adjustments": 1,
+    "failed_deliveries": 1,
+    "failed_delivery_receipts": 1,
+    "stocktake_resolution_plans": 1,
+    "stock_quality_changes": 1,
+    "customer_returns": 1,
+    "customer_return_receipts": 1,
+    "supplier_returns": 1,
+    "supplier_return_issues": 1,
+    "supplier_acknowledgements": 1,
+    "stock_discrepancies": 1,
+    "custody_receipts": 1,
+    "custody_releases": 1,
+    "stock_reversals": 1,
+    "opening_stocks": 3,
+    "customers": 1,
+    "suppliers": 1,
+    "delivery_teams": 1,
+    "storage_stacks": 0,
+    "storage_stack_items": 0,
+    "sales_invoices": 0
+  },
+  "verified": {
+    "documents": 51,
+    "items": 50,
+    "documentLinks": 40,
+    "itemLinks": 38,
+    "balances": 11
+  },
+  "dataIssues": [
+    {
+      "collection": "sales_orders",
+      "id": "26cb7bf27606b398962f65c1",
+      "field": "items.unitSellingPrice"
+    },
+    {
+      "collection": "sales_orders",
+      "id": "570d5ebf3db6afe1dcaf2d07",
+      "field": "items.unitSellingPrice"
+    },
+    {
+      "collection": "sales_orders",
+      "id": "8d0aa953f7b9eb514a1960cd",
+      "field": "items.unitSellingPrice"
+    },
+    {
+      "collection": "purchase_orders",
+      "id": "bb66e927c0535aaf9491b375",
+      "field": "items.unitPurchasePrice"
+    },
+    {
+      "collection": "delivery_teams",
+      "id": "2bc67bc2cfbd1c9ec0bf4052",
+      "field": "verifyInternalTeam"
+    },
+    {
+      "collection": "customers",
+      "id": "9c5d98ea66abdcef021691c7",
+      "field": "phone"
+    },
+    {
+      "collection": "customers",
+      "id": "9c5d98ea66abdcef021691c7",
+      "field": "legacyContactReferenceRetainedInSource"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "0e4e84ad92e4413ab9199b51",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "1b8a351a8ff19472e8e225dd",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "1f9148c0cef98a92b85088d7",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "20c4ce6fd82f019e0bc0db31",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "44978fa8d437d6a18a5a4f73",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "5be7f33c9dc0b830f251dc6e",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "5e6d91b613d3260e7d2a2aa0",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "6860f95e15eb3e5fd6ecf048",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "a597937f028b8395688b284d",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "ac04e5c34dbf03eab4e76027",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "acdcfa8fc9e05b2aecd0c822",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "c8527c0b3a1f6e272b22fd3d",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "d7e3b6abb61fc767de1ae16c",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "ef4135795e6d27d8917a9290",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "warehouse_locations",
+      "id": "efe8c6a2510ff5c816884dbd",
+      "field": "usableDimensions"
+    },
+    {
+      "collection": "products",
+      "id": "64cadeba8f6ee537d899134d",
+      "field": "manufacturerCode"
+    },
+    {
+      "collection": "products",
+      "id": "fb131248a00b4ac37c258830",
+      "field": "manufacturerCode"
+    }
+  ],
+  "validationErrors": [
+    {
+      "collection": "products",
+      "id": "64cadeba8f6ee537d899134d",
+      "fields": [
+        "manufacturerCode"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "products",
+      "id": "fb131248a00b4ac37c258830",
+      "fields": [
+        "manufacturerCode"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "replenishment_requests",
+      "id": "bcb0b3f6a9016d68d377b362",
+      "fields": [
+        "header.creationKey"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "purchase_orders",
+      "id": "cc960c05c1448703b0b768cc",
+      "fields": [
+        "items.0.lineAmount",
+        "items.0.unitPurchasePrice",
+        "currency",
+        "totalAmount"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "sales_orders",
+      "id": "09fccf860c8ee92812ac021f",
+      "fields": [
+        "items.0.lineAmount",
+        "items.0.unitSellingPrice",
+        "currencyCode",
+        "orderAmount"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "sales_orders",
+      "id": "44b81ae42080896d28f29e66",
+      "fields": [
+        "items.0.lineAmount",
+        "items.0.unitSellingPrice",
+        "currencyCode",
+        "orderAmount"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "sales_orders",
+      "id": "b2b26fea06cccb811574af97",
+      "fields": [
+        "items.0.lineAmount",
+        "items.0.unitSellingPrice",
+        "currencyCode",
+        "orderAmount"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "defect_reports",
+      "id": "72f9f883121c222e758398ff",
+      "fields": [
+        "header"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "defect_reports",
+      "id": "f9d5e991ab7b19afca0a0129",
+      "fields": [
+        "header"
+      ],
+      "kind": "ValidationError"
+    },
+    {
+      "collection": "customers",
+      "id": "9c5d98ea66abdcef021691c7",
+      "fields": [
+        "phone"
+      ],
+      "kind": "ValidationError"
+    }
+  ],
+  "status": "REVERIFIED_REVIEW_REQUIRED",
+  "runtimeReady": false,
+  "remaining": [
+    "Resolve recorded data gaps",
+    "Complete API adapters and runtime cutover tests",
+    "D07 and D08 workflow decisions remain pending"
+  ],
+  "targetDatabase": "sep490_rebuild_20261102",
+  "backupDatabase": "sep490_rebuild_20261102_backup"
+}

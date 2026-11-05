@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import * as models from '../models/index.js';
+import * as models from '../models/legacy/index.js';
 import { PERMISSION_CATALOGUE } from '../seeds/data/permissions.data.js';
 
 export const MIGRATION_ID = 'replenishment-3.3';

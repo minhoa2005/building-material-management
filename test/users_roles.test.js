@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { User, Role, Permission } from '../src/models/index.js';
+import { User, Role, Permission } from '../src/models/legacy/index.js';
 import * as userService from '../src/modules/users/user.service.js';
 import * as roleService from '../src/modules/roles/role.service.js';
 

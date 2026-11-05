@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { once } from 'node:events';
 import { Writable } from 'node:stream';
 import app from '../src/app.js';
-import * as m from '../src/models/index.js';
+import * as m from '../src/models/legacy/index.js';
 import { seedSalesFixtures } from '../test-support/sales-fixtures.js';
 import { cloudinary } from '../src/config/cloudinary.js';
 

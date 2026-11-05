@@ -1,4 +1,4 @@
-import { Warehouse } from '../models/index.js';
+import { Warehouse } from '../models/legacy/index.js';
 import { SEED_WAREHOUSES } from './data/accounts.data.js';
 
 /**

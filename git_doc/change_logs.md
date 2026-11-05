@@ -1,3 +1,45 @@
+# DB Diagram kiểu SQL theo model hiện hành — 05/11/2026
+
+Tạo [WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio) theo cách trình bày bảng như SQL/Miro: header tên collection, các trường PK/FK, kiểu dữ liệu, trường bắt buộc/tùy chọn và đường quan hệ crow's-foot. Tab `00` đặt toàn bộ 74 bảng trên một sơ đồ; 10 tab nhóm nghiệp vụ giúp đọc field và quan hệ rõ hơn. Sơ đồ được sinh trực tiếp từ 74 Mongoose model đã duyệt để tránh lệch tên collection/ref. Kiểm XML đạt: 11 tab, 148 khung bảng và 504 đường quan hệ FK trực tiếp (gồm tab tổng hợp và các tab nhóm).
+
+# Sơ đồ database chi tiết theo model hiện hành — 05/11/2026
+
+Tạo [WMSD_DB_Diagram_2026-11-05.drawio](docs/03_thiet_ke/WMSD_DB_Diagram_2026-11-05.drawio) từ thiết kế 74 collection đã duyệt. File có 94 tab: chỉ mục, 74 collection, và 19 biến thể dòng hàng nhúng. Header phản ánh database mẫu `wmsd_demo_tile_shop` tại `localhost:27017`, 851 bản ghi seed; không dùng `_db_rebuild`. Nội dung field/ref/index kế thừa thiết kế đang được model hiện hành kiểm thử; D07/D08 và API chưa port vẫn được ghi rõ là điểm mở.
+
+# Đưa model đã duyệt thành model chính và dùng MongoDB Compass localhost — 05/11/2026
+
+Theo yêu cầu người dùng, `src/models/index.js` trở thành entry point của 74 collection đã duyệt qua `registerReviewedModels(connection)`. API chưa chuyển dùng rõ `src/models/legacy/index.js`; không trộn hai profile model trên một Mongoose connection. Giữ `registerMigrationModels` cho công cụ chuyển đổi cũ.
+
+Đã bỏ hoàn toàn collection/guard `_db_rebuild`. Seed và verify chỉ kiểm đúng 74 collection nghiệp vụ, schema/index và quy tắc dữ liệu. Chuyển đích local sang `mongodb://localhost:27017/wmsd_demo_tile_shop`; kiểm tra trực tiếp MongoDB đang chạy standalone, seed đã ghi/đọc lại 74 collection và 851 bản ghi. Seed hỗ trợ standalone, còn API ghi tồn đa collection phải dùng replica set hoặc Atlas khi được port.
+
+Kiểm chứng: `npm run test:db-rebuild` đạt 31/31; `npm run db:local:status` và `npm run db:local:seed` chạy tại localhost:27017. Cập nhật PROJECT_GUIDE, MODEL_MAP, luật agent, hướng dẫn local/seed và model changelog. API/DTO/permission/service chưa được chuyển sang model mới trong đợt này; D07/D08 tiếp tục chờ nghiệp vụ.
+
+# Tổng hợp tài liệu, luật agent và seed cửa hàng — 05/11/2026
+
+Theo yêu cầu người dùng, tập trung phiếu duyệt DB, ERD/Data Dictionary/snapshot, hướng dẫn migration/local, báo cáo chuyển thử và contract API vào git_doc. Manifest nhập tài liệu giữ nguồn/hash, các README module trỏ về bản chính. Tạo PROJECT_GUIDE, MODEL_MAP đủ 74 collection, DOCUMENTATION_RULES; context và README dẫn về đầu mối hiện hành. Các bản context/README trước được lưu theo ngày để tra cứu.
+
+AGENTS.md, CLAUDE.md và GEMINI.md đồng nhất. Agent phải tự cập nhật nội dung tài liệu liên quan trong cùng lượt khi thay model/API/quyền/nghiệp vụ/seed/config, ghi changelog và chạy docs:check. Kiểm này phát hiện lệch ba file luật, liên kết chính, thiếu collection và dấu vết cập nhật; nội dung nghiệp vụ vẫn cần review.
+
+Bổ sung tile-shop.js vào seed reviewed và đổi version thành wmsd-tile-shop-20261105-v1. Bộ gồm 3 kho, 20 sản phẩm, 43 lô, 15 nhân viên, 20 khách, 4 NCC, 2 đội nội bộ. Tồn đầu kỳ có nguồn và lịch sử, thùng nguyên/lẻ theo cùng sản phẩm/lô, kích thước kiện và bố trí chồng. Quy tắc một thùng một sản phẩm/một lô theo xác nhận 05/11; chưa đổi schema collection. Local target là wmsd_demo_tile_shop, bộ v2 giữ riêng. Không ghi DB nhóm.
+
+Kiểm chứng: main đã cập nhật trước code; 32 test DB migration/demo/local config đạt. Seed đã ghi và đọc lại MongoDB local, 74 collection/851 bản ghi nghiệp vụ, 55 số dư, 33 giao dịch/74 dòng biến động. Chạy seed lại trả ALREADY_SEEDED và cùng fingerprint. docs:check đạt, git diff --check sạch, liên kết các phiếu duyệt đã được kiểm. Báo cáo tại outputs/tile_shop_seed_2026-11-05.json. Chưa chuyển các API cũ sang model mới, marker runtimeReady=false; D07/D08 tiếp tục chờ nghiệp vụ.
+
+# Chuyển môi trường thử DB mới về localhost — 03/11/2026
+
+Theo yêu cầu thử trên máy trước DB chung: chạy instance MongoDB riêng tại 127.0.0.1:27018, replica set wmsd-local, dữ liệu dưới .local/mongodb. Giữ dịch vụ 27017 và DB cloud nguyên trạng. Nạp bộ wmsd_demo_v2 tại local; thêm lệnh start/status/stop/seed/verify, cấu hình .env.local và loại dữ liệu máy khỏi Git. Seed remote bị chặn mặc định, cần cờ triển khai rõ ràng.
+
+Kiểm thử trực tiếp bằng model mới trên DB local tạm: populate, commit/rollback transaction, khóa chống trừ lặp, tranh chấp phiên bản tồn, lịch sử append-only và unique hãng/SKU. Cả 7 test đạt; DB tạm được dọn sau kiểm tra. Hướng dẫn tại src/models/rebuild/LOCAL_DEVELOPMENT.md. Chưa chuyển toàn bộ service/API, không đổi URI trong .env nhóm và không commit/push.
+
+# Bộ DB mẫu theo thiết kế đã duyệt — 03/11/2026
+
+Người dùng xác nhận dữ liệu cũ chỉ để test và yêu cầu tạo bộ mới. Đã tạo wmsd_demo_v2 gồm 74 collection nghiệp vụ, 511 bản ghi; tách biệt sep490 và bản chuyển thử ngày 02/11. Bổ sung model hỗ trợ theo phiếu đã duyệt, kịch bản chuyển kho/nhập/xuất/bán/trả/kiểm kê, đơn vị và quy đổi trên dòng, giá mẫu, sức chứa, vai trò tùy chỉnh, ảnh bằng chứng giả lập. Hướng dẫn xem DB và danh mục collection tại E:/Doan/outputs/db_rebuild/HUONG_DAN_DB_MOI.md; mô tả cách chạy và giới hạn tại src/models/rebuild/README.md.
+
+Kiểm chứng: 27 test migration/demo đạt; đọc lại MongoDB đối chiếu liên kết, chuỗi tăng giảm tồn, số lượng điều chuyển, sức chứa và hóa đơn. Chạy lại không tạo thêm dữ liệu. Full suite còn lỗi có sẵn do thiếu dependency replenishment và fixture cũ thiếu INTERNAL_TRANSFER_REQUIREMENT. Chưa chuyển API sang schema mới, không đổi .env, không commit/push; D07/D08 tiếp tục chờ nghiệp vụ.
+
+# Chuyển thử DB và model — 02/11/2026
+
+Bổ sung hướng dẫn tại src/models/rebuild/README.md về model đích, lệnh chuyển và kiểm tra dữ liệu, tên DB sao lưu, dữ liệu cần bổ sung và phạm vi chưa chuyển ở API. Bản chuyển thử sep490_rebuild_20261102 đã được đối chiếu với nguồn. Các phiếu duyệt thiết kế tiếp tục là căn cứ nghiệp vụ.
+
 # Bỏ nhóm UC-107 cũ khỏi catalogue — 30/10/2026
 
 Theo yêu cầu người dùng, bỏ ba mục UC độc lập Verify Supplier Return Agreement, Record Supplier Receipt Acknowledgement và Reconcile Supplier Return Variance (mã trước lượt này UC-122/123/124, tách từ UC-107 cũ). Không khôi phục dòng UC-107 gộp. Catalogue còn 130 UC, mã liên tục UC-01–UC-130; chín mã cuối được dịch xuống ba số. Đồng bộ catalogue/quyền/spec/actor/screen/BR/BF, phụ lục thiết kế, VI/EN, context và crosswalk. Không loại bỏ bằng chứng/thỏa thuận/ACK hay kiểm soát đang có trong luồng trả NCC, không cấp thêm quyền.

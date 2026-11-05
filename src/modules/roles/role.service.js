@@ -1,4 +1,4 @@
-import { Role, Permission, User } from '../../models/index.js';
+import { Role, Permission, User } from '../../models/legacy/index.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 
 export const listRoles = async () => {

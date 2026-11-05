@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { ApiError } from "../shared/utils/ApiError.js";
-import { User } from "../models/index.js";
+import { User } from "../models/legacy/index.js";
 import { currentRole } from "../shared/utils/userRole.js";
 
 const JWT_SECRET =

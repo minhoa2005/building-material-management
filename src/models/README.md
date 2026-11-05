@@ -1,9 +1,11 @@
-# Shared Mongoose models
+# WMSD Mongoose models
 
-Import models from `src/models/index.js` in application modules:
+`src/models/index.js` is the main entry point for the reviewed 74-collection design. Register it on a fresh Mongoose connection with `registerReviewedModels(connection)` and get models by collection name. Read [the registry guide](../../git_doc/docs/09_phat_trien/DB_REBUILD.md) and [complete model map](../../git_doc/MODEL_MAP.md) before changing a model.
+
+The content below documents the legacy registry retained only for APIs that have not been ported. Those modules must import explicitly from `src/models/legacy/index.js`:
 
 ```js
-import { User, BusinessDocument, DocumentLine, StockBalance } from '../../models/index.js';
+import { User, BusinessDocument, DocumentLine, StockBalance } from '../../models/legacy/index.js';
 ```
 
 Each model is registered once on the default Mongoose connection. Importing the

@@ -9,7 +9,7 @@ import {
   ReplenishmentSubmission,
   Uom,
   Warehouse,
-} from "../../models/index.js";
+} from "../../models/legacy/index.js";
 import { ExactDecimal } from "../../models/model-utils.js";
 import {
   ApiError,

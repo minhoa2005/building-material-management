@@ -2,11 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import * as models from '../src/models/index.js';
+import * as models from '../src/models/legacy/index.js';
 import { exact } from '../src/models/model-utils.js';
 import { buildDemoData } from '../src/seeds/data/demo.data.js';
 import { SEED_ACCOUNTS } from '../src/seeds/data/accounts.data.js';
 import { databaseHasData, runSeeds, syncExistingRolePermissions } from '../src/seeds/index.js';
+
+function mockLegacySchema(t) {
+  const connection = mongoose.connection;
+  const descriptor = Object.getOwnPropertyDescriptor(connection, 'db');
+  Object.defineProperty(connection, 'db', { configurable: true, value: {
+    collection: () => ({ findOne: async () => null }),
+  } });
+  t.after(() => descriptor ? Object.defineProperty(connection, 'db', descriptor) : delete connection.db);
+}
 
 const dataset = buildDemoData();
 const byName = async () => new Map((await dataset).map(({ Model, documents }) => [Model.modelName, documents]));
@@ -129,6 +138,7 @@ test('standalone MongoDB is rejected before any inserts', async (t) => {
   for (const [key, value] of Object.entries({ readyState: 1, db: {
     listCollections: () => ({ toArray: async () => [] }),
     admin: () => ({ command: async () => ({ ok: 1 }) }),
+    collection: () => ({ findOne: async () => null }),
   } })) {
     const descriptor = Object.getOwnPropertyDescriptor(connection, key);
     Object.defineProperty(connection, key, { configurable: true, value });
@@ -138,6 +148,7 @@ test('standalone MongoDB is rejected before any inserts', async (t) => {
 });
 
 test('explicit permission sync only updates existing roles; missing catalogue fails before saving', async (t) => {
+  mockLegacySchema(t);
   const saved = [];
   const admin = { code: 'ADMIN', permissionIds: [], save: async () => saved.push('ADMIN') };
   t.mock.method(models.Permission, 'find', () => ({ lean: async () => [] }));
@@ -147,6 +158,7 @@ test('explicit permission sync only updates existing roles; missing catalogue fa
 });
 
 test('explicit permission sync restores the catalogue on existing roles', async (t) => {
+  mockLegacySchema(t);
   const data = await byName();
   let saves = 0;
   const existing = { code: 'OWNER', permissionIds: [], save: async () => { saves += 1; } };

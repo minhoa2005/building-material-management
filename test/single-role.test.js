@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User, Role } from '../src/models/index.js';
+import { User, Role } from '../src/models/legacy/index.js';
 import { createUserSchema, updateUserSchema } from '../src/modules/users/user.validation.js';
 import * as users from '../src/modules/users/user.service.js';
 import * as auth from '../src/modules/auth/auth.service.js';

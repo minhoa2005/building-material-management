@@ -4,7 +4,7 @@ import {
   BusinessDocument, DocumentLine, BusinessOperation, AuditEvent, Location, LocationLock,
   StockAccount, StockBalance, Reservation, PostingBatch, StockMovement, DefectHold,
   Lot, Product, Party,
-} from '../../models/index.js';
+} from '../../models/legacy/index.js';
 import { exact } from '../../models/model-utils.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';
 import { ApiError } from '../../shared/utils/ApiError.js';

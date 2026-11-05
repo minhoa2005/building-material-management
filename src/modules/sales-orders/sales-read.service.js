@@ -3,7 +3,7 @@ import {
   BusinessDocument, DocumentLine, ExternalReference, ExternalReferenceLine,
   SalesOrderCancellation, DemandReopening, OdCommitmentTransfer, Reservation,
   LineLink, Evidence, PostingBatch, StockMovement,
-} from '../../models/index.js';
+} from '../../models/legacy/index.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 import { exact } from '../../models/model-utils.js';

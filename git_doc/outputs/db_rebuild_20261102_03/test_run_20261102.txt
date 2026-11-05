@@ -1,0 +1,349 @@
+✔ rebuild preserves document/item identities, sources, stock and external documents (1.2737ms)
+✔ handover becomes a child of its dispatch and maintains its original line ID (0.1082ms)
+✔ historical conversion uses line snapshot even if master conversion has changed (1.315ms)
+✔ unknown collections and missing source references stop the migration (1.1501ms)
+✔ wrong historical quantities and stock differences are rejected (0.5531ms)
+✔ source snapshot stays immutable and reruns produce the same data (24.9881ms)
+✔ missing manufacturer, customer phone and historical prices are reported, never filled (60.8192ms)
+✔ rebuilt invoice calculates accepted quantities and rejects billed excess (2.0603ms)
+✔ API refuses rebuild and backup databases before legacy writes or seeding (0.1755ms)
+✔ schema changes allow custom roles and enforce ownership/dimension constraints (0.8364ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\test\iteration1-replenishment.integration.test.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\iteration1-replenishment.integration.test.js (188.0831ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\location-movement-lifecycle.integration.test.js (450.7137ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\location-movements.integration.test.js (454.9877ms)
+✔ UC-36 validates decimal strings and rejects client-controlled business fields (5.0164ms)
+✔ UC-35 derives actual movement once per ledger row, including reversals (0.7886ms)
+﹣ MongoDB indexes, discriminator persistence and append-only history (1.0237ms) # SKIP
+✔ SO and confirmations restrict workflow states without restricting other document kinds (19.5104ms)
+✔ PAY-CFM requires full external receipt and at least one nonblank supporting fact (6.1455ms)
+✔ WIR requires SO sources and rejects the retired external-line contract (8.9359ms)
+✔ packaging is an independent observation and supplier agreement needs verification evidence (8.8245ms)
+✔ external sources require a stable correlation ID and preserve optional provider revisions (0.9702ms)
+✔ D6 eligibility follows exclusions, complete conditions and unknowns for every combination (129.3504ms)
+✔ D6 known deadlines require terms and assessments require version, reason and actor (1.67ms)
+✔ CR/FD source claims are exclusive; FD cannot use historical customer receipts (3.0112ms)
+✔ stocktake DELTA keeps the real signed difference separate from quality/location transfers (11.541ms)
+✔ stocktake execution facts must be absent together or include actor, timestamp and evidence (3.0131ms)
+✔ non-stock operations, reopening and holds validate identities, quantities and versions (2.9154ms)
+✔ 3.1 indexes cover source deduplication, confirmations, claims, reopening and active holds (0.5494ms)
+✔ central entry point reuses models and every ObjectId reference resolves (2.3129ms)
+✔ all 36 document kinds select their typed schemas in one collection (37.1404ms)
+✔ all 20 line kinds retain typed detail fields and a shared line identity (32.5914ms)
+✔ quantities preserve exact decimal arithmetic, ranges and scale (9.7793ms)
+✔ master data and local relationships reject incompatible combinations (3.3126ms)
+✔ customer-return source is exclusive, without fabricating historical GI lines (1.9032ms)
+✔ approval forbids self-approval and duplicate line decisions (4.1099ms)
+✔ movement arithmetic handles receipt, issue, transfer and malformed endpoints (4.4619ms)
+✔ missing stocktake count and an explicit zero count remain distinct (1.3819ms)
+✔ schema declares unique/idempotency/reconciliation indexes without nullable collisions (0.6268ms)
+✔ append-only history rejects normal query, document and bulk mutation before DB access (6.8067ms)
+✔ migration preserves quantities, document identities, existing grants and historical reasons (17.9156ms)
+✔ migration preview becomes a no-op after applying its planned changes (3.2809ms)
+✔ migration keeps configured targets and rejects invalid policies or invented event versions (3.2551ms)
+✔ migration rejects ambiguous RR details and requires a completed backup before DDL (3.759ms)
+﹣ replenishment migration on an isolated MongoDB database is idempotent and preserves stock/history (0.0853ms) # SKIP
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\replenishment-read.integration.test.js (345.0149ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\replenishment-read.test.js (279.5272ms)
+✔ policy defaults target to minimum and enforces exact nonnegative target >= minimum (15.4435ms)
+✔ RR creation uses one form with a real actor, stable key, reason and paired submission facts (9.6356ms)
+✔ evaluated RR sources are required, typed and independent of WIR existence (29.2604ms)
+✔ quantity edits need an explanation and free-text reasons retain structured source refs (6.4082ms)
+✔ notifications have independent stable recipient keys and require stocktake warehouse/context (2.5893ms)
+✔ SO/count outbox triggers require source version without restricting other business events (0.591ms)
+✔ planning, source lookup and notification indexes declare the required identities (0.407ms)
+✔ seed separates closed-count notifications, explicit user-created RRs and an unhandled zero-stock item (349.0551ms)
+✔ a saved SO with no compatible source has a notice but no implicit RR or WIR (313.3384ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\sales-create.integration.test.js (490.2761ms)
+﹣ Cloudinary stores source image privately and allows signed retrieval (0.4254ms) # SKIP
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\sales-iteration1.integration.test.js (493.4706ms)
+✔ sales read validation rejects malformed and unsupported filters (6.7116ms)
+✔ SO creation validates source identity, decimal strings and strict business input (3.7736ms)
+﹣ atomic full seed against a MongoDB replica set (0.4823ms) # SKIP
+✖ demo seed covers all 39 collections, 35 document kinds and 19 line kinds with valid schemas (395.1841ms)
+✔ every seed reference resolves, including typed headers, line details and embedded approvals (5.4075ms)
+[Seed] Skipped: database already contains data.
+[Seed] Synced permissions for 1 existing role(s); no records inserted.
+✔ seed keeps existing demo credentials, hashes passwords and assigns actual warehouse scopes (293.7365ms)
+✔ ledger replays in time order to every balance; frozen stock is not adjusted by draft plans (0.7939ms)
+✔ empty database check includes unknown collections and ignores empty collections/system metadata (0.5177ms)
+✔ runSeeds skips a partially populated database before any inserts, indexes or permission updates (0.582ms)
+✔ standalone MongoDB is rejected before any inserts (0.2756ms)
+✔ explicit permission sync only updates existing roles; missing catalogue fails before saving (0.4057ms)
+✔ explicit permission sync restores the catalogue on existing roles (0.3117ms)
+✔ role migration auto-converts a single valid reference and preserves current scalar users (1.2336ms)
+✔ ambiguous, missing, dangling, malformed and conflicting old/new roles require explicit choices (1.0778ms)
+✔ migration preview does not write; apply preserves unrelated facts and is idempotent (5.1597ms)
+✔ unresolved users and incomplete backups prevent every database write (0.8873ms)
+✔ concurrent role changes abort before writes and write failures roll back all user changes (0.7301ms)
+﹣ single-role migration persists atomically on an isolated MongoDB database (0.0757ms) # SKIP
+﹣ HTTP account writes, auth profiles and existing tokens enforce one current role in MongoDB (0.3345ms) # SKIP
+✔ User requires exactly one scalar role reference and permits shared roles (12.0143ms)
+✔ account write contracts reject plural role payloads instead of silently ignoring them (2.0352ms)
+✔ permissions use only the current role and never give ADMIN business operations (0.5726ms)
+✔ login, refresh and me expose one lowercase role; old tokens reload current rights (14.8275ms)
+✔ account create/update replace a scalar role, filtering and counts group by roleId (55.0585ms)
+✔ legacy account seed rejects a missing role catalogue before querying or inserting users (0.2776ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\transfer-lifecycle.integration.test.js (469.8498ms)
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'E:\Doan\CODE\BE\building-material-management\src\shared\utils\domain.js' imported from E:\Doan\CODE\BE\building-material-management\src\modules\replenishments\replenishment.validation.js
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///E:/Doan/CODE/BE/building-material-management/src/shared/utils/domain.js'
+}
+
+Node.js v26.13.0
+✖ test\transfer-reads.integration.test.js (452.8737ms)
+✔ transfer filters are bounded and reject operators, unknown fields and invalid dates (6.2371ms)
+✔ userService: listUsers returns correct structure (1.5446ms)
+✔ roleService: updateRolePermissions updates permissions for a role (0.5265ms)
+ℹ tests 88
+ℹ suites 0
+ℹ pass 72
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 6
+ℹ todo 0
+ℹ duration_ms 1832.5979
+
+✖ failing tests:
+
+test at test\iteration1-replenishment.integration.test.js:1:1
+✖ test\iteration1-replenishment.integration.test.js (188.0831ms)
+  'test failed'
+
+test at test\location-movement-lifecycle.integration.test.js:1:1
+✖ test\location-movement-lifecycle.integration.test.js (450.7137ms)
+  'test failed'
+
+test at test\location-movements.integration.test.js:1:1
+✖ test\location-movements.integration.test.js (454.9877ms)
+  'test failed'
+
+test at test\replenishment-read.integration.test.js:1:1
+✖ test\replenishment-read.integration.test.js (345.0149ms)
+  'test failed'
+
+test at test\replenishment-read.test.js:1:1
+✖ test\replenishment-read.test.js (279.5272ms)
+  'test failed'
+
+test at test\sales-create.integration.test.js:1:1
+✖ test\sales-create.integration.test.js (490.2761ms)
+  'test failed'
+
+test at test\sales-iteration1.integration.test.js:1:1
+✖ test\sales-iteration1.integration.test.js (493.4706ms)
+  'test failed'
+
+test at test\seeds.test.js:23:1
+✖ demo seed covers all 39 collections, 35 document kinds and 19 line kinds with valid schemas (395.1841ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+  + Set(35) {
+  - Set(36) {
+      'ADJUSTMENT',
+      'ARRIVAL',
+      'CUSTODY_RECEIPT',
+      'CUSTODY_RELEASE',
+      'CUSTOMER_RETURN',
+  ...
+      'INSPECTION',
+  -   'INTERNAL_TRANSFER_REQUIREMENT',
+      'ISSUE_REQUEST',
+      'MWTR',
+      'OPENING',
+      'OUTBOUND_DELIVERY',
+      'PAYMENT_CONFIRMATION',
+  
+      at TestContext.<anonymous> (file:///E:/Doan/CODE/BE/building-material-management/test/seeds.test.js:31:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Set(35) { 'OPENING', 'REPLENISHMENT', 'PO', 'ARRIVAL', 'INSPECTION', 'GR_PURCHASE', 'TO', 'SALES_ORDER', 'ISSUE_REQUEST', 'OUTBOUND_DELIVERY', 'GI_SALE', 'DELIVERY_CONFIRMATION', 'PAYMENT_CONFIRMATION', 'FAILED_DELIVERY', 'GR_FAILED_DELIVERY', 'CUSTOMER_RETURN', 'CUSTODY_RECEIPT', 'GR_CUSTOMER_RETURN', 'CUSTODY_RELEASE', 'TRANSFER_REQUEST', 'TRANSFER_DISPATCH', 'HANDOVER', 'MWTR', 'DISCREPANCY', 'DEFECT_CASE', 'DISPOSITION', 'SCRAP', 'REVERSAL', 'SUPPLIER_RETURN', 'GI_SUPPLIER_RETURN', 'SUPPLIER_ACK', 'RECLASS', 'STOCKTAKE', 'ST_RESOLUTION', 'ADJUSTMENT' },
+    expected: Set(36) { 'REPLENISHMENT', 'PO', 'ARRIVAL', 'INSPECTION', 'GR_PURCHASE', 'TO', 'TRANSFER_REQUEST', 'INTERNAL_TRANSFER_REQUIREMENT', 'TRANSFER_DISPATCH', 'MWTR', 'HANDOVER', 'SALES_ORDER', 'ISSUE_REQUEST', 'OUTBOUND_DELIVERY', 'GI_SALE', 'DELIVERY_CONFIRMATION', 'PAYMENT_CONFIRMATION', 'DEFECT_CASE', 'DISPOSITION', 'SCRAP', 'STOCKTAKE', 'ADJUSTMENT', 'FAILED_DELIVERY', 'GR_FAILED_DELIVERY', 'ST_RESOLUTION', 'RECLASS', 'CUSTOMER_RETURN', 'GR_CUSTOMER_RETURN', 'SUPPLIER_RETURN', 'GI_SUPPLIER_RETURN', 'SUPPLIER_ACK', 'DISCREPANCY', 'CUSTODY_RECEIPT', 'CUSTODY_RELEASE', 'REVERSAL', 'OPENING' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\transfer-lifecycle.integration.test.js:1:1
+✖ test\transfer-lifecycle.integration.test.js (469.8498ms)
+  'test failed'
+
+test at test\transfer-reads.integration.test.js:1:1
+✖ test\transfer-reads.integration.test.js (452.8737ms)
+  'test failed'

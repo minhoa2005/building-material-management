@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import * as models from '../../models/index.js';
+import * as models from '../../models/legacy/index.js';
 import { exact } from '../../models/model-utils.js';
 import { SEED_ACCOUNTS, SEED_WAREHOUSES } from './accounts.data.js';
 import { PERMISSION_CATALOGUE, ROLE_PERMISSIONS } from './permissions.data.js';

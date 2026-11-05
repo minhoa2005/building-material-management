@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import * as m from '../src/models/index.js';
+import * as m from '../src/models/legacy/index.js';
 import { buildDemoData } from '../src/seeds/data/demo.data.js';
 import { ROLE_PERMISSIONS } from '../src/seeds/data/permissions.data.js';
 

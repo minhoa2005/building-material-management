@@ -1,5 +1,7 @@
 # WMSD Backend API (`sep490-api`)
 
+**Team documentation (05 November 2026):** Start with [git_doc](git_doc/README.md), the [current project rules](git_doc/PROJECT_GUIDE.md) and [model map](git_doc/MODEL_MAP.md). Reviewed database development uses localhost first. Legacy runtime information below must be read with the migration boundary in those guides.
+
 Backend API service for **WMSD (Warehouse Management System Development)** — Ceramic Tile Warehouse Management System (Capstone SEP490_G56).
 
 ## Tech Stack

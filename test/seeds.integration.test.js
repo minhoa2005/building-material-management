@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import { Role, StockMovement, BusinessDocument, DOCUMENT_KINDS } from '../src/models/index.js';
+import { Role, StockMovement, BusinessDocument, DOCUMENT_KINDS } from '../src/models/legacy/index.js';
 import { runSeeds } from '../src/seeds/index.js';
 
 // Never use the database named in the URI. Only drop our own random test DB.

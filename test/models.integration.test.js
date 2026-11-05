@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
-import * as models from '../src/models/index.js';
+import * as models from '../src/models/legacy/index.js';
 
 const id = () => new mongoose.Types.ObjectId();
 const duplicate = (action) => assert.rejects(action, (error) => error.code === 11000);

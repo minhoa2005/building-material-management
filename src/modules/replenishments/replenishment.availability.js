@@ -9,7 +9,7 @@ import {
   Reservation,
   LocationLock,
   DefectHold,
-} from "../../models/index.js";
+} from "../../models/legacy/index.js";
 import { exact } from "../../models/model-utils.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
 import { idString } from "./replenishment.access.js";

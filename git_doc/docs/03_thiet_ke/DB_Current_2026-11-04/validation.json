@@ -1,0 +1,334 @@
+{
+  "database": "wmsd_demo_v2",
+  "snapshotAt": "2026-11-03T21:10:22.293Z",
+  "collections": 74,
+  "documents": 511,
+  "baseFieldPaths": 3327,
+  "sharedItemVariants": 19,
+  "erdPages": 14,
+  "dbDesignPages": 94,
+  "coverage": {
+    "users": {
+      "fields": 12,
+      "recordCount": 6
+    },
+    "roles": {
+      "fields": 10,
+      "recordCount": 6
+    },
+    "permissions": {
+      "fields": 8,
+      "recordCount": 101
+    },
+    "warehouses": {
+      "fields": 12,
+      "recordCount": 3
+    },
+    "warehouse_locations": {
+      "fields": 16,
+      "recordCount": 16
+    },
+    "products": {
+      "fields": 12,
+      "recordCount": 2
+    },
+    "customers": {
+      "fields": 7,
+      "recordCount": 1
+    },
+    "suppliers": {
+      "fields": 11,
+      "recordCount": 1
+    },
+    "delivery_teams": {
+      "fields": 7,
+      "recordCount": 1
+    },
+    "storage_stacks": {
+      "fields": 15,
+      "recordCount": 7
+    },
+    "storage_stack_items": {
+      "fields": 18,
+      "recordCount": 7
+    },
+    "stock_holding_points": {
+      "fields": 6,
+      "recordCount": 19
+    },
+    "inventory_balances": {
+      "fields": 10,
+      "recordCount": 15
+    },
+    "stock_transactions": {
+      "fields": 13,
+      "recordCount": 30
+    },
+    "stock_movements": {
+      "fields": 13,
+      "recordCount": 34
+    },
+    "stock_reservations": {
+      "fields": 25,
+      "recordCount": 2
+    },
+    "supply_allocations": {
+      "fields": 22,
+      "recordCount": 2
+    },
+    "approval_history": {
+      "fields": 31,
+      "recordCount": 6
+    },
+    "attachments": {
+      "fields": 22,
+      "recordCount": 6
+    },
+    "return_inspections": {
+      "fields": 19,
+      "recordCount": 1
+    },
+    "return_quantity_claims": {
+      "fields": 22,
+      "recordCount": 2
+    },
+    "delivery_demand_reopenings": {
+      "fields": 11,
+      "recordCount": 1
+    },
+    "delivery_commitment_transfers": {
+      "fields": 12,
+      "recordCount": 1
+    },
+    "sales_order_cancellations": {
+      "fields": 13,
+      "recordCount": 1
+    },
+    "stock_holds": {
+      "fields": 25,
+      "recordCount": 1
+    },
+    "stocktake_snapshots": {
+      "fields": 20,
+      "recordCount": 3
+    },
+    "stocktake_counts": {
+      "fields": 23,
+      "recordCount": 4
+    },
+    "stocktake_location_locks": {
+      "fields": 13,
+      "recordCount": 2
+    },
+    "notifications": {
+      "fields": 24,
+      "recordCount": 4
+    },
+    "audit_logs": {
+      "fields": 27,
+      "recordCount": 56
+    },
+    "system_events": {
+      "fields": 22,
+      "recordCount": 56
+    },
+    "operation_records": {
+      "fields": 23,
+      "recordCount": 10
+    },
+    "replenishment_locks": {
+      "fields": 7,
+      "recordCount": 6
+    },
+    "return_source_locks": {
+      "fields": 9,
+      "recordCount": 2
+    },
+    "external_references": {
+      "fields": 11,
+      "recordCount": 5
+    },
+    "external_reference_lines": {
+      "fields": 7,
+      "recordCount": 5
+    },
+    "product_batches": {
+      "fields": 9,
+      "recordCount": 3
+    },
+    "stock_thresholds": {
+      "fields": 9,
+      "recordCount": 6
+    },
+    "replenishment_requests": {
+      "fields": 101,
+      "recordCount": 3
+    },
+    "purchase_orders": {
+      "fields": 89,
+      "recordCount": 1
+    },
+    "goods_arrivals": {
+      "fields": 73,
+      "recordCount": 1
+    },
+    "goods_inspections": {
+      "fields": 67,
+      "recordCount": 3
+    },
+    "purchase_receipts": {
+      "fields": 81,
+      "recordCount": 1
+    },
+    "transfer_orders": {
+      "fields": 70,
+      "recordCount": 11
+    },
+    "warehouse_transfer_requests": {
+      "fields": 76,
+      "recordCount": 2
+    },
+    "internal_transfer_requirements": {
+      "fields": 64,
+      "recordCount": 7
+    },
+    "transfer_dispatches": {
+      "fields": 128,
+      "recordCount": 3
+    },
+    "transfer_receipts": {
+      "fields": 69,
+      "recordCount": 4
+    },
+    "sales_orders": {
+      "fields": 71,
+      "recordCount": 5
+    },
+    "warehouse_issue_requests": {
+      "fields": 67,
+      "recordCount": 2
+    },
+    "delivery_orders": {
+      "fields": 70,
+      "recordCount": 3
+    },
+    "sales_goods_issues": {
+      "fields": 133,
+      "recordCount": 3
+    },
+    "delivery_confirmations": {
+      "fields": 69,
+      "recordCount": 2
+    },
+    "external_payment_confirmations": {
+      "fields": 73,
+      "recordCount": 1
+    },
+    "defect_reports": {
+      "fields": 86,
+      "recordCount": 2
+    },
+    "defect_resolution_plans": {
+      "fields": 72,
+      "recordCount": 2
+    },
+    "stock_scrap_records": {
+      "fields": 68,
+      "recordCount": 1
+    },
+    "stocktakes": {
+      "fields": 78,
+      "recordCount": 2
+    },
+    "stock_adjustments": {
+      "fields": 74,
+      "recordCount": 1
+    },
+    "failed_deliveries": {
+      "fields": 67,
+      "recordCount": 1
+    },
+    "failed_delivery_receipts": {
+      "fields": 68,
+      "recordCount": 1
+    },
+    "stocktake_resolution_plans": {
+      "fields": 89,
+      "recordCount": 1
+    },
+    "stock_quality_changes": {
+      "fields": 70,
+      "recordCount": 1
+    },
+    "customer_returns": {
+      "fields": 72,
+      "recordCount": 1
+    },
+    "customer_return_receipts": {
+      "fields": 70,
+      "recordCount": 1
+    },
+    "supplier_returns": {
+      "fields": 76,
+      "recordCount": 1
+    },
+    "supplier_return_issues": {
+      "fields": 70,
+      "recordCount": 1
+    },
+    "supplier_acknowledgements": {
+      "fields": 74,
+      "recordCount": 1
+    },
+    "stock_discrepancies": {
+      "fields": 76,
+      "recordCount": 1
+    },
+    "custody_receipts": {
+      "fields": 73,
+      "recordCount": 1
+    },
+    "custody_releases": {
+      "fields": 73,
+      "recordCount": 1
+    },
+    "stock_reversals": {
+      "fields": 86,
+      "recordCount": 1
+    },
+    "opening_stocks": {
+      "fields": 78,
+      "recordCount": 3
+    },
+    "sales_invoices": {
+      "fields": 30,
+      "recordCount": 1
+    }
+  },
+  "errors": [],
+  "erdCollectionCoverage": 74,
+  "parsedFieldCoverage": "74/74 exact match",
+  "navigationLinksChecked": 554,
+  "renderedErdPages": 14,
+  "visuallyReviewedErdPages": 14,
+  "dbVisualSamples": [
+    "index",
+    "purchase_orders",
+    "transfer_dispatches",
+    "REPLENISHMENT details"
+  ],
+  "fileSha256": {
+    "WMSD_ERD_Current.drawio": "3f46aa3f9967baf6b725fee30a5690818a2d10cfb3cffda13ded8b5d12fa2cb0",
+    "WMSD_DB_Design_Current.drawio": "fae390f93731721fb078e7a8c97570d07e151227545110548bbff54a75ae2a23"
+  },
+  "cartonReceivingNote": {
+    "date": "2026-11-05",
+    "pages": [
+      "group-D",
+      "goods_arrivals",
+      "goods_inspections",
+      "purchase_receipts"
+    ],
+    "schemaChanged": false
+  }
+}

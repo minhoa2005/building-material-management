@@ -1,0 +1,78 @@
+# WMSD — Hướng dẫn chung khi phát triển
+
+Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều kho, sản phẩm/lô, mua–nhập, chuyển, bán–giao, hàng lỗi/trả và kiểm kê. Các dữ kiện dưới đây là thiết kế đã duyệt; trạng thái triển khai được ghi riêng.
+
+## 1. Phân biệt thiết kế và runtime
+
+| Thành phần | Vai trò hiện tại |
+|---|---|
+| `src/models/index.js` → `registerReviewedModels(connection)` | Bộ schema chính đã duyệt, 74 collection, chứng từ riêng và `items[]` nhúng |
+| `src/models/legacy/index.js` và model cũ | API chưa chuyển vẫn sử dụng rõ registry cũ, chứng từ và dòng lưu chung |
+| `registerMigrationModels(connection)` | Profile chuyển thử dữ liệu cũ, khác profile thiết kế mới |
+| `src/seeds/rebuild` | Bộ dữ liệu mô phỏng có kiểm tra chéo nghiệp vụ |
+
+Mỗi profile dùng một Mongoose connection mới riêng. Đọc [MODEL_MAP](MODEL_MAP.md) để chọn đúng schema, factory và phụ thuộc. Với task sửa lỗi runtime cũ, giữ hợp đồng cũ và ghi rõ mức ảnh hưởng. Với task chuyển API, dùng model mới theo thiết kế đã duyệt, cập nhật DTO/permission/transaction/seed/test của luồng đó. Đổi entry point không tự chuyển xong nghiệp vụ.
+
+Model mới còn tái sử dụng một số schema/discriminator cũ. Sửa file dùng chung phải kiểm cả hai profile. Mongoose `ref` mô tả liên kết, service vẫn phải kiểm bản ghi nguồn, kho, chủ hàng và trần số lượng.
+
+## 2. Thứ tự dùng nguồn
+
+1. Quyết định trực tiếp mới nhất của người dùng trong phạm vi công việc.
+2. Các phiếu đã duyệt và [nhật ký duyệt](docs/03_thiet_ke/DB_Rebuild_Review/04_Nhat_ky_duyet.md).
+3. Hướng dẫn này, MODEL_MAP, Data Dictionary và schema code khi xác định hiện trạng.
+4. Hợp đồng module hiện có để bảo toàn tương thích trong giai đoạn chuyển API.
+5. Baseline UC/report/quy trình cũ cho phần còn phù hợp. Dùng cả tên UC và crosswalk khi mã số đã được đổi.
+
+Code thực tế chứng minh hiện trạng triển khai, không tự thay quyết định nghiệp vụ. Nếu quyết định chưa rõ, ghi điểm mở và hỏi đúng phần phụ thuộc. D07/D08 về xác minh chứng từ nguồn vẫn chờ người phụ trách, không tự đánh dấu đã duyệt.
+
+## 3. Quyết định cần nắm trước khi sửa bất kỳ model nào
+
+| Chủ đề | Quy tắc đã chốt | Nguồn chi tiết |
+|---|---|---|
+| Tài khoản/quyền | Một user có một role, có thể phụ trách nhiều kho. Tên role kho là Warehouse Staff. Admin được tạo role và tick quyền có sẵn, role mới thực hiện theo quyền. Kiểm thêm kho, người tạo, trạng thái và tách người duyệt khi luồng yêu cầu. | [A01–A03](docs/03_thiet_ke/DB_Rebuild_Review/02_Duyet_tai_khoan_va_phan_quyen.md) |
+| SKU và lô | Nhận diện sản phẩm bằng hãng + SKU hãng. Lô theo sản phẩm + mã lô trên thùng + tone/calibre. Cùng lô phù hợp dùng chung dù mua từ hai NCC. | [B04–B06](docs/03_thiet_ke/DB_Rebuild_Review/06_Nhap_san_pham_lo_va_quy_cach.md) |
+| Đơn vị/thùng | Bỏ hai bảng UOM/UOMVersion. Đơn vị gốc trên sản phẩm, quy đổi và quy cách trên từng dòng. Một thùng vật lý chỉ một sản phẩm, một lô. Gộp các thùng cùng sản phẩm/lô/quy cách trên dòng. Khác thông tin phải tách dòng. | [Quy đổi](docs/03_thiet_ke/DB_Rebuild_Review/14_Bo_UOM_va_luu_quy_doi_tren_dong.md), [nhận thùng](docs/03_thiet_ke/DB_Rebuild_Review/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md) |
+| Kho và sức chứa | Kho, ô có kích thước. Tính diện tích đáy chồng một lần và thể tích phần hàng. Chặn xác nhận vượt sức chứa. Dữ liệu chồng phân bố lượng tồn hiện có. Bản đồ 3D triển khai sau. | [B01/B02](docs/03_thiet_ke/DB_Rebuild_Review/05_Duyet_kho_vi_tri_don_vi_tinh.md), [C07/C08](docs/03_thiet_ke/DB_Rebuild_Review/12_Duyet_chong_hang_va_dong_goi_thuc_te.md) |
+| Khách/NCC/đội xe | Tách ba bảng. Khách gồm mã WMSD, tên, điện thoại. Địa chỉ giao trên phiếu. Shop có danh mục đội vận chuyển nội bộ. | [B08A](docs/03_thiet_ke/DB_Rebuild_Review/08A_Khach_hang.md), [B08B](docs/03_thiet_ke/DB_Rebuild_Review/08B_Nha_cung_cap.md), [B08C](docs/03_thiet_ke/DB_Rebuild_Review/08C_Don_vi_van_chuyen.md) |
+| RR và PO | Một RR tối đa một PO, một PO thuộc một RR, một NCC, một kho. PO nhiều lần nhận. Accountant lập và cùng Owner xem giá mua/tổng tiền. | [H01/H02](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md) |
+| Giá bán/hóa đơn | SO lưu giá bán, quy đổi và giá lịch sử. Accountant lập hóa đơn cuối theo SO, mỗi SO tối đa một bản đang hiệu lực. Ghi từng phiếu/ngày xuất và lượng xuất, tính tiền theo lượng khách nhận. 100 xuất/98 nhận thì hiển thị 100 và tính 98. | [H12](docs/03_thiet_ke/DB_Rebuild_Review/18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md), [H37](docs/03_thiet_ke/DB_Rebuild_Review/19_Duyet_xuat_ban_giao_nhan_va_hoa_don.md) |
+| Tiền và nguồn ngoài | Sales xác nhận nhận đủ tiền bên ngoài theo H17. WMSD không tích hợp trực tiếp MISA hoặc thực hiện thu/chuyển tiền, công nợ. Chưa suy ra cơ chế xác minh nguồn D07/D08 từ khả năng tạo SO. | [H17](docs/03_thiet_ke/DB_Rebuild_Review/20_Duyet_xac_nhan_tien_ngoai.md), [D07/D08](docs/03_thiet_ke/DB_Rebuild_Review/33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem.md) |
+| Cách lưu | Collection riêng cho từng nghiệp vụ. Dòng hàng có `_id` ổn định trong `items[]`. Liên kết chứng từ/dòng đặt ở đúng nguồn xử lý. Bàn giao nằm trong phiếu xuất. | [D01](docs/03_thiet_ke/DB_Rebuild_Review/31_Duyet_cach_to_chuc_ho_so_nghiep_vu.md), [D02–D04](docs/03_thiet_ke/DB_Rebuild_Review/32_Duyet_dong_hang_va_lien_ket_chung_tu.md) |
+
+Không tạo general policy editor. Danh mục quyền được định nghĩa bởi chức năng phần mềm, không cho Admin nhập tùy ý mã thao tác mới. Khi thêm quyền cho tính năng mới, cập nhật catalogue, mặc định role và đặc tả quyền trong cùng thay đổi.
+
+## 4. Chuỗi nghiệp vụ và hiệu ứng tồn
+
+| Luồng | Chuỗi và mốc xác nhận |
+|---|---|
+| BF01 mua/nhập | RR → duyệt → PO → hàng đến → kiểm nhận → nhập sở hữu → xếp hàng. Hàng giữ hộ ghi chủ riêng. Nhận sở hữu hàng đã giữ hộ chuyển đúng chủ, không nhận vật lý lần hai. |
+| BF02 hàng lỗi | Phát hiện/chặn đúng lượng → đề xuất → duyệt cách xử lý → thực hiện. Chặn giữ nguyên tổng. Hủy thực tế mới giảm. Trả NCC đi BF08. |
+| BF03 chuyển ô | Create TO → Confirm TO. Người tạo sửa/hủy trước confirm và tự confirm. Mỗi TO xác nhận trọn lệnh một lần. Chuyển hai ô cùng kho giữ tổng, lô, chủ và liên kết giữ hàng. |
+| BF04 liên kho | TR → Owner duyệt/từ chối có lý do → phiếu xuất theo TR → yêu cầu lấy hàng sinh TO → confirm PICK đồng thời xuất đi → nhận tại kho đích → yêu cầu xếp hàng sinh TO → confirm PUTAWAY → đóng TR đủ điều kiện. |
+| BF04 số đợt | Một TR nhiều phiếu xuất, mỗi phiếu xuất nhiều phiếu nhận. Phiếu mở giữ hạn mức. Tổng trong lượng duyệt/đã xuất. Người nhận khác người xuất. Hàng lỗi vào QUARANTINE trong kho nhận. Nhận thực tế giảm transit, PUTAWAY chỉ chuyển vị trí. |
+| BF05 kiểm kê | Owner lập đợt → Warehouse kích hoạt khóa ô + snapshot → đếm/đếm lại giữ lịch sử → phương án → Owner duyệt → Warehouse ghi thực hiện → Owner chốt transaction và mở khóa. Tách thiếu/thừa khỏi đổi chất lượng/vị trí. |
+| BF06 bán/giao | SO → WIR → lệnh giao giữ hàng → phiếu xuất/soạn → bàn giao thực xuất → xác nhận khách nhận → hóa đơn cuối khi đủ điều kiện H37. Hoàn thành SO chờ Sales xác nhận đủ tiền ngoài theo H17. |
+| BF07 khách trả/giao thất bại | Khách đã nhận rồi trả dùng CR + kiểm + quyết định. Sales xử lý ca thường, Owner xử lý ngoại lệ đủ căn cứ. Hàng lỗi NSX chỉ nhận sở hữu khi Owner duyệt vào khu lỗi. Giao thất bại dùng phiếu về kho riêng, chỉ lượng thực về mới tái mở nhu cầu giao bù. |
+| BF08 trả NCC | Warehouse đề nghị → Accountant xác minh thỏa thuận → Warehouse xuất thực tế → Accountant ghi NCC nhận/đối chiếu/đóng. Không thêm Owner duyệt bắt buộc cho luồng này. |
+
+Đọc phiếu H06–H11, H18–H36 và C01–C08 trong [bộ duyệt](docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md) trước sửa nhóm tương ứng.
+
+## 5. Quy tắc dữ liệu dùng chung
+
+- Số lượng/tiền dùng Decimal128 và helper decimal, API trả decimal string. Giữ nguyên hệ số, giá và quy cách đã ghi trên chứng từ cũ.
+- Tồn theo điểm giữ hàng + lô + chất lượng + chủ. Hàng transit, hàng giữ hộ, hàng đã giữ cho nhu cầu được theo dõi riêng. Hàng chưa nhận không tính available.
+- Xác nhận tồn phải nguyên tử với balance, transaction, movement, chứng từ, hạn mức/giữ hàng, audit và outbox. Cùng request key/payload trả lại kết quả cũ, key khác nội dung phải báo xung đột.
+- Kiểm active user, permission hiện tại, warehouseIds, nguồn, creator/approver/receiver, trạng thái, revision, freeze, số lượng còn lại và sức chứa ngay khi ghi. UI không thay kiểm quyền BE.
+- Chứng từ đã ghi tồn, snapshot, kết quả đếm và lịch sử duyệt giữ dấu vết. Sửa sai dùng phiếu đảo/điều chỉnh có nguồn và kiểm phụ thuộc.
+- Tệp/bằng chứng theo quyền phiếu và kho. Không lộ giá mua, giá bán hoặc chứng cứ nội bộ qua DTO, export hay audit ngoài quyền.
+- Email/notification qua outbox sau commit. Lỗi gửi thư chỉ thử gửi lại.
+
+## 6. Những điểm cần xử lý khi chuyển API
+
+Snapshot thiết kế 04/11 ghi nhận `stocktakes.header.scopeLocationIds[]` còn ref `Location` thay vì model mới `WarehouseLocation`, yêu cầu một ITR tối đa một TO chưa có unique index trên requirementId, và các loại phiếu dùng chung 19 item discriminator nên service cần kiểm đúng loại dòng. Đây là các khoảng trống đã ghi nhận, chưa phải thay đổi schema được thực hiện trong đợt tổng hợp này.
+
+Chuyển một luồng phải có test quyền/kho/trạng thái, chống ghi hai lần, cạnh tranh hạn mức và rollback trên MongoDB local. Chạy test model chỉ chứng minh schema và dữ liệu. Báo cáo rõ module nào đã chuyển, module nào còn dùng cũ trước khi cho phép ứng dụng dùng DB mới.
+
+## 7. Quy trình làm việc của nhóm
+
+Đọc [quy tắc tài liệu](DOCUMENTATION_RULES.md). Mỗi thay đổi code có ảnh hưởng model, API, quyền, nghiệp vụ, seed, cấu hình hoặc cách chạy phải sửa tài liệu hiện hành trong cùng lượt. Ghi quyết định chưa duyệt ở phần mở, không ghi thành đã chốt. Không đổi toàn bộ mã UC chỉ để khớp model đang làm.

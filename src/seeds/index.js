@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Permission, Role } from '../models/index.js';
+import { Permission, Role } from '../models/legacy/index.js';
 import { ROLE_PERMISSIONS } from './data/permissions.data.js';
 import { buildDemoData } from './data/demo.data.js';
 

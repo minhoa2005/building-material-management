@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { once } from 'node:events';
-import * as m from '../src/models/index.js';
+import * as m from '../src/models/legacy/index.js';
 import app from '../src/app.js';
 
 test('UC-38/39 HTTP read scope, posted quantities and side-effect-free detail', { skip: !process.env.MONGODB_TEST_URI, timeout: 120000 }, async () => {

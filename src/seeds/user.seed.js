@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { User } from '../models/index.js';
+import { User } from '../models/legacy/index.js';
 import { SEED_ACCOUNTS } from './data/accounts.data.js';
 
 export { SEED_ACCOUNTS };

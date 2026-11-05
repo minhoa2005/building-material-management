@@ -13,7 +13,7 @@ import {
   DemandSupplyAllocation,
   ReplenishmentSubmission,
   REPLENISHMENT_RELATIONS,
-} from "../../models/index.js";
+} from "../../models/legacy/index.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
 import {
   replenishmentScope,

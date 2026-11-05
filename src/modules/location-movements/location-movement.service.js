@@ -5,7 +5,7 @@ import {
   Warehouse, Location, Lot, Product, ProductUomVersion, Uom, Party,
   StockAccount, StockBalance, Reservation, LocationLock, DefectHold,
   StockMovement, PostingBatch,
-} from '../../models/index.js';
+} from '../../models/legacy/index.js';
 import { exact } from '../../models/model-utils.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';
 import { ApiError } from '../../shared/utils/ApiError.js';

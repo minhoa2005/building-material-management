@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { BusinessDocument, DocumentLine, DocumentLink, Approval, Warehouse, LineLink, StockAccount, StockBalance, DemandSupplyAllocation, Evidence } from '../../models/index.js';
+import { BusinessDocument, DocumentLine, DocumentLink, Approval, Warehouse, LineLink, StockAccount, StockBalance, DemandSupplyAllocation, Evidence } from '../../models/legacy/index.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';
 import { exact } from '../../models/model-utils.js';
 import { ApiError } from '../../shared/utils/ApiError.js';

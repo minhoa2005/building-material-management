@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { once } from 'node:events';
-import * as models from '../src/models/index.js';
+import * as models from '../src/models/legacy/index.js';
 import { createBody } from '../src/modules/location-movements/location-movement.validation.js';
 import { createLocationMovement, getLocationMovement } from '../src/modules/location-movements/location-movement.service.js';
 import app from '../src/app.js';

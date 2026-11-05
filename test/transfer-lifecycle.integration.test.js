@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { once } from 'node:events';
 import app from '../src/app.js';
-import * as m from '../src/models/index.js';
+import * as m from '../src/models/legacy/index.js';
 import * as service from '../src/modules/transfers/transfer-write.service.js';
 import { getTransfer } from '../src/modules/transfers/transfer-read.service.js';
 const id = (v) => String(v._id ?? v);

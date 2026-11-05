@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import * as models from "../src/models/index.js";
+import * as models from "../src/models/legacy/index.js";
 import { exact } from "../src/models/model-utils.js";
 import { buildDemoData } from "../src/seeds/data/demo.data.js";
 import { saigonDateOnly } from "../src/shared/utils/domain.js";

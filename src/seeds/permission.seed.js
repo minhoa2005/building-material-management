@@ -1,4 +1,4 @@
-import { Permission, Role } from '../models/index.js';
+import { Permission, Role } from '../models/legacy/index.js';
 import { ROLE_CODES } from '../models/constants.js';
 import { PERMISSION_CATALOGUE, ROLE_PERMISSIONS } from './data/permissions.data.js';
 
