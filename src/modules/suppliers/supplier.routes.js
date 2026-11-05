@@ -15,6 +15,9 @@ router.get(
   validate(validation.listSuppliersSchema),
   controller.list,
 );
+
+router.get("/names", controller.getNames);
+
 router.post(
   "/",
   checkPermission("supplier:create", ["ACCOUNTANT"]),
@@ -51,6 +54,5 @@ router.patch(
   validate(validation.changeSupplierStatusSchema),
   controller.changeStatus,
 );
-router.get("/names", checkPermission("supplier:read"));
 
 export default router;

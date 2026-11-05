@@ -34,6 +34,24 @@ export async function syncExistingRolePermissions() {
   return { seeded: false, syncedRoles: roles.length };
 }
 
+/** Grant purchase viewing to existing Owner/Accountant roles without replacing custom permissions. */
+export async function grantPurchaseReadPermissions() {
+  const codes = ['purchase_order:read', 'goods_receipt_inspection:read', 'putaway_task:read'];
+  const permissions = await Permission.find({ code: { $in: codes } }).lean();
+  for (const code of codes) {
+    if (!permissions.some(permission => permission.code === code)) {
+      throw new Error(`Cannot grant purchase read permissions: missing permission ${code}.`);
+    }
+  }
+  const permissionIds = permissions.map(permission => permission._id);
+  const result = await Role.updateMany(
+    { code: { $in: ['OWNER', 'ACCOUNTANT'] }, permissionIds: { $not: { $all: permissionIds } } },
+    { $addToSet: { permissionIds: { $each: permissionIds } } },
+  );
+  console.info(`[Seed] Granted purchase viewing to ${result.modifiedCount} of ${result.matchedCount} existing role(s).`);
+  return { matchedRoles: result.matchedCount, updatedRoles: result.modifiedCount };
+}
+
 /**
  * Seed only a completely empty database. Replica set / Atlas is required for
  * atomicity. A failure leaves no partial fixture data; a second run is a no-op.

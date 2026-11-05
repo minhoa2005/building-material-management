@@ -6,7 +6,7 @@
  */
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import { runSeeds } from './index.js';
+import { runSeeds, grantPurchaseReadPermissions } from './index.js';
 
 async function main() {
   const uri = process.env.MONGODB_URI;
@@ -16,6 +16,11 @@ async function main() {
 
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
   console.info('Connected to MongoDB.');
+
+  if (process.argv.includes('--purchase-read-only')) {
+    await grantPurchaseReadPermissions();
+    return;
+  }
 
   const syncRolePermissions =
     process.argv.includes('--sync-permissions') || process.env.SEED_SYNC_ROLE_PERMISSIONS === 'true';

@@ -5,6 +5,12 @@ import {
 const operationResultSchema = new Schema({
   workflowStatus: text(30, { required: false }),
   approvalId: ref("Approval", false),
+  custodyReceiptId: ref("BusinessDocument", false),
+  goodsReceiptId: ref("BusinessDocument", false),
+  postingBatchId: ref("PostingBatch", false),
+  eventId: ref('PurchaseEvent', false),
+  evidenceId: ref('Evidence', false),
+  relatedDocumentId: ref('BusinessDocument', false),
 }, { _id: false, versionKey: false, strict: "throw" });
 
 // Records non-stock operations; a retry must compare payloadHash in the service.

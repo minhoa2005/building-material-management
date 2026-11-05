@@ -1,0 +1,45 @@
+{
+  "measuredAt": "2026-11-03T11:03:12.678Z",
+  "environment": "local MongoDB replica set; service calls, warm cache, sequential requests; not a production SLA",
+  "fixture": {
+    "purchaseOrders": 100,
+    "tripsPerPo": 100,
+    "addedDocuments": 15100,
+    "addedLines": 15100,
+    "addedLinks": 10000,
+    "stockPostings": 0
+  },
+  "samples": 12,
+  "measurements": {
+    "trips5": {
+      "p50Ms": 48.64,
+      "p95Ms": 57.6,
+      "minQueries": 7,
+      "maxQueries": 7
+    },
+    "trips50": {
+      "p50Ms": 60.73,
+      "p95Ms": 66,
+      "minQueries": 7,
+      "maxQueries": 7
+    },
+    "summary": {
+      "p50Ms": 61.5,
+      "p95Ms": 68.84,
+      "minQueries": 24,
+      "maxQueries": 24
+    },
+    "queue20": {
+      "p50Ms": 32.32,
+      "p95Ms": 45.48,
+      "minQueries": 5,
+      "maxQueries": 5
+    },
+    "poList20": {
+      "p50Ms": 180.52,
+      "p95Ms": 257.48,
+      "minQueries": 23,
+      "maxQueries": 23
+    }
+  }
+}

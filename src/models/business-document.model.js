@@ -27,6 +27,7 @@ const replenishmentHeader = new Schema({
   creationKey: text(160),
   submittedBy: ref("User", false),
   submittedAt: date(false),
+  purchasingVersion: integer(0, { default: 0 }),
 }, embeddedOptions);
 rules(replenishmentHeader, function validateReplenishmentSubmission() {
   if (Boolean(this.submittedBy) !== Boolean(this.submittedAt)) {
@@ -92,6 +93,13 @@ const documentSchema = new Schema(
   options("business_documents", { discriminatorKey: "documentKind" }),
 );
 documentSchema.index({ documentKind: 1, workflowStatus: 1, createdAt: 1 });
+documentSchema.index({ "header.poInspectionId": 1 }, { unique: true,
+  partialFilterExpression: { documentKind: "GR_PURCHASE", "header.poInspectionId": { $type: "objectId" } } });
+documentSchema.index({ documentKind: 1, createdBy: 1, "header.creationKey": 1 }, { unique: true,
+  partialFilterExpression: { documentKind: "PO_INSPECTION", "header.creationKey": { $type: "string" } } });
+documentSchema.index({ documentKind: 1, "header.purchaseOrderId": 1, createdAt: -1 });
+documentSchema.index({ 'header.replacesInspectionId': 1 }, { unique: true,
+  partialFilterExpression: { documentKind: 'PO_INSPECTION', 'header.replacesInspectionId': { $type: 'objectId' } } });
 documentSchema.index({ documentKind: 1, "header.warehouseId": 1, createdAt: -1, _id: -1 });
 documentSchema.index({ documentKind: 1, createdBy: 1, "header.warehouseId": 1, createdAt: -1, _id: -1 });
 // Creation keys are scoped to the real actor; the service also compares payloadHash.
@@ -143,23 +151,34 @@ const shapes = {
       supplierId: ref("Party"),
       expectedOn: date(false),
       supplierConfirmation: text(1000, { required: false }),
-    }),
-  },
-  ARRIVAL: {
-    header: header({
-      ...warehouse(),
-      supplierId: ref("Party", false),
-      arrivedAt: date(),
-      deliveryReference: text(100, { required: false }),
+      creationKey: text(160, { required: false }),
     }),
   },
   INSPECTION: {},
-  GR_PURCHASE: { header: receiptHeader("PURCHASE") },
+  PO_INSPECTION: {
+    header: header({
+      purchaseOrderId: ref("BusinessDocument"), warehouseId: ref("Warehouse"),
+      supplierId: ref("Party"), sourcePoVersion: integer(1), creationKey: text(160),
+      arrivedAt: date(), deliveryReference: text(100, { required: false }),
+      delivererName: text(160, { required: false }), delivererContact: text(160, { required: false }),
+      inspectedBy: ref("User", false), inspectedAt: date(false),
+      scheduleId: ref('PurchaseEvent', false),
+      rootInspectionId: ref('BusinessDocument', false),
+      replacesInspectionId: ref('BusinessDocument', false),
+      correctionId: ref('PurchaseEvent', false),
+    }),
+  },
+  GR_PURCHASE: { header: header({ ...warehouse(), receiptKind: code(["PURCHASE"], { default: "PURCHASE" }),
+    purchaseOrderId: ref("BusinessDocument"), poInspectionId: ref("BusinessDocument"),
+    supplierId: ref("Party"), delivererName: text(160, { required: false }),
+    delivererContact: text(160, { required: false }),
+  }) },
   TO: {
     header: header({
       ...warehouse(),
       taskKind: code(["PUTAWAY", "PICK", "RELOCATE", "QUARANTINE", "UNPICK"]),
       assignedTo: ref("User"),
+      purchaseOrderId: ref('BusinessDocument', false), receiptId: ref('BusinessDocument', false),
     }),
   },
   TRANSFER_REQUEST: { header: { type: transferRequestHeader, required: true } },

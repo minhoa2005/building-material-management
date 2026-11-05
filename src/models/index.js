@@ -41,6 +41,7 @@ export { AuditEvent, OutboxEvent } from "./event.model.js";
 export { Notification, notificationDedupKey } from "./notification.model.js";
 export { ReplenishmentPlanningGuard } from "./replenishment.model.js";
 export { ReplenishmentSubmission } from "./replenishment-submission.model.js";
+export { PurchaseEvent, PurchaseSourceClaim, ReceiptPlacement, PurchaseEvidenceUpload } from './purchase.model.js';
 export {
   ROLE_CODES,
   QUALITY_CODES,

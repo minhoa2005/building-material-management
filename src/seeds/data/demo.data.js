@@ -201,7 +201,7 @@ export async function buildDemoData() {
       null, balance(account, quality, party, productIndex), actor);
   }
 
-  // BF-01: approved replenishment -> purchase -> arrival/inspection -> GR -> put-away.
+  // BF-01: approved replenishment -> purchase -> PO_INSPECTION -> GR -> put-away.
   const rr = doc('RR', 'REPLENISHMENT', dispatcher, {
     warehouseId: wh('WH01'), neededOn: at(10), triggerReason: 'Bổ sung hàng demo',
     creationKey: 'demo:rr:initial', submittedBy: dispatcher, submittedAt: at(9),
@@ -216,22 +216,48 @@ export async function buildDemoData() {
   }, 'COMPLETED');
   const poLine = line('po', po, '120');
   link(rrLine, poLine, models.REPLENISHMENT_RELATIONS.PURCHASE);
-  const arrival = doc('ARRIVAL', 'ARRIVAL', dispatcher, {
-    warehouseId: wh('WH01'), supplierId: supplier._id, arrivedAt: at(10), deliveryReference: 'DELIVERY-DEMO',
-  }, 'COMPLETED');
-  const arrivalLine = line('arrival', arrival, '120');
-  link(poLine, arrivalLine);
-  const inspection = doc('INSPECTION-P', 'INSPECTION', dispatcher, null, 'COMPLETED');
-  const inspected = line('inspection:p', inspection, '120', 'INSPECTION', {
-    inspectedSourceLineId: arrivalLine._id, qualityCode: 'GOOD', ownershipDecision: 'ACCEPT',
-    inspectedBy: dispatcher, inspectedAt: at(10), packagingCondition: 'SEALED',
+  const poInspection = doc('PO-CHECK', 'PO_INSPECTION', dispatcher, {
+    warehouseId: wh('WH01'), purchaseOrderId: po._id, supplierId: supplier._id, sourcePoVersion: 1,
+    creationKey: 'demo:po-check', arrivedAt: at(10), inspectedBy: dispatcher, inspectedAt: at(10),
+    delivererName: 'Người giao demo', delivererContact: 'Liên hệ ghi trên phiếu giao demo',
+  }, 'CONFIRMED');
+  const poChecked = line('po:checked', poInspection, '120', 'PO_INSPECTION', {
+    poLineId: poLine._id, clientLineKey: 'demo:po:line', qualityCode: 'GOOD',
+    plannedReceiptLocationId: locations.get('WH01:RECEIVING')._id,
   });
-  link(arrivalLine, inspected);
-  const gr = doc('GR-P', 'GR_PURCHASE', dispatcher, { warehouseId: wh('WH01') }, 'POSTED');
-  const grLine = line('gr:p', gr, '120');
-  link(inspected, grLine);
+  link(poLine, poChecked);
+  const gr = doc('GR-P', 'GR_PURCHASE', dispatcher, { warehouseId: wh('WH01'),
+    purchaseOrderId: po._id, poInspectionId: poInspection._id, supplierId: supplier._id,
+    delivererName: poInspection.header.delivererName, delivererContact: poInspection.header.delivererContact }, 'POSTED');
+  const grLine = line('gr:p', gr, '120', 'PURCHASE_RECEIPT', { poLineId: poLine._id,
+    inspectionLineId: poChecked._id,
+    receivingLocationId: locations.get('WH01:RECEIVING')._id, qualityCode: 'GOOD' });
+  link(poChecked, grLine);
   post('gr:p', gr, grLine, null, balance('WH01:RECEIVING'));
-  link(grLine, task('PUTAWAY-P', '120', 'WH01:RECEIVING', 'WH01:STORAGE'));
+  doc('ITR-P', 'INTERNAL_TRANSFER_REQUIREMENT', dispatcher, {
+    warehouseId: wh('WH01'), sourceDocumentId: gr._id, taskKind: 'PUTAWAY',
+  }, 'COMPLETED');
+  const pendingPurchase = doc('PURCHASE-PENDING', 'PO', accountant, {
+    warehouseId: wh('WH01'), supplierId: supplier._id, expectedOn: at(15),
+  }, 'OPEN');
+  const pendingLine = line('purchase:pending', pendingPurchase, '100');
+  const pendingRr = doc('RR-PURCHASE-OPEN', 'REPLENISHMENT', dispatcher, { warehouseId: wh('WH01'), neededOn: at(15), creationKey: 'demo:rr:open', triggerReason: 'Thử nhận mua nhiều đợt', submittedBy: dispatcher, submittedAt: at(9) }, 'APPROVED');
+  const pendingRrLine = line('rr:purchase:open', pendingRr, '100', 'REPLENISHMENT', { triggerType: 'MANUAL_OTHER', reasonNote: 'Bổ sung để thử tiếp nhận nhiều đợt (demo)' });
+  operation('rr:purchase:open:create', pendingRr, dispatcher, 'CREATE_REPLENISHMENT');
+  approve('rr:purchase:open', pendingRr, owner, 'REPLENISHMENT_APPROVAL', [pendingRrLine]);
+  link(pendingRrLine, pendingLine, models.REPLENISHMENT_RELATIONS.PURCHASE);
+  add('PurchaseSourceClaim', 'po:pending', { purchaseOrderId: pendingPurchase._id, poLineId: pendingLine._id, rrLineId: pendingRrLine._id,
+    approvalId: groups.get('Approval').documents.find(a => a.documentId.equals(pendingRr._id))._id, qtyBase: '100' });
+  const purchaseTaskLine = task('PUTAWAY-P', '120', 'WH01:RECEIVING', 'WH01:STORAGE');
+  const placement = add('ReceiptPlacement', 'gr:p', { purchaseOrderId: po._id, receiptId: gr._id, receiptLineId: grLine._id,
+    sourceBalanceId: balance('WH01:RECEIVING')._id, receivedQtyBase: '120', placedQtyBase: '120' });
+  purchaseTaskLine.details.receiptLineId = grLine._id; purchaseTaskLine.details.placementId = placement._id;
+  purchaseTaskLine.details.sourceBalanceId = balance('WH01:RECEIVING')._id; purchaseTaskLine.details.ownerPartyId = store._id;
+  const purchaseTaskDocument = groups.get('BusinessDocument').documents.find(d => d._id.equals(purchaseTaskLine.documentId));
+  purchaseTaskDocument.header.receiptId = gr._id; purchaseTaskDocument.header.purchaseOrderId = po._id;
+  link(grLine, purchaseTaskLine);
+  add('PurchaseSourceClaim', 'po', { purchaseOrderId: po._id, poLineId: poLine._id, rrLineId: rrLine._id,
+    approvalId: groups.get('Approval').documents.find(a => a.documentId.equals(rr._id))._id, qtyBase: '120' });
 
   // BF-06: separate completed sale, failed delivery and wholly cancelled sale.
   const saleChain = (key, qty, status) => {
@@ -387,7 +413,10 @@ export async function buildDemoData() {
   const trLine = line('tr', tr, '20');
   approve('tr', tr, owner, 'TRANSFER_APPROVAL', [trLine]);
   const td = doc('TD', 'TRANSFER_DISPATCH', dispatcher, { requestId: tr._id, dispatchedBy: dispatcher, dispatchedAt: at(19) }, 'POSTED', 19);
-  const tdLine = line('td', td, '20');
+  const tdLine = line('td', td, '20', 'TRANSFER_OUTBOUND', {
+    requestLineId: trLine._id, sourceBalanceId: balance('WH01:STORAGE')._id,
+    stagingLocationId: locations.get('WH01:STAGING')._id,
+  });
   link(trLine, tdLine);
   accounts.set('TRANSIT', add('StockAccount', 'transit', { transitDispatchLineId: tdLine._id }));
   link(tdLine, task('PICK-TD', '20', 'WH01:STORAGE', 'WH01:STAGING', dispatcher, 18));
@@ -597,5 +626,11 @@ export async function buildDemoData() {
       deliveredAt: at(27, 10), attempts: 0,
     });
   }
+  const purchaseEvidence = add('Evidence', 'purchase:agreement', { documentId: po._id, objectKey: 'sep490/purchase-evidence/demo-agreement', sha256: hash(demoPhoto), mediaType: 'image/png', uploadedBy: accountant, uploadedAt: at(10) });
+  add('PurchaseEvidenceUpload', 'purchase:agreement', { documentId: po._id, actorId: accountant, objectKey: purchaseEvidence.objectKey,
+    sha256: purchaseEvidence.sha256, mediaType: 'image/png', resourceType: 'image', format: 'png', bytes: demoPhoto.length,
+    status: 'ATTACHED', evidenceId: purchaseEvidence._id, expiresAt: at(11) });
+  add('PurchaseEvent', 'purchase:confirmation', { purchaseOrderId: po._id, documentId: po._id, kind: 'SUPPLIER_CONFIRMATION', sourcePoVersion: 1,
+    actorId: accountant, reason: 'Xác nhận lịch giao mẫu; dữ liệu tổng hợp dev', evidenceIds: [purchaseEvidence._id], lines: [{ poLineId: poLine._id, qtyBase: '120', expectedOn: at(10) }] });
   return [...groups.values()];
 }

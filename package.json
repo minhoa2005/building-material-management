@@ -8,12 +8,17 @@
     "start": "node src/index.js",
     "seed": "node src/seeds/run.js",
     "seed:sync-permissions": "node src/seeds/run.js --sync-permissions",
+    "seed:purchase-read-permissions": "node src/seeds/run.js --purchase-read-only",
     "migrate:replenishment": "node src/migrations/run-replenishment-3.3.js",
     "migrate:iteration-1": "node src/migrations/run-iteration-1.js",
+    "migrate:po-receiving": "node src/migrations/run-po-receiving-demo.js",
     "test": "node --test",
     "test:fe06:pack": "node scripts/generate-fe06-thunder.mjs",
     "test:fe06:server": "node scripts/start-fe06-thunder.mjs",
-    "migrate:single-role": "node src/migrations/run-single-role.js"
+    "migrate:single-role": "node src/migrations/run-single-role.js",
+    "purchase:reconcile": "node scripts/purchase-maintenance.mjs reconcile",
+    "purchase:cleanup-evidence": "node scripts/purchase-maintenance.mjs cleanup-evidence",
+    "purchase:benchmark": "node scripts/benchmark-purchase-receiving.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -23,10 +28,13 @@
     "decimal.js": "^10.6.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jpeg-js": "0.4.4",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.1",
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
+    "pdf-lib": "1.17.1",
+    "pngjs": "7.0.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

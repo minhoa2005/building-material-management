@@ -94,6 +94,8 @@ const taskDetails = new Schema(
     sourceBalanceId: ref("StockBalance", false),
     sourceBalanceVersion: integer(0, { required: false }),
     ownerPartyId: ref("Party", false),
+    receiptLineId: ref('DocumentLine', false),
+    placementId: ref('ReceiptPlacement', false),
   },
   embeddedOptions,
 );
@@ -166,11 +168,16 @@ const lineSchema = new Schema(
     conversionSnapshot: decimal({ positive: true, precision: 24, scale: 12 }),
     qtyBase: decimal({ positive: true }),
     productNameSnapshot: text(200),
+    productSkuSnapshot: text(60, { required: false }),
+    enteredUomCodeSnapshot: text(12, { required: false }),
+    lotLabelSnapshot: text(250, { required: false }),
   },
   options("document_lines", { discriminatorKey: "lineKind" }),
 );
 lineSchema.index({ documentId: 1, lineNo: 1 }, { unique: true });
 lineSchema.index({ lotId: 1 });
+lineSchema.index({ documentId: 1, 'details.clientLineKey': 1 }, { unique: true,
+  partialFilterExpression: { lineKind: 'PO_INSPECTION' } });
 lineSchema.index(
   { "details.salesOrderLineId": 1, "details.releaseKey": 1 },
   {
@@ -275,6 +282,15 @@ const shapes = {
     }),
   },
   ST_RESOLUTION: { details: { type: resolutionDetails, required: true } },
+  PO_INSPECTION: { details: details({
+    clientLineKey: text(160), plannedReceiptLocationId: ref('Location'),
+    poLineId: ref('DocumentLine'), qualityCode: code(['GOOD'], { default: 'GOOD' }),
+    handlingNote: text(2000, { required: false }),
+  }) },
+  PURCHASE_RECEIPT: { details: details({
+    poLineId: ref("DocumentLine"), inspectionLineId: ref("DocumentLine"),
+    receivingLocationId: ref('Location'), qualityCode: code(['GOOD'], { default: 'GOOD' }),
+  }) },
   INSPECTION: {
     details: details({
       inspectedSourceLineId: ref("DocumentLine"),

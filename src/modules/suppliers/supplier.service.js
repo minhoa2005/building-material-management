@@ -2,8 +2,6 @@ import mongoose from "mongoose";
 import {
   AuditEvent,
   BusinessDocument,
-  DocumentLine,
-  LineLink,
   Party,
   Warehouse,
 } from "../../models/index.js";
@@ -320,100 +318,6 @@ export async function getSupplierHistory(user, id, query) {
   };
 }
 
-async function linkedSourceLines(targetLineIds, session = null) {
-  const links = await withSession(
-    LineLink.find({
-      targetLineId: { $in: targetLineIds },
-      relationCode: "SOURCE",
-    }).lean(),
-    session,
-  );
-  if (!links.length) return { links, lines: [] };
-  const lines = await withSession(
-    DocumentLine.find({
-      _id: { $in: links.map((link) => link.sourceLineId) },
-    }).lean(),
-    session,
-  );
-  return { links, lines };
-}
-
-// Resolve a GR to its PO through LineLink only when every traversed hop keeps
-// the same product/warehouse and the PO supplier is unambiguous.
-async function grSupplierIds(grLine, grWarehouseId) {
-  const suppliers = new Set();
-  const seen = new Set();
-  let frontier = [grLine];
-  const expected = {
-    GR_PURCHASE: "INSPECTION",
-    INSPECTION: "ARRIVAL",
-    ARRIVAL: "PO",
-  };
-  let expectedKind = expected.GR_PURCHASE;
-  while (frontier.length && suppliers.size <= 1) {
-    const { links, lines } = await linkedSourceLines(
-      frontier.map((line) => line._id),
-    );
-    if (!links.length) break;
-    const documents = await BusinessDocument.find({
-      _id: { $in: lines.map((line) => line.documentId) },
-    }).lean();
-    const lineById = new Map(lines.map((line) => [idString(line._id), line]));
-    const documentById = new Map(
-      documents.map((document) => [idString(document._id), document]),
-    );
-    const next = [];
-    for (const link of links) {
-      const target = frontier.find(
-        (line) => idString(line._id) === idString(link.targetLineId),
-      );
-      const source = lineById.get(idString(link.sourceLineId));
-      if (
-        !source ||
-        idString(source.productId) !== idString(grLine.productId)
-      ) {
-        continue;
-      }
-      if (seen.has(idString(source._id))) continue;
-      const sourceDocument = documentById.get(idString(source.documentId));
-      if (!sourceDocument) continue;
-      if (sourceDocument.documentKind !== expectedKind) continue;
-      if (expectedKind === "INSPECTION" && source.lineKind !== "INSPECTION")
-        continue;
-      if (
-        expectedKind === "ARRIVAL" &&
-        idString(target?.details?.inspectedSourceLineId) !==
-          idString(source._id)
-      )
-        continue;
-      const sourceWarehouse = sourceDocument.header?.warehouseId;
-      if (
-        sourceWarehouse &&
-        idString(sourceWarehouse) !== idString(grWarehouseId)
-      ) {
-        continue;
-      }
-      if (sourceDocument.documentKind === "PO") {
-        if (
-          sourceDocument.header?.supplierId &&
-          sourceWarehouse &&
-          idString(sourceWarehouse) === idString(grWarehouseId)
-        ) {
-          suppliers.add(idString(sourceDocument.header.supplierId));
-        }
-        continue;
-      }
-      if (["ARRIVAL", "INSPECTION"].includes(sourceDocument.documentKind)) {
-        seen.add(idString(source._id));
-        next.push(source);
-      }
-    }
-    frontier = next;
-    expectedKind = expected[expectedKind];
-  }
-  return suppliers;
-}
-
 async function supplierDocumentIdsForGr(supplierId, scope) {
   const grDocuments = await BusinessDocument.find({
     documentKind: "GR_PURCHASE",
@@ -422,16 +326,6 @@ async function supplierDocumentIdsForGr(supplierId, scope) {
     .sort({ createdAt: -1, _id: -1 })
     .lean();
   if (!grDocuments.length) return { documents: [], total: 0 };
-  const lines = await DocumentLine.find({
-    documentId: { $in: grDocuments.map((document) => document._id) },
-  }).lean();
-  const linesByDocument = new Map();
-  for (const line of lines) {
-    const key = idString(line.documentId);
-    const values = linesByDocument.get(key) || [];
-    values.push(line);
-    linesByDocument.set(key, values);
-  }
   const matched = [];
   const directPos = await BusinessDocument.find({
     _id: {
@@ -459,6 +353,7 @@ async function supplierDocumentIdsForGr(supplierId, scope) {
         inspection &&
         idString(po.header.supplierId) === idString(supplierId) &&
         idString(document.header.supplierId) === idString(supplierId) &&
+        idString(inspection.header.supplierId) === idString(supplierId) &&
         idString(po.header.warehouseId) ===
           idString(document.header.warehouseId) &&
         idString(inspection.header.purchaseOrderId) === idString(po._id) &&
@@ -467,18 +362,6 @@ async function supplierDocumentIdsForGr(supplierId, scope) {
       )
         matched.push(document);
       continue;
-    }
-    const supplierIds = new Set();
-    for (const line of linesByDocument.get(idString(document._id)) || []) {
-      for (const found of await grSupplierIds(
-        line,
-        document.header.warehouseId,
-      )) {
-        supplierIds.add(found);
-      }
-    }
-    if (supplierIds.size === 1 && supplierIds.has(idString(supplierId))) {
-      matched.push(document);
     }
   }
   return { documents: matched, total: matched.length };
@@ -540,9 +423,11 @@ export async function getSupplierDocuments(user, id, query) {
     page: query.page,
     limit: query.limit,
   };
-
-  const getSupplierNames = async (user) => {
-    try {
-    } catch (error) {}
-  };
 }
+
+export const getSupplierNames = async () => {
+  const suppliers = await Party.find({ kind: "SUPPLIER" })
+    .select("_id name")
+    .lean();
+  return suppliers;
+};

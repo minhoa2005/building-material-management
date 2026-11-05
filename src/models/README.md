@@ -1,4 +1,10 @@
+> **Purchase receiving v3 (03/11/2026):** 44 collections, 36 document kinds, 22 line kinds. Purchase confirmation is stock-neutral; GR posts STORE/GOOD at Receiving directly. Purchase custody fields were removed. PurchaseEvent/SourceClaim/ReceiptPlacement/EvidenceUpload add authority, provenance and evidence lifecycle; see docs/po-receiving-proposal/BACKEND_V3.md. Earlier purchase-custody examples in this document are historical.
+
 # Shared Mongoose models
+
+Purchase receiving (2026-11-03): PO -> PO_INSPECTION -> GR_PURCHASE only.
+ARRIVAL and purchase legacy traversal are removed. GR headers require direct PO,
+inspection and supplier references. Shared INSPECTION remains for CR/FD.
 
 Import models from `src/models/index.js` in application modules:
 
@@ -16,7 +22,7 @@ names are camelCase; timestamps use UTC Date values.
 Aligned with the user-provided `WMSD_SQL_schema.sql`, revision 3.3.0
 (27 October 2026), with the single-role decision of 28 October 2026. The SQL is a relational design reference; persistence stays
 MongoDB. All 84 SQL tables have a representation below, using 40 collections,
-35 document discriminators and 19 line discriminators. Representation does not
+36 document discriminators and 22 line discriminators. Representation does not
 mean that all foreign keys or business workflows are enforced by these schemas.
 
 | SQL tables | MongoDB model / representation |
@@ -28,7 +34,7 @@ mean that all foreign keys or business workflows are enforced by these schemas.
 | uom, product, product_uom_version, product_warehouse_policy, lot | Uom, Product, ProductUomVersion, ProductWarehousePolicy, Lot |
 | quality_status | QUALITY_STATUSES / QUALITY_CODES; finite code catalogue |
 | document, document_external_reference | BusinessDocument; externalReferenceIds holds unique references |
-| replenishment_request, purchase_order, arrival, goods_receipt | REPLENISHMENT, PO, ARRIVAL, GR_PURCHASE / GR_CUSTOMER_RETURN / GR_FAILED_DELIVERY typed document headers |
+| replenishment_request, purchase_order, goods_receipt | REPLENISHMENT, PO, PO_INSPECTION, GR_PURCHASE / GR_CUSTOMER_RETURN / GR_FAILED_DELIVERY typed document headers |
 | transfer_request, transfer_dispatch, transfer_receipt, handover | TRANSFER_REQUEST, TRANSFER_DISPATCH, MWTR, HANDOVER typed headers |
 | issue_request, outbound_delivery, goods_issue, warehouse_task | ISSUE_REQUEST, OUTBOUND_DELIVERY, GI_SALE / GI_SUPPLIER_RETURN, TO typed headers |
 | sales_order, customer_delivery, external_payment_confirmation | SALES_ORDER, DELIVERY_CONFIRMATION, PAYMENT_CONFIRMATION typed headers |
@@ -80,13 +86,13 @@ const po = new BusinessDocument({
 });
 
 const inspection = new DocumentLine({
-  documentId: inspectionDocumentId, lineNo: 1, lineKind: 'INSPECTION',
+  documentId: inspectionDocumentId, lineNo: 1, lineKind: 'PO_INSPECTION',
   productId, lotId, conversionId,
   enteredQty: '3', conversionSnapshot: '4', qtyBase: '12',
   productNameSnapshot: 'Historical product name',
   details: {
-    inspectedSourceLineId: arrivalLineId, qualityCode: 'GOOD',
-    ownershipDecision: 'ACCEPT', inspectedBy: userId, inspectedAt: new Date(),
+    poLineId, qualityCode: 'GOOD', disposition: 'ACCEPT',
+    keptOnSite: true, holdingLocationId: custodyLocationId,
   },
 });
 ```
