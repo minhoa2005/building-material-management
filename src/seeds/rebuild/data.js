@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import mongoose from 'mongoose';
-import { buildDemoData } from '../data/demo.data.js';
+import { buildHistoricalSource } from './historical-source.js';
 import { transformSnapshot } from '../../migrations/rebuild/transform.js';
 import { exact } from '../../models/model-utils.js';
 import { documentCollections } from '../../models/rebuild/collections.js';
@@ -59,8 +59,7 @@ export function dataContext(data) {
 }
 
 export async function buildReviewedDemo({ consolidate = true } = {}) {
-  const groups = await buildDemoData();
-  const source = Object.fromEntries(groups.map(group => [group.Model.collection.name,group.documents.map(row => row.toObject())]));
+  const source = buildHistoricalSource();
   const data = transformSnapshot(source).target;
   for (const rows of Object.values(data)) for (const row of rows) {
     row.createdAt ??= row.occurredAt ?? row.postedAt ?? demoDate(1);

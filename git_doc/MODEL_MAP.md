@@ -6,6 +6,8 @@ Mốc schema 06/11/2026. Có 59 collection nghiệp vụ; không quản lý danh
 
 ## Registry và các file cùng tác động
 
+Sau merge main 06/11/2026: registry legacy còn 44 collection cho API cũ, có thêm purchase.model.js và export ReplenishmentSubmission. Không phải phần mở rộng bộ 59 schema mới. Profile migration đọc schema chứng từ/dòng/enum lịch sử trong rebuild/historical; seed reviewed dùng fixture EJSON riêng. [Phạm vi, field và tương thích sau merge](docs/09_phat_trien/MERGE_MAIN_2026-11-06.md).
+
 **Bản v6:** products tách kích thước từng viên và màu. Lô giữ productId + manufacturerLot, số viên/thùng cố định và kích thước ngoài thùng; bỏ calibre/tone. Xem [quyết định và cách tính sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md). DB mẫu hiện hành: wmsd_demo_tile_shop_v8, thêm 5 category; Atlas: wmsd_database.
 
 Schema v5 còn 58 bảng, bỏ 44 đường dẫn trường trùng/thừa. Quy tắc lược trường ở `field-cleanup.js` áp dụng cho profile reviewed và dữ liệu đã gộp. Giữ version cho phiếu/tồn/phân quyền/khóa và các mốc nguồn; bỏ revision đầu phiếu bị trùng. Ngưỡng lấy productId từ cha, dòng nguồn lấy referenceId từ cha, quy cách tồn lấy balanceId từ cha. Bốn danh mục products/warehouses/customers/suppliers dùng updatedAt khi kiểm sửa đồng thời ở API được port.

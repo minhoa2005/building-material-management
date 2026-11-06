@@ -42,13 +42,18 @@ test('central entry point reuses models and every ObjectId reference resolves', 
   assert.deepEqual(models.ROLE_CODES, ['OWNER', 'SALES', 'WAREHOUSE', 'ACCOUNTANT', 'ADMIN']);
 });
 
+test('purchase models reject removed arrival and require new receipt sources',async()=>{
+  await invalid(new models.BusinessDocument({documentNo:'REMOVED-ARRIVAL',documentKind:'ARRIVAL',createdBy:id()}),'documentKind');
+  const gr=document('GR_PURCHASE',{warehouseId:id()});
+  await invalid(gr,'header.purchaseOrderId');
+});
 test('all 36 document kinds select their typed schemas in one collection', async () => {
   const warehouseId = id();
   const headers = {
     REPLENISHMENT: { warehouseId, neededOn: when, triggerReason: 'Low stock', creationKey: 'test:rr' },
     PO: { warehouseId, supplierId: id() },
-    ARRIVAL: { warehouseId, arrivedAt: when },
-    GR_PURCHASE: { warehouseId },
+    PO_INSPECTION: { warehouseId, supplierId: id(), purchaseOrderId: id(), sourcePoVersion: 1, creationKey:'model:check', arrivedAt:when },
+    GR_PURCHASE: { warehouseId, purchaseOrderId:id(), poInspectionId:id(), supplierId:id() },
     TO: { warehouseId, taskKind: 'PUTAWAY', assignedTo: id() },
     TRANSFER_REQUEST: { sourceWarehouseId: warehouseId, destinationWarehouseId: id() },
     INTERNAL_TRANSFER_REQUIREMENT: { warehouseId, sourceDocumentId: id(), taskKind: 'PICK' },
@@ -88,7 +93,7 @@ test('all 36 document kinds select their typed schemas in one collection', async
   await invalid(document('PO', { warehouseId, supplierId: id(), unrelated: true }), 'header');
 });
 
-test('all 20 line kinds retain typed detail fields and a shared line identity', async () => {
+test('all 22 line kinds retain typed detail fields and a shared line identity', async () => {
   const details = {
     REPLENISHMENT: { triggerType: 'MANUAL_OTHER', reasonNote: 'Additional reserve requested manually' },
     SALES_ORDER: { externalReferenceId: id(), externalLineId: id() },
@@ -99,6 +104,8 @@ test('all 20 line kinds retain typed detail fields and a shared line identity', 
     FAILED_DELIVERY_RECEIPT: { failedDeliveryLineId: id(), salesIssueLineId: id(), inspectionLineId: id() },
     ST_RESOLUTION: { countId: id(), actionKind: 'RECLASS', fromBalanceId: id(), toBalanceId: id() },
     INSPECTION: { inspectedSourceLineId: id(), qualityCode: 'GOOD', ownershipDecision: 'ACCEPT', inspectedBy: id(), inspectedAt: when },
+    PO_INSPECTION: {poLineId:id(),qualityCode:'GOOD',clientLineKey:'model-line',plannedReceiptLocationId:id()},
+    PURCHASE_RECEIPT: {poLineId:id(),inspectionLineId:id(),receivingLocationId:id(),qualityCode:'GOOD'},
     TRANSFER_RECEIPT: { dispatchLineId: id(), qualityCode: 'GOOD' },
     TRANSFER_OUTBOUND: { requestLineId: id(), sourceBalanceId: id(), stagingLocationId: id() },
     ISSUE_REQUEST: { salesOrderLineId: id(), releaseKey: 'release-1' },
@@ -110,7 +117,7 @@ test('all 20 line kinds retain typed detail fields and a shared line identity', 
     DISCREPANCY: { sourceLineId: id(), discrepancyKind: 'SHORT' },
     ADJUSTMENT: { countId: id(), deltaQty: '-12' },
   };
-  assert.equal(models.LINE_KINDS.length, 20);
+  assert.equal(models.LINE_KINDS.length, 22);
   for (const kind of models.LINE_KINDS) {
     const doc = line({ lineKind: kind, ...(details[kind] && { details: details[kind] }) });
     await doc.validate();

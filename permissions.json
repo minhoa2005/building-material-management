@@ -130,6 +130,7 @@
     ],
     "roles": [
       "OWNER",
+      "ACCOUNTANT",
       "WAREHOUSE"
     ]
   },

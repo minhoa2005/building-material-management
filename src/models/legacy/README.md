@@ -1,6 +1,6 @@
 # Legacy models — historical runtime
 
-Retained for APIs not yet ported. These aggregate schemas are not the current 58-collection design. Read [the current model guide](../README.md). Original reference follows.
+Retained for APIs not yet ported. These aggregate schemas are not the current 59-collection design. Read [the current model guide](../README.md). Runtime after the 06/11/2026 main merge has 44 collections. PurchaseEvent, PurchaseSourceClaim, ReceiptPlacement and PurchaseEvidenceUpload are in purchase.model.js. Product/lot and supplier API fields from main are retained here. See [merge compatibility](../../../git_doc/docs/09_phat_trien/MERGE_MAIN_2026-11-06.md). The older counts below are historical reference.
 
 ```js
 import { User, BusinessDocument, DocumentLine, StockBalance } from '../../models/legacy/index.js';

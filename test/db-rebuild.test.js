@@ -1,15 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import mongoose from 'mongoose';
-import { buildDemoData } from '../src/seeds/data/demo.data.js';
+import { buildHistoricalSource } from '../src/seeds/rebuild/historical-source.js';
 import { registerMigrationModels } from '../src/models/index.js';
 import { transformSnapshot } from '../src/migrations/rebuild/transform.js';
 import { fingerprint, validateTarget, verifyGraph } from '../src/migrations/rebuild/verify.js';
 import { verifyReferences } from '../src/migrations/rebuild/references.js';
 
-const source = Object.fromEntries((await buildDemoData()).map(group => [
-  group.Model.collection.name, group.documents.map(document => document.toObject()),
-]));
+const source = buildHistoricalSource();
 const models = registerMigrationModels(mongoose.createConnection());
 const { target, issues } = transformSnapshot(source);
 

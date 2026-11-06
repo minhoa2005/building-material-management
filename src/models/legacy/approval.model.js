@@ -20,6 +20,7 @@ const approvalLineSchema = new Schema(
     lineId: ref("DocumentLine"),
     approvedQty: decimal(),
     outcome: text(30),
+    reason: text(2000, { required: false }),
   },
   embeddedOptions,
 );

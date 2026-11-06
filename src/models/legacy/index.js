@@ -23,3 +23,5 @@ export {
   PACKAGING_CONDITIONS, SALES_ORDER_STATUSES, CONFIRMATION_STATUSES,
   REPLENISHMENT_TRIGGER_TYPES, REPLENISHMENT_RELATIONS, NOTIFICATION_TYPES,
 } from '../constants.js';
+export { PurchaseEvent, PurchaseSourceClaim, ReceiptPlacement, PurchaseEvidenceUpload } from './purchase.model.js';
+export { ReplenishmentSubmission } from './replenishment-submission.model.js';

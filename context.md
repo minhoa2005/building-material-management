@@ -17,3 +17,7 @@ Các thẻ UC và ghi chú runtime baseline 3.3.x được giữ tại [context 
 Model hiện hành đã tách: mỗi collection một file `src/models/*.model.js`, schema nhúng trong `src/models/embedded/`. Atlas `wmsd_database` đã nhận 59 collection/638 bản ghi chỉ còn gạch; DB local v7 khớp dữ liệu đọc lại. [Hướng dẫn và bằng chứng triển khai](git_doc/docs/09_phat_trien/ATLAS_DEPLOYMENT.md). API legacy và kết nối ứng dụng chưa chuyển.
 
 Category 1–n Product, 5 nhóm do người dùng duyệt. [Cấu trúc và triển khai v8](git_doc/docs/09_phat_trien/CATEGORIES_V8.md).
+
+## Merge main — 06/11/2026
+
+Các API mua/nhập từ main tiếp tục dùng registry legacy, gồm PurchaseEvent, PurchaseSourceClaim, ReceiptPlacement và PurchaseEvidenceUpload. Bộ schema chính vẫn là 59 collection đã duyệt. [Ghi chú tích hợp](git_doc/docs/09_phat_trien/MERGE_MAIN_2026-11-06.md) phân biệt runtime cũ với thiết kế mới; [context main nguyên bản](git_doc/docs/99_lich_su/context_main_PO_2026-11-06.md) giữ để truy vết, không thay quyết định DB hiện hành.

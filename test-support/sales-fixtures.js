@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { buildDemoData } from '../src/seeds/data/demo.data.js';
-import { BusinessDocument, DocumentLine, ExternalReference, ExternalReferenceLine, BusinessOperation, OutboxEvent } from '../src/models/index.js';
+import { BusinessDocument, DocumentLine, ExternalReference, ExternalReferenceLine, BusinessOperation, OutboxEvent } from '../src/models/legacy/index.js';
 
 // Sales tests exercise a full source graph, but do not need to rebuild every
 // unrelated stocktake/notification index. Production seeding has its own suite.

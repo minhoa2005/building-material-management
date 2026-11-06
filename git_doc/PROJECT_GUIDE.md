@@ -4,6 +4,8 @@ Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều k
 
 ## 1. Phân biệt thiết kế và runtime
 
+[Tích hợp main ngày 06/11/2026](docs/09_phat_trien/MERGE_MAIN_2026-11-06.md): API mua/nhập PO_INSPECTION của main tiếp tục trên legacy (44 collection). Bộ reviewed giữ 59 collection và chuỗi hàng đến/kiểm nhận đã duyệt. Seed reviewed không phụ thuộc seed runtime mới; profile migration giữ schema lịch sử riêng và vẫn từ chối nguồn chưa có mapping. Không dùng hợp đồng legacy để tự thay quyết định đã duyệt.
+
 | Thành phần | Vai trò hiện tại |
 |---|---|
 | `src/models/index.js` → `registerReviewedModels(connection)` | Bộ schema chính đã duyệt, 59 collection, chứng từ riêng và `items[]` nhúng |

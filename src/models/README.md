@@ -11,6 +11,8 @@
 
 ## Vì sao giữ ba thư mục?
 
+Merge main 06/11/2026 giữ các model mua/nhập ở legacy/purchase.model.js, registry legacy có 44 collection. rebuild/historical chứa hợp đồng migration trước merge trên connection riêng; schema mới vẫn 59 collection như trên. [Chi tiết tương thích và kiểm tra](../../git_doc/docs/09_phat_trien/MERGE_MAIN_2026-11-06.md).
+
 | Thư mục | Ví dụ sử dụng | Có thể xóa không? |
 |---|---|---|
 | `embedded` | Các dòng hàng trong `purchase_orders.items`, quy cách thùng, header và lịch sử biến động | Còn được model cha nhập trực tiếp; không phải bảng riêng |

@@ -1,4 +1,6 @@
-import { BusinessDocument, DocumentLine, LINE_KINDS } from '../legacy/index.js';
+import { BusinessDocument } from './historical/business-document.model.js';
+import { DocumentLine } from './historical/document-line.model.js';
+import { LINE_KINDS } from './historical/constants.js';
 import { ReplenishmentSubmission } from '../legacy/replenishment-submission.model.js';
 import { Schema, code, date, decimal, embeddedOptions, exact, integer, options, ref, rules, text } from '../model-utils.js';
 import { packaging } from './catalogue.js';

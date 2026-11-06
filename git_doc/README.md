@@ -6,6 +6,8 @@ Cập nhật ngày 06/11/2026. Đây là điểm bắt đầu khi phát triển 
 
 ## Đọc theo thứ tự
 
+[Merge main 06/11/2026 — model, API runtime và kiểm thử](docs/09_phat_trien/MERGE_MAIN_2026-11-06.md).
+
 Bản hiện hành v8 có category: [từ điển trường](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md), [sản phẩm/lô/thùng và sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md), [kết quả rà trường v5](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md). DB mẫu mới nhất là `wmsd_demo_tile_shop_v8` tại `localhost:27017`. Các snapshot trước giữ làm lịch sử.
 
 1. [Hướng dẫn dự án và quyết định hiện hành](PROJECT_GUIDE.md).

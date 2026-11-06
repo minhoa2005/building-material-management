@@ -1,3 +1,4 @@
+import { rejectUntrackedPurchaseRelocation } from '../../shared/utils/purchaseProvenance.js';
 import mongoose from 'mongoose';
 import { createHash } from 'node:crypto';
 import {
@@ -9,6 +10,7 @@ import {
 import { exact } from '../../models/model-utils.js';
 import { currentRole, rolePermissions } from '../../shared/utils/userRole.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
+import { lockLotIdentity } from '../../shared/utils/lotIdentity.js';
 
 const id = (value) => value == null ? null : String(value._id ?? value);
 const same = (a, b) => id(a) === id(b);
@@ -125,6 +127,7 @@ export async function validateLines(input, session, excludeDocumentId = null) {
     const account = byAccount.get(id(balance?.accountId));
     if (!balance || !account?.locationId) throw new ApiError(400, 'Không tìm thấy tồn tại vị trí nguồn');
     const source = byLocation.get(id(account.locationId));
+    await rejectUntrackedPurchaseRelocation(balance._id, session);
     const destination = byLocation.get(line.toLocationId);
     checkLocations(source, destination, input.warehouseId);
     if (balance.version !== line.sourceBalanceVersion) conflict('Tồn nguồn đã thay đổi; tải lại dữ liệu trước khi tạo lệnh');
@@ -210,6 +213,9 @@ export async function createLocationMovement(user, input) {
         header: { warehouseId: input.warehouseId, taskKind: 'RELOCATE', assignedTo: user._id },
       });
       await document.save({ session });
+      for (const lotId of new Set(lines.map((line) => id(line.lotId)))) {
+        await lockLotIdentity(lotId, session);
+      }
       for (const line of lines) await new DocumentLine({ ...line, documentId }).save({ session });
       const operation = new BusinessOperation({
         documentId, operation: operationName, operationKey: input.idempotencyKey,

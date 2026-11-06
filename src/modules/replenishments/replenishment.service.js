@@ -102,6 +102,78 @@ export function buildListPipeline(user, query) {
           : { "_latestApproval.decision": query.approvalDecision },
     });
   }
+  const poFilter =
+    query.hasPurchaseOrder !== undefined
+      ? query.hasPurchaseOrder
+      : query.poCreated;
+  if (poFilter !== undefined) {
+    pipeline.push(
+      {
+        $lookup: {
+          from: DocumentLine.collection.name,
+          let: { docId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                lineKind: "REPLENISHMENT",
+                "details.removedAt": null,
+                $expr: { $eq: ["$documentId", "$$docId"] },
+              },
+            },
+            {
+              $lookup: {
+                from: LineLink.collection.name,
+                let: { lineId: "$_id" },
+                pipeline: [
+                  {
+                    $match: {
+                      relationCode: REPLENISHMENT_RELATIONS.PURCHASE,
+                      $expr: { $eq: ["$sourceLineId", "$$lineId"] },
+                    },
+                  },
+                ],
+                as: "_poLinks",
+              },
+            },
+            {
+              $match: {
+                "_poLinks.0": { $exists: true },
+              },
+            },
+          ],
+          as: "_linesWithPo",
+        },
+      },
+      {
+        $lookup: {
+          from: DocumentLink.collection.name,
+          let: { docId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                relationCode: REPLENISHMENT_RELATIONS.PURCHASE,
+                $expr: { $eq: ["$parentDocumentId", "$$docId"] },
+              },
+            },
+          ],
+          as: "_docPoLinks",
+        },
+      },
+      {
+        $match: poFilter
+          ? {
+              $or: [
+                { "_linesWithPo.0": { $exists: true } },
+                { "_docPoLinks.0": { $exists: true } },
+              ],
+            }
+          : {
+              "_linesWithPo.0": { $exists: false },
+              "_docPoLinks.0": { $exists: false },
+            },
+      },
+    );
+  }
   pipeline.push({
     $facet: {
       items: [
@@ -141,6 +213,59 @@ export function buildListPipeline(user, query) {
               { $count: "value" },
             ],
             as: "_lineCount",
+          },
+        },
+        {
+          $lookup: {
+            from: DocumentLine.collection.name,
+            let: { docId: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  lineKind: "REPLENISHMENT",
+                  "details.removedAt": null,
+                  $expr: { $eq: ["$documentId", "$$docId"] },
+                },
+              },
+              {
+                $lookup: {
+                  from: LineLink.collection.name,
+                  let: { lineId: "$_id" },
+                  pipeline: [
+                    {
+                      $match: {
+                        relationCode: REPLENISHMENT_RELATIONS.PURCHASE,
+                        $expr: { $eq: ["$sourceLineId", "$$lineId"] },
+                      },
+                    },
+                  ],
+                  as: "_poLinks",
+                },
+              },
+              {
+                $match: {
+                  "_poLinks.0": { $exists: true },
+                },
+              },
+              { $limit: 1 },
+            ],
+            as: "_itemPoLines",
+          },
+        },
+        {
+          $lookup: {
+            from: DocumentLink.collection.name,
+            let: { docId: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  relationCode: REPLENISHMENT_RELATIONS.PURCHASE,
+                  $expr: { $eq: ["$parentDocumentId", "$$docId"] },
+                },
+              },
+              { $limit: 1 },
+            ],
+            as: "_itemDocPoLinks",
           },
         },
       ],
@@ -212,6 +337,18 @@ export async function listReplenishments(user, query) {
       ...mapHeader(document, masters),
       lineCount: document._lineCount[0]?.value ?? 0,
       linePreview: document._linePreview.map((line) => mapLine(line, masters)),
+      hasPurchaseOrder: Boolean(
+        document._linesWithPo?.length ||
+          document._docPoLinks?.length ||
+          document._itemPoLines?.length ||
+          document._itemDocPoLinks?.length,
+      ),
+      poCreated: Boolean(
+        document._linesWithPo?.length ||
+          document._docPoLinks?.length ||
+          document._itemPoLines?.length ||
+          document._itemDocPoLinks?.length,
+      ),
       latestDecision: mapApproval(
         document._latestApproval,
         document.version,

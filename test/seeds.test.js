@@ -6,7 +6,7 @@ import * as models from '../src/models/legacy/index.js';
 import { exact } from '../src/models/model-utils.js';
 import { buildDemoData } from '../src/seeds/data/demo.data.js';
 import { SEED_ACCOUNTS } from '../src/seeds/data/accounts.data.js';
-import { databaseHasData, runSeeds, syncExistingRolePermissions } from '../src/seeds/index.js';
+import { databaseHasData, runSeeds, syncExistingRolePermissions, grantPurchaseReadPermissions } from '../src/seeds/index.js';
 
 function mockLegacySchema(t) {
   const connection = mongoose.connection;
@@ -20,10 +20,14 @@ function mockLegacySchema(t) {
 const dataset = buildDemoData();
 const byName = async () => new Map((await dataset).map(({ Model, documents }) => [Model.modelName, documents]));
 
-test('demo seed covers all 39 collections, 35 document kinds and 19 line kinds with valid schemas', async () => {
+test('demo seed covers all 44 collections, 36 document kinds and 22 line kinds with valid schemas', async () => {
   const groups = await dataset;
-  assert.equal(groups.length, 39);
+  assert.equal(groups.length, 44);
   for (const { Model, documents } of groups) {
+    if (Model.modelName === 'ReplenishmentSubmission') {
+      assert.equal(documents.length, 0, 'Historical RR snapshots must not be fabricated');
+      continue;
+    }
     assert.ok(documents.length > 0, Model.modelName);
     for (const document of documents) await document.validate();
   }
@@ -167,4 +171,12 @@ test('explicit permission sync restores the catalogue on existing roles', async 
   assert.deepEqual(await syncExistingRolePermissions(), { seeded: false, syncedRoles: 1 });
   assert.equal(saves, 1);
   assert.deepEqual(existing.permissionIds.map(String), data.get('Role').find(({ code }) => code === 'OWNER').permissionIds.map(String));
+});
+
+test('purchase read grant fails before writing when a required permission is missing', async (t) => {
+  let writes = 0;
+  t.mock.method(models.Permission, 'find', () => ({ lean: async () => [] }));
+  t.mock.method(models.Role, 'updateMany', async () => { writes += 1; });
+  await assert.rejects(grantPurchaseReadPermissions(), /missing permission purchase_order:read/);
+  assert.equal(writes, 0);
 });

@@ -1,3 +1,4 @@
+import { rejectUntrackedPurchaseRelocation } from '../../shared/utils/purchaseProvenance.js';
 import mongoose from 'mongoose';
 import { createHash } from 'node:crypto';
 import {
@@ -112,7 +113,7 @@ export async function cancelLocationMovement(user, documentId, input) {
   });
 }
 
-async function carryReservations(source, destination, sourceBefore, moved, session) {
+export async function carryReservations(source, destination, sourceBefore, moved, session) {
   const reservations = await read(Reservation.find({ balanceId: source._id, status: 'ACTIVE' }).sort({ _id: 1 }), session);
   const reserved = reservations.reduce((total, item) => total.plus(exact(item.qtyBase)), exact('0'));
   if (reserved.gt(sourceBefore)) conflict('Lượng giữ hàng vượt tồn nguồn');
@@ -198,6 +199,7 @@ export async function confirmLocationMovement(user, documentId, input) {
       checkLocations(from, to, document.header.warehouseId);
       const source = await read(StockBalance.findById(line.details.sourceBalanceId), session);
       const account = source && await read(StockAccount.findById(source.accountId), session);
+      await rejectUntrackedPurchaseRelocation(source?._id, session);
       if (!source || !account || !same(account.locationId, from._id)
         || !same(source.lotId, line.lotId) || !same(source.ownerPartyId, line.details.ownerPartyId)
         || source.qualityCode !== line.details.qualityCode) conflict('Tồn nguồn không còn khớp với lệnh');
