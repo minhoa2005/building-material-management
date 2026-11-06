@@ -1,7 +1,7 @@
 import { Schema, options, text, decimal, ref } from "./model-utils.js";
 import { optionalText, active, embedRecordArray } from "./schema-helpers.js";
 
-import { createStockThresholdSchema } from "./embedded/stock-threshold.model.js";
+import { createStockThresholdSchema } from "./stock-threshold.schema.js";
 
 // Collection: products
 export function createProductSchema() {

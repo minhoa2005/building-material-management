@@ -10,10 +10,10 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, embedRecordArray } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createStocktakeHeaderSchema } from "./embedded/stocktake-header.model.js";
-import { createStocktakeResolutionPlanSchema } from "./embedded/stocktake-resolution-plan.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createStocktakeHeaderSchema } from "./stocktake-header.schema.js";
+import { createStocktakeResolutionPlanSchema } from "./stocktake-resolution-plan.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

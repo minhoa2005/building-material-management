@@ -10,11 +10,11 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, embedRecordArray } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDeliveryDemandReopeningSchema } from "./embedded/delivery-demand-reopening.model.js";
-import { createDeliveryCommitmentTransferSchema } from "./embedded/delivery-commitment-transfer.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createFailedDeliveryReceiptHeaderSchema } from "./embedded/failed-delivery-receipt-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDeliveryDemandReopeningSchema } from "./delivery-demand-reopening.schema.js";
+import { createDeliveryCommitmentTransferSchema } from "./delivery-commitment-transfer.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createFailedDeliveryReceiptHeaderSchema } from "./failed-delivery-receipt-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

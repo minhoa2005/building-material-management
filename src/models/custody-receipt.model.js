@@ -10,9 +10,9 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createCustodyReceiptHeaderSchema } from "./embedded/custody-receipt-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createCustodyReceiptHeaderSchema } from "./custody-receipt-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

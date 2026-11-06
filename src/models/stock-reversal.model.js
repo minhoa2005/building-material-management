@@ -10,10 +10,10 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version } from "./schema-helpers.js";
 
-import { createReviewDecisionSchema } from "./embedded/review-decision.model.js";
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createStockReversalHeaderSchema } from "./embedded/stock-reversal-header.model.js";
+import { createReviewDecisionSchema } from "./review-decision.schema.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createStockReversalHeaderSchema } from "./stock-reversal-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

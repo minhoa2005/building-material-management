@@ -1,13 +1,14 @@
 import bcrypt from 'bcryptjs';
-import { User, Role } from '../../models/legacy/index.js';
+import { User, Role, Warehouse } from '../../models/runtime.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
+import { escapeRegex } from '../../shared/utils/domain.js';
 import { userRoleDto } from '../../shared/utils/userRole.js';
 
 export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', status = 'all' }) => {
   const query = {};
 
   if (search) {
-    const searchRegex = new RegExp(search.trim(), 'i');
+    const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
     query.$or = [{ username: searchRegex }, { fullName: searchRegex }, { phone: searchRegex }];
   }
 
@@ -47,7 +48,7 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
       id: u._id.toString(),
       username: u.username,
       fullName: u.fullName,
-      phone: u.phone,
+      phone: u.phone, email:u.email, warehouseIds:(u.warehouseIds||[]).map(String),
       ...userRoleDto(u),
       status: u.isActive ? 'active' : 'inactive',
       createdAt: u.createdAt,
@@ -68,7 +69,7 @@ export const getUserById = async (id) => {
     id: user._id.toString(),
     username: user.username,
     fullName: user.fullName,
-    phone: user.phone,
+    phone: user.phone, email:user.email, warehouseIds:(user.warehouseIds||[]).map(String),
     ...userRoleDto(user),
     status: user.isActive ? 'active' : 'inactive',
     createdAt: user.createdAt,
@@ -76,25 +77,26 @@ export const getUserById = async (id) => {
   };
 };
 
-export const createUser = async ({ username, fullName, password, roleCode, phone, isActive = true }) => {
+export const createUser = async ({ username, fullName, password, roleCode, phone, email, warehouseIds = [], isActive = true }) => {
   const normalizedUsername = username.trim().toLowerCase();
   const existing = await User.findOne({ username: normalizedUsername });
   if (existing) {
     throw new ApiError(400, 'Tên đăng nhập đã được sử dụng');
   }
 
-  const roleDoc = await Role.findOne({ code: roleCode.toUpperCase() });
+  const roleDoc = await Role.findOne({ code: roleCode.toUpperCase(), isActive:true });
   if (!roleDoc) {
     throw new ApiError(400, 'Vai trò không hợp lệ');
   }
 
+  if(await Warehouse.countDocuments({_id:{$in:warehouseIds},isActive:true})!==warehouseIds.length)throw new ApiError(400,'Kho phân công không hợp lệ');
   const passwordHash = await bcrypt.hash(password, 10);
   const created = await User.create({
     username: normalizedUsername,
     fullName: fullName.trim(),
     passwordHash,
     roleId: roleDoc._id,
-    phone,
+    phone, email, warehouseIds,
     isActive,
   });
 
@@ -107,12 +109,14 @@ export const updateUser = async (id, updates) => {
     throw new ApiError(404, 'Không tìm thấy người dùng');
   }
 
+  if(updates.warehouseIds){if(await Warehouse.countDocuments({_id:{$in:updates.warehouseIds},isActive:true})!==updates.warehouseIds.length)throw new ApiError(400,'Kho phân công không hợp lệ');user.warehouseIds=updates.warehouseIds;}
+  if(updates.email!==undefined)user.email=updates.email;
   if (updates.fullName) user.fullName = updates.fullName.trim();
   if (updates.phone !== undefined) user.phone = updates.phone;
   if (updates.isActive !== undefined) user.isActive = updates.isActive;
 
   if (updates.roleCode) {
-    const roleDoc = await Role.findOne({ code: updates.roleCode.toUpperCase() });
+    const roleDoc = await Role.findOne({ code: updates.roleCode.toUpperCase(), isActive:true });
     if (!roleDoc) {
       throw new ApiError(400, 'Vai trò không hợp lệ');
     }
@@ -141,3 +145,4 @@ export const toggleUserStatus = async (id, isActive, currentUserId) => {
   await user.save();
   return getUserById(user._id);
 };
+

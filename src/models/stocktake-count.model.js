@@ -13,7 +13,7 @@ import {
 } from "./model-utils.js";
 import { str, quantity, zero } from "./schema-helpers.js";
 
-import { createQuantityEntrySchema } from "./embedded/quantity-entry.model.js";
+import { createQuantityEntrySchema } from "./quantity-entry.schema.js";
 
 // Collection: stocktake_counts
 export function createStocktakeCountSchema() {

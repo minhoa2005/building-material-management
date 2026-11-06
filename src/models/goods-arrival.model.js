@@ -10,9 +10,9 @@ import {
 } from "./model-utils.js";
 import { objectId, id, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createGoodsArrivalHeaderSchema } from "./embedded/goods-arrival-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createGoodsArrivalHeaderSchema } from "./goods-arrival-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

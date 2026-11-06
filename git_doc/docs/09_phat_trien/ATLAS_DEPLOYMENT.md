@@ -46,7 +46,7 @@ Nguồn phải là DB demo trên loopback. Đích được giới hạn đúng t
 
 ## Model theo từng file
 
-58 collection khai báo tại `src/models/*.model.js`, mỗi file một schema. 96 schema nhúng khai báo tại `src/models/embedded/*.model.js`; không tạo thêm collection. `reviewed-registry.js` nạp các factory này. `legacy/` giữ model cho API cũ; `rebuild/` giữ đăng ký/ref/helper và profile migration lịch sử. [Bản đồ từng file](../../MODEL_MAP.md) · [Từ điển hiện hành](../03_thiet_ke/DB_Current_2026-11-06_58_v7/WMSD_Data_Dictionary.md).
+Đây là bằng chứng Atlas trước đồng bộ runtime. Runtime hiện hành khai báo 59 collection `src/models/*.model.js` và 96 schema nhúng `src/models/*.schema.js`; `registry-entries.js` nạp chúng cho một registry. Ba thư mục model cũ không còn tồn tại. [Bản đồ từng file](../../MODEL_MAP.md) · [Hợp đồng runtime](../08_api/NATIVE_MODEL_RUNTIME.md).
 
 Đối chiếu trước/sau tách file cho thấy không đổi metadata field/type/default/required/ref/index và không đổi dữ liệu BSON sau serialize. [Báo cáo tách model](../../outputs/model_files_split_2026-11-06.json).
 

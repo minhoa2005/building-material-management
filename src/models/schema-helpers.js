@@ -1,5 +1,5 @@
 import { Schema, integer, text, decimal, code, rules } from "./model-utils.js";
-import { documentCollections } from "./rebuild/collections.js";
+import { documentCollections } from "./collections.js";
 export const objectId = Schema.Types.ObjectId;
 export const id = (required = true) => ({
   type: Schema.Types.ObjectId,

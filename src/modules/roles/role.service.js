@@ -1,4 +1,4 @@
-import { Role, Permission, User } from '../../models/legacy/index.js';
+import { Role, Permission, User } from '../../models/runtime.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 
 export const listRoles = async () => {
@@ -12,7 +12,7 @@ export const listRoles = async () => {
 
   return roles.map((r) => ({
     id: r._id.toString(),
-    code: r.code,
+    code: r.code, name:r.name, description:r.description, isActive:r.isActive, isSystemRole:r.isSystemRole,
     roleKey: r.code.toLowerCase(),
     userCount: countMap.get(r._id.toString()) || 0,
     permissions: (r.permissionIds || []).map((p) => p.code),
@@ -28,9 +28,9 @@ export const updateRolePermissions = async (roleCode, permissionCodes = []) => {
   // Ensure permissions exist in database
   const permissionDocs = await Promise.all(
     permissionCodes.map(async (code) => {
-      let p = await Permission.findOne({ code });
+      const p = await Permission.findOne({ code, isActive:true });
       if (!p) {
-        p = await Permission.create({ code });
+        throw new ApiError(400, `Quyền không thuộc danh mục: ${code}`);
       }
       return p;
     })
@@ -46,3 +46,10 @@ export const updateRolePermissions = async (roleCode, permissionCodes = []) => {
     permissions: permissionCodes,
   };
 };
+
+export async function createRole(input){
+ const codes=[...new Set(input.permissionCodes)];const permissions=await Permission.find({code:{$in:codes},isActive:true});if(permissions.length!==codes.length)throw new ApiError(400,'Chỉ chọn quyền đang hoạt động trong danh mục');
+ const role=await Role.create({code:input.code,name:input.name,description:input.description,isSystemRole:false,permissionIds:permissions.map(p=>p._id)});return {id:String(role._id),code:role.code,name:role.name,permissions:codes};
+}
+export async function listPermissions(){return (await Permission.find({isActive:true}).select('code name description').lean()).map(p=>({id:String(p._id),code:p.code,name:p.name,description:p.description}));}
+

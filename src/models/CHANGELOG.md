@@ -1,3 +1,7 @@
+## 2026-11-06 — Flat native runtime
+
+Removed the three model directories with user approval. Registered 59 collections and 96 nested schemas from the root model directory; runtime services use this single registry. Renamed the former reviewed registry entry file and reference configurator to neutral runtime names. Added native transaction integration coverage. Seed v9 has 642 records. See ../../git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md for verification limits.
+
 ## 06/11/2026 — Giải quyết merge main và giữ ranh giới model
 
 Merge baf5fb4 vào HieuDT; giữ API PO/nhận mua, auth, field sản phẩm/lô/NCC của main trong registry legacy (44 collection), giữ bộ schema/category v8 (59 collection). Union scripts/dependencies, sửa import API/test/tool và bổ sung export ReplenishmentSubmission. Fixture reviewed/migration tách khỏi seed PO_INSPECTION runtime bằng EJSON tổng hợp từ 5f4a296; schema lịch sử dùng connection riêng. Không đổi schema/ERD 59 collection, không ghi DB và không port API trong lượt này. Cập nhật MODEL_MAP, PROJECT_GUIDE, context, README và hướng dẫn MERGE_MAIN_2026-11-06. Kiểm chứng cuối ghi trong hướng dẫn merge.

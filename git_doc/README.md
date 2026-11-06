@@ -45,6 +45,6 @@ Phiếu duyệt, thiết kế, hướng dẫn chuyển DB và API đã tập tru
 - Các file `docs/01_bao_cao` là bản so sánh/nộp bài, sửa trong mục hiện có và bảo toàn format.
 - Khảo sát ở `docs/05_khao_sat`, SAP tham khảo ở `docs/06_tham_khao`, rà soát theo ngày ở `docs/07_ra_soat`.
 
-Model hiện hành đã tách: mỗi collection một file `src/models/*.model.js`, schema nhúng trong `src/models/embedded/`. Atlas `wmsd_database` đã nhận 59 collection/638 bản ghi chỉ còn gạch; DB local v7 khớp dữ liệu đọc lại. [Hướng dẫn và bằng chứng triển khai](docs/09_phat_trien/ATLAS_DEPLOYMENT.md). API legacy và kết nối ứng dụng chưa chuyển.
+Model runtime hiện hành dùng 59 file collection `src/models/*.model.js` và 96 schema nhúng `src/models/*.schema.js`, cùng một registry. Ba thư mục model cũ đã được bỏ theo quyết định ngày 06/11/2026. DB Atlas/v8 là bằng chứng có ngày, không phải đích runtime hiện tại. Xem [hợp đồng runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md) và [hướng dẫn local](docs/09_phat_trien/DB_REBUILD.md).
 
 [Category v8: phân loại, dọn model và triển khai](docs/09_phat_trien/CATEGORIES_V8.md). Bản v7 trước là mốc lịch sử.

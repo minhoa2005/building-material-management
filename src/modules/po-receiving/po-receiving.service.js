@@ -1,232 +1,182 @@
-import mongoose from 'mongoose';
-import * as m from '../../models/legacy/index.js';
+import { PurchaseOrder, GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, WarehouseLocation, ProductBatch, Product, OperationRecord, TransferOrder } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
-import { canAccessWarehouse } from '../../shared/utils/access.js';
-import { currentRole } from '../../shared/utils/userRole.js';
-import { multiplyBaseQuantity } from '../../shared/utils/domain.js';
-import { validationError, notFoundError } from '../../shared/utils/ApiError.js';
-import { lockLotIdentity } from '../../shared/utils/lotIdentity.js';
-import { appendAudit } from '../../shared/utils/audit.js';
+import { requirePermission } from '../../shared/utils/access.js';
+import { validationError, forbiddenError } from '../../shared/utils/ApiError.js';
+import { command, checkVersion, saveVersion, same, newId } from '../../shared/utils/document-command.js';
+import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
+import { findPurchase, replayPurchase, newDocument } from './purchase-core.js';
 import { purchaseOrderQuantities } from '../purchase-orders/purchase-order.service.js';
-import { id, same, read, rights, fail, version, scoped, scopedPurchaseRead, rows, save, newDoc, link, lineLink, bump, serialize, command, location, guardLocations, balance, adjust, batch, receipt, operationKey, txOptions } from './purchase-core.js';
+import { guardLocations, locationAt, beginStock, balanceAt, receiveStock, verifyCapacity } from '../../shared/utils/stock.js';
+import { lockLotIdentity } from '../../shared/utils/lotIdentity.js';
+import { redactPrices } from '../sales-orders/sales-read.service.js';
+import { dto, serialize } from '../../shared/utils/persistence.js';
 
-export async function activePo(user, poId, expected, session) {
-  const po = await scoped(user, poId, 'PO', session); version(po, expected);
-  if (!['OPEN', 'PARTIAL'].includes(po.workflowStatus)) fail('STATE', 'PO không còn mở để nhận hàng');
-  const wh = await read(m.Warehouse.findById(po.header.warehouseId), session);
-  const supplier = await read(m.Party.findOne({ _id: po.header.supplierId, kind: 'SUPPLIER' }), session);
-  if (!wh?.isActive || !supplier) fail('SOURCE', 'Kho/NCC nguồn không hợp lệ');
-  return po;
+export async function activePo(user,id,expectedVersion,session){
+  const po=await findPurchase(id,user,session,{kind:'PO'});checkVersion(po,expectedVersion);
+  if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở để nhận hàng');return po;
 }
-export async function commitments(po, session) {
-  const computed = await purchaseOrderQuantities(po, session);
-  const drafts = await read(m.BusinessDocument.find({ documentKind: 'GR_PURCHASE', 'header.purchaseOrderId': po._id, workflowStatus: 'DRAFT' }), session);
-  const draftRows = await read(m.DocumentLine.find({ documentId: { $in: drafts.map(d => d._id) } }), session);
-  const held = new Map(computed.map(r => [r.lineId, exact('0')]));
-  let invalid = false;
-  for (const r of draftRows) {
-    const key = id(r.details?.poLineId);
-    if (!held.has(key)) { invalid = true; continue; }
-    held.set(key, held.get(key).plus(exact(r.qtyBase)));
+export const commitments=purchaseOrderQuantities;
+export async function inspectionSource(user,id,session){
+  const inspection=await findPurchase(id,user,session,{kind:'INSPECTION'});
+  const arrival=await GoodsArrival.findById(inspection.header.arrivalId).session(session);
+  if(!arrival)throw validationError('Thiếu hồ sơ hàng đến');
+  return{inspection,arrival};
+}
+export async function prepare(po,input,actor,session,arrival,inspection){
+  const arrivalItems=[],inspectionItems=[],seen=new Set();
+  for(const [i,row]of input.lines.entries()){
+    const source=po.items.id(row.poLineId);if(!source)throw validationError('Dòng không thuộc PO');
+    const batch=await ProductBatch.findOne({_id:row.lotId,productId:source.productId,identificationStatus:'VERIFIED'}).session(session);
+    const product=await Product.findOne({_id:source.productId,isActive:true}).session(session);
+    if(!batch||!product)throw validationError('Sản phẩm hoặc lô không hợp lệ');
+    const quantity=exact(row.enteredQty).mul(String(source.baseUnitsPerUnit));
+    if(!quantity.gt(0)||quantity.decimalPlaces()>6||(product.wholeBaseUnits&&!quantity.isInteger()))throw validationError('Lượng hàng đến không hợp lệ');
+    if(['BOX','Thùng'].includes(source.enteredUnit)&&!exact(source.baseUnitsPerUnit).eq(batch.piecesPerCarton))throw validationError('Thùng của lô không khớp quy đổi PO');
+    const prior=row.id?inspection.items.id(row.id):null;
+    if(row.id&&(!prior||seen.has(row.id)))throw validationError('Dòng kiểm không tồn tại hoặc bị trùng');
+    if(row.id)seen.add(row.id);
+    const oldArrival=prior&&arrival.items.id(prior.details.inspectedSourceLineId);
+    if(oldArrival&&!same(oldArrival.purchaseOrderItemId,source._id))throw validationError('Không đổi nguồn của dòng đã lưu');
+    const packagingSnapshot={packageUnit:'BOX',baseUnitsPerPackage:String(batch.piecesPerCarton),outerLengthMm:batch.cartonLengthMm,outerWidthMm:batch.cartonWidthMm,outerHeightMm:batch.cartonHeightMm};
+    const arrived=copyItem(source,quantity.toFixed(),{_id:oldArrival?._id??newId(),lineNo:i+1,lotId:batch._id,packagingSnapshot,purchaseOrderItemId:source._id,lotLabelSnapshot:batch.manufacturerLot,packagingCondition:row.packagingCondition,sources:[sourceLink(po,source,quantity.toFixed())]});
+    arrivalItems.push(arrived);
+    inspectionItems.push(copyItem(arrived,quantity.toFixed(),{_id:prior?._id??newId(),lineNo:i+1,lineKind:'INSPECTION',note:row.handlingNote,sources:[sourceLink(arrival,arrived,quantity.toFixed())],
+      details:{inspectedSourceLineId:arrived._id,qualityCode:row.qualityCode,ownershipDecision:row.ownershipDecision,inspectedBy:actor._id,inspectedAt:new Date(),packagingCondition:row.packagingCondition}}));
+    await lockLotIdentity(batch._id,session);
   }
-  return computed.map(r => {
-    const amount = held.get(r.lineId);
-    const headroom = r.quantityState === 'KNOWN' && r.outstandingQtyBase != null ? exact(r.outstandingQtyBase).minus(amount) : null;
-    return { ...r, openDraftCommitmentQtyBase: invalid ? null : amount.toString(), acceptanceHeadroomQtyBase: invalid || !headroom || headroom.isNegative() ? null : headroom.toString() };
+  arrival.items=arrivalItems;inspection.items=inspectionItems;
+}
+export function createInspection(user,id,input){
+  return command(user,'CREATE_GOODS_INSPECTION','goods_receipt_inspection:create',id,input,replayPurchase,async(session,actor)=>{
+    const po=await activePo(actor,id,input.expectedPoVersion,session);
+    const arrival=newDocument(GoodsArrival,'ARR',actor,{purchaseOrderId:po._id,warehouseId:po.header.warehouseId,supplierId:po.header.supplierId,arrivedAt:new Date(input.arrivedAt),deliveryReference:input.deliveryReference,deliveredBy:input.deliveredBy});
+    arrival.sources=[sourceLink(po)];
+    const inspection=newDocument(GoodsInspection,'INS',actor,{arrivalId:arrival._id,warehouseId:po.header.warehouseId,participants:[actor._id]});
+    inspection.sources=[sourceLink(arrival)];
+    await prepare(po,input,actor,session,arrival,inspection);await arrival.save({session});await inspection.save({session});
+    return{document:inspection,resultRefs:[{documentType:'goods_arrivals',documentId:arrival._id,revision:1}]};
   });
 }
-export async function prepare(user, po, input, session) {
-  const sources = new Map((await rows(po._id, session)).map(r => [id(r._id), r]));
-  const seen = new Set(); const result = [];
-  for (const [i, r] of input.lines.entries()) {
-    if (seen.has(r.clientLineKey)) throw validationError('Mã dòng bị trùng', [{ field: 'lines.' + i + '.clientLineKey', message: 'Trùng mã dòng' }]);
-    seen.add(r.clientLineKey);
-    const source = sources.get(id(r.poLineId));
-    if (!source) throw validationError('Dòng không thuộc PO');
-    const product = await read(m.Product.findById(source.productId), session);
-    const lot = await read(m.Lot.findById(r.lotId), session);
-    if (!product?.isActive || !lot || !same(lot.productId, product._id)) throw validationError('Sản phẩm/lô không hợp lệ');
-    const qty = multiplyBaseQuantity(r.enteredQty, source.conversionSnapshot.toString());
-    if (!qty.valid || (product.wholeBaseUnits && !qty.value.isInteger())) throw validationError('Lượng nhập không hợp lệ');
-    await location(user, r.plannedReceiptLocationId, po.header.warehouseId, ['RECEIVING'], session);
-    const conv = await read(m.ProductUomVersion.findById(source.conversionId), session);
-    const uom = conv && await read(m.Uom.findById(conv.uomId), session);
-    result.push({ source, productId: source.productId, lotId: lot._id, conversionId: source.conversionId, conversionSnapshot: source.conversionSnapshot,
-      enteredQty: r.enteredQty, qtyBase: qty.string, productNameSnapshot: source.productNameSnapshot,
-      productSkuSnapshot: source.productSkuSnapshot ?? product.sku, enteredUomCodeSnapshot: source.enteredUomCodeSnapshot ?? uom?.code,
-      lotLabelSnapshot: [lot.manufacturerLot, lot.tone, lot.calibre].filter(Boolean).join(' / '),
-      details: { clientLineKey: r.clientLineKey, poLineId: source._id, qualityCode: 'GOOD', plannedReceiptLocationId: r.plannedReceiptLocationId, ...(r.handlingNote && { handlingNote: r.handlingNote }) } });
-  }
-  if (input.scheduleId) {
-    const schedule = await read(m.PurchaseEvent.findOne({ _id: input.scheduleId, purchaseOrderId: po._id, kind: 'SUPPLIER_CONFIRMATION' }), session);
-    if (!schedule) throw validationError('Lịch giao không thuộc PO');
-  }
-  return result;
+export function updateInspection(user,id,input){
+  return command(user,'UPDATE_GOODS_INSPECTION','goods_receipt_inspection:update',id,input,replayPurchase,async(session,actor)=>{
+    const {inspection,arrival}=await inspectionSource(actor,id,session);checkVersion(inspection,input.expectedVersion);
+    if(inspection.workflowStatus!=='DRAFT'||arrival.workflowStatus!=='DRAFT')throw validationError('Hồ sơ không còn nháp');
+    const po=await activePo(actor,arrival.header.purchaseOrderId,input.expectedPoVersion,session);
+    await prepare(po,input,actor,session,arrival,inspection);
+    arrival.header.arrivedAt=new Date(input.arrivedAt);arrival.header.deliveryReference=input.deliveryReference;arrival.header.deliveredBy=input.deliveredBy;
+    await saveVersion(arrival,arrival.version,session);
+    return{document:await saveVersion(inspection,input.expectedVersion,session),versionBefore:input.expectedVersion};
+  });
 }
-export async function writeRows(documentId, prepared, session, previous = []) {
-  const keys = new Set(prepared.map(r => r.details.clientLineKey));
-  for (const old of previous.filter(r => !keys.has(r.details.clientLineKey))) {
-    await m.LineLink.deleteMany({ targetLineId: old._id }, { session });
-    await m.DocumentLine.deleteOne({ _id: old._id, documentId }, { session });
-  }
-  // Move existing line numbers out of the way before reordering (unique document/lineNo).
-  const Line = m.DocumentLine.discriminators.DocumentLine_PO_INSPECTION;
-  for (const old of previous.filter(r => keys.has(r.details.clientLineKey))) await Line.updateOne({ _id: old._id }, { $set: { lineNo: old.lineNo + 1000 } }, { session });
-  for (const [i, r] of prepared.entries()) {
-    const { source, ...fields } = r;
-    const old = previous.find(p => p.details.clientLineKey === fields.details.clientLineKey);
-    const values = { ...fields, documentId, lineNo: i + 1, lineKind: 'PO_INSPECTION' };
-    if (old) {
-      if (!same(old.details.poLineId, source._id)) throw validationError('Không đổi nguồn của dòng đã lưu; thêm dòng mới');
-      await Line.updateOne({ _id: old._id, documentId }, { $set: values }, { session, runValidators: true });
-      await m.LineLink.updateOne({ sourceLineId: source._id, targetLineId: old._id, relationCode: 'SOURCE' }, { $set: { linkedQty: fields.qtyBase } }, { session });
-    } else {
-      const line = await save(m.DocumentLine, values, session);
-      await lineLink(source._id, line._id, fields.qtyBase, session);
+export function confirmInspection(user,id,input){
+  return command(user,'CONFIRM_GOODS_INSPECTION','goods_receipt_inspection:update',id,input,replayPurchase,async(session,actor)=>{
+    const {inspection,arrival}=await inspectionSource(actor,id,session);checkVersion(inspection,input.expectedVersion);
+    if(inspection.workflowStatus!=='DRAFT'||!inspection.items.length)throw validationError('Chỉ xác nhận hồ sơ nháp có dòng hàng');
+    const po=await activePo(actor,arrival.header.purchaseOrderId,input.expectedPoVersion,session),quantities=await purchaseOrderQuantities(po,session);
+    const free=new Map(quantities.map(row=>[row.lineId,exact(row.acceptanceHeadroomQtyBase)]));
+    const accepted=inspection.items.filter(row=>row.details.ownershipDecision==='ACCEPT');
+    const destinations=input.destinations||[];
+    if(destinations.length!==accepted.length||new Set(destinations.map(row=>row.inspectionItemId)).size!==accepted.length)throw validationError('Chọn vị trí nhập cho từng phần nhận sở hữu');
+    const receipt=accepted.length?newDocument(PurchaseReceipt,'GR',actor,{purchaseOrderId:po._id,arrivalId:arrival._id,warehouseId:po.header.warehouseId,supplierId:po.header.supplierId}):null;
+    for(const [i,item]of accepted.entries()){
+      const source=arrival.items.id(item.details.inspectedSourceLineId),poItem=source&&po.items.id(source.purchaseOrderItemId);
+      if(!poItem||!same(item.productId,source.productId)||!same(item.lotId,source.lotId))throw validationError('Nguồn kiểm nhận không hợp lệ');
+      const left=free.get(String(poItem._id)).minus(String(item.qtyBase));if(left.lt(0))throw validationError('Tổng nhận vượt phần PO còn được nhận');free.set(String(poItem._id),left);
+      const destination=destinations.find(row=>same(row.inspectionItemId,item._id));
+      if(!destination)throw validationError('Thiếu vị trí nhận');
+      await locationAt(destination.locationId,po.header.warehouseId,[item.details.qualityCode==='GOOD'?'RECEIVING':'QUARANTINE'],session);
+      receipt.items.push(copyItem(item,item.qtyBase,{lineNo:i+1,lineKind:'STANDARD',purchaseOrderItemId:poItem._id,arrivalItemId:source._id,inspectionId:inspection._id,inspectionResultId:item._id,destinationLocationId:destination.locationId,sources:[sourceLink(inspection,item,item.qtyBase)]}));
     }
-    await lockLotIdentity(fields.lotId, session);
-  }
-}
-export function header(po, input, creationKey) {
-  return { purchaseOrderId: po._id, warehouseId: po.header.warehouseId, supplierId: po.header.supplierId, sourcePoVersion: po.version, creationKey,
-    arrivedAt: new Date(input.arrivedAt), ...(input.deliveryReference && { deliveryReference: input.deliveryReference }), ...(input.delivererName && { delivererName: input.delivererName }),
-    ...(input.delivererContact && { delivererContact: input.delivererContact }), ...(input.scheduleId && { scheduleId: input.scheduleId }) };
-}
-export async function createInspection(user, poId, input) {
-  rights(user, 'create');
-  return command(user, 'CREATE_PO_INSPECTION', poId, input, async session => {
-    const po = await activePo(user, poId, input.expectedPoVersion, session);
-    const prepared = await prepare(user, po, input, session);
-    const d = await newDoc('PO_INSPECTION', header(po, input, input.creationKey), user, session);
-    await writeRows(d._id, prepared, session); await link(po, d, 'PO_INSPECTION', session);
-    return { document: d };
-  });
-}
-export async function updateInspection(user, inspectionId, input) {
-  rights(user, 'update');
-  return command(user, 'UPDATE_PO_INSPECTION', inspectionId, input, async session => {
-    const d = await scoped(user, inspectionId, 'PO_INSPECTION', session); version(d, input.expectedVersion);
-    if (d.workflowStatus !== 'DRAFT') fail('STATE', 'Chỉ sửa phiếu đang nháp');
-    const po = await activePo(user, d.header.purchaseOrderId, input.expectedPoVersion, session);
-    const prepared = await prepare(user, po, input, session);
-    const next = await bump(d, session, { header: { ...header(po, input, d.header.creationKey), ...Object.fromEntries(['rootInspectionId', 'replacesInspectionId', 'correctionId'].filter(k => d.header[k]).map(k => [k, d.header[k]])) } });
-    await writeRows(d._id, prepared, session, await rows(d._id, session));
-    return { document: next };
-  });
-}
-export async function confirmInspection(user, inspectionId, input) {
-  rights(user, 'update');
-  return command(user, 'CONFIRM_PO_INSPECTION', inspectionId, input, async session => {
-    const d = await scoped(user, inspectionId, 'PO_INSPECTION', session); version(d, input.expectedVersion);
-    if (d.workflowStatus !== 'DRAFT') fail('STATE', 'Phiếu không còn nháp');
-    const po = await activePo(user, d.header.purchaseOrderId, input.expectedPoVersion, session);
-    if (d.header.sourcePoVersion !== po.version) fail('VERSION', 'PO đã đổi; lưu lại nháp trên phiên bản mới trước khi chốt');
-    const stored = await rows(d._id, session);
-    if (!stored.length) throw validationError('Cần ít nhất một dòng nhận lượng dương');
-    await prepare(user, po, { lines: stored.map(r => ({ ...r.details, lotId: id(r.lotId), enteredQty: r.enteredQty.toString() })), scheduleId: d.header.scheduleId }, session);
-    const q = await commitments(po, session);
-    if (q.some(r => r.acceptanceHeadroomQtyBase == null)) fail('SOURCE', 'PO thiếu căn cứ lượng nhận');
-    const free = new Map(q.map(r => [r.lineId, exact(r.acceptanceHeadroomQtyBase)]));
-    for (const r of stored) {
-      const left = free.get(id(r.details.poLineId))?.minus(exact(r.qtyBase));
-      if (!left || left.isNegative()) fail('HEADROOM', 'Lượng nhập vượt phần PO còn được nhận', { quantities: q }, [{ clientLineKey: r.details.clientLineKey, message: 'Vượt headroom' }]);
-      free.set(id(r.details.poLineId), left);
+    const refs=[];
+    if(receipt){receipt.sources=[sourceLink(po),sourceLink(inspection)];await receipt.save({session});refs.push({documentType:'purchase_receipts',documentId:receipt._id,revision:1});}
+    // Custody is retained as its own document, never added to store-owned stock.
+    const held=inspection.items.filter(row=>row.details.ownershipDecision==='CUSTODY');
+    if(held.length){
+      const custody=newDocument(CustodyReceipt,'CRCV',actor,{warehouseId:po.header.warehouseId,ownerType:'SUPPLIER',ownerId:po.header.supplierId});
+      custody.items=held.map((item,i)=>copyItem(item,item.qtyBase,{lineNo:i+1,lineKind:'STANDARD',sources:[sourceLink(inspection,item,item.qtyBase)]}));
+      custody.sources=[sourceLink(inspection)];await custody.save({session});refs.push({documentType:'custody_receipts',documentId:custody._id,revision:1});
     }
-    await bump(po, session);
-    const gr = await newDoc('GR_PURCHASE', { warehouseId: po.header.warehouseId, purchaseOrderId: po._id, poInspectionId: d._id, supplierId: po.header.supplierId, delivererName: d.header.delivererName, delivererContact: d.header.delivererContact }, user, session);
-    await link(po, gr, 'PO_RECEIPT', session); await link(d, gr, 'INSPECTION_RECEIPT', session);
-    for (const [i, r] of stored.entries()) {
-      const line = await save(m.DocumentLine, { documentId: gr._id, lineNo: i + 1, lineKind: 'PURCHASE_RECEIPT', productId: r.productId, lotId: r.lotId, conversionId: r.conversionId, conversionSnapshot: r.conversionSnapshot,
-        enteredQty: r.enteredQty, qtyBase: r.qtyBase, productNameSnapshot: r.productNameSnapshot, productSkuSnapshot: r.productSkuSnapshot, enteredUomCodeSnapshot: r.enteredUomCodeSnapshot, lotLabelSnapshot: r.lotLabelSnapshot,
-        details: { poLineId: r.details.poLineId, inspectionLineId: r._id, qualityCode: 'GOOD', receivingLocationId: r.details.plannedReceiptLocationId } }, session);
-      await lineLink(r._id, line._id, r.qtyBase, session);
-    }
-    return { document: await bump(d, session, { workflowStatus: 'CONFIRMED', 'header.inspectedBy': user._id, 'header.inspectedAt': new Date() }), goodsReceiptId: gr._id };
+    inspection.workflowStatus='CONFIRMED';inspection.header.confirmedBy=actor._id;inspection.header.confirmedAt=new Date();
+    arrival.workflowStatus='RECORDED';arrival.header.recordedAt=new Date();await saveVersion(arrival,arrival.version,session);await saveVersion(po,po.version,session);
+    return{document:await saveVersion(inspection,input.expectedVersion,session),versionBefore:input.expectedVersion,resultRefs:refs};
   });
 }
-export async function postReceipt(user, receiptId, input) {
-  rights(user, 'post');
-  return command(user, 'POST_PURCHASE_RECEIPT', receiptId, input, async (session, key, hash) => {
-    const gr = await scoped(user, receiptId, 'GR_PURCHASE', session); version(gr, input.expectedVersion);
-    if (gr.workflowStatus !== 'DRAFT') fail('STATE', 'GR không còn nháp');
-    const inspection = await scoped(user, gr.header.poInspectionId, 'PO_INSPECTION', session);
-    const po = await activePo(user, gr.header.purchaseOrderId, input.expectedPoVersion, session);
-    if (inspection.workflowStatus !== 'CONFIRMED' || !same(inspection.header.purchaseOrderId, po._id) || !same(gr.header.supplierId, po.header.supplierId) || !same(gr.header.warehouseId, po.header.warehouseId) || !same(inspection.header.warehouseId, po.header.warehouseId) || !same(inspection.header.supplierId, po.header.supplierId)) fail('SOURCE', 'Nguồn GR không khớp');
-    const lines = await rows(gr._id, session); const inspected = await rows(inspection._id, session);
-    if (!lines.length || lines.length !== inspected.length) fail('SOURCE', 'GR phải bao phủ đúng lượng đã chốt');
-    const seen = new Set();
-    for (const r of lines) {
-      const source = inspected.find(s => same(s._id, r.details.inspectionLineId));
-      if (!source || seen.has(id(source._id)) || !same(source.details.poLineId, r.details.poLineId) || !same(source.productId, r.productId) || !same(source.lotId, r.lotId) || !exact(source.qtyBase).eq(exact(r.qtyBase)) || r.details.qualityCode !== 'GOOD') fail('SOURCE', 'Dòng GR không khớp hồ sơ nhận');
-      seen.add(id(source._id));
-      await location(user, r.details.receivingLocationId, po.header.warehouseId, ['RECEIVING'], session);
-      const product = await read(m.Product.findById(r.productId), session);
-      const lot = await read(m.Lot.findById(r.lotId), session);
-      if (!product?.isActive || !lot || !same(lot.productId, product._id)) fail('SOURCE', 'Sản phẩm/lô không hợp lệ');
+export function postReceipt(user,id,input){
+  return command(user,'POST_PURCHASE_RECEIPT','goods_receipt_inspection:post',id,input,replayPurchase,async(session,actor)=>{
+    const receipt=await findPurchase(id,actor,session,{kind:'GR_PURCHASE'});checkVersion(receipt,input.expectedVersion);
+    if(receipt.workflowStatus!=='DRAFT'||!receipt.items.length)throw validationError('Phiếu không còn nháp hoặc không có lượng nhập');
+    const po=await activePo(actor,receipt.header.purchaseOrderId,input.expectedPoVersion,session);
+    const quantities=await purchaseOrderQuantities(po,session);
+    if(quantities.some(row=>exact(row.acceptanceHeadroomQtyBase).lt(0)))throw validationError('Các phiếu nhập vượt hạn mức PO');
+    const locations=receipt.items.map(row=>row.destinationLocationId);await guardLocations(locations,session);
+    const posting=beginStock(receipt,actor,'PURCHASE_RECEIPT',input);
+    for(const item of receipt.items){
+      const inspection=await GoodsInspection.findOne({_id:item.inspectionId,workflowStatus:'CONFIRMED','header.arrivalId':receipt.header.arrivalId}).session(session),source=inspection?.items.id(item.inspectionResultId);
+      if(!source||source.details.ownershipDecision!=='ACCEPT'||!same(source.lotId,item.lotId)||!same(source.productId,item.productId)||!exact(source.qtyBase).eq(String(item.qtyBase)))throw validationError('Nguồn nhận sở hữu không hợp lệ');
+      await locationAt(item.destinationLocationId,po.header.warehouseId,[source.details.qualityCode==='GOOD'?'RECEIVING':'QUARANTINE'],session);
+      const target=await balanceAt({type:'LOCATION',locationId:item.destinationLocationId},{batchId:item.lotId,ownerType:'STORE',ownerId:null},source.details.qualityCode,session);
+      const portions=input.packaging?.find(row=>same(row.lineId,item._id))?.portions;
+      if(source.details.packagingCondition!=='SEALED'&&!portions?.length)throw validationError('Hàng không nguyên thùng cần nhập quy cách và thể tích thực đo');
+      await receiveStock(target,item,portions,posting,actor,session);
     }
-    const q = await commitments(po, session);
-    if (q.some(r => r.acceptanceHeadroomQtyBase == null)) fail('HEADROOM', 'PO có cam kết vượt nguồn hoặc thiếu căn cứ');
-    const received = new Map(q.map(r => [r.lineId, exact(r.outstandingQtyBase)]));
-    for (const r of lines) received.set(id(r.details.poLineId), received.get(id(r.details.poLineId)).minus(exact(r.qtyBase)));
-    await guardLocations(lines.map(r => r.details.receivingLocationId), session);
-    const store = await read(m.Party.findOne({ kind: 'STORE' }), session); if (!store) fail('SOURCE', 'Thiếu STORE');
-    const posting = await batch(gr, user, key, hash, session);
-    for (const r of lines) {
-      const target = await balance(r.details.receivingLocationId, r.lotId, store._id, 'GOOD', session);
-      if (await m.DefectHold.exists({ balanceId: target._id, status: 'ACTIVE' }).session(session)) fail('HOLD', 'Balance đích đang bị giữ do lỗi');
-      const numbers = await adjust(target, exact(r.qtyBase), session);
-      await save(m.StockMovement, { batchId: posting._id, documentId: gr._id, lineId: r._id, toBalanceId: target._id, qtyBase: r.qtyBase, toBefore: numbers.before, toAfter: numbers.after }, session);
-      await save(m.ReceiptPlacement, { purchaseOrderId: po._id, receiptId: gr._id, receiptLineId: r._id, sourceBalanceId: target._id, receivedQtyBase: r.qtyBase }, session);
-    }
-    await bump(po, session, { workflowStatus: [...received.values()].every(q => q.isZero()) ? 'COMPLETED' : 'PARTIAL' });
-    return { document: await bump(gr, session, { workflowStatus: 'POSTED' }), goodsReceiptId: gr._id, postingBatchId: posting._id };
+    await verifyCapacity(locations,session);await posting.save({session});
+    receipt.workflowStatus='POSTED';receipt.stockTransactionId=posting._id;receipt.postedBy=actor._id;receipt.postedAt=new Date();receipt.header.receivedAt=new Date();
+    const saved=await saveVersion(receipt,input.expectedVersion,session);
+    const remaining=await purchaseOrderQuantities(po,session);po.workflowStatus=remaining.every(row=>exact(row.outstandingQtyBase).isZero())?'COMPLETED':'PARTIAL';await saveVersion(po,po.version,session);
+    return{document:saved,versionBefore:input.expectedVersion,stockTransactionId:posting._id};
   });
 }
-export async function cancelDraft(user, documentId, kind, input) {
-  rights(user, 'update');
-  return command(user, kind === 'GR_PURCHASE' ? 'CANCEL_PURCHASE_RECEIPT' : 'CANCEL_PO_INSPECTION', documentId, input, async session => {
-    const d = await scoped(user, documentId, kind, session); version(d, input.expectedVersion);
-    if (d.workflowStatus !== 'DRAFT') fail('STATE', 'Chỉ hủy phiếu nháp');
-    if (kind === 'GR_PURCHASE') { const po = await scoped(user, d.header.purchaseOrderId, 'PO', session); version(po, input.expectedPoVersion); await bump(po, session); }
-    return { document: await bump(d, session, { workflowStatus: 'CANCELLED' }) };
+export function cancelDraft(user,id,kind,input){
+  return command(user,'CANCEL_'+kind,'goods_receipt_inspection:update',id,input,replayPurchase,async(session,actor)=>{
+    const document=await findPurchase(id,actor,session,{kind});checkVersion(document,input.expectedVersion);
+    if(document.workflowStatus!=='DRAFT')throw validationError('Chỉ hủy phiếu nháp');
+    document.workflowStatus='CANCELLED';document.cancelledBy=actor._id;document.cancelledAt=new Date();document.cancelReason=input.reason;
+    if(kind==='GR_PURCHASE'){const po=await findPurchase(document.header.purchaseOrderId,actor,session,{kind:'PO'});checkVersion(po,input.expectedPoVersion);await saveVersion(po,po.version,session);}
+    return{document:await saveVersion(document,input.expectedVersion,session),versionBefore:input.expectedVersion,reason:input.reason};
   });
 }
-export async function changeDestinations(user, documentId, input) {
-  rights(user, 'update');
-  return command(user, 'CHANGE_GR_DESTINATIONS', documentId, input, async session => {
-    const gr = await scoped(user, documentId, 'GR_PURCHASE', session); version(gr, input.expectedVersion);
-    if (gr.workflowStatus !== 'DRAFT') fail('STATE', 'Chỉ đổi đích GR nháp');
-    const lines = await rows(gr._id, session); const seen = new Set();
-    for (const r of input.lines) {
-      if (seen.has(r.lineId)) throw validationError('Dòng đổi đích bị trùng'); seen.add(r.lineId);
-      const old = lines.find(l => same(l._id, r.lineId)); if (!old) throw notFoundError();
-      await location(user, r.receivingLocationId, gr.header.warehouseId, ['RECEIVING'], session);
-      await m.DocumentLine.discriminators.DocumentLine_PURCHASE_RECEIPT.updateOne({ _id: old._id }, { $set: { 'details.receivingLocationId': r.receivingLocationId } }, { session, runValidators: true });
-      await appendAudit({ documentId: gr._id, actorId: user._id, action: 'GR_DESTINATION', changes: [{ path: 'lines.' + id(old._id) + '.receivingLocationId', before: id(old.details.receivingLocationId), after: r.receivingLocationId }], session });
+export function changeDestinations(user,id,input){
+  return command(user,'CHANGE_RECEIPT_DESTINATIONS','goods_receipt_inspection:update',id,input,replayPurchase,async(session,actor)=>{
+    const receipt=await findPurchase(id,actor,session,{kind:'GR_PURCHASE'});checkVersion(receipt,input.expectedVersion);
+    if(receipt.workflowStatus!=='DRAFT')throw validationError('Không đổi vị trí sau ghi tồn');
+    for(const row of input.lines){const item=receipt.items.id(row.lineId);if(!item)throw validationError('Dòng không thuộc phiếu');const inspection=await GoodsInspection.findById(item.inspectionId).session(session),source=inspection?.items.id(item.inspectionResultId);
+      if(!source)throw validationError('Thiếu kiểm nhận');await locationAt(row.receivingLocationId,receipt.header.warehouseId,[source.details.qualityCode==='GOOD'?'RECEIVING':'QUARANTINE'],session);item.destinationLocationId=row.receivingLocationId;}
+    return{document:await saveVersion(receipt,input.expectedVersion,session),versionBefore:input.expectedVersion,reason:input.reason};
+  });
+}
+export async function inspectionContext(user,id){
+  requirePermission(user,'goods_receipt_inspection:read');
+  const po=await findPurchase(id,user,null,{kind:'PO',readOnly:true});
+  const locations=await WarehouseLocation.find({warehouseId:po.header.warehouseId,isActive:true}).lean();
+  const batches=await ProductBatch.find({productId:{$in:po.items.map(row=>row.productId)},identificationStatus:'VERIFIED'}).lean();
+  return{purchaseOrder:redactPrices(dto(po)),quantities:await purchaseOrderQuantities(po),locations:locations.map(dto),batches:batches.map(dto)};
+}
+export async function receivingOperation(user,id,key){
+  requirePermission(user,'goods_receipt_inspection:read');const po=await findPurchase(id,user,null,{kind:'PO',readOnly:true});
+  const operations=await OperationRecord.find({actorId:user._id,requestKey:key}).lean();
+  for(const operation of operations){const subject=await findPurchase(operation.subjectId,user,null,{readOnly:true});if(same(subject._id,id)||same(subject.header.purchaseOrderId,id)||subject.sources?.some(link=>same(link.documentId,id)))return serialize(operation);}
+  return null;
+}
+
+export function postCustodyReceipt(user,id,input){
+  return command(user,'POST_PURCHASE_CUSTODY','goods_receipt_inspection:post',id,input,replayPurchase,async(session,actor)=>{
+    const receipt=await findPurchase(id,actor,session,{kind:'CUSTODY_RECEIPT'});checkVersion(receipt,input.expectedVersion);
+    if(receipt.workflowStatus!=='DRAFT'||receipt.header.ownerType!=='SUPPLIER'||!receipt.items.length)throw validationError('Phiếu giữ hộ không còn nháp');
+    if(input.destinations.length!==receipt.items.length||new Set(input.destinations.map(r=>r.lineId)).size!==receipt.items.length)throw validationError('Chọn vị trí cho mỗi dòng giữ hộ');
+    const locations=input.destinations.map(r=>r.locationId);await guardLocations(locations,session);const posting=beginStock(receipt,actor,'CUSTODY_RECEIPT',input);
+    for(const item of receipt.items){
+      const ref=item.sources.find(r=>r.subjectCollection==='goods_inspections');const inspection=ref&&await GoodsInspection.findOne({_id:ref.documentId,workflowStatus:'CONFIRMED','header.warehouseId':receipt.header.warehouseId}).session(session);const origin=inspection?.items.id(ref.itemId);
+      const arrival=inspection&&await GoodsArrival.findById(inspection.header.arrivalId).session(session);
+      if(!origin||origin.details.ownershipDecision!=='CUSTODY'||!same(arrival?.header.supplierId,receipt.header.ownerId)||!same(item.lotId,origin.lotId)||!same(item.productId,origin.productId)||!exact(item.qtyBase).eq(String(origin.qtyBase)))throw validationError('Nguồn giữ hộ không hợp lệ');
+      const dest=input.destinations.find(r=>same(r.lineId,item._id));if(!dest)throw validationError('Thiếu vị trí giữ hộ');
+      await locationAt(dest.locationId,receipt.header.warehouseId,['CUSTODY','QUARANTINE'],session);
+      const target=await balanceAt({type:'LOCATION',locationId:dest.locationId},{batchId:item.lotId,ownerType:'SUPPLIER',ownerId:receipt.header.ownerId},origin.details.qualityCode,session);
+      const portions=input.packaging?.find(r=>same(r.lineId,item._id))?.portions;
+      if(origin.details.packagingCondition!=='SEALED'&&!portions?.length)throw validationError('Hàng không nguyên thùng cần nhập quy cách và thể tích thực đo');
+      await receiveStock(target,item,portions,posting,actor,session);
     }
-    return { document: await bump(gr, session) };
+    await verifyCapacity(locations,session);await posting.save({session});receipt.workflowStatus='POSTED';receipt.stockTransactionId=posting._id;receipt.postedBy=actor._id;receipt.postedAt=new Date();receipt.header.receivedAt=new Date();receipt.header.receivedBy=actor._id;receipt.header.handedOverBy=input.handedOverBy;
+    return {document:await saveVersion(receipt,input.expectedVersion,session),versionBefore:input.expectedVersion,stockTransactionId:posting._id};
   });
 }
-export async function inspectionContext(user, poId) {
-  if (currentRole(user)?.code === 'WAREHOUSE') rights(user, 'create');
-  else rights(user, 'read', 'purchase_order', ['OWNER', 'ACCOUNTANT']);
-  const session = await mongoose.startSession();
-  try { return await session.withTransaction(async () => {
-    const po = await scopedPurchaseRead(user, poId, 'PO', session);
-    const lines = await rows(po._id, session); const quantities = await commitments(po, session);
-    const locations = await read(m.Location.find({ warehouseId: po.header.warehouseId, kind: 'RECEIVING', isActive: true }), session);
-    return serialize({ purchaseOrder: po, lines, quantities, locations, computedAt: new Date() });
-  }, txOptions); } finally { await session.endSession(); }
-}
-export async function receivingOperation(user, poId, rawKey) {
-  rights(user, 'read', 'purchase_order', ['OWNER', 'ACCOUNTANT', 'WAREHOUSE']);
-  await scoped(user, poId, 'PO');
-  const op = await read(m.BusinessOperation.findOne({ idempotencyKey: operationKey(user, rawKey), performedBy: user._id }));
-  if (!op) return { status: 'NOT_FOUND' };
-  const d = await scoped(user, op.documentId);
-  const targetPoId = d.documentKind === 'PO' ? d._id : d.header?.purchaseOrderId;
-  let belongs = same(targetPoId, poId);
-  if (d.documentKind === 'TO') belongs = Boolean(await m.DocumentLine.exists({ documentId: d._id, 'details.placementId': { $in: (await m.ReceiptPlacement.find({ purchaseOrderId: poId }).select('_id').lean()).map(p => p._id) } }));
-  if (!belongs) throw notFoundError();
-  return { status: 'COMMITTED', receipt: receipt(op, true) };
-}
+

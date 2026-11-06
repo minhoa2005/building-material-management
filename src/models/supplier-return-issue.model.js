@@ -10,10 +10,10 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, embedRecordArray } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createSupplierReturnIssueHeaderSchema } from "./embedded/supplier-return-issue-header.model.js";
-import { createSupplierAcknowledgementSchema } from "./embedded/supplier-acknowledgement.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createSupplierReturnIssueHeaderSchema } from "./supplier-return-issue-header.schema.js";
+import { createSupplierAcknowledgementSchema } from "./supplier-acknowledgement.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

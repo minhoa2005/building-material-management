@@ -1,14 +1,15 @@
-import mongoose from 'mongoose';
 import { createHash } from 'node:crypto';
 import { PNG } from 'pngjs';
 import jpeg from 'jpeg-js';
 import { PDFDocument } from 'pdf-lib';
 import { cloudinary } from '../../config/cloudinary.js';
-import * as m from '../../models/legacy/index.js';
-import { requirePermission } from '../../shared/utils/access.js';
+import { Attachment } from '../../models/runtime.js';
+import { requirePermission, hasPermission } from '../../shared/utils/access.js';
+import { currentRole } from '../../shared/utils/userRole.js';
 import { ApiError, notFoundError, validationError } from '../../shared/utils/ApiError.js';
-import { id, same, scoped, scopedPurchaseRead, read, rows, fail, command, bump, save, serialize } from './purchase-core.js';
-
+import { newId, command, checkVersion, saveVersion } from '../../shared/utils/document-command.js';
+import { dto } from '../../shared/utils/persistence.js';
+import { findPurchase, replayPurchase } from './purchase-core.js';
 const MAX_BYTES = 5 * 1024 * 1024;
 export const evidenceStorage = {
   upload: (buffer, options) => new Promise((resolve, reject) => cloudinary.uploader.upload_stream({ ...options, timeout: 20000 }, (e, r) => e ? reject(new ApiError(502, 'Không lưu được chứng cứ')) : resolve(r)).end(buffer)),
@@ -16,24 +17,6 @@ export const evidenceStorage = {
   destroy: (key, resourceType) => cloudinary.uploader.destroy(key, { resource_type: resourceType, type: 'authenticated', invalidate: true }),
   download: (key, format, resourceType, expiresAt) => cloudinary.utils.private_download_url(key, format, { resource_type: resourceType, type: 'authenticated', expires_at: expiresAt, attachment: true }),
 };
-async function parent(user, documentId, write = false, session = null) {
-  const d = await (write ? scoped(user, documentId, null, session) : scopedPurchaseRead(user, documentId, null, session));
-  if (d.documentKind === 'PO') requirePermission(user, 'purchase_order:' + (write ? 'update' : 'read'), write ? ['ACCOUNTANT','OWNER'] : ['OWNER','ACCOUNTANT','WAREHOUSE']);
-  else if (['PO_INSPECTION','GR_PURCHASE'].includes(d.documentKind)) requirePermission(user, 'goods_receipt_inspection:' + (write ? 'update' : 'read'), write ? ['WAREHOUSE'] : ['OWNER','ACCOUNTANT','WAREHOUSE']);
-  else if (d.documentKind === 'TO' && d.header.receiptId) requirePermission(user, 'putaway_task:' + (write ? 'confirm' : 'read'), write ? ['WAREHOUSE'] : ['OWNER','ACCOUNTANT','WAREHOUSE']);
-  else throw notFoundError();
-  // Owner can attach evidence to a PO exception only through the explicit exception authority.
-  return d;
-}
-async function writableParent(user, documentId, session) {
-  const d = await scoped(user, documentId, null, session);
-  if (d.documentKind === 'PO') {
-    try { requirePermission(user, 'purchase_order:update', ['ACCOUNTANT']); }
-    catch { requirePermission(user, 'purchase_order:approve_exception', ['OWNER']); }
-    return d;
-  }
-  return parent(user, documentId, true, session);
-}
 export async function inspectFile(file) {
   if (!file?.buffer?.length) throw validationError('Thiếu tệp chứng cứ');
   const bytes = file.buffer;
@@ -55,68 +38,59 @@ export async function inspectFile(file) {
   } catch { throw validationError('Nội dung JPEG/PNG/PDF không hợp lệ'); }
   throw validationError('Chỉ nhận nội dung JPEG, PNG hoặc PDF thật');
 }
-export async function uploadEvidence(user, documentId, file, lineId = null) {
-  await writableParent(user, documentId);
-  if (lineId && !(await rows(documentId)).some(l => same(l._id, lineId))) throw notFoundError();
-  const type = await inspectFile(file);
-  const uploadId = new mongoose.Types.ObjectId();
-  const objectKey = 'sep490/purchase-evidence/' + uploadId + (type.resourceType === 'raw' ? '.pdf' : '');
-  const intent = await save(m.PurchaseEvidenceUpload, { _id: uploadId, documentId, ...(lineId && { lineId }), actorId: user._id, objectKey,
-    ...type, sha256: createHash('sha256').update(file.buffer).digest('hex'), bytes: file.buffer.length, status: 'UPLOADING', expiresAt: new Date(Date.now() + 86400000) });
-  try {
-    const stored = await evidenceStorage.upload(file.buffer, { public_id: objectKey, resource_type: type.resourceType, type: 'authenticated', overwrite: false });
-    if (stored.public_id !== objectKey || stored.type !== 'authenticated') throw new ApiError(502, 'Storage không xác nhận tệp private');
-    await m.PurchaseEvidenceUpload.updateOne({ _id: intent._id, status: 'UPLOADING' }, { $set: { status: 'READY' } });
-    return { uploadIntentId: id(intent._id), expiresAt: intent.expiresAt.toISOString(), mediaType: type.mediaType, bytes: file.buffer.length };
-  } catch (e) {
-    // Keep a traceable orphan for cleanup even when the provider response was lost.
-    await m.PurchaseEvidenceUpload.updateOne({ _id: intent._id, status: 'UPLOADING' }, { $set: { expiresAt: new Date() } });
-    throw e;
-  }
+async function parent(user,id,write=false,session){
+  const document=await findPurchase(id,user,session,{readOnly:!write});
+  const permission=document.documentKind==='PO'?'purchase_order:'+ (write?'update':'read'):document.documentKind==='TO'?'putaway_task:'+(write?'confirm':'read'):'goods_receipt_inspection:'+(write?'update':'read');
+  if(write&&document.documentKind==='PO'&&!hasPermission(user,permission))requirePermission(user,'purchase_order:approve_exception');else requirePermission(user,permission);
+  return {document,permission:write&&document.documentKind==='PO'&&!hasPermission(user,permission)?'purchase_order:approve_exception':permission};
 }
-export async function attachEvidence(user, documentId, input) {
-  await writableParent(user, documentId);
-  const upload = await read(m.PurchaseEvidenceUpload.findOne({ _id: input.uploadIntentId, documentId, actorId: user._id }));
-  if (!upload) throw notFoundError();
-  // No external I/O inside the transaction. READY/actor/parent are checked again atomically below.
-  if (upload.status === 'READY') {
-    try { await evidenceStorage.exists(upload.objectKey, upload.resourceType); }
-    catch { throw new ApiError(502, 'Tệp chưa tồn tại trên storage'); }
-  }
-  return command(user, 'ATTACH_PURCHASE_EVIDENCE', documentId, input, async session => {
-    const d = await writableParent(user, documentId, session); versionCheck(d, input.expectedVersion);
-    const intent = await read(m.PurchaseEvidenceUpload.findOne({ _id: input.uploadIntentId, documentId, actorId: user._id, status: 'READY', expiresAt: { $gt: new Date() } }), session);
-    if (!intent) fail('EVIDENCE', 'Upload đã hết hạn, đang dọn hoặc đã gắn vào hồ sơ');
-    if (intent.lineId && !(await rows(documentId, session)).some(l => same(l._id, intent.lineId))) fail('EVIDENCE', 'Dòng nguồn không còn tồn tại');
-    const evidence = await save(m.Evidence, { documentId, ...(intent.lineId && { lineId: intent.lineId }), objectKey: intent.objectKey, sha256: intent.sha256, mediaType: intent.mediaType, uploadedBy: user._id }, session);
-    const changed = await m.PurchaseEvidenceUpload.updateOne({ _id: intent._id, status: 'READY' }, { $set: { status: 'ATTACHED', evidenceId: evidence._id } }, { session });
-    if (changed.matchedCount !== 1) fail('EVIDENCE', 'Upload vừa được xử lý');
-    return { document: await bump(d, session), evidenceId: evidence._id };
+const resourceType=attachment=>attachment.mediaType==='application/pdf'?'raw':'image';
+const format=attachment=>attachment.mediaType==='application/pdf'?'pdf':attachment.mediaType==='image/png'?'png':'jpg';
+export async function uploadEvidence(user,id,file,lineId){
+  const {document}=await parent(user,id,true);if(lineId&&!document.items.id(lineId))throw notFoundError();
+  const type=await inspectFile(file),uploadId=newId(),storageKey='sep490/purchase-evidence/'+uploadId+(type.resourceType==='raw'?'.pdf':'');
+  const attachment=await new Attachment({_id:uploadId,ownerDocumentType:document.constructor.collection.name,ownerDocumentId:document._id,ownerItemId:lineId,
+    purpose:'PURCHASE_EVIDENCE',originalName:file.originalname,mediaType:type.mediaType,sizeBytes:file.buffer.length,storageKey,checksum:createHash('sha256').update(file.buffer).digest('hex'),uploadedBy:user._id,uploadedAt:new Date(),
+    accessCategory:document.documentKind==='PO'?'PURCHASE_PRICE':'BUSINESS',status:'TEMPORARY',uploadSessionId:String(uploadId),expiresAt:new Date(Date.now()+86400000)}).save();
+  try{const stored=await evidenceStorage.upload(file.buffer,{public_id:storageKey,resource_type:type.resourceType,type:'authenticated',overwrite:false});
+    if(stored.public_id!==storageKey||stored.type!=='authenticated')throw new ApiError(502,'Storage chưa xác nhận tệp riêng tư');
+    return {attachmentId:String(attachment._id),expiresAt:attachment.expiresAt.toISOString(),mediaType:type.mediaType,sizeBytes:file.buffer.length};
+  }catch(error){await Attachment.updateOne({_id:attachment._id,status:'TEMPORARY'},{$set:{expiresAt:new Date()}});throw error;}
+}
+export async function attachEvidence(user,id,input){
+  const {permission}=await parent(user,id,true);
+  const upload=await Attachment.findOne({_id:input.attachmentId,ownerDocumentId:id,uploadedBy:user._id});
+  if(!upload)throw notFoundError();
+  if(upload.status==='TEMPORARY'){try{await evidenceStorage.exists(upload.storageKey,resourceType(upload));}catch{throw new ApiError(502,'Không xác minh được tệp trên storage');}}
+  return command(user,'ATTACH_PURCHASE_EVIDENCE',permission,id,input,replayPurchase,async(session,actor)=>{
+    const {document}=await parent(actor,id,true,session);checkVersion(document,input.expectedVersion);
+    const attachment=await Attachment.findOne({_id:input.attachmentId,ownerDocumentId:id,uploadedBy:actor._id,status:'TEMPORARY',expiresAt:{$gt:new Date()}}).session(session);
+    if(!attachment)throw validationError('Tệp đã gắn, hết hạn hoặc đang dọn');
+    if(attachment.ownerItemId&&!document.items.id(attachment.ownerItemId))throw validationError('Dòng gốc không còn tồn tại');
+    const write=await Attachment.updateOne({_id:attachment._id,status:'TEMPORARY',expiresAt:{$gt:new Date()}},{$set:{status:'ATTACHED',ownerRevision:document.version+1},$unset:{expiresAt:1,uploadSessionId:1}},{session,runValidators:true});
+    if(write.matchedCount!==1)throw validationError('Tệp vừa được xử lý');
+    document.evidenceIds.addToSet(attachment._id);
+    return {document:await saveVersion(document,input.expectedVersion,session),versionBefore:input.expectedVersion};
   });
 }
-function versionCheck(d, expected) { if (d.version !== expected) fail('VERSION', 'Hồ sơ đã thay đổi', { currentVersion: d.version }); }
-export async function listEvidence(user, documentId) {
-  await parent(user, documentId);
-  const found = await m.Evidence.find({ documentId }).select('_id lineId mediaType uploadedBy uploadedAt').lean();
-  return serialize({ items: found });
+const priceAccess=user=>['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code);
+export async function listEvidence(user,id){
+  await parent(user,id);return {items:(await Attachment.find({ownerDocumentId:id,status:'ATTACHED',...(!priceAccess(user)&&{accessCategory:{$ne:'PURCHASE_PRICE'}})}).select('-storageKey -checksum -uploadSessionId').lean()).map(dto)};
 }
-export async function downloadEvidence(user, documentId, evidenceId) {
-  await parent(user, documentId);
-  const intent = await read(m.PurchaseEvidenceUpload.findOne({ documentId, evidenceId, status: 'ATTACHED' }));
-  if (!intent || !await m.Evidence.exists({ _id: evidenceId, documentId })) throw notFoundError();
-  const expiresAt = Math.floor(Date.now() / 1000) + 60;
-  return { url: evidenceStorage.download(intent.objectKey, intent.format, intent.resourceType, expiresAt), expiresAt: new Date(expiresAt * 1000).toISOString() };
+export async function downloadEvidence(user,id,evidenceId){
+  await parent(user,id);const attachment=await Attachment.findOne({_id:evidenceId,ownerDocumentId:id,status:'ATTACHED',...(!priceAccess(user)&&{accessCategory:{$ne:'PURCHASE_PRICE'}})});
+  if(!attachment)throw notFoundError();const expiresAt=Math.floor(Date.now()/1000)+60;
+  return {url:evidenceStorage.download(attachment.storageKey,format(attachment),resourceType(attachment),expiresAt),expiresAt:new Date(expiresAt*1000).toISOString()};
 }
-export async function cleanupPurchaseEvidence({ now = new Date(), limit = 100 } = {}) {
-  let removed = 0;
-  for (let i = 0; i < limit; i += 1) {
-    const intent = await m.PurchaseEvidenceUpload.findOneAndUpdate({ status: { $in: ['UPLOADING','READY','DELETING'] }, expiresAt: { $lte: now } }, { $set: { status: 'DELETING', expiresAt: new Date(now.getTime() + 300000) } }, { returnDocument: 'after' }).lean();
-    if (!intent) break;
-    // A failed destroy leaves DELETING for a later retry. ATTACHED can never match the claim.
-    const result = await evidenceStorage.destroy(intent.objectKey, intent.resourceType);
-    if (!['ok','not found'].includes(result.result)) throw new ApiError(502, 'Không dọn được upload mồ côi');
-    await m.PurchaseEvidenceUpload.updateOne({ _id: intent._id, status: 'DELETING' }, { $set: { status: 'DELETED' } });
-    removed += 1;
+export async function cleanupPurchaseEvidence({now=new Date(),limit=100}={}){
+  let removed=0;
+  for(let i=0;i<limit;i++){
+    const token='cleanup:'+newId();const attachment=await Attachment.findOneAndUpdate({purpose:'PURCHASE_EVIDENCE',expiresAt:{$lte:now},$or:[{status:'TEMPORARY'},{status:'SUPERSEDED',uploadSessionId:/^cleanup:/}]},
+      {$set:{status:'SUPERSEDED',uploadSessionId:token,expiresAt:new Date(now.getTime()+300000)}},{returnDocument:'after'});
+    if(!attachment)break;const result=await evidenceStorage.destroy(attachment.storageKey,resourceType(attachment));
+    if(!['ok','not found'].includes(result.result))throw new ApiError(502,'Không dọn được tệp hết hạn');
+    await Attachment.updateOne({_id:attachment._id,status:'SUPERSEDED',uploadSessionId:token},{$unset:{expiresAt:1,uploadSessionId:1}});removed++;
   }
-  return { removed };
+  return {removed};
 }
+

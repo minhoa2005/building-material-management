@@ -1,3 +1,7 @@
+## 2026-11-06 — Đồng bộ runtime theo model mới (đang kiểm chứng)
+
+Theo xác nhận trực tiếp của người dùng: bỏ ba thư mục model và danh sách phụ thuộc đã rà. 59 collection + 96 nested schema chuyển về src/models; services/DTO/permissions/transaction và FE connected consumers chuyển hợp đồng native. Registry được đổi tên trung tính (`registry-entries.js`, `configureReferences`) để không còn chỉ dẫn profile cũ. Seed v9 thêm quyền mới, 642 bản ghi mẫu; không ghi DB ứng dụng hoặc remote. Xem [hợp đồng và giới hạn](docs/08_api/NATIVE_MODEL_RUNTIME.md). Ba test tích hợp native đã qua; FE build đã qua nhưng suite giao diện còn lỗi cần chuyển fixture. Chưa hoàn tất nghiệm thu/commit/push.
+
 ## 06/11/2026 — Giải quyết merge main và giữ ranh giới model
 
 Merge baf5fb4 vào HieuDT; giữ API PO/nhận mua, auth, field sản phẩm/lô/NCC của main trong registry legacy (44 collection), giữ bộ schema/category v8 (59 collection). Union scripts/dependencies, sửa import API/test/tool và bổ sung export ReplenishmentSubmission. Fixture reviewed/migration tách khỏi seed PO_INSPECTION runtime bằng EJSON tổng hợp từ 5f4a296; schema lịch sử dùng connection riêng. Không đổi schema/ERD 59 collection, không ghi DB và không port API trong lượt này. Cập nhật MODEL_MAP, PROJECT_GUIDE, context, README và hướng dẫn MERGE_MAIN_2026-11-06. Kiểm chứng cuối ghi trong hướng dẫn merge.

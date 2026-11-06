@@ -9,7 +9,7 @@ import {
 } from "./model-utils.js";
 import { objectId, version } from "./schema-helpers.js";
 import { QUALITY_CODES } from "./constants.js";
-import { createPackagingPortionSchema } from "./embedded/packaging-portion.model.js";
+import { createPackagingPortionSchema } from "./packaging-portion.schema.js";
 
 // Collection: inventory_balances
 export function createInventoryBalanceSchema() {

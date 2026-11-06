@@ -10,10 +10,10 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createHandoverSchema } from "./embedded/handover.model.js";
-import { createTransferDispatchHeaderSchema } from "./embedded/transfer-dispatch-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createHandoverSchema } from "./handover.schema.js";
+import { createTransferDispatchHeaderSchema } from "./transfer-dispatch-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

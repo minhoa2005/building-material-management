@@ -134,7 +134,7 @@ const headerShape = {
 const createLineSchema = z
   .object({
     productId: objectIdSchema,
-    conversionId: objectIdSchema,
+    enteredUnit: z.string().trim().min(1).max(60), lotId: objectIdSchema.optional(),
     enteredQty: lineQty,
     reasonNote,
   })
@@ -157,7 +157,7 @@ const updateLineSchema = z
   .object({
     id: objectIdSchema.optional(),
     productId: objectIdSchema,
-    conversionId: objectIdSchema,
+    enteredUnit: z.string().trim().min(1).max(60), lotId: objectIdSchema.optional(),
     enteredQty: lineQty,
     reasonNote,
   })

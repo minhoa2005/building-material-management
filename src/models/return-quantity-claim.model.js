@@ -9,7 +9,7 @@ import {
 } from "./model-utils.js";
 import { id, version } from "./schema-helpers.js";
 
-import { createPortionEventSchema } from "./embedded/portion-event.model.js";
+import { createPortionEventSchema } from "./portion-event.schema.js";
 
 // Collection: return_quantity_claims
 export function createReturnQuantityClaimSchema() {

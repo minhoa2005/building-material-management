@@ -10,7 +10,7 @@ import {
 } from "./model-utils.js";
 import { version, zero } from "./schema-helpers.js";
 
-import { createSourceReferenceSchema } from "./embedded/source-reference.model.js";
+import { createSourceReferenceSchema } from "./source-reference.schema.js";
 
 // Collection: supply_allocations
 export function createSupplyAllocationSchema() {

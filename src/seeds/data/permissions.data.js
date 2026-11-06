@@ -49,7 +49,8 @@ export const PERMISSION_CATALOGUE = [
   { code: 'goods_receipt_inspection:create', description: 'Tạo phiếu nhập từ PO tại kho được giao', uc: ['UC-16'], roles: [WAREHOUSE] },
   { code: 'goods_receipt_inspection:update', description: 'Ghi kết quả kiểm nhận', uc: ['UC-37'], roles: [WAREHOUSE] },
   { code: 'goods_receipt_inspection:post', description: 'Post nhập kho (GR) sau kiểm nhận', uc: ['UC-37'], roles: [WAREHOUSE] },
-  { code: 'goods_receipt_inspection:reverse', description: 'Đảo toàn GR nhập nhầm khi chưa có downstream, có chứng cứ', uc: ['UC-37'], roles: [WAREHOUSE] },
+  { code: 'stock_reversal:approve', description: 'Duyệt độc lập và ghi đảo giao dịch tồn', uc: ['UC-37'], roles: [OWNER] },
+  { code: 'goods_receipt_inspection:reverse', description: 'Đề nghị đảo phiếu nhập ghi nhầm, có chứng cứ', uc: ['UC-37'], roles: [WAREHOUSE] },
   { code: 'purchase_order:approve_exception', description: 'Duyệt chốt thiếu PO đúng phiên bản', uc: ['UC-13'], roles: [OWNER] },
   { code: 'putaway_task:cancel', description: 'Hủy phần chưa cất của task nhận mua', uc: ['UC-45', 'UC-46'], roles: [WAREHOUSE] },
 

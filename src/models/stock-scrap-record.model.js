@@ -10,9 +10,9 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createStockScrapRecordHeaderSchema } from "./embedded/stock-scrap-record-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createStockScrapRecordHeaderSchema } from "./stock-scrap-record-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

@@ -10,11 +10,11 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createSupplierReturnHeaderSchema } from "./embedded/supplier-return-header.model.js";
-import { createSupplierReturnAgreementsSchema } from "./embedded/supplier-return-agreements.model.js";
-import { createSupplierReturnClosureSchema } from "./embedded/supplier-return-closure.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createSupplierReturnHeaderSchema } from "./supplier-return-header.schema.js";
+import { createSupplierReturnAgreementsSchema } from "./supplier-return-agreements.schema.js";
+import { createSupplierReturnClosureSchema } from "./supplier-return-closure.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

@@ -10,10 +10,10 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, quantity } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createReplenishmentSubmissionSchema } from "./embedded/replenishment-submission.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createReplenishmentRequestHeaderSchema } from "./embedded/replenishment-request-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createReplenishmentSubmissionSchema } from "./replenishment-submission.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createReplenishmentRequestHeaderSchema } from "./replenishment-request-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

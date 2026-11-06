@@ -4,18 +4,9 @@ Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều k
 
 ## 1. Phân biệt thiết kế và runtime
 
-[Tích hợp main ngày 06/11/2026](docs/09_phat_trien/MERGE_MAIN_2026-11-06.md): API mua/nhập PO_INSPECTION của main tiếp tục trên legacy (44 collection). Bộ reviewed giữ 59 collection và chuỗi hàng đến/kiểm nhận đã duyệt. Seed reviewed không phụ thuộc seed runtime mới; profile migration giữ schema lịch sử riêng và vẫn từ chối nguồn chưa có mapping. Không dùng hợp đồng legacy để tự thay quyết định đã duyệt.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 59 collection schemas (`*.model.js`) and 96 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
-| Thành phần | Vai trò hiện tại |
-|---|---|
-| `src/models/index.js` → `registerReviewedModels(connection)` | Bộ schema chính đã duyệt, 59 collection, chứng từ riêng và `items[]` nhúng |
-| `src/models/legacy/index.js` và model cũ | API chưa chuyển vẫn sử dụng rõ registry cũ, chứng từ và dòng lưu chung |
-| `registerMigrationModels(connection)` | Profile chuyển thử dữ liệu cũ, khác profile thiết kế mới |
-| `src/seeds/rebuild` | Bộ dữ liệu mô phỏng có kiểm tra chéo nghiệp vụ |
-
-Mỗi profile dùng một Mongoose connection mới riêng. Đọc [MODEL_MAP](MODEL_MAP.md) để chọn đúng schema, factory và phụ thuộc. Với task sửa lỗi runtime cũ, giữ hợp đồng cũ và ghi rõ mức ảnh hưởng. Với task chuyển API, dùng model mới theo thiết kế đã duyệt, cập nhật DTO/permission/transaction/seed/test của luồng đó. Đổi entry point không tự chuyển xong nghiệp vụ.
-
-Model hiện hành có 59 file collection riêng ngay tại `src/models`, 96 schema nhúng riêng tại `embedded/`; registry reviewed không còn dựng schema từ builder legacy. Các helper chung vẫn cần kiểm phạm vi tác động khi sửa. Mongoose `ref` mô tả liên kết, service vẫn phải kiểm bản ghi nguồn, kho, chủ hàng và trần số lượng.
+[Hợp đồng runtime mới](docs/08_api/NATIVE_MODEL_RUNTIME.md) phân biệt API đã chuyển và phạm vi kiểm chứng. Việc có schema cho một nghiệp vụ không có nghĩa mọi màn hình demo đã thành chức năng vận hành.
 
 ## 2. Thứ tự dùng nguồn
 
@@ -71,11 +62,9 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 - Tệp/bằng chứng theo quyền phiếu và kho. Không lộ giá mua, giá bán hoặc chứng cứ nội bộ qua DTO, export hay audit ngoài quyền.
 - Email/notification qua outbox sau commit. Lỗi gửi thư chỉ thử gửi lại.
 
-## 6. Những điểm cần xử lý khi chuyển API
+## 6. Kiểm chứng và giới hạn hiện tại
 
-Snapshot thiết kế 04/11 ghi nhận `stocktakes.header.scopeLocationIds[]` còn ref `Location` thay vì model mới `WarehouseLocation`, yêu cầu một ITR tối đa một TO chưa có unique index trên requirementId, và các loại phiếu dùng chung 19 item discriminator nên service cần kiểm đúng loại dòng. Đây là các khoảng trống đã ghi nhận, chưa phải thay đổi schema được thực hiện trong đợt tổng hợp này.
-
-Chuyển một luồng phải có test quyền/kho/trạng thái, chống ghi hai lần, cạnh tranh hạn mức và rollback trên MongoDB local. Chạy test model chỉ chứng minh schema và dữ liệu. Báo cáo rõ module nào đã chuyển, module nào còn dùng cũ trước khi cho phép ứng dụng dùng DB mới.
+Các API đang gắn router dùng registry mới. Ba kiểm thử tích hợp trên MongoDB replica set thử riêng đã qua: RR–PO–kiểm–nhập–xếp từng phần, đảo nhập với người duyệt độc lập, và chuyển kho đủ các bước. FE đã build nhưng toàn bộ kiểm thử giao diện còn lỗi do hợp đồng/kỳ vọng cũ; chưa xác nhận toàn project hoàn tất. D07/D08 vẫn chờ xác minh. Không tự ghi dữ liệu remote.
 
 ## 7. Quy trình làm việc của nhóm
 
@@ -91,4 +80,4 @@ Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd
 
 ## 9. Category v8 và kiểm thư mục
 
-Người dùng duyệt 5 nhóm sau tham khảo Gạch Tốt. Mỗi product có một categoryId bắt buộc; Category 1–n Product. Hãng/kích thước/màu giữ riêng. Không đổi nghiệp vụ tồn. Mốc hiện hành là local v8 và Atlas wmsd_database, 59 collection/638 bản ghi. Tại lúc thực hiện local v7 và Atlas đều trống, nên đã tạo lại mẫu; không coi các DB cũ là hiện còn trên máy. Giữ ba thư mục có người dùng; bỏ riêng ba builder reviewed cũ không còn được gọi. [Chi tiết và nguồn duyệt](docs/03_thiet_ke/DB_Rebuild_Review/40_Category_va_don_model.md), [triển khai](docs/09_phat_trien/CATEGORIES_V8.md).
+Người dùng duyệt 5 nhóm sau tham khảo Gạch Tốt. Mỗi product có một categoryId bắt buộc; Category 1–n Product. Hãng/kích thước/màu giữ riêng. Không đổi nghiệp vụ tồn. Mốc hiện hành là local v8 và Atlas wmsd_database, 59 collection/638 bản ghi. Tại lúc thực hiện local v7 và Atlas đều trống, nên đã tạo lại mẫu; không coi các DB cũ là hiện còn trên máy. Đây là mốc trước yêu cầu đồng bộ runtime. Quyết định mới hơn ngày 06/11 đã cho phép bỏ cả ba thư mục model và các phụ thuộc được rà; xem hợp đồng runtime ở mục 1. [Chi tiết và nguồn duyệt](docs/03_thiet_ke/DB_Rebuild_Review/40_Category_va_don_model.md), [triển khai](docs/09_phat_trien/CATEGORIES_V8.md).

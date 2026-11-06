@@ -17,12 +17,12 @@ import {
   embedRecordArray,
 } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createSalesOrderCancellationSchema } from "./embedded/sales-order-cancellation.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createSalesOrderHeaderSchema } from "./embedded/sales-order-header.model.js";
-import { createDeliveryConfirmationSchema } from "./embedded/delivery-confirmation.model.js";
-import { createExternalPaymentConfirmationSchema } from "./embedded/external-payment-confirmation.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createSalesOrderCancellationSchema } from "./sales-order-cancellation.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createSalesOrderHeaderSchema } from "./sales-order-header.schema.js";
+import { createDeliveryConfirmationSchema } from "./delivery-confirmation.schema.js";
+import { createExternalPaymentConfirmationSchema } from "./external-payment-confirmation.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

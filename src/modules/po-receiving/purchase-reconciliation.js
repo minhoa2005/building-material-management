@@ -1,64 +1,19 @@
-import * as m from '../../models/legacy/index.js';
+import { InventoryBalance, StockTransaction, PurchaseOrder, ReplenishmentRequest, PurchaseReceipt } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
-import { id, same, read } from './purchase-core.js';
+import { same } from '../../shared/utils/document-command.js';
 import { purchaseOrderQuantities } from '../purchase-orders/purchase-order.service.js';
-
-// Read-only diagnostic: never repairs balances or invents historical sources.
-export async function reconcilePurchasing(session = null) {
-  const issues = [];
-  const balances = await read(m.StockBalance.find({}), session);
-  const movements = await read(m.StockMovement.find({}), session);
-  const ledger = new Map(balances.map(b => [id(b._id), exact('0')]));
-  for (const movement of movements) {
-    for (const [key, sign] of [['fromBalanceId',-1],['toBalanceId',1]]) {
-      if (!movement[key]) continue;
-      const balanceId = id(movement[key]);
-      if (!ledger.has(balanceId)) { issues.push({ code: 'MISSING_BALANCE', balanceId }); continue; }
-      ledger.set(balanceId, ledger.get(balanceId).plus(exact(movement.qtyBase).mul(sign)));
-    }
+import { placementQuantities } from './purchase-putaway.service.js';
+// Read-only diagnostics use the same native records as the application.
+export async function reconcilePurchasing(session=null){
+  const issues=[],balances=await InventoryBalance.find().session(session),transactions=await StockTransaction.find().session(session);
+  const ledger=new Map(balances.map(b=>[String(b._id),exact('0')]));let movements=0;
+  for(const transaction of transactions)for(const movement of transaction.movements){movements++;for(const [key,sign]of [['fromBalanceId',-1],['toBalanceId',1]]){if(!movement[key])continue;const id=String(movement[key]);if(!ledger.has(id)){issues.push({code:'MISSING_BALANCE',balanceId:id});continue;}ledger.set(id,ledger.get(id).plus(exact(movement.quantityBase).mul(sign)));}}
+  for(const balance of balances){if(!ledger.get(String(balance._id)).eq(String(balance.quantityBase)))issues.push({code:'LEDGER_BALANCE',balanceId:String(balance._id)});if(!balance.packagingPortions.reduce((n,p)=>n.plus(String(p.quantityBase)),exact('0')).eq(String(balance.quantityBase)))issues.push({code:'PACKAGING_BALANCE',balanceId:String(balance._id)});}
+  const orders=await PurchaseOrder.find().session(session);
+  for(const po of orders){const request=await ReplenishmentRequest.findById(po.replenishmentRequestId).session(session);const totals=new Map();for(const item of po.items)totals.set(String(item.requestItemId),(totals.get(String(item.requestItemId))||exact('0')).plus(String(item.qtyBase)));
+    for(const [id,qty]of totals){const source=request?.items.id(id);if(!source||qty.gt(String(source.approvedQtyBase??'0')))issues.push({code:'RR_ALLOWANCE',poId:String(po._id),lineId:id});}
+    for(const q of await purchaseOrderQuantities(po,session))if(exact(q.outstandingQtyBase).lt(0)||exact(q.acceptanceHeadroomQtyBase).lt(0))issues.push({code:'PO_ALLOWANCE',poId:String(po._id),lineId:q.lineId});
   }
-  for (const b of balances) if (!ledger.get(id(b._id)).eq(exact(b.qtyBase))) issues.push({ code: 'LEDGER_BALANCE', balanceId: id(b._id) });
-  const placements = await read(m.ReceiptPlacement.find({}), session);
-  const taskLines = await read(m.DocumentLine.find({ 'details.placementId': { $in: placements.map(p => p._id) }, lineKind: 'WAREHOUSE_TASK' }), session);
-  const taskDocs = await read(m.BusinessDocument.find({ _id: { $in: taskLines.map(l => l.documentId) }, documentKind: 'TO' }), session);
-  const totals = new Map();
-  for (const p of placements) {
-    const own = movements.filter(r => same(r.lineId, p.receiptLineId));
-    const received = own.reduce((sum,r) => sum.plus(exact(r.qtyBase).mul(r.toBalanceId ? 1 : -1)), exact('0'));
-    if (!received.eq(exact(p.receivedQtyBase).minus(exact(p.reversedQtyBase)))) issues.push({ code: 'RECEIPT_PROJECTION', receiptLineId: id(p.receiptLineId) });
-    let placed = exact('0'), claimed = exact('0');
-    for (const line of taskLines.filter(l => same(l.details.placementId, p._id))) {
-      const actual = movements.filter(r => same(r.lineId, line._id)).reduce((sum,r) => sum.plus(exact(r.qtyBase)), exact('0'));
-      placed = placed.plus(actual);
-      const d = taskDocs.find(d => same(d._id, line.documentId));
-      if (d && ['DRAFT','OPEN','PARTIAL'].includes(d.workflowStatus)) claimed = claimed.plus(exact(line.qtyBase).minus(actual));
-    }
-    if (!placed.eq(exact(p.placedQtyBase)) || !claimed.eq(exact(p.claimedQtyBase))) issues.push({ code: 'PLACEMENT_PROJECTION', receiptLineId: id(p.receiptLineId) });
-    const remaining = received.minus(placed);
-    if (remaining.isNegative() || claimed.gt(remaining)) issues.push({ code: 'PLACEMENT_CAP', receiptLineId: id(p.receiptLineId) });
-    totals.set(id(p.sourceBalanceId), (totals.get(id(p.sourceBalanceId)) ?? exact('0')).plus(remaining));
-  }
-  for (const [balanceId, remaining] of totals) {
-    const b = balances.find(b => same(b._id, balanceId));
-    if (!b || remaining.gt(exact(b.qtyBase))) issues.push({ code: 'PLACEMENT_PHYSICAL_SOURCE', balanceId });
-  }
-  const claims = await read(m.PurchaseSourceClaim.find({}), session);
-  const approvals = await read(m.Approval.find({ _id: { $in: claims.map(c => c.approvalId) } }), session);
-  const byRr = new Map();
-  for (const c of claims) byRr.set(id(c.rrLineId), (byRr.get(id(c.rrLineId)) ?? exact('0')).plus(exact(c.qtyBase)));
-  for (const [lineId, used] of byRr) {
-    const authority = approvals.flatMap(a => a.lines).filter(l => same(l.lineId, lineId) && l.outcome === 'APPROVE');
-    if (!authority.length || used.gt(exact(authority[0].approvedQty))) issues.push({ code: 'RR_ALLOWANCE', rrLineId: lineId });
-  }
-  const pos = await read(m.BusinessDocument.find({ documentKind: 'PO' }), session);
-  for (const po of pos) {
-    const q = await purchaseOrderQuantities(po, session);
-    for (const line of q) {
-      if (line.quantityState !== 'KNOWN') { issues.push({ code: 'PO_SOURCE_INCOMPLETE', poId: id(po._id), lineId: line.lineId }); continue; }
-      const used = claims.filter(c => same(c.poLineId, line.lineId)).reduce((sum,c) => sum.plus(exact(c.qtyBase)), exact('0'));
-      const expected = po.workflowStatus === 'DRAFT' ? exact('0') : exact(line.authorizedOrderedQtyBase).minus(exact(line.closedRemainderQtyBase));
-      if (!used.eq(expected)) issues.push({ code: 'PO_ALLOWANCE_PROJECTION', poId: id(po._id), lineId: line.lineId });
-    }
-  }
-  return { ok: issues.length === 0, checked: { balances: balances.length, movements: movements.length, placements: placements.length, claims: claims.length, purchaseOrders: pos.length }, issues };
+  const receipts=await PurchaseReceipt.find({workflowStatus:'POSTED'}).session(session);for(const receipt of receipts)for(const q of await placementQuantities(receipt,session))if(exact(q.unplannedQtyBase).lt(0))issues.push({code:'PLACEMENT_CAP',receiptId:String(receipt._id),lineId:q.lineId});
+  return {ok:!issues.length,checked:{balances:balances.length,movements,purchaseOrders:orders.length,receipts:receipts.length},issues};
 }

@@ -1,7 +1,7 @@
 import { Schema, options, text, ref, date } from "./model-utils.js";
 import { embedRecordArray } from "./schema-helpers.js";
 
-import { createExternalReferenceLineSchema } from "./embedded/external-reference-line.model.js";
+import { createExternalReferenceLineSchema } from "./external-reference-line.schema.js";
 
 // Collection: external_references
 export function createExternalReferenceSchema() {

@@ -16,9 +16,9 @@ import {
   warehouse,
 } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createWarehouseTransferRequestHeaderSchema } from "./embedded/warehouse-transfer-request-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createWarehouseTransferRequestHeaderSchema } from "./warehouse-transfer-request-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

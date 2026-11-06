@@ -10,9 +10,9 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, warehouse } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createWarehouseIssueRequestHeaderSchema } from "./embedded/warehouse-issue-request-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createWarehouseIssueRequestHeaderSchema } from "./warehouse-issue-request-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

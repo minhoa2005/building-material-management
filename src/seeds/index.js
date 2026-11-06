@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { Permission, Role } from '../models/legacy/index.js';
+import { Permission, Role, models } from '../models/runtime.js';
 import { ROLE_PERMISSIONS } from './data/permissions.data.js';
-import { buildDemoData } from './data/demo.data.js';
+import { buildReviewedDemo } from './rebuild/data.js';
 
 /** Check actual data, including collections that are not registered as models. */
 export async function databaseHasData(db, { collectionNames, session } = {}) {
@@ -71,7 +71,8 @@ export async function runSeeds({ syncRolePermissions = false } = {}) {
   if (!hello.setName && hello.msg !== 'isdbgrid') {
     throw new Error('Atomic seeding requires MongoDB Atlas or a replica set; no data was inserted.');
   }
-  const groups = await buildDemoData();
+  const data=await buildReviewedDemo();
+  const groups=[...models].map(([name,Model])=>({Model,documents:data[name].map(row=>new Model(row))}));
   for (const { documents } of groups) {
     for (const document of documents) await document.validate();
   }

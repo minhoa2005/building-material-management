@@ -17,8 +17,8 @@ test('sales read validation rejects malformed and unsupported filters', () => {
 test('SO creation validates source identity, decimal strings and strict business input', () => {
   const id = 'abcdef123456789012345678';
   const valid = { idempotencyKey: 'test', customerId: id, neededOn: '2026-11-01T08:00:00+07:00', deliveryAddress: 'Address',
-    evidenceReceipt: 'signed-receipt', source: { sourceSystem: 'PAPER', referenceNo: 'ORDER-01' },
-    lines: [{ sourceLineKey: '1', productId: id, conversionId: id, quantity: '2' }] };
+    evidenceReceipt: 'signed-receipt', currencyCode:'VND', source: { sourceSystem: 'PAPER', referenceNo: 'ORDER-01' },
+    lines: [{ sourceLineKey: '1', productId: id, enteredUnit:'PIECE', unitSellingPrice:'1000', quantity: '2' }] };
   assert.equal(createOrderBody.safeParse(valid).success, true);
   for (const quantity of ['0', '-1', '1e3', '1.0000001', '100000000000000', '01', 2, '', 'NaN']) {
     assert.equal(createOrderBody.safeParse({ ...valid, lines: [{ ...valid.lines[0], quantity }] }).success, false);

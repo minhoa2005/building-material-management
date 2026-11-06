@@ -10,11 +10,11 @@ import {
 } from "./model-utils.js";
 import { objectId, id, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createHandoverSchema } from "./embedded/handover.model.js";
-import { createSalesGoodsIssueHeaderSchema } from "./embedded/sales-goods-issue-header.model.js";
-import { createSalesGoodsIssueSalePriceSnapshotSchema } from "./embedded/sales-goods-issue-sale-price-snapshot.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createHandoverSchema } from "./handover.schema.js";
+import { createSalesGoodsIssueHeaderSchema } from "./sales-goods-issue-header.schema.js";
+import { createSalesGoodsIssueSalePriceSnapshotSchema } from "./sales-goods-issue-sale-price-snapshot.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

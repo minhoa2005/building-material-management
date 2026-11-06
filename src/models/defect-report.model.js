@@ -16,13 +16,13 @@ import {
   embedRecordArray,
 } from "./schema-helpers.js";
 
-import { createSourceReferenceSchema } from "./embedded/source-reference.model.js";
-import { createExecutionRecordSchema } from "./embedded/execution-record.model.js";
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createStockHoldSchema } from "./embedded/stock-hold.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createDefectReportHeaderSchema } from "./embedded/defect-report-header.model.js";
-import { createDefectResolutionPlanSchema } from "./embedded/defect-resolution-plan.model.js";
+import { createSourceReferenceSchema } from "./source-reference.schema.js";
+import { createExecutionRecordSchema } from "./execution-record.schema.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createStockHoldSchema } from "./stock-hold.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createDefectReportHeaderSchema } from "./defect-report-header.schema.js";
+import { createDefectResolutionPlanSchema } from "./defect-resolution-plan.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

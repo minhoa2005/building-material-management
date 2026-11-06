@@ -17,7 +17,7 @@ Trong Compass chọn đúng kết nối rồi Refresh Databases. Với product, 
 
 - `src/models/category.model.js`: schema Category; mỗi schema vẫn một file.
 - `src/models/product.model.js`: categoryId bắt buộc và index tìm theo nhóm.
-- `src/models/reviewed-registry.js`: đăng ký 59 model hiện hành. Profile migration lịch sử giữ nguyên hợp đồng cũ.
+- Đây là mốc trước khi đồng bộ runtime; runtime hiện hành dùng `src/models/registry-entries.js`. Xem [hợp đồng mới](../08_api/NATIVE_MODEL_RUNTIME.md).
 - `src/seeds/rebuild/categories.js`: 5 nhóm và mapping fixture theo hãng/SKU; SKU không biết phải chỉ định rõ, không đoán theo tên.
 - `scripts/add-product-categories.mjs`: công cụ nâng đúng bản v7 còn nguyên sang v8. Đích có chỉnh sửa khác sẽ bị từ chối.
 
@@ -49,7 +49,7 @@ Chỉ thêm 5 category và trường categoryId, không sửa ngày/số lượn
 
 ## Dọn thư mục
 
-Giữ embedded (schema con), legacy (API cũ còn dùng) và phần rebuild đang dùng (registry/ref/helper/seed/migration). Đã xóa ba builder không còn nơi gọi: reviewed-events.js, reviewed-support.js, reviewed-workflows.js. Không xóa các model đang phục vụ API. [Báo cáo rà import](../../outputs/model_folder_usage_2026-11-06.json).
+Mô tả giữ thư mục ở trên là trạng thái v8 có ngày. Quyết định 06/11 sau đó đã bỏ cả ba thư mục model; fixture/transform lịch sử còn lại chỉ phục vụ regression. [Hợp đồng hiện hành](../08_api/NATIVE_MODEL_RUNTIME.md).
 
 API danh mục category và các API legacy chưa được port trong lượt này; kết nối ứng dụng chưa đổi. Cần kiểm tồn tại/trạng thái category và quyền ở service khi bổ sung API. Các quyết định D07/D08 vẫn chờ như trước.
 

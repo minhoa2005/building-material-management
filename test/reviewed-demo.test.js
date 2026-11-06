@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import { buildReviewedDemo,decimalValue } from '../src/seeds/rebuild/data.js';
-import { registerReviewedModels,registerMigrationModels } from '../src/models/index.js';
+import { registerReviewedModels } from '../src/models/index.js';
 import { validateReviewedDemo } from '../src/seeds/rebuild/validate.js';
 import { assertDemoTarget,writeDemoDatabase,seedFingerprint } from '../src/seeds/rebuild/database.js';
 
@@ -14,7 +14,7 @@ const clone=()=>mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.string
 test('complete reviewed demo validates all schemas, links, balances and approved scenarios',async()=>{
   const result=await validateReviewedDemo(data,models);
   assert.equal(result.collections,59);
-  assert.equal(result.records,638);
+  assert.equal(result.records,642);
   assert.equal(data.roles.filter(row=>!row.isSystemRole).length,1);
   assert.equal(data.sales_invoices[0].items.length,2);
   assert.notEqual(+data.sales_invoices[0].items[0].issuedAt,+data.sales_invoices[0].items[1].issuedAt);
@@ -109,8 +109,7 @@ test('extension fields remain present on discriminated SO and GI items',async()=
   assert.equal(so.items[0].priceRevision,1);
   assert.equal(String(gi.items[0].salePriceSnapshot.unitSellingPrice),'50000');
 });
-test('schema profiles require separate isolated connections',()=>{
-  assert.throws(()=>registerMigrationModels(connection),/separate connections/);
+test('one current registry is reused per connection',()=>{
   assert.equal(registerReviewedModels(connection),models);
 });
 test('only separate demo database names are allowed',()=>{
@@ -128,3 +127,4 @@ test('sample event queue cannot trigger an outbound email',async()=>{
   const sample=clone();sample.notifications[0].emailDelivery.status='PENDING';
   await assert.rejects(validateReviewedDemo(sample,models),/email must be skipped/);
 });
+

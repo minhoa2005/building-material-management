@@ -1,7 +1,7 @@
 import { Schema, options, text, ref, date, appendOnly } from "./model-utils.js";
 import { objectId, embedRecordArray } from "./schema-helpers.js";
 
-import { createStockMovementSchema } from "./embedded/stock-movement.model.js";
+import { createStockMovementSchema } from "./stock-movement.schema.js";
 
 // Collection: stock_transactions
 export function createStockTransactionSchema() {

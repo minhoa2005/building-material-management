@@ -12,7 +12,7 @@ import {
 } from "./model-utils.js";
 import { version, quantity } from "./schema-helpers.js";
 
-import { createSalesInvoiceItemSchema } from "./embedded/sales-invoice-item.model.js";
+import { createSalesInvoiceItemSchema } from "./sales-invoice-item.schema.js";
 
 // Collection: sales_invoices
 export function createSalesInvoiceSchema() {

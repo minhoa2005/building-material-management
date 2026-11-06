@@ -1,5 +1,5 @@
 import { exact } from '../../models/model-utils.js';
-import { documentCollections } from '../../models/rebuild/collections.js';
+import { documentCollections } from '../../models/collections.js';
 import { dataContext, fixtureId, demoDate, decimalValue, hash } from './data.js';
 
 export function createDocument(data,key,kind,actor,header,status='DRAFT',day=28) {

@@ -10,10 +10,10 @@ import {
 } from "./model-utils.js";
 import { objectId, id, opt, version } from "./schema-helpers.js";
 
-import { createSourceReferenceSchema } from "./embedded/source-reference.model.js";
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createPurchaseReceiptHeaderSchema } from "./embedded/purchase-receipt-header.model.js";
+import { createSourceReferenceSchema } from "./source-reference.schema.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createPurchaseReceiptHeaderSchema } from "./purchase-receipt-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

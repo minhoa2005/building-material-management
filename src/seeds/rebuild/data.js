@@ -1,17 +1,18 @@
+import { PERMISSION_CATALOGUE,ROLE_PERMISSIONS } from '../data/permissions.data.js';
 import { createHash } from 'node:crypto';
 import mongoose from 'mongoose';
 import { buildHistoricalSource } from './historical-source.js';
 import { transformSnapshot } from '../../migrations/rebuild/transform.js';
 import { exact } from '../../models/model-utils.js';
-import { documentCollections } from '../../models/rebuild/collections.js';
+import { documentCollections } from '../../models/collections.js';
 import { upgradeSupportingData } from './support-data.js';
 import { addTransferExamples, addInvoiceExample, addStorageExamples } from './workflow-data.js';
 import { splitCompletedSale, addOperationalExamples, addHandoverExamples } from './scenarios.js';
 import { buildTileShopScenario } from './tile-shop.js';
-import { consolidateData } from '../../models/rebuild/consolidation.js';
+import { consolidateData } from '../../models/consolidation.js';
 import { addTileCategories } from './categories.js';
 
-export const SEED_VERSION = 'wmsd-tile-shop-20261106-v8';
+export const SEED_VERSION = 'wmsd-tile-shop-20261106-v9';
 export const hash = value => createHash('sha256').update(value).digest('hex');
 export const fixtureId = key => new mongoose.Types.ObjectId(hash(SEED_VERSION + ':' + key).slice(0,24));
 export const demoDate = (day, hour = 8) => new Date(Date.UTC(2026,9,day,hour));
@@ -65,6 +66,8 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
     row.createdAt ??= row.occurredAt ?? row.postedAt ?? demoDate(1);
     row.updatedAt ??= row.createdAt;
   }
+  for(const permission of PERMISSION_CATALOGUE)if(!data.permissions.some(p=>p.code===permission.code))data.permissions.push({_id:fixtureId('permission:'+permission.code),code:permission.code,name:permission.description,description:permission.description,isActive:true,createdAt:demoDate(1),updatedAt:demoDate(1)});
+  for(const role of data.roles)if(ROLE_PERMISSIONS[role.code])for(const permission of data.permissions)if(ROLE_PERMISSIONS[role.code].includes(permission.code)&&!role.permissionIds.some(id=>String(id)===String(permission._id)))role.permissionIds.push(permission._id);
   const context = dataContext(data);
   const actor = roleCode => {
     const role = data.roles.find(row => row.code === roleCode);

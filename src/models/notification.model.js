@@ -1,7 +1,7 @@
 import { Schema, options, text, ref, refs, date } from "./model-utils.js";
 import { optional, origin } from "./schema-helpers.js";
 
-import { createNotificationEmailDeliverySchema } from "./embedded/notification-email-delivery.model.js";
+import { createNotificationEmailDeliverySchema } from "./notification-email-delivery.schema.js";
 
 // Collection: notifications
 export function createNotificationSchema() {

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { ApiError, ERROR_CODES } from "../shared/utils/ApiError.js";
-import { User } from "../models/legacy/index.js";
+import { User } from "../models/runtime.js";
 import { currentRole } from "../shared/utils/userRole.js";
 
 const unauthenticated = (message) =>

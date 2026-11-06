@@ -8,7 +8,6 @@ import checkPermission from "../../middlewares/permission.js";
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize(["ADMIN", "OWNER"]));
 
 router.get(
   "/",
@@ -22,4 +21,6 @@ router.put(
   roleController.updateRolePermissions,
 );
 
+router.get('/permissions',checkPermission('access_control:read'),roleController.listPermissions);
+router.post('/',checkPermission('access_control:create'),validate(roleValidation.createRoleSchema),roleController.createRole);
 export default router;

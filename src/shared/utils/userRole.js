@@ -1,20 +1,19 @@
-import { ROLE_CODES } from '../../models/constants.js';
-import { ROLE_PERMISSIONS } from '../../seeds/data/permissions.data.js';
+import { PERMISSION_CATALOGUE } from '../../seeds/data/permissions.data.js';
 import { ApiError } from './ApiError.js';
 
-// Only a populated, current role is authoritative. Legacy arrays never grant rights.
+const knownPermissions = new Set(PERMISSION_CATALOGUE.map(permission => permission.code));
+// A populated, active role is authoritative, including administrator-created roles.
 export function currentRole(user) {
   const role = user?.roleId;
-  return role && !Array.isArray(role) && ROLE_CODES.includes(role.code) ? role : null;
+  return role && !Array.isArray(role) && typeof role.code === 'string' && role.isActive !== false ? role : null;
 }
 
 export function rolePermissions(user) {
   const role = currentRole(user);
   if (!role) return [];
-  const allowed = ROLE_PERMISSIONS[role.code];
   return [...new Set((role.permissionIds || [])
-    .map((permission) => permission?.code)
-    .filter((code) => allowed.includes(code)))];
+    .filter(permission=>permission?.isActive!==false).map((permission) => permission?.code)
+    .filter((code) => knownPermissions.has(code)))];
 }
 
 export function userRoleDto(user) {

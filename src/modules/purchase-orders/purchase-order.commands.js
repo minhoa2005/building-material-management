@@ -1,213 +1,148 @@
-import { canAccessWarehouse } from '../../shared/utils/access.js';
-import * as m from '../../models/legacy/index.js';
+import { PurchaseOrder, ReplenishmentRequest, Supplier, Warehouse, Product, ApprovalHistory, AuditLog } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
-import { multiplyBaseQuantity, RR_APPROVAL_KIND } from '../../shared/utils/domain.js';
-import { validationError, notFoundError } from '../../shared/utils/ApiError.js';
+import { requireWarehouseAccess } from '../../shared/utils/access.js';
+import { currentRole } from '../../shared/utils/userRole.js';
+import { validationError, forbiddenError } from '../../shared/utils/ApiError.js';
+import { command, checkVersion, saveVersion, same, hash, newId } from '../../shared/utils/document-command.js';
+import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
+import { findPurchase, replayPurchase, newDocument, evidenceFor } from '../po-receiving/purchase-core.js';
 import { purchaseOrderQuantities } from './purchase-order.service.js';
-import { id, same, read, fail, rights, scoped, rows, version, bump, command, save, newDoc, lineLink, evidenceFor } from '../po-receiving/purchase-core.js';
 
-const accountant = (u, action = 'update') => rights(u, action, 'purchase_order', ['ACCOUNTANT']);
-async function source(user, input, warehouseId, session) {
-  const line = await read(m.DocumentLine.findOne({ _id: input.rrLineId, lineKind: 'REPLENISHMENT' }), session);
-  if (!line || line.details?.removedAt) throw notFoundError();
-  const rr = await scoped(user, line.documentId, 'REPLENISHMENT', session);
-  const approval = await read(m.Approval.findOne({ _id: input.approvalId, documentId: rr._id, documentVersion: rr.version, decisionKind: RR_APPROVAL_KIND, decision: 'APPROVE' }), session);
-  const decision = approval?.lines.find(r => same(r.lineId, line._id) && r.outcome === 'APPROVE');
-  if (rr.workflowStatus !== 'APPROVED' || !same(rr.header.warehouseId, warehouseId) || !decision || !exact(decision.approvedQty).gt(0)) fail('RR_SOURCE', 'Nguồn RR chưa được duyệt đúng phiên bản/kho');
-  const product = await read(m.Product.findById(line.productId), session);
-  const q = multiplyBaseQuantity(input.enteredQty, line.conversionSnapshot.toString());
-  if (!product?.isActive || !q.valid || (product.wholeBaseUnits && !q.value.isInteger())) throw validationError('Sản phẩm hoặc lượng theo RR không hợp lệ');
-  if (q.value.gt(exact(decision.approvedQty))) fail('RR_CAP', 'Lượng PO vượt lượng RR được duyệt');
-  return { line, rr, approval, decision, product, qty: q.string };
-}
-async function master(user, input, session) {
-  const wh = await read(m.Warehouse.findById(input.warehouseId), session);
-  const supplier = await read(m.Party.findOne({ _id: input.supplierId, kind: 'SUPPLIER', isActive: true, cooperationStatus: 'ACTIVE' }), session);
-  if (!wh?.isActive || !supplier) throw validationError('Kho/NCC không hoạt động');
-  // Scope is checked before creating a document, not after its insertion.
-  if (!canAccessWarehouse(user, wh._id)) throw notFoundError();
-}
-async function draftLines(user, po, input, session) {
-  const previous = await rows(po._id, session); const seen = new Set(); const seenIds = new Set(); const keep = new Set();
-  const prepared = [];
-  for (const l of input.lines) {
-    if (seen.has(l.rrLineId)) throw validationError('Gộp các lượng của cùng dòng RR'); seen.add(l.rrLineId);
-    const src = await source(user, l, input.warehouseId, session);
-    const old = l.id && previous.find(r => same(r._id, l.id));
-    if (l.id && (!old || seenIds.has(l.id))) throw validationError('Dòng PO cần sửa không hợp lệ hoặc trùng ID');
-    if (l.id) seenIds.add(l.id);
-    if (old && !same(old.productId, src.line.productId)) throw validationError('Không đổi sản phẩm dòng đã lưu');
-    const conversion = await read(m.ProductUomVersion.findById(src.line.conversionId), session);
-    const uom = conversion && await read(m.Uom.findById(conversion.uomId), session);
-    prepared.push({ src, old, values: { documentId: po._id, productId: src.line.productId,
-      conversionId: src.line.conversionId, conversionSnapshot: src.line.conversionSnapshot, enteredQty: l.enteredQty,
-      qtyBase: src.qty, productNameSnapshot: src.line.productNameSnapshot, productSkuSnapshot: src.product.sku, enteredUomCodeSnapshot: uom?.code } });
-    if (old) keep.add(id(old._id));
+async function draftItems(actor,input,session,previous=[]){
+  requireWarehouseAccess(actor,input.warehouseId);
+  const supplier=await Supplier.findOne({_id:input.supplierId,status:'ACTIVE'}).session(session);
+  if(!supplier||!await Warehouse.exists({_id:input.warehouseId,isActive:true}).session(session))throw validationError('Kho hoặc nhà cung cấp không hoạt động');
+  let request;const items=[],seen=new Set();
+  for(const [index,line]of input.lines.entries()){
+    if(seen.has(line.rrLineId))throw validationError('Gộp lượng của cùng dòng RR');seen.add(line.rrLineId);
+    const rr=await ReplenishmentRequest.findOne({'items._id':line.rrLineId,workflowStatus:'APPROVED'}).session(session);
+    if(!rr||!same(rr.header.warehouseId,input.warehouseId)||(request&&!same(request._id,rr._id)))throw validationError('Một PO phải thuộc một RR đã duyệt và cùng kho');
+    request=rr;
+    const approval=await ApprovalHistory.findOne({_id:line.approvalId,subjectType:'replenishment_requests',subjectId:rr._id,subjectRevision:rr.header.approvedRevision,decision:'APPROVE'}).session(session);
+    if(!approval||!same(rr.header.latestDecisionId,approval._id))throw validationError('Quyết định duyệt nguồn không còn hiệu lực');
+    const source=rr.items.id(line.rrLineId),decision=approval.itemDecisions.find(row=>same(row.itemId,source._id));
+    const amount=exact(line.enteredQty).mul(String(source.baseUnitsPerUnit));
+    const product=await Product.findOne({_id:source.productId,isActive:true}).session(session);
+    if(!product||!decision||amount.gt(String(decision.approvedQtyBase))||amount.lte(0)||(product.wholeBaseUnits&&!amount.isInteger())||amount.decimalPlaces()>6)throw validationError('Sản phẩm hoặc lượng PO vượt nguồn được duyệt');
+    const old=line.id?previous.find(row=>same(row._id,line.id)):null;
+    if(line.id&&(!old||!same(old.requestItemId,source._id)))throw validationError('Không đổi nguồn của dòng đã lưu');
+    const value=exact(line.unitPurchasePrice).mul(line.enteredQty);
+    items.push(copyItem(source,amount.toFixed(),{_id:old?._id??newId(),lineNo:index+1,requestItemId:source._id,
+      unitPurchasePrice:line.unitPurchasePrice,lineAmount:value.toFixed(),sources:[sourceLink(rr,source,amount.toFixed(),'REPLENISHMENT_PURCHASE')]}));
   }
-  const draftClaims = await read(m.PurchaseSourceClaim.find({ purchaseOrderId: po._id }), session);
-  if (draftClaims.some(c => exact(c.qtyBase).gt(0))) fail('RR_SOURCE', 'PO nháp có claim đã xác nhận');
-  await m.PurchaseSourceClaim.deleteMany({ purchaseOrderId: po._id }, { session });
-  for (const old of previous) {
-    await m.LineLink.deleteMany({ targetLineId: old._id }, { session });
-    if (!keep.has(id(old._id))) await m.DocumentLine.deleteOne({ _id: old._id }, { session });
-    else await m.DocumentLine.updateOne({ _id: old._id }, { $set: { lineNo: old.lineNo + 1000 } }, { session });
-  }
-  for (const [i, p] of prepared.entries()) {
-    let line;
-    if (p.old) { await m.DocumentLine.updateOne({ _id: p.old._id }, { $set: { ...p.values, lineNo: i + 1 } }, { session, runValidators: true }); line = p.old; }
-    else line = await save(m.DocumentLine, { ...p.values, lineNo: i + 1 }, session);
-    await lineLink(p.src.line._id, line._id, p.src.qty, session, 'REPLENISHMENT_PURCHASE');
-    await save(m.PurchaseSourceClaim, { purchaseOrderId: po._id, poLineId: line._id, rrLineId: p.src.line._id, approvalId: p.src.approval._id, qtyBase: '0' }, session);
-  }
+  return{request,supplier,items,total:items.reduce((sum,row)=>sum.plus(row.lineAmount),exact('0')).toFixed()};
 }
-// Conditional write on the RR serializes claims across ALL POs while keeping its approval version unchanged.
-async function claim(user, po, poLine, input, session) {
-  const src = await source(user, input, po.header.warehouseId, session);
-  if (!same(src.line.productId, poLine.productId)) fail('RR_SOURCE', 'RR bổ sung sai SKU');
-  const lock = await m.BusinessDocument.updateOne({ _id: src.rr._id, documentKind: 'REPLENISHMENT', version: src.rr.version, workflowStatus: 'APPROVED' }, { $inc: { 'header.purchasingVersion': 1 } }, { session });
-  if (lock.matchedCount !== 1) fail('RR_SOURCE', 'Nguồn RR đã thay đổi');
-  const claims = await read(m.PurchaseSourceClaim.find({ rrLineId: src.line._id }), session);
-  const used = claims.reduce((sum, r) => sum.plus(exact(r.qtyBase)), exact('0'));
-  if (used.plus(exact(src.qty)).gt(exact(src.decision.approvedQty))) fail('RR_CAP', 'Allowance RR đã được PO khác sử dụng', { approvedQtyBase: src.decision.approvedQty.toString(), committedQtyBase: used.toString() });
-  const prior = claims.find(r => same(r.poLineId, poLine._id));
-  if (prior && !same(prior.approvalId, src.approval._id)) fail('RR_SOURCE', 'Claim gắn phiên bản duyệt khác');
-  if (prior) { const changed = await m.PurchaseSourceClaim.updateOne({ _id: prior._id, version: prior.version }, { $inc: { version: 1 }, $set: { qtyBase: exact(prior.qtyBase).plus(exact(src.qty)).toString() } }, { session }); if (changed.matchedCount !== 1) fail('RR_SOURCE', 'Claim RR vừa đổi'); }
-  else await save(m.PurchaseSourceClaim, { purchaseOrderId: po._id, poLineId: poLine._id, rrLineId: src.line._id, approvalId: src.approval._id, qtyBase: src.qty }, session);
-  return src;
-}
-export async function createPurchaseOrder(user, input) {
-  accountant(user, 'create');
-  return command(user, 'CREATE_PURCHASE_ORDER', input.warehouseId, input, async session => {
-    await master(user, input, session);
-    const po = await newDoc('PO', { warehouseId: input.warehouseId, supplierId: input.supplierId, creationKey: input.creationKey, ...(input.expectedOn && { expectedOn: new Date(input.expectedOn) }) }, user, session);
-    await draftLines(user, po, input, session);
-    return { document: po };
+export function createPurchaseOrder(user,input){
+  return command(user,'CREATE_PURCHASE_ORDER','purchase_order:create',null,input,replayPurchase,async(session,actor)=>{
+    const prepared=await draftItems(actor,input,session);
+    const po=newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
+      supplierSnapshot:{code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone}},prepared.items);
+    po.replenishmentRequestId=prepared.request._id;po.totalAmount=prepared.total;po.currency=input.currency;po.sources=[sourceLink(prepared.request)];
+    await po.save({session});return{document:po};
   });
 }
-export async function updatePurchaseOrder(user, poId, input) {
-  accountant(user);
-  return command(user, 'UPDATE_PURCHASE_ORDER', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    if (po.workflowStatus !== 'DRAFT') fail('STATE', 'Chỉ sửa PO nháp; PO mở dùng amendment');
-    await master(user, input, session);
-    await draftLines(user, po, input, session);
-    return { document: await bump(po, session, { header: { warehouseId: input.warehouseId, supplierId: input.supplierId, creationKey: po.header.creationKey, ...(input.expectedOn && { expectedOn: new Date(input.expectedOn) }) } }) };
+export function updatePurchaseOrder(user,id,input){
+  return command(user,'UPDATE_PURCHASE_ORDER','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    if(po.workflowStatus!=='DRAFT')throw validationError('Chỉ sửa trực tiếp PO nháp');
+    const prepared=await draftItems(actor,input,session,po.items);
+    if(!same(prepared.request._id,po.replenishmentRequestId))throw validationError('Không đổi RR nguồn của PO');
+    po.items=prepared.items;po.totalAmount=prepared.total;po.currency=input.currency;
+    po.header.warehouseId=input.warehouseId;po.header.supplierId=input.supplierId;po.header.expectedOn=input.expectedOn;
+    po.header.supplierSnapshot={code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone};
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion};
   });
 }
-export async function confirmPurchaseOrder(user, poId, input) {
-  accountant(user);
-  return command(user, 'CONFIRM_PURCHASE_ORDER', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    if (po.workflowStatus !== 'DRAFT') fail('STATE', 'PO không còn nháp');
-    await master(user, po.header, session);
-    const lines = await rows(po._id, session); if (!lines.length) throw validationError('PO cần có dòng hàng');
-    for (const l of lines) {
-      const links = await read(m.LineLink.find({ targetLineId: l._id, relationCode: 'REPLENISHMENT_PURCHASE' }), session);
-      if (links.length !== 1 || !exact(links[0].linkedQty).eq(exact(l.qtyBase))) fail('RR_SOURCE', 'Dòng PO thiếu nguồn RR');
-      const rrLine = await read(m.DocumentLine.findById(links[0].sourceLineId), session);
-      const rr = rrLine && await read(m.BusinessDocument.findById(rrLine.documentId), session);
-      const approval = rr && await read(m.Approval.findOne({ documentId: rr._id, documentVersion: rr.version, decisionKind: RR_APPROVAL_KIND, decision: 'APPROVE' }), session);
-      const savedSource = await read(m.PurchaseSourceClaim.findOne({ poLineId: l._id, rrLineId: rrLine?._id }), session);
-      if (!approval || !savedSource || !same(savedSource.approvalId, approval._id)) fail('RR_SOURCE', 'Duyệt RR đã đổi so với PO nháp; lưu lại trước khi xác nhận');
-      await claim(user, po, l, { rrLineId: id(rrLine._id), approvalId: id(approval._id), enteredQty: l.enteredQty.toString() }, session);
+export function confirmPurchaseOrder(user,id,input){
+  return command(user,'CONFIRM_PURCHASE_ORDER','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    if(po.workflowStatus!=='DRAFT'||!po.items.length)throw validationError('PO không phải nháp có dòng hàng');
+    const rr=await ReplenishmentRequest.findById(po.replenishmentRequestId).session(session);
+    if(rr?.workflowStatus!=='APPROVED'||rr.header.approvedRevision!==po.header.approvedRequestRevision)throw validationError('Nguồn RR đã đổi');
+    po.workflowStatus='OPEN';po.header.issuedAt=new Date();
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion};
+  });
+}
+export function amendPurchaseOrder(user,id,input){
+  return command(user,'AMEND_PURCHASE_ORDER','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở');
+    await evidenceFor(actor,po,input.evidenceIds,session,true);
+    const quantities=await purchaseOrderQuantities(po,session);
+    const rr=await ReplenishmentRequest.findById(po.replenishmentRequestId).session(session);
+    if(rr?.workflowStatus!=='APPROVED')throw validationError('RR không còn hiệu lực');
+    const changes=[];
+    for(const row of input.lines){
+      const item=po.items.id(row.poLineId),source=rr.items.id(row.rrLineId);
+      if(!item||!source||!same(item.requestItemId,source._id)||!same(rr.header.latestDecisionId,row.approvalId))throw validationError('Sai nguồn sửa PO');
+      const amount=exact(row.enteredQty).mul(String(item.baseUnitsPerUnit));
+      const committed=quantities.find(value=>value.lineId===String(item._id));
+      if(amount.gt(String(source.approvedQtyBase))||amount.lt(exact(committed.receivedQtyBase).plus(committed.openDraftCommitmentQtyBase).plus(committed.cancelledQtyBase)))throw validationError('Lượng sửa vượt duyệt hoặc thấp hơn lượng đã cam kết');
+      changes.push({field:'items.'+item._id+'.qtyBase',before:String(item.qtyBase),after:amount.toFixed()});
+      item.enteredQty=row.enteredQty;item.qtyBase=amount.toFixed();item.lineAmount=exact(item.unitPurchasePrice).mul(row.enteredQty).toFixed();
     }
-    return { document: await bump(po, session, { workflowStatus: 'OPEN' }) };
+    po.totalAmount=po.items.reduce((sum,row)=>sum.plus(String(row.lineAmount)),exact('0')).toFixed();if(input.expectedOn)po.header.expectedOn=input.expectedOn;
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,auditChanges:changes,reason:input.reason};
   });
 }
-export async function amendPurchaseOrder(user, poId, input) {
-  accountant(user);
-  return command(user, 'AMEND_PURCHASE_ORDER', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    if (!['OPEN', 'PARTIAL', 'COMPLETED'].includes(po.workflowStatus)) fail('STATE', 'PO không thể amendment');
-    await evidenceFor(user, po._id, input.evidenceIds, session, true);
-    const lines = await rows(po._id, session); const events = [];
-    for (const r of input.lines) {
-      const l = lines.find(l => same(l._id, r.poLineId)); if (!l) throw notFoundError();
-      const src = await claim(user, po, l, r, session);
-      events.push({ poLineId: l._id, rrLineId: src.line._id, approvalId: src.approval._id, qtyBase: src.qty });
+export function supplierConfirmation(user,id,input){
+  return command(user,'SUPPLIER_CONFIRMATION','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở');await evidenceFor(actor,po,input.evidenceIds,session,true);
+    const seen=new Set();
+    for(const row of input.lines){
+      const item=po.items.id(row.poLineId);if(!item||seen.has(row.poLineId)||exact(row.qtyBase).gt(exact(item.qtyBase).minus(String(item.cancelledRemainderQtyBase??'0'))))throw validationError('Lượng NCC xác nhận không hợp lệ');
+      seen.add(row.poLineId);item.supplierConfirmedQtyBase=row.qtyBase;item.supplierConfirmedBy=actor._id;item.supplierConfirmedAt=new Date();
+      item.deliverySchedule=[{quantityBase:row.qtyBase,expectedAt:new Date(row.expectedOn),supplierReference:input.reason.slice(0,160)}];
     }
-    const event = await save(m.PurchaseEvent, { purchaseOrderId: po._id, documentId: po._id, kind: 'AMENDMENT', sourcePoVersion: po.version, actorId: user._id, reason: input.reason, evidenceIds: input.evidenceIds, lines: events }, session);
-    return { document: await bump(po, session, { ...(input.expectedOn && { 'header.expectedOn': new Date(input.expectedOn) }), ...(events.length && { workflowStatus: 'PARTIAL' }) }), eventId: event._id };
+    po.header.supplierConfirmation=input.reason.slice(0,1000);
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,reason:input.reason};
   });
 }
-export async function supplierConfirmation(user, poId, input) {
-  accountant(user);
-  return command(user, 'CONFIRM_SUPPLIER_SCHEDULE', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    if (!['OPEN', 'PARTIAL'].includes(po.workflowStatus)) fail('STATE', 'PO không còn mở');
-    await evidenceFor(user, po._id, input.evidenceIds, session, true);
-    const q = await purchaseOrderQuantities(po, session); const seen = new Set();
-    const products = await read(m.Product.find({ _id: { $in: q.map(l => l.productId) } }), session);
-    for (const l of input.lines) {
-      const current = q.find(r => r.lineId === l.poLineId);
-      if (seen.has(l.poLineId) || !current || current.quantityState !== 'KNOWN' || exact(l.qtyBase).gt(exact(current.authorizedOrderedQtyBase))) fail('SCHEDULE', 'Lượng xác nhận NCC không hợp lệ');
-      if (products.find(p => same(p._id, current.productId))?.wholeBaseUnits && !exact(l.qtyBase).isInteger()) throw validationError('Số viên xác nhận phải nguyên');
-      seen.add(l.poLineId);
-    }
-    const event = await save(m.PurchaseEvent, { purchaseOrderId: po._id, documentId: po._id, kind: 'SUPPLIER_CONFIRMATION', sourcePoVersion: po.version, actorId: user._id, reason: input.reason, evidenceIds: input.evidenceIds, lines: input.lines }, session);
-    return { document: await bump(po, session), eventId: event._id };
-  });
-}
-export async function requestClose(user, poId, input) {
-  accountant(user);
-  return command(user, 'REQUEST_PO_REMAINDER_CLOSE', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    if (!['OPEN', 'PARTIAL'].includes(po.workflowStatus)) fail('STATE', 'PO không còn mở');
-    await evidenceFor(user, po._id, input.evidenceIds, session, true);
-    await validateClose(po, input.lines, session);
-    const event = await save(m.PurchaseEvent, { purchaseOrderId: po._id, documentId: po._id, kind: 'CLOSE_REQUEST', sourcePoVersion: po.version, actorId: user._id, reason: input.reason, evidenceIds: input.evidenceIds, lines: input.lines }, session);
-    return { document: await bump(po, session), eventId: event._id };
-  });
-}
-async function validateClose(po, lines, session) {
-  const q = await purchaseOrderQuantities(po, session); const seen = new Set();
-  const products = await read(m.Product.find({ _id: { $in: q.map(l => l.productId) } }), session);
-  const drafts = await read(m.BusinessDocument.find({ documentKind: 'GR_PURCHASE', 'header.purchaseOrderId': po._id, workflowStatus: 'DRAFT' }).select('_id'), session);
-  const held = await read(m.DocumentLine.find({ documentId: { $in: drafts.map(d => d._id) } }), session);
-  for (const l of lines) {
-    const current = q.find(q => same(q.lineId, l.poLineId));
-    if (seen.has(l.poLineId) || !current || current.quantityState !== 'KNOWN' || exact(l.qtyBase).gt(exact(current.outstandingQtyBase)) || held.some(r => same(r.details.poLineId, l.poLineId))) fail('CLOSE_SOURCE', 'Phần chốt thiếu vượt nguồn hoặc còn GR nháp xung đột');
-    if (products.find(p => same(p._id, current.productId))?.wholeBaseUnits && !exact(l.qtyBase).isInteger()) throw validationError('Số viên chốt thiếu phải nguyên');
-    seen.add(l.poLineId);
+async function validateClose(po,lines,session){
+  const quantities=await purchaseOrderQuantities(po,session),seen=new Set();
+  for(const row of lines){
+    const available=quantities.find(item=>item.lineId===String(row.poLineId));
+    if(!available||seen.has(row.poLineId)||exact(row.qtyBase).gt(exact(available.outstandingQtyBase).minus(available.openDraftCommitmentQtyBase)))throw validationError('Lượng chốt thiếu vượt phần chưa cam kết');
+    seen.add(row.poLineId);
   }
 }
-export async function approveClose(user, poId, input) {
-  rights(user, 'approve_exception', 'purchase_order', ['OWNER']);
-  return command(user, 'APPROVE_PO_REMAINDER_CLOSE', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    const request = await read(m.PurchaseEvent.findOne({ _id: input.requestId, purchaseOrderId: po._id, kind: 'CLOSE_REQUEST' }), session);
-    if (!request || request.sourcePoVersion + 1 !== po.version || same(request.actorId, user._id)) fail('CLOSE_APPROVAL', 'Yêu cầu chốt thiếu đã cũ hoặc tự duyệt');
-    await evidenceFor(user, po._id, input.evidenceIds, session, true);
-    await validateClose(po, request.lines, session);
-    const event = await save(m.PurchaseEvent, { purchaseOrderId: po._id, documentId: po._id, kind: 'CLOSE_APPROVAL', sourcePoVersion: po.version, actorId: user._id, reason: input.reason, evidenceIds: input.evidenceIds, lines: request.lines, relatedEventId: request._id }, session);
-    return { document: await bump(po, session), eventId: event._id };
+export function requestClose(user,id,input){
+  return command(user,'REQUEST_PO_CLOSE','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở');
+    await evidenceFor(actor,po,input.evidenceIds,session,true);await validateClose(po,input.lines,session);
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,reason:input.reason,
+      auditChanges:[{field:'closureProposal',before:null,after:{lines:input.lines,evidenceIds:input.evidenceIds}}]};
   });
 }
-export async function executeClose(user, poId, input) {
-  accountant(user);
-  return command(user, 'EXECUTE_PO_REMAINDER_CLOSE', poId, input, async session => {
-    const po = await scoped(user, poId, 'PO', session); version(po, input.expectedVersion);
-    const approval = await read(m.PurchaseEvent.findOne({ _id: input.approvalId, purchaseOrderId: po._id, kind: 'CLOSE_APPROVAL' }), session);
-    if (!approval || approval.sourcePoVersion + 1 !== po.version) fail('CLOSE_APPROVAL', 'Duyệt chốt thiếu không còn hiện hành');
-    await validateClose(po, approval.lines, session);
-    const event = await save(m.PurchaseEvent, { purchaseOrderId: po._id, documentId: po._id, kind: 'CLOSE_EXECUTION', sourcePoVersion: po.version, actorId: user._id, reason: input.reason, evidenceIds: approval.evidenceIds, lines: approval.lines, relatedEventId: approval._id }, session);
-    // Release only the closed, unreceived allowance. Received authority remains reserved.
-    for (const l of approval.lines) {
-      let left = exact(l.qtyBase);
-      const claims = await read(m.PurchaseSourceClaim.find({ poLineId: l.poLineId }).sort({ _id: 1 }), session);
-      for (const c of claims) {
-        if (left.isZero()) break;
-        const rrLine = await read(m.DocumentLine.findById(c.rrLineId), session);
-        if (!rrLine) fail('RR_SOURCE', 'Nguồn claim RR bị thiếu');
-        await m.BusinessDocument.updateOne({ _id: rrLine.documentId, documentKind: 'REPLENISHMENT' }, { $inc: { 'header.purchasingVersion': 1 } }, { session });
-        const take = exact(c.qtyBase).lt(left) ? exact(c.qtyBase) : left;
-        const changed = await m.PurchaseSourceClaim.updateOne({ _id: c._id, version: c.version }, { $set: { qtyBase: exact(c.qtyBase).minus(take).toString() }, $inc: { version: 1 } }, { session });
-        if (changed.matchedCount !== 1) fail('RR_SOURCE', 'Claim RR vừa đổi khi chốt thiếu');
-        left = left.minus(take);
-      }
-      if (!left.isZero()) fail('RR_SOURCE', 'Không đủ allowance nguồn để chốt');
-    }
-    const q = await purchaseOrderQuantities(po, session);
-    return { document: await bump(po, session, { workflowStatus: q.every(r => r.quantityState === 'KNOWN' && exact(r.outstandingQtyBase).isZero()) ? 'CLOSED' : 'PARTIAL' }), eventId: event._id };
+export function approveClose(user,id,input){
+  return command(user,'APPROVE_PO_CLOSE','purchase_order:approve_exception',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    const request=await AuditLog.findOne({_id:input.requestId,subjectType:'purchase_orders',subjectId:id,action:'REQUEST_PO_CLOSE',versionAfter:po.version}).session(session);
+    if(!request||same(request.actorId,actor._id))throw validationError('Đề nghị không đúng phiên bản hoặc người duyệt trùng người lập');
+    const proposal=request.changes.find(row=>row.field==='closureProposal')?.after;if(!proposal)throw validationError('Thiếu nội dung đề nghị');
+    await validateClose(po,proposal.lines,session);await evidenceFor(actor,po,input.evidenceIds,session,true);
+    const decision=await new ApprovalHistory({decisionKey:hash({id,request:String(request._id),key:input.operationKey}),subjectType:'purchase_orders',subjectId:po._id,subjectRevision:po.version,
+      decisionScope:'PURCHASE_CLOSE',reviewedContent:proposal,decision:'APPROVE',reason:input.reason,requestedBy:request.actorId,decidedBy:actor._id,decidedAt:new Date(),recordedAt:new Date(),
+      itemDecisions:proposal.lines.map(row=>({itemId:row.poLineId,approvedQtyBase:row.qtyBase,outcome:'CANCEL_REMAINDER'})),
+      authoritySnapshot:{roleCode:currentRole(actor).code,permissionCode:'purchase_order:approve_exception',warehouseIds:actor.warehouseIds},evidenceIds:input.evidenceIds}).save({session});
+    po.header.closureDecisionId=decision._id;
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,decisionId:decision._id};
   });
 }
+export function executeClose(user,id,input){
+  return command(user,'EXECUTE_PO_CLOSE','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
+    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
+    const approval=await ApprovalHistory.findOne({_id:input.approvalId,subjectId:id,subjectType:'purchase_orders',decisionScope:'PURCHASE_CLOSE',decision:'APPROVE'}).session(session);
+    if(!approval||!same(po.header.closureDecisionId,approval._id)||po.version!==approval.subjectRevision+1)throw validationError('Quyết định chốt thiếu không còn đúng phiên bản');
+    const lines=approval.itemDecisions.map(row=>({poLineId:String(row.itemId),qtyBase:String(row.approvedQtyBase)}));await validateClose(po,lines,session);
+    for(const row of lines){const item=po.items.id(row.poLineId);item.cancelledRemainderQtyBase=exact(item.cancelledRemainderQtyBase??'0').plus(row.qtyBase).toFixed();item.cancellationDecisionId=approval._id;}
+    const quantities=await purchaseOrderQuantities(po,session);
+    if(quantities.every(row=>exact(row.outstandingQtyBase).isZero())){po.workflowStatus='CLOSED';po.header.closedAt=new Date();}
+    po.header.closureReason=input.reason;
+    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,decisionId:approval._id};
+  });
+}
+
+

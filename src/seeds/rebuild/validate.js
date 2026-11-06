@@ -2,8 +2,8 @@ import { exact } from '../../models/model-utils.js';
 import { validateTarget } from '../../migrations/rebuild/verify.js';
 import { verifyReferences } from '../../migrations/rebuild/references.js';
 import { dataContext } from './data.js';
-import { expandEmbedded } from '../../models/rebuild/consolidation.js';
-import { checkBinCapacity, assertBatchPackaging } from '../../models/rebuild/capacity.js';
+import { expandEmbedded } from '../../models/consolidation.js';
+import { checkBinCapacity, assertBatchPackaging } from '../../models/capacity.js';
 
 const same=(a,b)=>String(a)===String(b);
 const sum=(rows,key)=>rows.reduce((total,row)=>total.plus(String(row[key]??0)),exact(0));

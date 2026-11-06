@@ -10,9 +10,9 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createTransferOrderHeaderSchema } from "./embedded/transfer-order-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createTransferOrderHeaderSchema } from "./transfer-order-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import { registerReviewedModels, newCollections } from '../src/models/index.js';
-import { removedCollections, embeddedTables } from '../src/models/rebuild/consolidation.js';
+import { removedCollections, embeddedTables } from '../src/models/consolidation.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = resolve(root, 'git_doc/docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio');

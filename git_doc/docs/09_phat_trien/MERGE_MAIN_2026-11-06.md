@@ -1,4 +1,6 @@
-# Merge main vào HieuDT — 06/11/2026
+# Merge main vào HieuDT — 06/11/2026 (ghi nhận lịch sử)
+
+> Nội dung bên dưới là trạng thái trước quyết định đồng bộ runtime trong cùng ngày. Không dùng làm hướng dẫn triển khai: ba thư mục model được nhắc tới đã bị bỏ. Xem [hợp đồng runtime hiện hành](../08_api/NATIVE_MODEL_RUNTIME.md).
 
 ## Kết quả và phạm vi
 

@@ -12,9 +12,9 @@ import {
 } from "./model-utils.js";
 import { id, docType } from "./schema-helpers.js";
 
-import { createSourceReferenceSchema } from "./embedded/source-reference.model.js";
-import { createApprovalHistoryItemDecisionsSchema } from "./embedded/approval-history-item-decisions.model.js";
-import { createApprovalHistoryAuthoritySnapshotSchema } from "./embedded/approval-history-authority-snapshot.model.js";
+import { createSourceReferenceSchema } from "./source-reference.schema.js";
+import { createApprovalHistoryItemDecisionsSchema } from "./approval-history-item-decisions.schema.js";
+import { createApprovalHistoryAuthoritySnapshotSchema } from "./approval-history-authority-snapshot.schema.js";
 
 // Collection: approval_history
 export function createApprovalHistorySchema() {

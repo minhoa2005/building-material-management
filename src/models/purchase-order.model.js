@@ -11,10 +11,10 @@ import {
 } from "./model-utils.js";
 import { objectId, id, opt, version, quantity } from "./schema-helpers.js";
 
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createPurchaseOrderHeaderSchema } from "./embedded/purchase-order-header.model.js";
-import { createPurchaseOrderDeliveryScheduleSchema } from "./embedded/purchase-order-delivery-schedule.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createPurchaseOrderHeaderSchema } from "./purchase-order-header.schema.js";
+import { createPurchaseOrderDeliveryScheduleSchema } from "./purchase-order-delivery-schedule.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

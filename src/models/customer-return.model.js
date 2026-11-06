@@ -10,11 +10,11 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, embedRecordArray } from "./schema-helpers.js";
 
-import { createReviewDecisionSchema } from "./embedded/review-decision.model.js";
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createReturnInspectionSchema } from "./embedded/return-inspection.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createCustomerReturnHeaderSchema } from "./embedded/customer-return-header.model.js";
+import { createReviewDecisionSchema } from "./review-decision.schema.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createReturnInspectionSchema } from "./return-inspection.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createCustomerReturnHeaderSchema } from "./customer-return-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

@@ -1,4 +1,4 @@
-import { embeddedTables, expandEmbedded } from '../../models/rebuild/consolidation.js';
+import { embeddedTables, expandEmbedded } from '../../models/consolidation.js';
 function getPath(row, path) {
   return path.split('.').reduce((value,key) => value?.[key],row);
 }

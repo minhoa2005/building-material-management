@@ -10,9 +10,9 @@ import {
 } from "./model-utils.js";
 import { objectId, opt, version, quality } from "./schema-helpers.js";
 import { QUALITY_CODES } from "./constants.js";
-import { createDocumentSourceSchema } from "./embedded/document-source.model.js";
-import { createDocumentItemSchema } from "./embedded/document-item.model.js";
-import { createStockQualityChangeHeaderSchema } from "./embedded/stock-quality-change-header.model.js";
+import { createDocumentSourceSchema } from "./document-source.schema.js";
+import { createDocumentItemSchema } from "./document-item.schema.js";
+import { createStockQualityChangeHeaderSchema } from "./stock-quality-change-header.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,

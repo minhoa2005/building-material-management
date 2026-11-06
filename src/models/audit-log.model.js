@@ -11,8 +11,8 @@ import {
 } from "./model-utils.js";
 import { optional, subject } from "./schema-helpers.js";
 
-import { createAuditLogActorSnapshotSchema } from "./embedded/audit-log-actor-snapshot.model.js";
-import { createAuditLogChangesSchema } from "./embedded/audit-log-changes.model.js";
+import { createAuditLogActorSnapshotSchema } from "./audit-log-actor-snapshot.schema.js";
+import { createAuditLogChangesSchema } from "./audit-log-changes.schema.js";
 
 // Collection: audit_logs
 export function createAuditLogSchema() {
