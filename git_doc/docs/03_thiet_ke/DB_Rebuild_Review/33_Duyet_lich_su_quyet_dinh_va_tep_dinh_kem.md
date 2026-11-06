@@ -63,3 +63,7 @@ H12 đã chốt Sales Staff nhập đơn nguồn và bằng chứng ngay khi t�
 **Phản hồi nhận ngày 02/11/2026:** “chuưa ro do phần này người khác làm nghiệp vụ”. D07 vẫn chưa duyệt; cần người phụ trách xác nhận người và thời điểm xác minh đơn nguồn mới. Chưa chọn Sales hay Accountant và chưa thêm bước chặn WIR/OD. D08 cũng chưa chốt cấu trúc nguồn/dòng phụ thuộc lựa chọn này. Tiếp tục các nhóm dữ liệu độc lập; không coi câu trả lời chưa rõ là duyệt hoặc loại bỏ D07/D08. [H12 đã duyệt](18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md).
 
 **ĐÃ DUYỆT D05 và D06 v0.1; D07/D08 còn mở, cần người phụ trách nghiệp vụ làm rõ trước khi chốt.** [Danh mục và tiến độ](01_Danh_muc_duyet.md) · [Nhật ký duyệt](04_Nhat_ky_duyet.md).
+
+## Quyết định phạm vi nguồn trả lịch sử — 07/11/2026
+
+Người dùng xác nhận “Yes—Accountant verifies with evidence” cho nguồn khách đã nhận trong lịch sử để lập CR. Accountant ghi khách/kho/lô/quy đổi, lượng đã giao/đã trả và ảnh/PDF thật; hệ thống giữ actor/time, nguồn và hạn mức nguyên tử, không tạo POD giả. Xem [hợp đồng hiện hành](../../08_api/RETURN_WORKFLOWS_NATIVE.md). Quyết định này không tự chốt cơ chế xác minh đơn bán mới hay bước chặn WIR/OD ngoài phạm vi trên; các ghi nhận D07/D08 cũ vẫn là lịch sử của phần chưa chốt rộng hơn.

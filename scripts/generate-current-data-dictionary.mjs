@@ -13,7 +13,7 @@ for(const file of await readdir(modelDirectory)) {
   if(collection)sourceFiles.set(collection,file);
 }
 await mkdir(directory,{recursive:true});
-let md='# Từ điển dữ liệu hiện hành — 06/11/2026\n\n'+models.size+' collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. API legacy còn cần chuyển riêng.\n\n';
+let md='# Từ điển dữ liệu hiện hành — 07/11/2026\n\n'+models.size+' collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. Native return workflow additions and compatibility are documented in [RETURN_WORKFLOWS_NATIVE](../../08_api/RETURN_WORKFLOWS_NATIVE.md). The directory name retains its baseline date.\n\n';
 const snapshot=[];
 for(const [name,Model] of models){
   const fields=[];
@@ -35,7 +35,7 @@ for(const [name,Model] of models){
   md+='Indexes:\n\n```json\n'+JSON.stringify(Model.schema.indexes(),null,2)+'\n```\n\n';
   snapshot.push({collection:name,model:Model.modelName,sourceFile:'src/models/'+sourceFile,fields,indexes:Model.schema.indexes()});
 }
-await writeFile(new URL('WMSD_Data_Dictionary.md',directory),md);
+await writeFile(new URL('WMSD_Data_Dictionary.md',directory),md.trimEnd()+'\n');
 await writeFile(new URL('schema.json',directory),JSON.stringify(snapshot,null,2)+'\n');
 await connection.close();
 console.log('Generated data dictionary and schema snapshot: '+models.size+' collections');

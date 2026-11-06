@@ -718,7 +718,7 @@ The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. I
 | UC-119 | Confirm Customer Fulfilment Choice | FE-06 | ACTIVE | Record customer fulfilment choice based on feasible options/current source versions. Save choice without automatic purchase/transfer/stock posting and route actual RR/OD to its UC. |
 | UC-120 | Inspect and Post Transfer Receipt | FE-05 | ACTIVE | Destination Warehouse Staff independently verifies actual quantities against dispatch lines and posts MWTR by quality. Move received quantities from transit to destination, retain demand allocation, put away and keep discrepancies open. |
 | UC-121 | Export or Print Stocktake Count Sheet | FE-08 | ACTIVE | Warehouse Staff/Owner obtains the activated session's snapshot-based list by location/lot/quality, with cutoff and space for counts and newly found items. Printing does not post stock. |
-| UC-122 | Verify Historical Customer Delivery Source | FE-09 | ACTIVE | Verify authentic historical delivered document/line/quantity/evidence for customer-return source cap. Unknown source waits. Do not fabricate POD/provider revision/return deadline. |
+| UC-122 | Verify Historical Customer Delivery Source | FE-09 | ACTIVE | Accountant verifies uploaded historical delivery evidence, customer, warehouse, product/batch, historical conversion and delivered/prior-return quantities for the customer-return source cap. Verification records actor/time and serializes claims. Unknown source waits; no fictitious POD, provider revision or return deadline. |
 | UC-123 | Record External Document Reference | FE-09 | ACTIVE | Record verified external kind/number/date/line/source/matched quantity/evidence and NOT_RECORDED/PENDING_EXTERNAL/RECORDED_EXTERNAL status. Financial follow-up is independent of warehouse closure and does not execute payment/refund or replace UC-130. |
 | UC-124 | View WIR List | FE-06 | ACTIVE | List saved WIR within existing role/warehouse/related-demand scope with filters/status. No mutations. |
 | UC-125 | View WIR Details | FE-06 | ACTIVE | Require selected scoped WIR and display SO-line/OD/net commitment/reopening history with scoped evidence. No mutations. |
@@ -2888,15 +2888,15 @@ UC-122: Verify Historical Customer Delivery Source
 Status: ACTIVE. Feature: FE-09.
 Primary actors and operations: Accountant — Perform.
 Screen(s): SC-28.
-Description: Verify authentic historical delivered document/line/quantity/evidence for customer-return source cap. Unknown source waits. Do not fabricate POD/provider revision/return deadline.
+Description: Accountant verifies uploaded historical delivery evidence, customer, warehouse, product/batch, historical conversion and delivered/prior-return quantities for the customer-return source cap. Verification records actor/time and serializes claims. Unknown source waits; no fictitious POD, provider revision or return deadline.
 Trigger: Authorized actor starts verify historical customer delivery source on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Verify authentic historical delivered document/line/quantity/evidence for customer-return source cap. Unknown source waits. Do not fabricate POD/provider revision/return deadline.
+2. Accountant verifies uploaded historical delivery evidence, customer, warehouse, product/batch, historical conversion and delivered/prior-return quantities for the customer-return source cap. Verification records actor/time and serializes claims. Unknown source waits; no fictitious POD, provider revision or return deadline.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Verify authentic historical delivered document/line/quantity/evidence for customer-return source cap. Unknown source waits. Do not fabricate POD/provider revision/return deadline. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Accountant verifies uploaded historical delivery evidence, customer, warehouse, product/batch, historical conversion and delivered/prior-return quantities for the customer-return source cap. Verification records actor/time and serializes claims. Unknown source waits; no fictitious POD, provider revision or return deadline. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-123: Record External Document Reference
 Status: ACTIVE. Feature: FE-09.

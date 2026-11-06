@@ -85,3 +85,7 @@ Tìm collection, ref, model name và các trường liên quan bằng `rg` trong
 [Gộp tiếp 5 bảng](docs/03_thiet_ke/DB_Rebuild_Review/37_Gop_them_5_bang.md): hiện còn 58 collection.
 
 Đã bỏ ba builder không còn importer: reviewed-events.js, reviewed-support.js, reviewed-workflows.js. [Category v8 và kiểm thư mục](docs/03_thiet_ke/DB_Rebuild_Review/40_Category_va_don_model.md).
+
+## Native return workflows — 7 November 2026
+
+See [current return API and compatibility rules](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). SupplierReturn item details now distinguish an honest PROPOSED request from VERIFIED agreement facts, bind sourceBalanceId and optionally an evidenced defectHoldId. Embedded dispositions preserve targetQuality; defect headers preserve sourceKind. ExternalReference and its embedded items carry verified historical customer/warehouse/evidence, lot/conversion and prior returns without synthetic POD. CustodyRelease also holds supplier acknowledgements when supplier-owned goods are returned. Holds, plans, inspections, movements and claims retain their existing parents and IDs. There are still 59 collections and 96 nested schema files. Missing historical warehouse/source facts are not invented; no database migration or rollout was executed.

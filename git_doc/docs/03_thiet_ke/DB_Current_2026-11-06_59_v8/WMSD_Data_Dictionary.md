@@ -1,6 +1,6 @@
-# Từ điển dữ liệu hiện hành — 06/11/2026
+# Từ điển dữ liệu hiện hành — 07/11/2026
 
-59 collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. API legacy còn cần chuyển riêng.
+59 collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. Native return workflow additions and compatibility are documented in [RETURN_WORKFLOWS_NATIVE](../../08_api/RETURN_WORKFLOWS_NATIVE.md). The directory name retains its baseline date.
 
 ## categories
 
@@ -1194,6 +1194,11 @@ Model: [external-reference.model.js](../../../../src/models/external-reference.m
 | `correlationId` | String | true |  |
 | `verifiedBy` | ObjectId | false | User |
 | `verifiedAt` | Date | false |  |
+| `customerId` | ObjectId | false | Customer |
+| `warehouseId` | ObjectId | false | Warehouse |
+| `evidenceIds` | Array | false |  |
+| `status` | String | true |  |
+| `note` | String | false |  |
 | `_id` | ObjectId | false |  |
 | `createdAt` | Date | false |  |
 | `updatedAt` | Date | false |  |
@@ -1201,6 +1206,11 @@ Model: [external-reference.model.js](../../../../src/models/external-reference.m
 | `items[].lineKey` | String | true |  |
 | `items[].productId` | ObjectId | true | Product |
 | `items[].eligibleQty` | Decimal128 | true |  |
+| `items[].lotId` | ObjectId | false | ProductBatch |
+| `items[].enteredUnit` | String | false |  |
+| `items[].baseUnitSnapshot` | String | false |  |
+| `items[].baseUnitsPerUnit` | Decimal128 | false |  |
+| `items[].previouslyReturnedQty` | Decimal128 | true |  |
 | `items[]._id` | ObjectId | false |  |
 | `items[].createdAt` | Date | false |  |
 | `items[].updatedAt` | Date | false |  |
@@ -3670,6 +3680,7 @@ Model: [defect-report.model.js](../../../../src/models/defect-report.model.js).
 | `header.sourceRef.documentId` | ObjectId | true |  |
 | `header.sourceRef.itemId` | ObjectId | false |  |
 | `header.sourceRef.revision` | Number | false |  |
+| `header.sourceKind` | String | false |  |
 | `updatedBy` | ObjectId | false | User |
 | `evidenceIds` | Array | false |  |
 | `cancelledBy` | ObjectId | false | User |
@@ -5971,6 +5982,99 @@ Model: [custody-release.model.js](../../../../src/models/custody-release.model.j
 | `items[].{DocumentLine_SUPPLIER_ACK}.details` | Embedded | true |  |
 | `items[].{DocumentLine_DISCREPANCY}.details` | Embedded | true |  |
 | `items[].{DocumentLine_ADJUSTMENT}.details` | Embedded | true |  |
+| `acknowledgements` | Array | false |  |
+| `acknowledgements[].documentNo` | String | true |  |
+| `acknowledgements[].documentKind` | String | true |  |
+| `acknowledgements[].workflowStatus` | String | true |  |
+| `acknowledgements[].version` | Number | true |  |
+| `acknowledgements[].createdBy` | ObjectId | true | User |
+| `acknowledgements[].occurredAt` | Date | false |  |
+| `acknowledgements[].note` | String | false |  |
+| `acknowledgements[].externalReferenceIds` | Array | false |  |
+| `acknowledgements[].sources` | Array | false |  |
+| `acknowledgements[].sources[].documentId` | ObjectId | true |  |
+| `acknowledgements[].sources[].subjectCollection` | String | true |  |
+| `acknowledgements[].sources[].relationCode` | String | true |  |
+| `acknowledgements[].sources[].handoverId` | ObjectId | false |  |
+| `acknowledgements[].sources[].createdAt` | Date | false |  |
+| `acknowledgements[].sources[].updatedAt` | Date | false |  |
+| `acknowledgements[].sources[].itemId` | ObjectId | false |  |
+| `acknowledgements[].sources[].linkedQty` | Decimal128 | false |  |
+| `acknowledgements[].sources[]._id` | ObjectId | false |  |
+| `acknowledgements[].header` | Embedded | true |  |
+| `acknowledgements[].header.supplierReturnId` | ObjectId | false | SupplierReturn |
+| `acknowledgements[].header.supplierId` | ObjectId | false | Supplier |
+| `acknowledgements[].header.acknowledgedAt` | Date | false |  |
+| `acknowledgements[].header.supplierContact` | String | false |  |
+| `acknowledgements[].header.recordedBy` | ObjectId | false | User |
+| `acknowledgements[].header.recordedAt` | Date | false |  |
+| `acknowledgements[].updatedBy` | ObjectId | false | User |
+| `acknowledgements[].evidenceIds` | Array | false |  |
+| `acknowledgements[].cancelledBy` | ObjectId | false | User |
+| `acknowledgements[].cancelledAt` | Date | false |  |
+| `acknowledgements[].cancelReason` | String | false |  |
+| `acknowledgements[]._id` | ObjectId | false |  |
+| `acknowledgements[].createdAt` | Date | false |  |
+| `acknowledgements[].updatedAt` | Date | false |  |
+| `acknowledgements[].items` | Array | false |  |
+| `acknowledgements[].items[].lineNo` | Number | true |  |
+| `acknowledgements[].items[].lineKind` | String | true |  |
+| `acknowledgements[].items[].productId` | ObjectId | true | Product |
+| `acknowledgements[].items[].lotId` | ObjectId | false | ProductBatch |
+| `acknowledgements[].items[].enteredUnit` | String | true |  |
+| `acknowledgements[].items[].baseUnitSnapshot` | String | true |  |
+| `acknowledgements[].items[].baseUnitsPerUnit` | Decimal128 | true |  |
+| `acknowledgements[].items[].packagingSnapshot` | Embedded | false |  |
+| `acknowledgements[].items[].packagingSnapshot.packageUnit` | String | true |  |
+| `acknowledgements[].items[].packagingSnapshot.baseUnitsPerPackage` | Decimal128 | true |  |
+| `acknowledgements[].items[].packagingSnapshot.outerLengthMm` | Decimal128 | false |  |
+| `acknowledgements[].items[].packagingSnapshot.outerWidthMm` | Decimal128 | false |  |
+| `acknowledgements[].items[].packagingSnapshot.outerHeightMm` | Decimal128 | false |  |
+| `acknowledgements[].items[].enteredQty` | Decimal128 | true |  |
+| `acknowledgements[].items[].qtyBase` | Decimal128 | true |  |
+| `acknowledgements[].items[].productNameSnapshot` | String | true |  |
+| `acknowledgements[].items[].sources` | Array | false |  |
+| `acknowledgements[].items[].sources[].documentId` | ObjectId | true |  |
+| `acknowledgements[].items[].sources[].subjectCollection` | String | true |  |
+| `acknowledgements[].items[].sources[].relationCode` | String | true |  |
+| `acknowledgements[].items[].sources[].handoverId` | ObjectId | false |  |
+| `acknowledgements[].items[].sources[].createdAt` | Date | false |  |
+| `acknowledgements[].items[].sources[].updatedAt` | Date | false |  |
+| `acknowledgements[].items[].sources[].itemId` | ObjectId | false |  |
+| `acknowledgements[].items[].sources[].linkedQty` | Decimal128 | false |  |
+| `acknowledgements[].items[].sources[]._id` | ObjectId | false |  |
+| `acknowledgements[].items[].createdAt` | Date | false |  |
+| `acknowledgements[].items[].updatedAt` | Date | false |  |
+| `acknowledgements[].items[]._id` | ObjectId | false |  |
+| `acknowledgements[].items[].note` | String | false |  |
+| `acknowledgements[].items[].evidenceIds` | Array | false |  |
+| `acknowledgements[].items[].{DocumentLine_REPLENISHMENT}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_SALES_ORDER}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_OUTBOUND_DELIVERY}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_SALES_GOODS_ISSUE}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_DELIVERY_CONFIRMATION}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_FAILED_DELIVERY}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_FAILED_DELIVERY_RECEIPT}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_ST_RESOLUTION}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_INSPECTION}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_TRANSFER_RECEIPT}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_TRANSFER_OUTBOUND}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_ISSUE_REQUEST}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_WAREHOUSE_TASK}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_DISPOSITION}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_CUSTOMER_RETURN}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_SUPPLIER_RETURN}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_SUPPLIER_ACK}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_DISCREPANCY}.details` | Embedded | true |  |
+| `acknowledgements[].items[].{DocumentLine_ADJUSTMENT}.details` | Embedded | true |  |
+| `acknowledgements[].reconciliations` | Array | false |  |
+| `acknowledgements[].reconciliations[].itemId` | ObjectId | true |  |
+| `acknowledgements[].reconciliations[].performedBy` | ObjectId | true | User |
+| `acknowledgements[].reconciliations[].performedAt` | Date | true |  |
+| `acknowledgements[].reconciliations[].quantityBase` | Decimal128 | true |  |
+| `acknowledgements[].reconciliations[].transactionId` | ObjectId | false | StockTransaction |
+| `acknowledgements[].reconciliations[].evidenceIds` | Array | false |  |
+| `acknowledgements[].reconciliations[].note` | String | false |  |
 
 Indexes:
 
@@ -6009,6 +6113,15 @@ Indexes:
       "createdAt": -1
     },
     {}
+  ],
+  [
+    {
+      "acknowledgements._id": 1
+    },
+    {
+      "unique": true,
+      "sparse": true
+    }
   ]
 ]
 ```

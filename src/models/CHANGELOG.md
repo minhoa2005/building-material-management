@@ -1,3 +1,7 @@
+## 2026-11-07 — Native return workflow contracts
+
+Supplier-return details add PROPOSED/VERIFIED phase, sourceBalanceId and optional defectHoldId; actual agreement facts remain required for VERIFIED records. Defect report headers retain sourceKind; disposition details retain targetQuality. ExternalReference adds optional customer/warehouse/evidence/status/note; embedded items add historical lot/conversion/prior returns. CustodyRelease embeds the existing supplier acknowledgement schema for actual supplier-owned handbacks. All additions preserve the 59 collections and 96 schema files. No bulk data rewrite or Atlas index creation. Current dictionary/schema and SQL-style diagram regenerated from the registry; runtime and compatibility rules are in ../../git_doc/docs/08_api/RETURN_WORKFLOWS_NATIVE.md. Verification is recorded in the PR evidence.
+
 ## 2026-11-06 — Flat native runtime
 
 Removed the three model directories with user approval. Registered 59 collections and 96 nested schemas from the root model directory; runtime services use this single registry. Renamed the former reviewed registry entry file and reference configurator to neutral runtime names. Added native transaction integration coverage. Seed v9 has 642 records. See ../../git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md for verification limits.

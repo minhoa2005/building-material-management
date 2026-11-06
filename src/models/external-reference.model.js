@@ -1,4 +1,4 @@
-import { Schema, options, text, ref, date } from "./model-utils.js";
+import { Schema, options, text, ref, refs, date, code } from "./model-utils.js";
 import { embedRecordArray } from "./schema-helpers.js";
 
 import { createExternalReferenceLineSchema } from "./external-reference-line.schema.js";
@@ -15,6 +15,11 @@ export function createExternalReferenceSchema() {
       correlationId: text(100, { unique: true }),
       verifiedBy: ref("User", false),
       verifiedAt: date(false),
+      customerId: ref("Customer", false),
+      warehouseId: ref("Warehouse", false),
+      evidenceIds: refs("Attachment"),
+      status: code(["RECORDED", "VERIFIED", "DISPUTED"], { default: "RECORDED" }),
+      note: text(2000, { required: false }),
     },
     options("external_references"),
   );

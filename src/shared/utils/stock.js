@@ -49,12 +49,23 @@ export async function freeQuantity(balance, session, excludeTaskId) {
   const reservations = await StockReservation.find({ balanceId: balance._id }).session(session);
   const reserved = reservations.reduce((sum,row) => sum.plus(remainingReservation(row)), exact('0'));
   const pending = await pendingTaskQuantity(balance._id, session, excludeTaskId);
-  return exact(balance.quantityBase).minus(reserved).minus(pending);
+  return exact(balance.quantityBase).minus(reserved).minus(pending).minus(await heldQuantity(balance._id, session));
+}
+export function heldOnBalance(reports, balanceId, excludeHoldId) {
+  return reports.reduce((sum, report) => sum.plus(report.holds.filter(hold => hold.status === 'ACTIVE' && !same(hold._id, excludeHoldId)).reduce((n, hold) => {
+    const allocation = hold.allocations.filter(row => same(row.balanceId, balanceId)).reduce((v, row) => v.plus(String(row.quantityBase)), exact('0'));
+    const resolved = hold.allocations.length === 1 ? hold.events.filter(event => ['RELEASED','CONSUMED','RECEIVED'].includes(event.kind)).reduce((v,event) => v.plus(String(event.quantityBase)), exact('0')) : exact('0');
+    return n.plus(allocation.gt(resolved) ? allocation.minus(resolved) : '0');
+  }, exact('0'))), exact('0'));
+}
+export async function heldQuantity(balanceId, session, excludeHoldId) {
+  const reports = await DefectReport.find({ holds: { $elemMatch: { status: 'ACTIVE', 'allocations.balanceId': balanceId } } }).session(session);
+  return heldOnBalance(reports, balanceId, excludeHoldId);
 }
 export function beginStock(document, user, operation, input) {
   const requestHash = hash({ document: String(document._id), operation, input });
   return new StockTransaction({ sourceType: document.constructor.collection.name, sourceId: document._id,
-    operation, eventKey: String(document.version), requestKey: hash({ user: String(user._id), operation, key: input.operationKey ?? input.idempotencyKey }),
+    operation, eventKey: String(document.version), requestKey: hash({ user: String(user._id), document: String(document._id), operation, key: input.operationKey ?? input.idempotencyKey }),
     requestHash, performedBy: user._id, occurredAt: new Date(), recordedAt: new Date(), movements: [] });
 }
 
@@ -91,7 +102,6 @@ export async function moveStock(sourceId, destinationId, quantity, itemId, stock
   const source = await InventoryBalance.findById(sourceId).session(session);
   const destination = await InventoryBalance.findById(destinationId).session(session);
   if (!source || !destination || !same(source.batchId, destination.batchId) || source.ownerType !== destination.ownerType || String(source.ownerId) !== String(destination.ownerId)) throw validationError('Không đổi lô hoặc chủ hàng khi chuyển tồn');
-  if (await DefectReport.exists({ holds: { $elemMatch: { status: 'ACTIVE', 'allocations.balanceId': sourceId } } }).session(session)) throw validationError('Tồn đang bị chặn do hàng lỗi');
   const amount = exact(quantity), from = exact(source.quantityBase), to = exact(destination.quantityBase);
   const batch = await ProductBatch.findById(source.batchId).session(session);
   const product = batch && await Product.findById(batch.productId).session(session);
@@ -100,6 +110,7 @@ export async function moveStock(sourceId, destinationId, quantity, itemId, stock
   const reservations = await StockReservation.find({ balanceId: sourceId }).session(session);
   const reserved = reservations.reduce((sum,row) => sum.plus(remainingReservation(row)), exact('0'));
   const pending = await pendingTaskQuantity(sourceId, session, excludeTaskId);
+  if (amount.plus(pending).plus(preserveReservations ? '0' : reserved).plus(await heldQuantity(sourceId, session)).gt(from)) throw validationError('Lượng chuyển thuộc phần hàng đang bị chặn');
   if (amount.plus(pending).plus(preserveReservations ? '0' : reserved).gt(from)) throw validationError('Tồn đã được giữ hoặc lập lệnh khác');
   const { kept, taken } = splitPortions(source.packagingPortions, amount, user._id);
   source.packagingPortions = kept; destination.packagingPortions.push(...taken);
@@ -151,7 +162,7 @@ export async function receiveStock(balance, item, portions, posting, user, sessi
       packagingSnapshot: { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
         outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm } }];
   }
-  if (!packaging.reduce((sum,row) => sum.plus(row.quantityBase), exact('0')).eq(amount)) throw validationError('Tổng quy cách khác lượng thực nhập');
+  if (!packaging.reduce((sum,row) => sum.plus(String(row.quantityBase)), exact('0')).eq(amount)) throw validationError('Tổng quy cách khác lượng thực nhập');
   const before = exact(balance.quantityBase);
   balance.quantityBase = before.plus(amount).toFixed();
   balance.packagingPortions.push(...packaging.map(row => ({ ...row, _id: newId(), createdBy: user._id })));

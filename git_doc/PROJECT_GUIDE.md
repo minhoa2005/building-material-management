@@ -81,3 +81,7 @@ Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd
 ## 9. Category v8 và kiểm thư mục
 
 Người dùng duyệt 5 nhóm sau tham khảo Gạch Tốt. Mỗi product có một categoryId bắt buộc; Category 1–n Product. Hãng/kích thước/màu giữ riêng. Không đổi nghiệp vụ tồn. Mốc hiện hành là local v8 và Atlas wmsd_database, 59 collection/638 bản ghi. Tại lúc thực hiện local v7 và Atlas đều trống, nên đã tạo lại mẫu; không coi các DB cũ là hiện còn trên máy. Đây là mốc trước yêu cầu đồng bộ runtime. Quyết định mới hơn ngày 06/11 đã cho phép bỏ cả ba thư mục model và các phụ thuộc được rà; xem hợp đồng runtime ở mục 1. [Chi tiết và nguồn duyệt](docs/03_thiet_ke/DB_Rebuild_Review/40_Category_va_don_model.md), [triển khai](docs/09_phat_trien/CATEGORIES_V8.md).
+
+## Historical return-source decision — 7 November 2026
+
+The user confirmed Accountant verification with uploaded evidence for historical customer-delivery sources. This scope is implemented in [the native return contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). It does not settle broader new-SO external-source gates. Trungph return workflows now use the native registry; local automated verification and rollout limits are recorded in that contract and the PR evidence. No Atlas data or connection change.

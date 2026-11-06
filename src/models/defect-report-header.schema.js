@@ -13,6 +13,7 @@ export function createDefectReportHeaderSchema() {
     reportedBy: ref("User", false),
     recordedAt: date(false),
     sourceRef: createSourceReferenceSchema(),
+    sourceKind: text(30, { required: false }),
   });
   return schema;
 }
