@@ -1,5 +1,8 @@
 # C03–C04 · Giao dịch và lịch sử tồn kho
 
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
 **C03 v0.1 và C04 v0.1 đã duyệt riêng.** Người dùng trả lời “Duyệt C03 v0.1” và “Duyệt C04 v0.1”. [Phiếu v0.1 đã trình](history/10_Duyet_giao_dich_va_lich_su_ton_v0.1_de_xuat.md). Đối chiếu các mục posting_batches và stock_movements trong [snapshot MongoDB](03_Cau_truc_DB_hien_tai.md), BR-06 và BR-24/25 trong [Report 3](../../01_bao_cao/WMSD_Report3_Fix.docx.txt), cùng [điểm tồn C01 và số dư C02](09_Duyet_diem_ton_va_so_du.md). Kết quả duyệt thuộc thiết kế, chưa áp vào DB hoặc code.
 
 ## C03 · stock_transactions · Lần ghi nhận biến động tồn

@@ -13,8 +13,8 @@ const clone=()=>mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.string
 
 test('complete reviewed demo validates all schemas, links, balances and approved scenarios',async()=>{
   const result=await validateReviewedDemo(data,models);
-  assert.equal(result.collections,74);
-  assert.equal(result.records,851);
+  assert.equal(result.collections,59);
+  assert.equal(result.records,638);
   assert.equal(data.roles.filter(row=>!row.isSystemRole).length,1);
   assert.equal(data.sales_invoices[0].items.length,2);
   assert.notEqual(+data.sales_invoices[0].items[0].issuedAt,+data.sales_invoices[0].items[1].issuedAt);
@@ -22,19 +22,22 @@ test('complete reviewed demo validates all schemas, links, balances and approved
   for(const old of ['uoms','product_uom_versions','business_documents','document_lines','line_links']) assert.ok(!Object.hasOwn(data,old));
 });
 test('MongoDB read order does not affect stock reconciliation',async()=>{
-  const sample=clone();sample.stock_movements.reverse();sample.inventory_balances.reverse();
+  const sample=clone();sample.stock_transactions.forEach(row=>row.movements.reverse());sample.inventory_balances.reverse();
   await validateReviewedDemo(sample,models);
 });
 test('tile shop has three warehouses, surveyed staff counts and separate batches',()=>{
   assert.equal(data.warehouses.length,3);
-  assert.equal(data.products.length,20);
-  assert.equal(data.product_batches.length,43);
+  assert.equal(data.products.length,18);
+  assert.equal(data.product_batches.length,39);
+  assert.ok(data.products.every(row=>row.name.startsWith('Gạch')));
   assert.equal(data.customers.length,20);
-  assert.equal(data.suppliers.length,4);
+  assert.equal(data.suppliers.length,3);
+  assert.ok(!Object.hasOwn(data,'delivery_teams'));
+  assert.ok(data.transfer_dispatches.flatMap(row=>row.handovers??[]).every(row=>row.header.vehiclePlate));
   const people=code=>data.users.filter(u=>String(u.roleId)===String(data.roles.find(r=>r.code===code)._id)).length;
   assert.equal(people('WAREHOUSE'),3);assert.equal(people('SALES'),7);assert.equal(people('ACCOUNTANT'),3);
-  assert.ok(data.storage_stack_items.some(r=>r.packagingState==='SEALED'));
-  assert.ok(data.storage_stack_items.some(r=>r.packagingState==='LOOSE'));
+  assert.ok(data.inventory_balances.flatMap(b=>b.packagingPortions).some(r=>r.packagingState==='SEALED'));
+  assert.ok(data.inventory_balances.flatMap(b=>b.packagingPortions).some(r=>r.packagingState==='LOOSE'));
   for(const product of data.products)assert.ok(data.product_batches.filter(b=>String(b.productId)===String(product._id)).length>=2);
 });
 test('cartons keep their batch and exact conversion and cannot contain another product',async()=>{
@@ -58,15 +61,15 @@ test('BSON field order does not change the demo fingerprint but values do',()=>{
 });
 test('rejects an inconsistent ending stock balance',async()=>{
   const sample=clone();sample.inventory_balances[0].quantityBase=decimalValue('999');
-  await assert.rejects(validateReviewedDemo(sample,models),/ledger/);
+  await assert.rejects(validateReviewedDemo(sample,models),/ledger|Packaging quantity/);
 });
 test('rejects a source link whose item belongs to a different document',async()=>{
   const sample=clone();sample.transfer_dispatches[0].items[0].sources[0].itemId=sample.sales_orders[0].items[0]._id;
   await assert.rejects(validateReviewedDemo(sample,models),/item parent/);
 });
-test('rejects a stack that exceeds usable bin dimensions',async()=>{
-  const sample=clone();sample.storage_stacks[0].occupiedHeightMm=999999;
-  await assert.rejects(validateReviewedDemo(sample,models),/dimensions exceed/);
+test('rejects occupied volume above the bin capacity using shared warehouse height',async()=>{
+  const sample=clone();sample.warehouses.forEach(w=>w.clearHeightMm=1);
+  await assert.rejects(validateReviewedDemo(sample,models),/capacity exceeded|dimensions do not fit/);
 });
 test('rejects active reservation above remaining physical stock',async()=>{
   const sample=clone();sample.stock_reservations[0].consumedQty=decimalValue('0');

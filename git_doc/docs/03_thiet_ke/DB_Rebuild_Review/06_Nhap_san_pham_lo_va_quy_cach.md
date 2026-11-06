@@ -1,5 +1,7 @@
 # B04–B06 · Sản phẩm, lô và quy cách tại lần nhập
 
+**Quyết định mới 06/11/2026:** [Sản phẩm và lô v6](39_San_pham_va_lo_dang_chot.md) thay các trường nominalSize/tone/calibre bên dưới: sản phẩm có dài/rộng/cao và màu, khác màu khác ID; lô có số viên/thùng cố định và kích thước ngoài thực tế. Các phần duyệt cũ giữ để truy vết, không phải cấu trúc hiện hành của B04/B05.
+
 **Cập nhật 01/11/2026.** B04 v0.3 đã duyệt, sửa tham chiếu đơn vị thành tên đơn vị trực tiếp theo quyết định mới. B05 v0.3 giữ nguyên. B06 đã bỏ; v0.2 chỉ còn là lịch sử. [Quyết định bỏ UOM và lưu quy đổi trên dòng](14_Bo_UOM_va_luu_quy_doi_tren_dong.md). [Bản v0.2 đã trình](history/06_Nhap_san_pham_lo_va_quy_cach_v0.2_de_xuat.md) và [bản v0.3 đã trình](history/06_Nhap_san_pham_lo_va_quy_cach_v0.3_de_xuat.md) lưu nội dung trước khi duyệt. Quyền mặc định đối chiếu UC-13 và UC-16 trong [Report 3](../../01_bao_cao/WMSD_Report3_Fix.docx.txt). Quy tắc phân biệt hàng theo sản phẩm, lô, tông màu và cỡ thực tế lấy từ BR-01 trong [tài liệu nghiệp vụ](../../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md). Xem [phiếu kho, ô và đơn vị](05_Duyet_kho_vi_tri_don_vi_tinh.md) và [hiện trạng MongoDB](03_Cau_truc_DB_hien_tai.md).
 
 ## B04 · products · Sản phẩm

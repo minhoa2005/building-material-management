@@ -23,10 +23,12 @@ export const SHOP_PRODUCTS = [
   ['MK','MK2201','Gạch bông trang trí 20×20','Ceramic',200,200,25,220,220,240,8000,12500],
   ['AP','AP6604','Gạch lát nền đen vân trắng 60×60','Porcelain',600,600,4,620,620,50,45000,65000],
   ['AP','AP61202','Gạch ốp vân đá xám 60×120','Porcelain',600,1200,2,1220,620,35,110000,150000],
-  ['SV','SV-LB01','Chậu lavabo treo tường trắng','Sứ vệ sinh',500,400,1,550,450,250,550000,790000],
-  ['SV','SV-BC01','Bồn cầu hai khối trắng','Sứ vệ sinh',700,380,1,760,430,780,1800000,2450000],
-].map(([manufacturerCode,sku,name,material,length,width,perBox,outerLengthMm,outerWidthMm,outerHeightMm,buy,sell])=>({
-  manufacturerCode,sku,name,material,nominalSize:`${length}x${width}`,baseUnit:material==='Sứ vệ sinh'?'Chiếc':'Viên',
+].map(([manufacturerCode,sku,name,material,length,width,perBox,outerLengthMm,outerWidthMm,outerHeightMm,buy,sell],index)=>({
+  manufacturerCode,sku,name,material,nominalSize:`${length}x${width}`,baseUnit:'Viên',
+  lengthMm:length,widthMm:width,heightMm:9.5,
+  color:['Trắng vân đá','Trắng mờ','Xám xi măng','Kem bóng','Trắng vân mây','Xám nhạt','Trắng vân đá',
+    'Trắng vân đá','Trắng hoa văn xanh','Đỏ đất','Xám giả đá','Xám sáng','Ghi đậm','Nâu sáng','Nâu đậm',
+    'Trắng hoa văn đen','Đen vân trắng','Xám vân đá'][index],
   perBox,buy,sell,packaging:{packageUnit:'Thùng',baseUnitsPerPackage:String(perBox),outerLengthMm,outerWidthMm,outerHeightMm},
 }));
 const same=(a,b)=>String(a)===String(b);
@@ -40,9 +42,9 @@ export function buildTileShopScenario(data) {
   const owner=roleUser('OWNER');
   const staff=data.users.filter(u=>same(u.roleId,data.roles.find(r=>r.code==='WAREHOUSE')._id));
   data.warehouses.forEach((w,i)=>{
-    rename(w,'name',['Kho gạch trung tâm','Kho gạch số 2','Kho thiết bị vệ sinh'][i]);
-    Object.assign(w,{code:['K-GACH-01','K-GACH-02','K-TBVS-01'][i],
-      address:['Khu kho cạnh cửa hàng','Khu kho vệ tinh','Khu kho thiết bị cạnh cửa hàng'][i],
+    rename(w,'name',['Kho gạch trung tâm','Kho gạch số 2','Kho gạch dự phòng'][i]);
+    Object.assign(w,{code:['K-GACH-01','K-GACH-02','K-GACH-03'][i],
+      address:['Khu kho cạnh cửa hàng','Khu kho vệ tinh','Khu kho dự phòng cạnh cửa hàng'][i],
       lengthMm:[60000,40000,30000][i],widthMm:[50000,25000,30000][i],clearHeightMm:6000,
       description:'Bố trí mô phỏng theo ba kho khảo sát. Các chiều đo chi tiết là dữ liệu kiểm thử.'});
   });
@@ -71,22 +73,21 @@ export function buildTileShopScenario(data) {
     'Đặng Văn Lâm','Bùi Thị Thảo','Hoàng Minh Tâm','Đỗ Văn Quân','Nguyễn Thu Uyên','Trần Gia Bảo'];
   customerNames.forEach((name,i)=>data.customers.push({_id:id('customer:'+i),code:`KH-${String(i+2).padStart(4,'0')}`,name,
     phone:`000001${String(i+2).padStart(4,'0')}`,...stamp}));
-  const supplierNames=['Công ty gạch An Phú','Công ty gạch Thành Việt','Nhà phân phối Minh Khôi','Thiết bị vệ sinh Sơn Việt'];
+  const supplierNames=['Công ty gạch An Phú','Công ty gạch Thành Việt','Nhà phân phối Minh Khôi'];
   supplierNames.forEach((name,i)=>{
     const row=i===0?data.suppliers[0]:{_id:id('supplier:'+i),...stamp};
     rename(row,'name',name);Object.assign(row,{code:`NCC-00${i+1}`,contactName:['Trần Anh Tuấn','Nguyễn Mỹ Linh','Phạm Quang Vinh','Lê Ngọc Hân'][i],
       phone:`000002000${i+1}`,email:`ncc${i+1}@tile-shop.example`,address:`Khu phân phối ${i+1} — địa chỉ mô phỏng`,status:'ACTIVE'});
     if(i)data.suppliers.push(row);
   });
-  rename(data.delivery_teams[0],'name','Đội xe cửa hàng số 1');data.delivery_teams[0].code='XE-01';
-  data.delivery_teams.push({_id:id('team:2'),code:'XE-02',name:'Đội xe cửa hàng số 2',isActive:true,...stamp});
-
   const specs=new Map();
   SHOP_PRODUCTS.forEach((spec,i)=>{
     const row=i<2?data.products[i]:{_id:id('product:'+spec.sku),...stamp};
     rename(row,'name',spec.name);
-    Object.assign(row,{sku:spec.sku,manufacturerCode:spec.manufacturerCode,material:spec.material,nominalSize:spec.nominalSize,
+    Object.assign(row,{sku:spec.sku,manufacturerCode:spec.manufacturerCode,material:spec.material,
+      lengthMm:decimalValue(spec.lengthMm),widthMm:decimalValue(spec.widthMm),heightMm:decimalValue(spec.heightMm),color:spec.color,
       baseUnit:spec.baseUnit,wholeBaseUnits:true,isActive:true});
+    delete row.nominalSize;
     if(i>=2)data.products.push(row);
     specs.set(String(row._id),spec);
   });
@@ -105,18 +106,18 @@ export function buildTileShopScenario(data) {
   for(let i=0;i<data.products.length;i++) {
     const product=data.products[i],spec=specs.get(String(product._id));
     for(let lotNo=1;lotNo<=2;lotNo++) {
-      const w=i>=18?2:(i+lotNo)%2,warehouse=data.warehouses[w],worker=staff[w];
+      const w=(i+lotNo)%2,warehouse=data.warehouses[w],worker=staff[w];
       const batch={_id:id(`lot:${i}:${lotNo}`),productId:product._id,manufacturerLot:`${spec.sku}-2609${lotNo===1?'15':'28'}-${lotNo===1?'A':'B'}`,
         tone:lotNo===1?'A01':'A02',calibre:spec.nominalSize,identificationStatus:'VERIFIED',manufacturedOn:demoDate(0),...stamp};
       delete batch.version;data.product_batches.push(batch);
-      const loc={_id:id(`bin:${i}:${lotNo}`),warehouseId:warehouse._id,code:`${i>=18?'TB':'G'}-${String(i+1).padStart(2,'0')}-${lotNo}`,
-        name:`Ô ${spec.sku} · ${batch.tone}`,areaCode:i>=18?'TBVS':spec.nominalSize.startsWith('300x600')?'OP-TUONG':'LAT-NEN',
+      const loc={_id:id(`bin:${i}:${lotNo}`),warehouseId:warehouse._id,code:`G-${String(i+1).padStart(2,'0')}-${lotNo}`,
+        name:`Ô ${spec.sku} · ${batch.tone}`,areaCode:spec.nominalSize.startsWith('300x600')?'OP-TUONG':'LAT-NEN',
         locationType:'STORAGE',isPickable:true,isActive:true,usableLengthMm:2500,usableWidthMm:2500,usableHeightMm:2400,operationVersion:0,...stamp};
       data.warehouse_locations.push(loc);
       const point={_id:id('point:'+loc.code+':'+w),type:'LOCATION',locationId:loc._id,...stamp};
       // Stock holding points have no business version field.
       delete point.version;data.stock_holding_points.push(point);
-      const boxes=i>=18?4+lotNo:24+(i%5)*8+lotNo*4,qty=decimalValue(boxes*spec.perBox);
+      const boxes=24+(i%5)*8+lotNo*4,qty=decimalValue(boxes*spec.perBox);
       const balance={_id:id(`balance:${i}:${lotNo}`),holdingPointId:point._id,batchId:batch._id,qualityStatus:'GOOD',
         ownerType:'STORE',ownerId:null,quantityBase:qty,...stamp};
       data.inventory_balances.push(balance);
@@ -191,6 +192,11 @@ export function buildTileShopScenario(data) {
     for(const handover of doc.handovers??[])handover.header.recipientName='Nguyễn Văn Tài';
   }
   // Rebuild the physical packing representation from the exact final balances.
+  for (const batch of data.product_batches) {
+    const spec=specs.get(String(batch.productId));
+    Object.assign(batch,{piecesPerCarton:spec.perBox,cartonLengthMm:decimalValue(spec.packaging.outerLengthMm),
+      cartonWidthMm:decimalValue(spec.packaging.outerWidthMm),cartonHeightMm:decimalValue(spec.packaging.outerHeightMm)});
+  }
   data.storage_stacks=[];data.storage_stack_items=[];
   for(const balance of data.inventory_balances) {
     if(exact(balance.quantityBase).isZero())continue;

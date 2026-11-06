@@ -1,5 +1,8 @@
 # F02, H25 và H22 · Đếm, xử lý chênh lệch và chốt kiểm kê
 
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
 **Bản v0.1 · 01/11/2026 · F02, H25 và H22 đã duyệt riêng.** Người dùng trả lời “Duyệt F02 v0.1”, “Duyệt H25 v0.1” và “Duyệt H22 v0.1”. Giữ nguyên cấu trúc và quy tắc đã trình bên dưới; [bản trước duyệt](history/29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh_v0.1_de_xuat.md) được lưu để đối chiếu. H21, F01 và F03 đã duyệt cách bắt đầu, ghi mốc tồn và khóa ô. Đây là kết quả duyệt thiết kế, chưa áp dụng vào DB hoặc code.
 
 Căn cứ: [BF-05 và UC-87/88/91/92/93 trong bản BE](../../../../context.md), [H21/F01/F03 đã duyệt](28_Duyet_dot_kiem_ke_moc_ton_va_khoa_vi_tri.md), [C03/C04 về giao dịch và lịch sử tồn](10_Duyet_giao_dich_va_lich_su_ton.md). Các role dưới đây là quyền mặc định; role do Admin tạo vẫn theo quyền được cấp và phạm vi kho như A02/A03 đã chốt.

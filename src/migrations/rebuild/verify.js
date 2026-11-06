@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
 import mongoose from 'mongoose';
 import { isDeepStrictEqual } from 'node:util';
-import { newCollections } from '../../models/rebuild/collections.js';
 
 const { EJSON } = mongoose.mongo.BSON;
 export function fingerprint(snapshot) {
@@ -67,10 +66,14 @@ export function verifyGraph(source, target) {
 
 export async function validateTarget(target, models) {
   const errors = [];
-  for (const name of newCollections) {
+  for (const name of models.keys()) {
     const Model = models.get(name);
     for (const row of target[name]) {
-      try { await new Model(row).validate(); }
+      try {
+        const document = new Model(row);
+        await document.validate();
+        if (mongoose.mongo.BSON.calculateObjectSize(document.toObject()) > 16 * 1024 * 1024) throw new Error('Document exceeds MongoDB size limit');
+      }
       catch (error) {
         errors.push({ collection: name, id: String(row._id), fields: error.errors ? Object.keys(error.errors) : [error.path ?? 'schema'], kind: error.name });
       }

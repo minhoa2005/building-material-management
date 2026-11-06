@@ -1,5 +1,8 @@
 # E06, H26 và H32 · Chặn sử dụng, đổi chất lượng và theo dõi chênh lệch
 
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
 **E06, H26 và H32 đã duyệt riêng v0.1 · 01/11/2026.** [Bản trình đã duyệt](history/27_Duyet_chan_hang_doi_chat_luong_va_chenh_lech_v0.1_de_xuat.md). Các thiết kế này dùng lại hồ sơ hàng lỗi H18, phương án H19, số dư C02 và lịch sử C03/C04 đã duyệt. Quyền nêu trong phiếu là quyền mặc định. [H18–H20](21_Duyet_hang_loi_phuong_an_va_phieu_huy.md) · [C02](09_Duyet_diem_ton_va_so_du.md) · [C03/C04](10_Duyet_giao_dich_va_lich_su_ton.md).
 
 ## E06 · stock_holds · Chặn sử dụng phần hàng có vấn đề

@@ -1,5 +1,13 @@
 # Nhật ký duyệt thiết kế DB
 
+**Quyết định mới 06/11/2026:** [Sản phẩm và lô v6](39_San_pham_va_lo_dang_chot.md) thay các trường nominalSize/tone/calibre bên dưới: sản phẩm có dài/rộng/cao và màu, khác màu khác ID; lô có số viên/thùng cố định và kích thước ngoài thực tế. Các phần duyệt cũ giữ để truy vết, không phải cấu trúc hiện hành của B04/B05.
+
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 Ngày bắt đầu: 31/10/2026.
 
 Đã nhận đủ phản hồi A01–A03 và Q-A02-01/02. A01 v0.1, A02 v0.2 và A03 v0.2 được duyệt. Chưa áp dụng các thiết kế này vào schema/code/DB thực.
@@ -22,6 +30,7 @@ Ngày bắt đầu: 31/10/2026.
 | B08A | 0.3 | Duyệt B08A v0.3 | Mã WMSD tự sinh, tên, điện thoại bắt buộc; Sales Staff tạo/sửa. Địa chỉ theo lần giao | — | ĐÃ DUYỆT |
 | B08B | 0.1 | Duyệt B08B theo phiếu v0.1 | Accountant tạo ở PENDING, Store Owner kích hoạt thì mới lập PO mới, giữ lịch sử nếu ngừng | — | ĐÃ DUYỆT |
 | B08C | 0.4 (v0.3 + sửa quyền) | Warehouse Staff cũng được tạo/sửa đội | Store Owner và Warehouse Staff tạo/sửa đội. Store Owner ngừng/kích hoạt lại. Giữ thông tin bàn giao từng chuyến | — | ĐÃ CHỐT THEO LỰA CHỌN |
+| B08C — quyết định mới | 05/11/2026 | Bỏ quản lý đội xe, chỉ ghi biển số xe | Bỏ `delivery_teams`; lưu `vehiclePlate` trên từng lần bàn giao. Không thể suy biển số từ carrier reference cũ | — | THAY THẾ B08C v0.4 |
 | C01 | 0.1 | Duyệt C01 v0.1 | Điểm tại ô hoặc đang chuyển theo dòng xuất liên kho, phần mềm tạo khi cần | — | ĐÃ DUYỆT |
 | C02 | 0.2 | Duyệt C02 v0.2 | Số dư theo điểm, lô, chất lượng và chủ sở hữu, quyền và nguyên tắc ghi tồn | Dữ liệu đóng gói/chồng hàng để kiểm sức chứa trình riêng | ĐÃ DUYỆT |
 | C03 | 0.1 | Duyệt C03 v0.1 | Lần xác nhận làm đổi tồn, chứng từ, người/thời gian, gửi lại và sửa sai có liên kết | Quyền đảo và quy tắc từng chứng từ trình riêng | ĐÃ DUYỆT |

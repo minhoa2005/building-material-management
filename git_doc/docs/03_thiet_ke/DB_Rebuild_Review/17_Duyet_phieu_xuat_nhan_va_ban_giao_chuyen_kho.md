@@ -51,12 +51,12 @@ Mỗi phiếu ghi **một lần nhận thực tế cho một phiếu xuất**. M
 
 | Trường đề xuất trên mỗi lần bàn giao | Ý nghĩa và ràng buộc |
 |---|---|
-| `handoverId`, `deliveryTeamId`, `teamNameAtHandover` | ID lần bàn giao, đội nội bộ được chọn từ B08C và tên đội tại lúc giao. Khi đổi tên đội, phiếu cũ vẫn hiển thị tên lúc giao. |
+| `handoverId`, `vehiclePlate` | ID lần bàn giao và biển số xe thực tế. Không có danh mục đội xe; nhập biển số trực tiếp trên phiếu. |
 | `handedOverBy`, `receivedByName`, `handedOverAt`, `recordedBy` | Nhân viên giao, họ tên người/lái xe thực nhận, thời điểm thực bàn giao và người nhập trên phần mềm. |
 | `items[]` | Tham chiếu dòng H09 và lượng thực giao cho đội/người này, giữ đơn vị và hệ số tại lần giao. Nếu chia hàng cho hai đội thì cộng theo từng dòng H09. |
 | `evidenceRefs[]`, `note` | Ảnh, biên bản hoặc bằng chứng của đúng lần bàn giao và ghi chú cần thiết. Giới hạn theo quyền xem chứng từ nội bộ. |
 
-**Kiểm ở bước 7.** Từng dòng H09 phải có tổng lượng các lần bàn giao bằng lượng thực xuất. Kho chỉ xác nhận xuất một lần. Ví dụ trong cùng lần xuất 60 viên, đội A nhận 35 và đội B nhận 25 thì lưu hai mục bàn giao. Tồn chuyển từ kho nguồn sang đang chuyển đúng 60 viên. Lái xe được ghi theo chuyến, Warehouse Staff thao tác trên phần mềm. [B08C · Đội vận chuyển nội bộ](08C_Don_vi_van_chuyen.md).
+**Kiểm ở bước 7.** Từng dòng H09 phải có tổng lượng các lần bàn giao bằng lượng thực xuất. Kho chỉ xác nhận xuất một lần. Mỗi mục bàn giao lưu người nhận, biển số xe nếu dùng phương tiện, thời điểm, lượng và bằng chứng. Tồn chuyển từ kho nguồn sang đang chuyển đúng lượng đã xuất. Warehouse Staff thao tác trên phần mềm. Không quản lý danh mục đội xe.
 
 ## Kết quả duyệt
 

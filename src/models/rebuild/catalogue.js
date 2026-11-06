@@ -16,7 +16,9 @@ function dimensionsTogether(schema, fields) {
 
 export const packaging = new Schema({
   packageUnit: text(60), baseUnitsPerPackage: decimal({ positive: true, scale: 12, precision: 24 }),
-  outerLengthMm: dimension(), outerWidthMm: dimension(), outerHeightMm: dimension(),
+  outerLengthMm: decimal({ positive: true, scale: 3, required: false }),
+  outerWidthMm: decimal({ positive: true, scale: 3, required: false }),
+  outerHeightMm: decimal({ positive: true, scale: 3, required: false }),
 }, embeddedOptions);
 dimensionsTogether(packaging, ['outerLengthMm', 'outerWidthMm', 'outerHeightMm']);
 
@@ -46,7 +48,7 @@ export function catalogueSchemas() {
     version: version(), operationVersion: integer(0, { default: 0 }),
     usableLengthMm: dimension(), usableWidthMm: dimension(), usableHeightMm: dimension(),
   });
-  dimensionsTogether(locations, ['usableLengthMm','usableWidthMm','usableHeightMm']);
+  dimensionsTogether(locations, ['usableLengthMm','usableWidthMm']);
   locations.index({ warehouseId: 1, code: 1 }, { unique: true });
   rules(locations, function () {
     if (this.isPickable && this.locationType !== 'STORAGE') this.invalidate('isPickable', 'Only storage bins are pickable');
@@ -54,16 +56,17 @@ export function catalogueSchemas() {
   const products = catalogue('products', {
     sku: text(60), manufacturerCode: text(100), name: text(200), material: optionalText(160),
     baseUnit: text(60), wholeBaseUnits: { type: Boolean, required: true, default: true },
-    nominalSize: optionalText(60), isActive: active(), version: version(),
+    lengthMm: decimal({ positive: true, scale: 3 }), widthMm: decimal({ positive: true, scale: 3 }),
+    heightMm: decimal({ positive: true, scale: 3 }), color: text(160),
+    isActive: active(), version: version(),
   });
-  products.index({ manufacturerCode: 1, sku: 1 }, { unique: true });
+  products.index({ manufacturerCode: 1, sku: 1, color: 1 }, { unique: true, collation: { locale: 'vi', strength: 2 } });
   const common = { code: uniqueCode(), name: text(200), version: version() };
   const customers = catalogue('customers', { ...common, phone: text(30) });
   const suppliers = catalogue('suppliers', {
     ...common, contactName: optionalText(160), phone: optionalText(30), email: optionalText(254),
     address: optionalText(500), status: code(['PENDING','ACTIVE','INACTIVE'], { default: 'PENDING' }),
   });
-  const teams = catalogue('delivery_teams', { ...common, isActive: active() });
   const stacks = catalogue('storage_stacks', {
     locationId: ref('Location'), code: uniqueCode(), occupiedLengthMm: integer(1), occupiedWidthMm: integer(1),
     occupiedHeightMm: integer(1), volumeMethod: code(['PACKAGES','MEASURED']),
@@ -88,6 +91,6 @@ export function catalogueSchemas() {
     } else if (this.sealedPackCount != null) this.invalidate('sealedPackCount', 'Only sealed packs have a pack count');
   });
   return { User: users, Role: roles, Permission: permissions, Warehouse: warehouses, Location: locations,
-    Product: products, Customer: customers, Supplier: suppliers, DeliveryTeam: teams,
+    Product: products, Customer: customers, Supplier: suppliers,
     StorageStack: stacks, StorageStackItem: stackItems };
 }

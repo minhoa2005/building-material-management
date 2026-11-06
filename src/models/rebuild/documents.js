@@ -1,5 +1,5 @@
 import { BusinessDocument, DocumentLine, LINE_KINDS } from '../legacy/index.js';
-import { ReplenishmentSubmission } from '../replenishment-submission.model.js';
+import { ReplenishmentSubmission } from '../legacy/replenishment-submission.model.js';
 import { Schema, code, date, decimal, embeddedOptions, exact, integer, options, ref, rules, text } from '../model-utils.js';
 import { packaging } from './catalogue.js';
 
@@ -49,7 +49,11 @@ export function workflowSchema(kind, collection) {
     sources: { type: [link], default: undefined },
   };
   const header = original.path('header')?.schema;
-  if (header) fields.header = { type: header.clone(), required: true };
+  if (header) {
+    const headerSchema = header.clone();
+    if (kind === 'HANDOVER') headerSchema.remove('carrierId');
+    fields.header = { type: headerSchema, required: true };
+  }
   const schema = new Schema(fields, options(collection));
   attachItems(schema, kind);
   schema.index({ 'items._id': 1 });

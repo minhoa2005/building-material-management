@@ -2,6 +2,8 @@ import { exact } from '../../models/model-utils.js';
 import { validateTarget } from '../../migrations/rebuild/verify.js';
 import { verifyReferences } from '../../migrations/rebuild/references.js';
 import { dataContext } from './data.js';
+import { expandEmbedded } from '../../models/rebuild/consolidation.js';
+import { checkBinCapacity, assertBatchPackaging } from '../../models/rebuild/capacity.js';
 
 const same=(a,b)=>String(a)===String(b);
 const sum=(rows,key)=>rows.reduce((total,row)=>total.plus(String(row[key]??0)),exact(0));
@@ -12,6 +14,10 @@ export async function validateReviewedDemo(data,models) {
   ensure(!errors.length,'schema '+JSON.stringify(errors));
   const refs=verifyReferences(data,models);
   ensure(!refs.length,'references '+JSON.stringify(refs));
+  checkBinCapacity(data);
+  const collectionCount = Object.keys(data).length;
+  const recordCount = Object.values(data).reduce((n, rows) => n + rows.length, 0);
+  data = expandEmbedded(data);
   const {documents,items,itemParents,byId,document,ancestor}=dataContext(data);
   for(const [name,rows] of Object.entries(data)) {
     ensure(rows.length===new Set(rows.map(row=>String(row._id))).size,'duplicate ID in '+name);
@@ -33,9 +39,15 @@ export async function validateReviewedDemo(data,models) {
         ensure(item.lotId&&item.packagingSnapshot,'carton needs product batch and packaging');
         ensure(exact(item.enteredQty).isInteger(),'physical carton count must be whole');
         ensure(exact(item.baseUnitsPerUnit).eq(String(item.packagingSnapshot.baseUnitsPerPackage)),'carton conversion mismatch');
+        assertBatchPackaging(byId('product_batches',item.lotId),item.packagingSnapshot);
       }
       for(const link of item.sources??[]) checkReference(link,doc.documentNo);
     }
+  }
+  const batchKeys=new Set();
+  for(const batch of data.product_batches) {
+    const key=String(batch.productId)+':'+batch.manufacturerLot;
+    ensure(!batchKeys.has(key),'duplicate product/manufacturer lot');batchKeys.add(key);
   }
   // Validate typed document references that intentionally are not Mongoose refs:
   // a referenced document can live in any one of the separate collections.
@@ -135,35 +147,6 @@ export async function validateReviewedDemo(data,models) {
     ensure(tasks[0].occurredAt>=req.occurredAt,'TO precedes requirement');
   }
 
-  const packedTotals=new Map(),capacities=new Map();
-  for(const stack of data.storage_stacks.filter(row=>!row.isCleared)) {
-    const location=byId('warehouse_locations',stack.locationId),user=byId('users',stack.createdBy);
-    ensure(user.warehouseIds.some(id=>same(id,location.warehouseId)),'stack warehouse access');
-    const contents=data.storage_stack_items.filter(row=>same(row.stackId,stack._id));
-    let volume=stack.volumeMethod==='MEASURED'?exact(stack.occupiedLengthMm).mul(stack.occupiedWidthMm).mul(stack.occupiedHeightMm):exact(stack.supportVolumeMm3);
-    for(const row of contents) {
-      const balance=byId('inventory_balances',row.balanceId),point=byId('stock_holding_points',balance.holdingPointId);
-      if(row.packagingState==='SEALED') ensure(exact(row.quantityBase).eq(exact(row.packagingSnapshot.baseUnitsPerPackage).mul(row.sealedPackCount)),'sealed carton quantity mismatch');
-      ensure(same(point.locationId,stack.locationId),'stack and balance locations differ');
-      packedTotals.set(String(balance._id),(packedTotals.get(String(balance._id))??exact(0)).plus(String(row.quantityBase)));
-      if(stack.volumeMethod==='PACKAGES') {
-        ensure(row.packagingState==='SEALED','package volume requires sealed packs');
-        const p=row.packagingSnapshot;
-        volume=volume.plus(exact(p.outerLengthMm).mul(p.outerWidthMm).mul(p.outerHeightMm).mul(row.sealedPackCount));
-      }
-    }
-    const current=capacities.get(String(location._id))??{area:exact(0),volume:exact(0)};
-    current.area=current.area.plus(exact(stack.occupiedLengthMm).mul(stack.occupiedWidthMm));current.volume=current.volume.plus(volume);
-    capacities.set(String(location._id),current);
-    ensure(stack.occupiedLengthMm<=location.usableLengthMm&&stack.occupiedWidthMm<=location.usableWidthMm&&stack.occupiedHeightMm<=location.usableHeightMm,'stack dimensions exceed bin');
-  }
-  for(const balance of data.inventory_balances) if(byId('stock_holding_points',balance.holdingPointId).type==='LOCATION') {
-    ensure((packedTotals.get(String(balance._id))??exact(0)).eq(String(balance.quantityBase)),'stack quantity differs from physical balance');
-  }
-  for(const [id,used] of capacities) {
-    const location=byId('warehouse_locations',id),area=exact(location.usableLengthMm).mul(location.usableWidthMm);
-    ensure(used.area.lte(area)&&used.volume.lte(area.mul(location.usableHeightMm)),'bin capacity exceeded');
-  }
   for(const count of data.stocktake_counts) {
     const staff=byId('users',count.countedBy),location=byId('warehouse_locations',count.locationId);
     ensure(staff.warehouseIds.some(id=>same(id,location.warehouseId)),'stock counter warehouse access');
@@ -184,7 +167,7 @@ export async function validateReviewedDemo(data,models) {
   }
   ensure(data.system_events.every(row=>row.status==='COMPLETED'&&row.payload.demo===true),'demo events must not send real notifications');
   ensure(data.notifications.every(row=>row.emailDelivery.status==='SKIPPED'),'demo email must be skipped');
-  return {collections:Object.keys(data).length,records:Object.values(data).reduce((n,rows)=>n+rows.length,0),
+  return {collections:collectionCount,records:recordCount,
     businessDocuments:documents.size,embeddedItems:items.size,balances:data.inventory_balances.length,
     stockTransactions:data.stock_transactions.length,stockMovements:data.stock_movements.length,
     invoices:data.sales_invoices.length,checks:['schemas','references','stock ledger','reservations','approval permissions','BF03/BF04 quantities','bin capacities','invoice accepted quantities','outbound messages disabled']};

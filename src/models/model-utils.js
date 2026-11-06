@@ -125,6 +125,7 @@ export function rules(schema, validate) {
 export function appendOnly(schema) {
   schema.set("timestamps", { createdAt: true, updatedAt: false });
   schema.pre("save", function preventHistoryRewrite() {
+    if (this.$isSubdocument && !this.isModified()) return;
     if (!this.isNew)
       throw new Error(`${this.constructor.modelName} is append-only`);
   });

@@ -15,7 +15,9 @@ The latest explicit user decision overrides older project documents. Approved DB
 
 ## Model and runtime boundaries
 
-- `src/models/index.js` is the main entry point for the approved 74-collection model set. Ported services register it through `registerReviewedModels(connection)` and select models by collection name. The migration profile still requires a separate connection.
+- Each current collection schema lives in its own `src/models/<name>.model.js`; each nested schema lives in its own `src/models/embedded/<name>.model.js`. Keep one schema per file. Do not restore aggregate reviewed builders.
+
+- `src/models/index.js` is the main entry point for the approved 59-collection model set. Ported services register it through `registerReviewedModels(connection)` and select models by collection name. The migration profile still requires a separate connection.
 - APIs not yet ported import explicitly from `src/models/legacy/index.js`. Do not mix legacy and reviewed models on one Mongoose connection. Port services, DTOs, permissions, source/quantity checks and transactions as an explicit task.
 - Use Warehouse Staff terminology. Users have one role and multiple assigned warehouses. Admin may create roles and select existing permissions. Enforce permission plus warehouse, record, state, version and identity constraints.
 - Each carton contains one product from one batch. Store base units on products and historical conversion/packaging on embedded document items. Do not restore UOM/UOMVersion collections.

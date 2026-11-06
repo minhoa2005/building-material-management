@@ -1,5 +1,6 @@
 import { Schema, code } from '../model-utils.js';
 import { modelNames } from './collections.js';
+import { embeddedTables } from './consolidation.js';
 
 // A business document is now stored in its own collection, and its items are
 // embedded. These references are resolved through explicit source links, not
@@ -14,8 +15,14 @@ export function configureRebuildReferences(schema, seen = new Set()) {
     for (const value of [options,elementOptions]) {
       if (!value?.ref) continue;
       value.ref = modelNames[value.ref] ?? value.ref;
+      const embedded = Object.entries(embeddedTables).find(([, entry]) => entry[2] === value.ref);
+      if (embedded) {
+        value.embeddedTarget = embedded[0];
+        delete value.ref;
+        continue;
+      }
       if (value.ref === 'Party') {
-        const typed = { supplierId:'Supplier', customerId:'Customer', carrierId:'DeliveryTeam' }[name];
+        const typed = { supplierId:'Supplier', customerId:'Customer' }[name];
         if (typed) value.ref = typed;
         else if (name !== 'ownerPartyId') throw new Error('Unmapped party reference: ' + name);
       }

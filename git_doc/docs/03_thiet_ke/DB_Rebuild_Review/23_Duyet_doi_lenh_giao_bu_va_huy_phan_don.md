@@ -1,5 +1,8 @@
 # E04 và E05 · Đổi lệnh giao bù hoặc hủy phần còn lại của đơn bán
 
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **Đã duyệt riêng E04 và E05 v0.1 · 01/11/2026.** [Bản trình đã duyệt](history/23_Duyet_doi_lenh_giao_bu_va_huy_phan_don_v0.1_de_xuat.md). Sales Staff phụ trách dòng đơn bán quyết định phần nào tiếp tục giao và phần nào hủy theo thỏa thuận với khách. Kho ghi nhận việc xuất, nhận và giữ hàng theo chứng từ tương ứng. [Quy tắc UC-48 và UC-51](../../../../context.md) · [Cấu trúc MongoDB đã khảo sát](03_Cau_truc_DB_hien_tai.md).
 
 **Ví dụ xuyên suốt.** Khách đặt 40 viên và đã ký nhận 38. Hai viên bị từ chối lúc giao đã được kho nhận lại, một viên hôm qua và một viên hôm nay. Mỗi dòng phiếu nhận về mở lại 1 viên trên đơn cũ theo E03. Khách muốn giao bù 1 viên và hủy 1 viên. [H23, H24 và E03 đã duyệt](22_Duyet_giao_that_bai_nhan_ve_va_giao_bu.md).

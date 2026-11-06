@@ -1,8 +1,18 @@
 # Danh mục dữ liệu cần duyệt
 
+**Quyết định mới 06/11/2026:** [Sản phẩm và lô v6](39_San_pham_va_lo_dang_chot.md) thay các trường nominalSize/tone/calibre bên dưới: sản phẩm có dài/rộng/cao và màu, khác màu khác ID; lô có số viên/thùng cố định và kích thước ngoài thực tế. Các phần duyệt cũ giữ để truy vết, không phải cấu trúc hiện hành của B04/B05.
+
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **Tiến độ sau phản hồi H01/H35 ngày 02/11/2026:** đã duyệt 77/79 mục còn áp dụng. B03/B06 đã bỏ, không tính vào 79. Còn D07 và D08. Đây là số mục duyệt thiết kế, không phải số collection vật lý đã tạo.
 
-**Kiểm tra hiện trạng 31/10/2026; cập nhật thiết kế 02/11/2026.** B03 (UOM) và B06 (UOM Version) đã bỏ theo yêu cầu mới; quy đổi nằm trên dòng phiếu. A01–A03, B01/B02/B04/B05/B07, B08A–B08B, C01–C08, H02–H10 và H11 (phần BF04) đã duyệt theo phiên bản/quyết định trong bảng; B08C chốt theo lựa chọn sửa quyền. H13–H27, H29–H34, D01–D06, E01–E06, F01–F03 và H36 v0.1 đã duyệt. H12 v0.2 và hóa đơn H37 v0.1 đã duyệt. H28 v0.2 đã duyệt. H01 và H35 v0.1 đã duyệt riêng ngày 02/11/2026; G01–G06 v0.1 cũng đã duyệt. D07/D08 để mở cần người phụ trách làm rõ nghiệp vụ xác minh nguồn mới. [Quyết định bỏ UOM](14_Bo_UOM_va_luu_quy_doi_tren_dong.md).
+**Cập nhật 05/11/2026:** Người dùng bỏ chức năng quản lý danh mục đội xe; trên từng lần bàn giao chỉ lưu biển số xe. Quyết định này thay thế B08C và phần trường đội xe của H11. Bảng `delivery_teams`, `carrierId` và `teamNameAtHandover` không thuộc schema mới. Các quyết định B08C cũ được giữ ở phần lịch sử.
+
+**Kiểm tra hiện trạng 31/10/2026; cập nhật thiết kế 02/11/2026.** B03 (UOM) và B06 (UOM Version) đã bỏ theo yêu cầu mới; quy đổi nằm trên dòng phiếu. A01–A03, B01/B02/B04/B05/B07, B08A–B08B, C01–C08, H02–H10 và H11 (phần BF04) đã duyệt theo phiên bản/quyết định trong bảng; B08C cũ đã bị thay thế ngày 05/11. H13–H27, H29–H34, D01–D06, E01–E06, F01–F03 và H36 v0.1 đã duyệt. H12 v0.2 và hóa đơn H37 v0.1 đã duyệt. H28 v0.2 đã duyệt. H01 và H35 v0.1 đã duyệt riêng ngày 02/11/2026; G01–G06 v0.1 cũng đã duyệt. D07/D08 để mở cần người phụ trách làm rõ nghiệp vụ xác minh nguồn mới. [Quyết định bỏ UOM](14_Bo_UOM_va_luu_quy_doi_tren_dong.md).
 
 Đây là danh mục kiểm soát độ đầy đủ, chưa phải danh sách collection mới đã chốt. 40 collection hiện có và 36 loại hồ sơ bên trong không được cộng thành 76 bảng mới. Các dòng con, bảng liên kết, lịch sử và cơ chế kỹ thuật cũng phải được trình bày và duyệt; nếu gộp/nhúng/bỏ thì ghi rõ thay thế bằng gì.
 
@@ -41,7 +51,7 @@ Số bản ghi là ước lượng tại thời điểm đọc DB; 0 không ch�
 | B07 | `product_warehouse_policies` | `stock_thresholds` | Ngưỡng tồn theo sản phẩm và kho | FE-01/02 | ĐÃ DUYỆT v0.1 |
 | B08A | `parties` (CUSTOMER) | `customers` | Mã khách do WMSD sinh, tên và điện thoại | FE-02/06/07 | ĐÃ DUYỆT v0.3 |
 | B08B | `parties` (SUPPLIER) | `suppliers` | Danh mục nhà cung cấp | FE-02/03/07 | ĐÃ DUYỆT v0.1 |
-| B08C | `parties` (CARRIER), phiếu bàn giao | `delivery_teams` | Đội vận chuyển của shop để chọn lại theo chuyến | Bàn giao/FE-06 | ĐÃ CHỐT v0.4, bổ sung quyền |
+| B08C | `parties` (CARRIER), phiếu bàn giao | Bỏ danh mục đội xe; `vehiclePlate` trên từng bàn giao | Ghi biển số xe thực tế khi có phương tiện | Bàn giao/FE-06 | B08C cũ ĐÃ BỊ THAY THẾ 05/11/2026 |
 | C01 | `stock_accounts` | `stock_holding_points` | Điểm theo dõi tồn | FE-04/05 | ĐÃ DUYỆT v0.1 |
 | C02 | `stock_balances` | `inventory_balances` | Số dư tồn kho | FE-04 | ĐÃ DUYỆT v0.2 |
 | C03 | `posting_batches` | `stock_transactions` | Lần ghi nhận biến động tồn | FE-03/04/05/06/07/08 | ĐÃ DUYỆT v0.1 |
@@ -234,8 +244,8 @@ Các tên sau chỉ là ứng viên nếu tách collection. Ví dụ TO có th�
 
 ### B08 — Khách hàng, nhà cung cấp và đơn vị vận chuyển
 
-- **Đã chọn:** khách có mã do WMSD tự sinh, tên và số điện thoại. Khách hàng và nhà cung cấp có bảng riêng. Shop tự vận chuyển, có danh mục đội nội bộ để chọn và ghi thông tin thực tế từng lần bàn giao.
-- **Kết quả:** [B08A · customers](08A_Khach_hang.md) v0.3 và [B08B · suppliers](08B_Nha_cung_cap.md) v0.1 đã duyệt. [B08C · delivery_teams](08C_Don_vi_van_chuyen.md) v0.4 ghi thêm Warehouse Staff tạo/sửa theo lựa chọn người dùng.
+- **Đã chọn:** khách có mã do WMSD tự sinh, tên và số điện thoại. Khách hàng và nhà cung cấp có bảng riêng. Cập nhật 05/11: bỏ quản lý đội xe; biển số ghi trực tiếp trên lần bàn giao.
+- **Kết quả:** [B08A · customers](08A_Khach_hang.md) v0.3 và [B08B · suppliers](08B_Nha_cung_cap.md) v0.1 vẫn có hiệu lực. [B08C](08C_Don_vi_van_chuyen.md) v0.4 đã bị thay thế bởi quyết định mới.
 - **Hiện trạng:** MongoDB dùng `parties` cho cả STORE, CUSTOMER, SUPPLIER và CARRIER. Tham chiếu chủ sở hữu theo loại sau khi tách, cấu trúc số dư và khóa theo chủ hàng đã duyệt ở C02 v0.2. [Quyết định và ánh xạ](07_Duyet_nguong_ton_va_doi_tac.md).
 
 

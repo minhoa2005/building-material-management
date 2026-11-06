@@ -85,14 +85,13 @@ export function addOperationalExamples(data) {
 }
 
 export function addHandoverExamples(data) {
-  const team=data.delivery_teams[0];
   for(const dispatch of data.transfer_dispatches) {
     if(dispatch.handovers?.length) continue;
     const handover={_id:fixtureId('handover:'+dispatch._id),documentNo:dispatch.documentNo+'-HANDOVER',
       documentKind:'HANDOVER',workflowStatus:'CONFIRMED',version:1,createdBy:dispatch.createdBy,
       occurredAt:dispatch.occurredAt,createdAt:dispatch.occurredAt,updatedAt:dispatch.occurredAt,sources:[],items:[],
-      header:{relatedDocumentId:dispatch._id,recipientName:'Lái xe nội bộ mẫu',carrierId:team._id,
-        teamNameAtHandover:team.name,handedOverAt:dispatch.occurredAt,confirmedBy:dispatch.createdBy}};
+      header:{relatedDocumentId:dispatch._id,recipientName:'Lái xe nội bộ mẫu',vehiclePlate:'29A-123.45',
+        handedOverAt:dispatch.occurredAt,confirmedBy:dispatch.createdBy}};
     for(const line of dispatch.items) {
       const item={...line,_id:fixtureId('handover-item:'+line._id),lineKind:'STANDARD',sources:[]};delete item.details;
       handover.items.push(item);link(dispatch,line,handover,item);

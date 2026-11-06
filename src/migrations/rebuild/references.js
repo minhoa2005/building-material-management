@@ -1,3 +1,4 @@
+import { embeddedTables, expandEmbedded } from '../../models/rebuild/consolidation.js';
 function getPath(row, path) {
   return path.split('.').reduce((value,key) => value?.[key],row);
 }
@@ -5,6 +6,7 @@ function getPath(row, path) {
 // Verify all typed references against the actual target graph, including the
 // IDs retained by embedded items and handovers.
 export function verifyReferences(target, models) {
+  const expanded = expandEmbedded(target);
   const idsByModel = new Map(), documents = new Set(), items = new Set();
   function remember(row) {
     documents.add(String(row._id));
@@ -14,6 +16,12 @@ export function verifyReferences(target, models) {
   for (const [name,Model] of models) {
     idsByModel.set(Model.modelName,new Set(target[name].map(row => String(row._id))));
     for (const row of target[name]) if (row.documentKind) remember(row);
+  }
+  for (const [old, [, , modelName]] of Object.entries(embeddedTables)) {
+    const rows = target[old] || expanded[old];
+    idsByModel.set(modelName, new Set(rows.map(row => String(row._id))));
+    idsByModel.set(old, new Set(rows.map(row => String(row._id))));
+    for (const row of rows) if (row.documentKind) remember(row);
   }
   const missing = [];
   function checkSchema(schema,row,collection,rootId) {
@@ -30,8 +38,8 @@ export function verifyReferences(target, models) {
       const options = path.$embeddedSchemaType?.options || path.options;
       const reference = options.ref;
       const logical = options.logicalReference;
-      if (!reference && !logical) return;
-      const known = logical === 'document' ? documents : logical === 'item' ? items : idsByModel.get(reference);
+      if (!reference && !logical && !options.embeddedTarget) return;
+      const known = logical === 'document' ? documents : logical === 'item' ? items : idsByModel.get(options.embeddedTarget || reference);
       if (!known) throw new Error('Unknown target model for reference ' + reference);
       for (const item of Array.isArray(value) ? value : [value]) {
         if (!known.has(String(item))) missing.push({collection,id:String(rootId),field:pathName});

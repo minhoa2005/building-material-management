@@ -1,5 +1,8 @@
 # H15, H16 và H37 · Xuất bán, khách nhận hàng và hóa đơn tổng hợp
 
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
 Ngày 01/11/2026. **Đã chốt** SO lưu giá bán. Hóa đơn cuối trong WMSD tổng hợp các phiếu xuất của cùng một SO, hiển thị số lượng đã xuất và tính tiền theo lượng khách thực nhận. Người dùng trả lời **“Duyệt H37 v0.1”**. Người dùng đã duyệt riêng **“Duyệt H15 v0.1”** và **“Duyệt H16 v0.1”**. [Bản trình H15/H16](history/19_Duyet_xuat_ban_giao_nhan_va_hoa_don_truoc_duyet_H15_H16_v0.1.md). [Bản trình H37 v0.1](history/19_Duyet_xuat_ban_giao_nhan_va_hoa_don_v0.1_de_xuat.md). [Đơn bán H12, WIR H13 và OD H14](18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md).
 
 | Dòng chứng từ của cùng đơn bán | Ngày xuất | Thực xuất | Khách nhận có bằng chứng | Lượng tính tiền |
@@ -18,10 +21,10 @@ Trong ví dụ, 2 viên của PX-02 đã được ghi nhận giao thất bại v
 |---|---|
 | `_id`, `issueNo`, `deliveryOrderId`, `warehouseId`, `createdBy`, `createdAt` | Phiếu có mã riêng. TO soạn hàng, lệnh giao và kho xuất phải khớp. |
 | `items[]` | ID dòng cố định, ID dòng OD/WIR/SO và phiên bản giá của dòng SO, dòng soạn hàng, lô, số dư tập kết, đơn vị/hệ số trên dòng và lượng thực bàn giao theo đơn vị gốc. Truy được cùng khách và cùng đơn cho toàn phiếu. |
-| `handovers[]` | **Đề xuất riêng cho bán hàng.** Lưu người giao, người nhận thực tế, thời điểm, dòng hàng, lượng và bằng chứng. Khi giao qua đội nội bộ, chọn đội B08C và lưu tên đội/lái xe tại lúc giao. Khi khách đến lấy trực tiếp, ghi người thực nhận. Tổng bàn giao theo dòng phải khớp lượng xuất. |
+| `handovers[]` | **Đề xuất riêng cho bán hàng.** Lưu người giao, người nhận thực tế, thời điểm, dòng hàng, lượng, bằng chứng và biển số xe nếu có phương tiện. Không chọn đội từ danh mục. Khi khách đến lấy trực tiếp, ghi người thực nhận. Tổng bàn giao theo dòng phải khớp lượng xuất. |
 | `status`, `issuedAt`, `postedAt`, `postedBy`, `stockTransactionId`, `version` | DRAFT dành cho chuẩn bị. POSTED khi đã thực bàn giao và ghi giảm tồn thành công. Nếu hủy trước khi ghi tồn, lưu lý do và người hủy. Phân biệt thời điểm xuất thực với thời điểm ghi trên phần mềm. |
 
-Kiểm đơn vị gốc, lô, lượng thực soạn chưa xuất, lượng được giao theo OD và khóa kiểm kê. Khi xác nhận, giảm tồn ở ô tập kết và tiêu dùng đúng lượng giữ C05 trong cùng giao dịch C03/C04. Gửi lại cùng lần xác nhận trả về cùng phiếu đã ghi. Khi có sai sót sau xuất, chứng từ đảo hoặc nhận hàng thực về giữ liên kết tới dòng xuất gốc. Bàn giao cho lái xe là mốc xuất của kho. Lượng khách nhận được xác định qua H16. [Giữ hàng C05](11_Duyet_giu_hang_va_nguon_cung.md) · [Đội nội bộ B08C](08C_Don_vi_van_chuyen.md).
+Kiểm đơn vị gốc, lô, lượng thực soạn chưa xuất, lượng được giao theo OD và khóa kiểm kê. Khi xác nhận, giảm tồn ở ô tập kết và tiêu dùng đúng lượng giữ C05 trong cùng giao dịch C03/C04. Gửi lại cùng lần xác nhận trả về cùng phiếu đã ghi. Khi có sai sót sau xuất, chứng từ đảo hoặc nhận hàng thực về giữ liên kết tới dòng xuất gốc. Bàn giao cho lái xe là mốc xuất của kho. Lượng khách nhận được xác định qua H16. [Giữ hàng C05](11_Duyet_giu_hang_va_nguon_cung.md).
 
 ## H16 · delivery_confirmations · Xác nhận khách nhận hàng (POD)
 

@@ -1,5 +1,8 @@
 # H17 · Xác nhận đã nhận đủ tiền bên ngoài WMSD
 
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **ĐÃ DUYỆT v0.1 · 01/11/2026.** Người dùng chọn “Giữ và duyệt H17 v0.1, chờ Sales xác nhận”. H17 xác định mốc SO chuyển từ Đã giao sang Hoàn thành. [Bản v0.1 đã trình](history/20_Duyet_xac_nhan_tien_ngoai_v0.1_de_xuat.md) · [Quy trình BF06](../../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) · [Snapshot MongoDB](03_Cau_truc_DB_hien_tai.md).
 
 **Luồng đã chốt.** Sau khi đối chiếu xong phần khách nhận và xử lý hết phần còn lại, SO ở trạng thái Đã giao. Khi Sales Staff phụ trách đơn có căn cứ rằng cửa hàng đã nhận đủ tiền bên ngoài, nhân viên lưu H17 cho phiên bản giao hàng đó. WMSD ghi xác nhận và chuyển SO sang Hoàn thành trong cùng lần lưu.

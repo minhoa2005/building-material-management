@@ -1,5 +1,8 @@
 # H27, E01, H28 · Khách trả hàng sau khi đã nhận
 
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **Đã duyệt H27 và E01 v0.1, H28 v0.2 · 01/11/2026.** [Bản H28 v0.2 được trình duyệt](history/24_Duyet_khach_tra_hang_sau_khi_nhan_v0.2_de_xuat.md). Nhóm này bắt đầu khi có căn cứ khách đã nhận hàng. Nếu khách từ chối ngay lúc giao, dùng [luồng H23–H24](22_Duyet_giao_that_bai_nhan_ve_va_giao_bu.md). [Bản trình v0.1](history/24_Duyet_khach_tra_hang_sau_khi_nhan_v0.1_de_xuat.md).
 
 **Quyền H27 đã chốt theo UC-71 bản BE.** Sau khi Warehouse Staff kiểm, Sales Staff quyết định ca thường, kể cả yêu cầu mình lập. Store Owner quyết định ngoại lệ đủ căn cứ và phải khác người đề xuất. Đây là quyền mặc định cho thiết kế mới. [Report 3 trong docs_doan](../../01_bao_cao/WMSD_Report3_Fix.docx.txt) · [UC-71 trong bản BE được chọn](../../01_bao_cao/WMSD_Report3_Fix.docx.txt).

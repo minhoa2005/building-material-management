@@ -39,10 +39,15 @@ export const splitSources = [
   'document_links', 'line_links', 'replenishment_submissions',
 ];
 
-export const newCollections = [
+export const migrationCollections = [
   ...Object.values(collectionNames), ...Object.values(documentCollections),
-  'customers', 'suppliers', 'delivery_teams', 'storage_stacks', 'storage_stack_items', 'sales_invoices',
+  'customers', 'suppliers', 'storage_stacks', 'storage_stack_items', 'sales_invoices',
 ];
+
+import { removedCollections } from './consolidation.js';
+// Categories belong to the current design; the historical migration profile
+// deliberately retains its original collection/field contract.
+export const newCollections = [...migrationCollections.filter(name => !removedCollections.includes(name)), 'categories'];
 
 export const workflowModelNames = Object.freeze({
   REPLENISHMENT: 'ReplenishmentRequest', PO: 'PurchaseOrder', ARRIVAL: 'GoodsArrival',

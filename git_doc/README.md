@@ -1,14 +1,18 @@
 # WMSD — Tài liệu chung của nhóm
 
-Cập nhật ngày 05/11/2026. Đây là điểm bắt đầu khi phát triển backend và chuyển sang DB mới.
+Cập nhật ngày 06/11/2026. Đây là điểm bắt đầu khi phát triển backend và chuyển sang DB mới.
+
+[Quyết định gộp 10 bảng](docs/03_thiet_ke/DB_Rebuild_Review/36_Gop_10_bang.md) · [Từ điển 59 bảng hiện hành](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md)
 
 ## Đọc theo thứ tự
 
+Bản hiện hành v8 có category: [từ điển trường](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md), [sản phẩm/lô/thùng và sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md), [kết quả rà trường v5](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md). DB mẫu mới nhất là `wmsd_demo_tile_shop_v8` tại `localhost:27017`. Các snapshot trước giữ làm lịch sử.
+
 1. [Hướng dẫn dự án và quyết định hiện hành](PROJECT_GUIDE.md).
-2. [Bản đồ toàn bộ 74 collection và nơi sửa model](MODEL_MAP.md).
+2. [Bản đồ toàn bộ 59 collection và nơi sửa model](MODEL_MAP.md).
 3. [Quy tắc tự cập nhật tài liệu khi code](DOCUMENTATION_RULES.md).
 4. [Phiếu duyệt từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/00_Hien_trang_va_cach_duyet.md) và [nhật ký quyết định](docs/03_thiet_ke/DB_Rebuild_Review/04_Nhat_ky_duyet.md).
-5. [DB Diagram kiểu SQL (74 bảng, PK/FK và crow's-foot)](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio), [DB Diagram chi tiết hiện hành (94 tab)](docs/03_thiet_ke/WMSD_DB_Diagram_2026-11-05.drawio), [ERD / snapshot / từ điển dữ liệu lịch sử](docs/03_thiet_ke/DB_Current_2026-11-04/README.md).
+5. [DB Diagram kiểu SQL (59 bảng, PK/FK và crow's-foot)](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio), [DB Diagram chi tiết snapshot (94 tab)](docs/03_thiet_ke/WMSD_DB_Diagram_2026-11-05.drawio), [ERD / snapshot / từ điển dữ liệu lịch sử](docs/03_thiet_ke/DB_Current_2026-11-04/README.md).
 6. [MongoDB local và Compass](docs/09_phat_trien/MONGODB_LOCAL.md), [bộ seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md).
 
 ## Tài liệu triển khai
@@ -38,3 +42,7 @@ Phiếu duyệt, thiết kế, hướng dẫn chuyển DB và API đã tập tru
 - [Chỉ mục tài liệu cũ](docs/99_lich_su/README_truoc_tong_hop_2026-11-05.md) giữ lịch sử 3.0–3.3.
 - Các file `docs/01_bao_cao` là bản so sánh/nộp bài, sửa trong mục hiện có và bảo toàn format.
 - Khảo sát ở `docs/05_khao_sat`, SAP tham khảo ở `docs/06_tham_khao`, rà soát theo ngày ở `docs/07_ra_soat`.
+
+Model hiện hành đã tách: mỗi collection một file `src/models/*.model.js`, schema nhúng trong `src/models/embedded/`. Atlas `wmsd_database` đã nhận 59 collection/638 bản ghi chỉ còn gạch; DB local v7 khớp dữ liệu đọc lại. [Hướng dẫn và bằng chứng triển khai](docs/09_phat_trien/ATLAS_DEPLOYMENT.md). API legacy và kết nối ứng dụng chưa chuyển.
+
+[Category v8: phân loại, dọn model và triển khai](docs/09_phat_trien/CATEGORIES_V8.md). Bản v7 trước là mốc lịch sử.

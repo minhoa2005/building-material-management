@@ -6,14 +6,14 @@ Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều k
 
 | Thành phần | Vai trò hiện tại |
 |---|---|
-| `src/models/index.js` → `registerReviewedModels(connection)` | Bộ schema chính đã duyệt, 74 collection, chứng từ riêng và `items[]` nhúng |
+| `src/models/index.js` → `registerReviewedModels(connection)` | Bộ schema chính đã duyệt, 59 collection, chứng từ riêng và `items[]` nhúng |
 | `src/models/legacy/index.js` và model cũ | API chưa chuyển vẫn sử dụng rõ registry cũ, chứng từ và dòng lưu chung |
 | `registerMigrationModels(connection)` | Profile chuyển thử dữ liệu cũ, khác profile thiết kế mới |
 | `src/seeds/rebuild` | Bộ dữ liệu mô phỏng có kiểm tra chéo nghiệp vụ |
 
 Mỗi profile dùng một Mongoose connection mới riêng. Đọc [MODEL_MAP](MODEL_MAP.md) để chọn đúng schema, factory và phụ thuộc. Với task sửa lỗi runtime cũ, giữ hợp đồng cũ và ghi rõ mức ảnh hưởng. Với task chuyển API, dùng model mới theo thiết kế đã duyệt, cập nhật DTO/permission/transaction/seed/test của luồng đó. Đổi entry point không tự chuyển xong nghiệp vụ.
 
-Model mới còn tái sử dụng một số schema/discriminator cũ. Sửa file dùng chung phải kiểm cả hai profile. Mongoose `ref` mô tả liên kết, service vẫn phải kiểm bản ghi nguồn, kho, chủ hàng và trần số lượng.
+Model hiện hành có 59 file collection riêng ngay tại `src/models`, 96 schema nhúng riêng tại `embedded/`; registry reviewed không còn dựng schema từ builder legacy. Các helper chung vẫn cần kiểm phạm vi tác động khi sửa. Mongoose `ref` mô tả liên kết, service vẫn phải kiểm bản ghi nguồn, kho, chủ hàng và trần số lượng.
 
 ## 2. Thứ tự dùng nguồn
 
@@ -30,10 +30,10 @@ Code thực tế chứng minh hiện trạng triển khai, không tự thay quy�
 | Chủ đề | Quy tắc đã chốt | Nguồn chi tiết |
 |---|---|---|
 | Tài khoản/quyền | Một user có một role, có thể phụ trách nhiều kho. Tên role kho là Warehouse Staff. Admin được tạo role và tick quyền có sẵn, role mới thực hiện theo quyền. Kiểm thêm kho, người tạo, trạng thái và tách người duyệt khi luồng yêu cầu. | [A01–A03](docs/03_thiet_ke/DB_Rebuild_Review/02_Duyet_tai_khoan_va_phan_quyen.md) |
-| SKU và lô | Nhận diện sản phẩm bằng hãng + SKU hãng. Lô theo sản phẩm + mã lô trên thùng + tone/calibre. Cùng lô phù hợp dùng chung dù mua từ hai NCC. | [B04–B06](docs/03_thiet_ke/DB_Rebuild_Review/06_Nhap_san_pham_lo_va_quy_cach.md) |
+| SKU và lô | Nhận diện sản phẩm bằng hãng + SKU hãng + màu; khác màu là productId khác. Sản phẩm có lengthMm/widthMm/heightMm của từng viên. Lô theo productId + manufacturerLot; không có calibre/tone. Số viên/thùng cố định theo lô, kích thước ngoài thùng ghi thực tế, không suy từ thể tích viên. | [B04/B05 hiện hành](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md) |
 | Đơn vị/thùng | Bỏ hai bảng UOM/UOMVersion. Đơn vị gốc trên sản phẩm, quy đổi và quy cách trên từng dòng. Một thùng vật lý chỉ một sản phẩm, một lô. Gộp các thùng cùng sản phẩm/lô/quy cách trên dòng. Khác thông tin phải tách dòng. | [Quy đổi](docs/03_thiet_ke/DB_Rebuild_Review/14_Bo_UOM_va_luu_quy_doi_tren_dong.md), [nhận thùng](docs/03_thiet_ke/DB_Rebuild_Review/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md) |
-| Kho và sức chứa | Kho, ô có kích thước. Tính diện tích đáy chồng một lần và thể tích phần hàng. Chặn xác nhận vượt sức chứa. Dữ liệu chồng phân bố lượng tồn hiện có. Bản đồ 3D triển khai sau. | [B01/B02](docs/03_thiet_ke/DB_Rebuild_Review/05_Duyet_kho_vi_tri_don_vi_tinh.md), [C07/C08](docs/03_thiet_ke/DB_Rebuild_Review/12_Duyet_chong_hang_va_dong_goi_thuc_te.md) |
-| Khách/NCC/đội xe | Tách ba bảng. Khách gồm mã WMSD, tên, điện thoại. Địa chỉ giao trên phiếu. Shop có danh mục đội vận chuyển nội bộ. | [B08A](docs/03_thiet_ke/DB_Rebuild_Review/08A_Khach_hang.md), [B08B](docs/03_thiet_ke/DB_Rebuild_Review/08B_Nha_cung_cap.md), [B08C](docs/03_thiet_ke/DB_Rebuild_Review/08C_Don_vi_van_chuyen.md) |
+| Kho và sức chứa | Ô giữ chiều dài/rộng; chiều cao dùng chung từ kho. Không quản lý chồng. packagingPortions[] giữ thùng nguyên/hàng lẻ và thể tích thực đo. BE kiểm cạnh thùng vừa ô và tổng thể tích. Chưa có tọa độ xếp kiện nên lượng thùng còn xếp được chỉ là ước tính; 3D triển khai sau. | [B01/B02](docs/03_thiet_ke/DB_Rebuild_Review/05_Duyet_kho_vi_tri_don_vi_tinh.md), [quy cách và kiểm sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md) |
+| Khách/NCC/bàn giao | Khách và nhà cung cấp có danh mục riêng. Không quản lý đội xe; mỗi lần bàn giao ghi biển số xe trực tiếp nếu có phương tiện. | [B08A](docs/03_thiet_ke/DB_Rebuild_Review/08A_Khach_hang.md), [B08B](docs/03_thiet_ke/DB_Rebuild_Review/08B_Nha_cung_cap.md), [bàn giao H11](docs/03_thiet_ke/DB_Rebuild_Review/17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md) |
 | RR và PO | Một RR tối đa một PO, một PO thuộc một RR, một NCC, một kho. PO nhiều lần nhận. Accountant lập và cùng Owner xem giá mua/tổng tiền. | [H01/H02](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md) |
 | Giá bán/hóa đơn | SO lưu giá bán, quy đổi và giá lịch sử. Accountant lập hóa đơn cuối theo SO, mỗi SO tối đa một bản đang hiệu lực. Ghi từng phiếu/ngày xuất và lượng xuất, tính tiền theo lượng khách nhận. 100 xuất/98 nhận thì hiển thị 100 và tính 98. | [H12](docs/03_thiet_ke/DB_Rebuild_Review/18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md), [H37](docs/03_thiet_ke/DB_Rebuild_Review/19_Duyet_xuat_ban_giao_nhan_va_hoa_don.md) |
 | Tiền và nguồn ngoài | Sales xác nhận nhận đủ tiền bên ngoài theo H17. WMSD không tích hợp trực tiếp MISA hoặc thực hiện thu/chuyển tiền, công nợ. Chưa suy ra cơ chế xác minh nguồn D07/D08 từ khả năng tạo SO. | [H17](docs/03_thiet_ke/DB_Rebuild_Review/20_Duyet_xac_nhan_tien_ngoai.md), [D07/D08](docs/03_thiet_ke/DB_Rebuild_Review/33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem.md) |
@@ -59,6 +59,8 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 
 ## 5. Quy tắc dữ liệu dùng chung
 
+- V5 đã [rà trường trên 58 bảng](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md). Đầu phiếu dùng một `version`, bỏ `revision` trùng. Các `approvedRevision`, `subjectRevision`, `scopeVersion`, phiên bản giá và nguồn giữ nguyên vai trò lịch sử. `status` không thay phép kiểm sửa đồng thời. Danh mục products/warehouses/customers/suppliers bỏ version, khi port API phải kiểm updatedAt của dữ liệu vừa đọc. Các FK đã được bảng cha xác định không lưu lặp trong phần nhúng.
+
 - Số lượng/tiền dùng Decimal128 và helper decimal, API trả decimal string. Giữ nguyên hệ số, giá và quy cách đã ghi trên chứng từ cũ.
 - Tồn theo điểm giữ hàng + lô + chất lượng + chủ. Hàng transit, hàng giữ hộ, hàng đã giữ cho nhu cầu được theo dõi riêng. Hàng chưa nhận không tính available.
 - Xác nhận tồn phải nguyên tử với balance, transaction, movement, chứng từ, hạn mức/giữ hàng, audit và outbox. Cùng request key/payload trả lại kết quả cũ, key khác nội dung phải báo xung đột.
@@ -76,3 +78,15 @@ Chuyển một luồng phải có test quyền/kho/trạng thái, chống ghi ha
 ## 7. Quy trình làm việc của nhóm
 
 Đọc [quy tắc tài liệu](DOCUMENTATION_RULES.md). Mỗi thay đổi code có ảnh hưởng model, API, quyền, nghiệp vụ, seed, cấu hình hoặc cách chạy phải sửa tài liệu hiện hành trong cùng lượt. Ghi quyết định chưa duyệt ở phần mở, không ghi thành đã chốt. Không đổi toàn bộ mã UC chỉ để khớp model đang làm.
+
+## Gộp bảng lần hai
+
+[Gộp thêm 5 bảng](docs/03_thiet_ke/DB_Rebuild_Review/37_Gop_them_5_bang.md). Biến động nằm trong giao dịch tồn; chặn và phương án lỗi trong hồ sơ lỗi; phương án kiểm kê trong đợt; khách nhận trong SO. Các lần phát sinh và quyền vẫn giữ.
+
+## 8. Mốc triển khai DB ngày 06/11/2026
+
+Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd_demo_tile_shop_v7`: 58 collection/633 bản ghi. Giữ nguyên v6 để truy vết, không ghi đè dữ liệu đã có. Việc tải DB không đồng nghĩa các API đã port; kết nối ứng dụng chưa đổi. [Quy trình và kết quả](docs/09_phat_trien/ATLAS_DEPLOYMENT.md).
+
+## 9. Category v8 và kiểm thư mục
+
+Người dùng duyệt 5 nhóm sau tham khảo Gạch Tốt. Mỗi product có một categoryId bắt buộc; Category 1–n Product. Hãng/kích thước/màu giữ riêng. Không đổi nghiệp vụ tồn. Mốc hiện hành là local v8 và Atlas wmsd_database, 59 collection/638 bản ghi. Tại lúc thực hiện local v7 và Atlas đều trống, nên đã tạo lại mẫu; không coi các DB cũ là hiện còn trên máy. Giữ ba thư mục có người dùng; bỏ riêng ba builder reviewed cũ không còn được gọi. [Chi tiết và nguồn duyệt](docs/03_thiet_ke/DB_Rebuild_Review/40_Category_va_don_model.md), [triển khai](docs/09_phat_trien/CATEGORIES_V8.md).

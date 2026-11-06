@@ -1,6 +1,46 @@
+# Bỏ quản lý đội xe và lưu biển số theo lần bàn giao — 05/11/2026
+
+## 06/11/2026 — Category 1–n Product và bỏ builder không dùng (v8)
+
+Người dùng yêu cầu bảng category, tham khảo Gạch Tốt và duyệt 5 nhóm, mỗi product 1 category. Thêm category.model.js (code unique/immutable, name, description, isActive, timestamps), products.categoryId bắt buộc ref Category và index, registry reviewed 59 collection. Profile migration lịch sử giữ hợp đồng cũ. Seed v8 gắn 18 product theo hãng/SKU: lát nền 9, ốp tường 3, trang trí 2, sân vườn 2, giả gỗ 2. Không đổi nghiệp vụ tồn, giá, lô hay quyền API; chưa làm API category.
+
+Rà 315 file JS/MJS trong src/scripts/test: 96 schema embedded có nơi gọi; ít nhất 12 file module API dùng legacy; registry/ref/capacity/seed/migration dùng rebuild. Chỉ bỏ reviewed-events.js, reviewed-support.js, reviewed-workflows.js vì không có importer ngoài chính nhóm ba file này. Giữ các thư mục đang dùng. Báo cáo git_doc/outputs/model_folder_usage_2026-11-06.json.
+
+Khi kiểm tra, local v7 không còn và Atlas wmsd_database đang trống; công cụ nâng v7 dừng trước ghi. Không có nguồn để bảo toàn ID v7, nên tạo mới mẫu local wmsd_demo_tile_shop_v8, rồi deploy vào Atlas rỗng: 59 collection/638 bản ghi. Đọc lại Atlas khớp hash local và toàn bộ index, schema/ref/tồn/hạn mức/sức chứa/hóa đơn. Báo cáo categories_v8_local_seed_2026-11-06.json, categories_v8_atlas_deployed_2026-11-06.json, categories_v8_atlas_verified_2026-11-06.json. Không đổi kết nối ứng dụng, không lưu URI có mật khẩu vào Git.
+
+Bổ sung công cụ nâng category cho máy vẫn có đúng v7: chỉ thêm category/categoryId, không ghi đè dữ liệu khác; bảo vệ bằng so sánh snapshot và transaction Atlas. Nhánh nâng v7 chưa chạy thành công trên môi trường này do nguồn trống; guard và tính bảo toàn dữ liệu có test. 57/57 test DB/model/category/deploy đạt. Cập nhật MODEL_MAP, Data Dictionary 59_v8, SQL-style diagram (11 tab/493 quan hệ), context, PROJECT_GUIDE, hướng dẫn local/seed/category/Atlas, README và ba file luật giống nhau. Đã xuất và xem ảnh tab Warehouse & catalogue; tăng chiều cao theo dòng quấn và khoảng hàng để tránh cắt trường. Các báo cáo v7 giữ nguyên là lịch sử. API legacy chưa port; D07/D08 vẫn chờ; không commit/push Git.
+
+## 06/11/2026 — Tách model từng file, seed chỉ gạch và đưa DB lên Atlas
+
+Theo yêu cầu trực tiếp: mỗi schema hiện hành một file .model.js. 58 collection có file riêng ngay src/models; 96 schema nhúng có file riêng trong embedded, không tăng collection. reviewed-registry nạp factory mới; model cũ chuyển vào legacy cho API chưa port, rebuild giữ registry/helper/profile migration lịch sử. Không đổi trường, ref, default, index hay dữ liệu BSON sau serialize khi tách. Đã đối chiếu metadata trước/sau và hash serialize trên cùng fixture; xem git_doc/outputs/model_files_split_2026-11-06.json.
+
+Người dùng chọn bỏ thiết bị vệ sinh. Giữ nguyên local v6, sao dữ liệu thực đang có sang v7, loại các lô/tồn/ô/điểm tồn/phiếu đầu kỳ/giao dịch/NCC liên quan, kiểm không còn tham chiếu bị bỏ; giữ ID và dữ liệu khác. Seed v7 chỉ gạch: 58 collection, 633 bản ghi, 18 sản phẩm, 39 lô. Atlas wmsd_database trước khi ghi rỗng; đã triển khai từ v7, đọc lại đối chiếu hash toàn bộ dữ liệu cùng index và kiểm nghiệp vụ; xác minh độc lập đạt. Bí mật chỉ nhận qua biến môi trường, không đưa vào Git/tài liệu. Công cụ không ghi đè đích đã có dữ liệu khác.
+
+Cập nhật MODEL_MAP trỏ đúng 58 file, Data Dictionary v7 có sourceFile, hướng dẫn Atlas/local/seed/registry, context, PROJECT_GUIDE, ba file luật giống nhau và README. 52/52 test DB/model/deploy đạt. Full suite ở mốc trước seed v7: 114 đạt, 10 lỗi legacy (9 import thiếu src/shared/utils/domain.js, 1 fixture thiếu INTERNAL_TRANSFER_REQUIREMENT), 13 bỏ qua. Chưa port API/service, chưa đổi kết nối ứng dụng; D07/D08 vẫn chờ. Tiếp tục HieuDT không merge main theo lựa chọn đã có; không commit/push Git trong lượt này.
+
+## 06/11/2026 — Kích thước sản phẩm, màu và thùng theo lô (v6)
+
+Theo quyết định trực tiếp: products bỏ nominalSize, thêm dài/rộng/cao (mm) và màu bắt buộc; mỗi màu một ID, khóa hãng/SKU/màu. product_batches bỏ calibre/tone, khóa productId/manufacturerLot, số viên/thùng cố định và kích thước ngoài thực tế. Snapshot quy cách giữ trên dòng, số thùng trên lần nhập; kiểm quy cách khớp lô, cạnh thùng vừa ô và dung tích. Không suy kích thước ngoài từ thể tích viên. Helper chỉ ước tính lượng xếp được khi chưa có tọa độ/3D. Cập nhật schema, seed v6, validator, tests, dictionary, diagram, MODEL_MAP và hướng dẫn. 48 test DB/model đạt; kết quả local tại git_doc/outputs/product_carton_v6_local_2026-11-06.json. Vẫn 58 collection/654 bản ghi; DB trước giữ nguyên. API legacy chưa port, không ghi DB nhóm, không commit/push.
+
+## 06/11/2026 — Lược trường trùng/thừa trên 58 bảng
+
+Theo yêu cầu rà biến từng bảng: bỏ 44 đường dẫn field, giữ chức năng trạng thái và kiểm sửa đồng thời riêng. Chi tiết từng collection tại DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md; dictionary v5 và diagram đã tái tạo. Seed v5 có 58 collection / 654 bản ghi. 43 test DB/model đạt, docs:check và kiểm local. Danh mục bỏ version cần API kiểm updatedAt khi port; API legacy còn riêng. Không thay DB nhóm và không commit/push.
+
+## 06/11/2026 — Gộp tiếp 5 bảng, 63 → 58
+
+Theo yêu cầu người dùng: movements vào stock_transactions; holds và resolutionPlans vào defect_reports; resolutionPlans vào stocktakes; deliveryConfirmations vào sales_orders. Giữ ID/lịch sử, kiểm hồ sơ cha và trùng dòng, index truy vấn, preflight BSON. Seed v4 riêng ở localhost, API legacy chưa port. Kiểm 41 test và docs:check; kết quả local ở git_doc/outputs. Người dùng chọn tiếp tục HieuDT, chưa merge 5 commit mới của main do file trùng đang sửa; không commit/push.
+
+
+## 06/11/2026 — Gộp 10 collection theo duyệt của người dùng
+
+Reviewed registry giảm 73 → 63. Giữ ID và lịch sử trong bảng cha; packagingPortions thay chồng, ô dùng chiều cao kho. Cập nhật seed v3, bộ chuyển/kiểm dữ liệu, schema refs tới phần nhúng, sơ đồ và từ điển hiện hành. Migration profile lịch sử/API legacy tách riêng. Không ghi DB nhóm. Kiểm test:db-rebuild, seed preview/local và docs:check; báo cáo ở git_doc/outputs.
+
+
+Theo quyết định mới, bỏ collection/model `delivery_teams`, tham chiếu `carrierId` và snapshot tên đội. Thêm `vehiclePlate` tùy chọn trực tiếp trong header của từng lần bàn giao; chuyển đổi không đoán biển số từ carrier cũ và tạo cảnh báo khi hồ sơ nguồn có tham chiếu không chuyển được. Bộ seed mới là v2, 73 collection/849 bản ghi; không ghi đè database local v1. Tạo lại SQL-style DB diagram và cập nhật danh mục quyết định, model map, hướng dẫn DB/seed, tài liệu bàn giao và changelog. Các phiếu B08C lịch sử được giữ nhưng đánh dấu đã bị thay thế.
+
 # DB Diagram kiểu SQL theo model hiện hành — 05/11/2026
 
-Tạo [WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio) theo cách trình bày bảng như SQL/Miro: header tên collection, các trường PK/FK, kiểu dữ liệu, trường bắt buộc/tùy chọn và đường quan hệ crow's-foot. Tab `00` đặt toàn bộ 74 bảng trên một sơ đồ; 10 tab nhóm nghiệp vụ giúp đọc field và quan hệ rõ hơn. Sơ đồ được sinh trực tiếp từ 74 Mongoose model đã duyệt để tránh lệch tên collection/ref. Kiểm XML đạt: 11 tab, 148 khung bảng và 504 đường quan hệ FK trực tiếp (gồm tab tổng hợp và các tab nhóm).
+Tạo [WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio) theo cách trình bày bảng như SQL/Miro: header tên collection, các trường PK/FK, kiểu dữ liệu, trường bắt buộc/tùy chọn và đường quan hệ crow's-foot. Tab `00` đặt toàn bộ 73 bảng trên một sơ đồ; 10 tab nhóm nghiệp vụ giúp đọc field và quan hệ rõ hơn. Sơ đồ được sinh trực tiếp từ 73 Mongoose model hiện hành để tránh lệch tên collection/ref. Kiểm XML đạt: 11 tab, 146 khung bảng và 502 đường quan hệ FK trực tiếp (gồm tab tổng hợp và các tab nhóm).
 
 # Sơ đồ database chi tiết theo model hiện hành — 05/11/2026
 

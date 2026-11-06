@@ -1,5 +1,8 @@
 # C07–C08 · Chồng hàng và đóng gói thực tế
 
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **C07 v0.1 và C08 v0.1 đều ĐÃ DUYỆT riêng.** Người dùng trả lời “Duyệt C07 v0.1” và “Duyệt C08 v0.1”. [Phiếu v0.1 đã trình](history/12_Duyet_chong_hang_va_dong_goi_thuc_te_v0.1_de_xuat.md). Đây là dữ liệu thực hiện [kiểm sức chứa B02 đã duyệt](05_Duyet_kho_vi_tri_don_vi_tinh.md) bằng quy cách thực tế trên dòng và [số dư C02](09_Duyet_diem_ton_va_so_du.md). Phần tham chiếu B06 được sửa theo [Quyết định bỏ UOM và lưu quy đổi trên dòng](14_Bo_UOM_va_luu_quy_doi_tren_dong.md); các quy tắc sức chứa vẫn giữ. Chưa áp vào DB hoặc code. Bản đồ 3D, tọa độ từng kiện và thuật toán tự xếp hàng chưa nằm trong lượt thiết kế này.
 
 ## Vì sao cần hai bảng

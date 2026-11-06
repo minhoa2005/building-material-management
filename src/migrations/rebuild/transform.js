@@ -1,6 +1,6 @@
 import { isDeepStrictEqual } from 'node:util';
 import { exact } from '../../models/model-utils.js';
-import { documentCollections, collectionNames, splitSources, newCollections } from '../../models/rebuild/collections.js';
+import { documentCollections, collectionNames, splitSources, migrationCollections as newCollections } from '../../models/rebuild/collections.js';
 import { PERMISSION_CATALOGUE } from '../../seeds/data/permissions.data.js';
 
 const roleNames = { OWNER: 'Store Owner', WAREHOUSE: 'Warehouse Staff', ACCOUNTANT: 'Accountant', SALES: 'Sales Staff', ADMIN: 'Administrator' };
@@ -52,6 +52,10 @@ export function transformSnapshot(source) {
   const transformedDocs = new Map(), transformedItems = new Map();
   for (const row of docs.values()) {
     const value = { ...row, items: [] };
+    if (row.documentKind === 'HANDOVER') {
+      value.header = without(row.header ?? {}, ['carrierId']);
+      if (row.header?.carrierId) flag('handovers', row, 'vehiclePlate (legacy carrier reference cannot be converted to a plate)');
+    }
     transformedDocs.set(String(row._id), value);
     locationOf(row._id);
     if (row.documentKind !== 'HANDOVER') target[documentCollections[row.documentKind]].push(value);
@@ -117,11 +121,10 @@ export function transformSnapshot(source) {
     } else if (row.kind === 'SUPPLIER') {
       target.suppliers.push({ ...baseFields(row), version: row.version ?? 1, status: row.isActive ? 'ACTIVE' : 'INACTIVE' });
     } else if (row.kind === 'CARRIER') {
-      // Legacy carriers could be third parties. Check the team before using it for a new dispatch.
-      flag('delivery_teams', row, 'verifyInternalTeam');
-      target.delivery_teams.push({ ...baseFields(row), isActive: row.isActive, version: row.version ?? 1 });
+      // The new design stores the actual vehicle plate on each handover, not a carrier catalogue.
+      // Retain the source party in the source database; do not create a target catalogue row.
     } else throw new Error('Unmapped party kind: ' + row.kind);
-    if (row.contactReference) flag({ CUSTOMER:'customers', SUPPLIER:'suppliers', CARRIER:'delivery_teams' }[row.kind], row, 'legacyContactReferenceRetainedInSource');
+    if (row.contactReference) flag(row.kind === 'CARRIER' ? 'parties' : { CUSTOMER:'customers', SUPPLIER:'suppliers' }[row.kind], row, 'legacyContactReferenceRetainedInSource');
   }
   const sequence = new Map();
   const changes = {

@@ -1,5 +1,8 @@
 # H18–H20 · Từ lúc phát hiện hàng lỗi đến khi thực hiện phương án xử lý
 
+**Hiện hành:** [Gộp tiếp 5 bảng ngày 06/11/2026](37_Gop_them_5_bang.md), còn 58 collection. Cách tách các bảng được thay thế là lịch sử; quyền và kết quả nghiệp vụ vẫn giữ.
+
+
 **Đã duyệt H18, H19 và H20 v0.1 · 01/11/2026.** Sau khi đọc ví dụ bổ sung, người dùng trả lời “Duyệt H18 v0.1” và “Duyệt H19 v0.1”. H20 v0.1 đã duyệt ở lượt trước. [Bản giải thích đã duyệt](history/21_Duyet_hang_loi_phuong_an_va_phieu_huy_v0.1_bo_sung_giai_thich.md) · [Bản trình ban đầu](history/21_Duyet_hang_loi_phuong_an_va_phieu_huy_v0.1_de_xuat.md) · [Quy trình BF02](../../02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) · [Report 3](../../01_bao_cao/WMSD_Report3_Fix.docx.txt) · [Snapshot MongoDB](03_Cau_truc_DB_hien_tai.md).
 
 | Hồ sơ | Câu hỏi khi tra cứu | Ví dụ với 10 viên gạch của shop bị nứt |

@@ -1,5 +1,8 @@
 # D05–D06 · Lịch sử quyết định và tệp đính kèm
 
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **Bản v0.1 · 02/11/2026 · D05 và D06 đã duyệt riêng.** Người dùng trả lời “Duyệt D05 v0.1” và “Duyệt D06 v0.1”. Giữ nguyên cấu trúc và quy tắc đã trình bên dưới; [bản trước duyệt](history/33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem_v0.1_de_xuat.md) dùng đối chiếu. Chưa sửa code hoặc DB. D07 còn mở vì người dùng cho biết nghiệp vụ này do người khác phụ trách.
 
 Căn cứ: [dòng và tham chiếu D02–D04](32_Duyet_dong_hang_va_lien_ket_chung_tu.md), [quyền A02/A03](02_Duyet_tai_khoan_va_phan_quyen.md), [khách trả H27/H28](24_Duyet_khach_tra_hang_sau_khi_nhan.md), [phương án kiểm kê H25](29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh.md), [trả NCC H29](26_Duyet_yeu_cau_xuat_tra_va_xac_nhan_nha_cung_cap.md) và [snapshot DB cũ](03_Cau_truc_DB_hien_tai.md).

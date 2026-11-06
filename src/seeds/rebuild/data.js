@@ -8,8 +8,10 @@ import { upgradeSupportingData } from './support-data.js';
 import { addTransferExamples, addInvoiceExample, addStorageExamples } from './workflow-data.js';
 import { splitCompletedSale, addOperationalExamples, addHandoverExamples } from './scenarios.js';
 import { buildTileShopScenario } from './tile-shop.js';
+import { consolidateData } from '../../models/rebuild/consolidation.js';
+import { addTileCategories } from './categories.js';
 
-export const SEED_VERSION = 'wmsd-tile-shop-20261105-v1';
+export const SEED_VERSION = 'wmsd-tile-shop-20261106-v8';
 export const hash = value => createHash('sha256').update(value).digest('hex');
 export const fixtureId = key => new mongoose.Types.ObjectId(hash(SEED_VERSION + ':' + key).slice(0,24));
 export const demoDate = (day, hour = 8) => new Date(Date.UTC(2026,9,day,hour));
@@ -56,7 +58,7 @@ export function dataContext(data) {
   return { data, documents, items, itemParents, byId, document, sourceRef, ancestor };
 }
 
-export async function buildReviewedDemo() {
+export async function buildReviewedDemo({ consolidate = true } = {}) {
   const groups = await buildDemoData();
   const source = Object.fromEntries(groups.map(group => [group.Model.collection.name,group.documents.map(row => row.toObject())]));
   const data = transformSnapshot(source).target;
@@ -73,7 +75,6 @@ export async function buildReviewedDemo() {
   const owner = actor('OWNER'), warehouse = actor('WAREHOUSE'), accountant = actor('ACCOUNTANT');
   for (const row of data.products) { row.manufacturerCode='DEMO-FACTORY'; row.material='Porcelain mẫu'; }
   data.customers.forEach((row,index) => { row.phone='09000000' + String(index+1).padStart(2,'0'); });
-  data.delivery_teams.forEach((row,index) => { row.name='Đội vận chuyển nội bộ mẫu ' + (index+1); });
   data.warehouses.forEach(row => {
     Object.assign(row,{lengthMm:30000,widthMm:20000,clearHeightMm:6000,description:'Kích thước giả lập phục vụ kiểm thử'});
   });
@@ -134,7 +135,7 @@ export async function buildReviewedDemo() {
   }
   for (const {document} of context.documents.values()) {
     for (const handover of document.handovers || []) {
-      handover.header.teamNameAtHandover=context.byId('delivery_teams',handover.header.carrierId).name;
+      handover.header.vehiclePlate ??= '29A-123.45';
     }
     if(document.documentKind==='OPENING') {
       const movement=data.stock_movements.find(row => String(row.transactionId)===String(document.stockTransactionId));
@@ -157,5 +158,6 @@ export async function buildReviewedDemo() {
   addInvoiceExample(context);
   addStorageExamples(dataContext(data),warehouse);
   buildTileShopScenario(data);
-  return data;
+  const categorized=addTileCategories(data);
+  return consolidate ? consolidateData(categorized) : categorized;
 }

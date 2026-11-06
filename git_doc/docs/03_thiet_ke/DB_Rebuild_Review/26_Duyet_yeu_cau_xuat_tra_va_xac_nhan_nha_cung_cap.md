@@ -1,5 +1,8 @@
 # H29, H30 và H31 · Trả hàng nhà cung cấp
 
+**Cập nhật 06/11/2026:** Cách tách bảng trong phiếu dưới đây là lịch sử thiết kế. Người dùng đã duyệt [gộp 10 bảng](36_Gop_10_bang.md): ngưỡng, kiểm trả, xác nhận tiền/NCC và giao bù nhúng vào phiếu cha; bỏ chồng hàng, quy cách hiện tồn vào số dư. Quy tắc nghiệp vụ vẫn giữ; D07/D08 còn chờ.
+
+
 **H29, H30 và H31 đã duyệt riêng v0.1 · 01/11/2026.** [Bản trình đã duyệt](history/26_Duyet_yeu_cau_xuat_tra_va_xac_nhan_nha_cung_cap_v0.1_de_xuat.md). Trong hồ sơ này, “đồng ý nhận lại” là thỏa thuận trước khi xe chở hàng đi. “Đã nhận” là kết quả nhà cung cấp (NCC) xác nhận sau khi giao. Hai mốc có thể có số lượng, ngày và bằng chứng khác nhau.
 
 **Quyền đã chốt theo BF-08 bản BE.** Warehouse Staff lập yêu cầu và xác nhận thực xuất. Accountant xác minh thỏa thuận theo đúng nguồn/lượng trước khi xuất, sau đó ghi kết quả NCC nhận, đối chiếu và đóng phần kho. Lựa chọn này được người dùng duyệt tại H29 v0.1. Quyền Store Owner duyệt nhận lại hàng khách ở H28 là một quyết định riêng. [Report 3 trong docs_doan](../../01_bao_cao/WMSD_Report3_Fix.docx.txt) · [Report 3 trong BE, BF-08 và UC-81/82/83/107](../../01_bao_cao/WMSD_Report3_Fix.docx.txt).
