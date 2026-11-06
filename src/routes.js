@@ -1,32 +1,56 @@
-import { Router } from 'express';
-import locationMovementRouter from './modules/location-movements/location-movement.routes.js';
-import transferReadRouter from './modules/transfers/transfer-read.routes.js';
-import transferWriteRouter from './modules/transfers/transfer-write.routes.js';
-import { salesOrderRouter, outboundDeliveryRouter } from './modules/sales-orders/sales-read.routes.js';
-import healthRouter from './modules/health/health.routes.js';
-import authRouter from './modules/auth/auth.routes.js';
-import uploadRouter from './modules/upload/upload.routes.js';
-import usersRouter from './modules/users/user.routes.js';
-import rolesRouter from './modules/roles/role.routes.js';
-import defectsRouter from './modules/defects/defect.routes.js';
-import customerReturnsRouter from './modules/customer-returns/customer-return.routes.js';
+import { Router } from "express";
+import locationMovementRouter from "./modules/location-movements/location-movement.routes.js";
+import transferReadRouter from "./modules/transfers/transfer-read.routes.js";
+import transferWriteRouter from "./modules/transfers/transfer-write.routes.js";
+import {
+  salesOrderRouter,
+  outboundDeliveryRouter,
+} from "./modules/sales-orders/sales-read.routes.js";
+import healthRouter from "./modules/health/health.routes.js";
+import authRouter from "./modules/auth/auth.routes.js";
+import uploadRouter from "./modules/upload/upload.routes.js";
+import usersRouter from "./modules/users/user.routes.js";
+import rolesRouter from "./modules/roles/role.routes.js";
+import replenishmentsRouter from "./modules/replenishments/replenishment.routes.js";
+import productsRouter from "./modules/products/product.routes.js";
+import suppliersRouter from "./modules/suppliers/supplier.routes.js";
+import lotsRouter from "./modules/lots/lot.routes.js";
+import purchaseOrdersRouter from "./modules/purchase-orders/purchase-order.routes.js";
+import purchaseOrderCommandsRouter from './modules/purchase-orders/purchase-order.commands.routes.js';
+import {
+  inspectionRouter,
+  receiptRouter,
+  purchaseReceivingRouter,
+  custodyRouter, reversalRouter, putawayRouter, queueRouter, purchaseDocumentRouter,
+} from "./modules/po-receiving/po-receiving.routes.js";
+
 import returnWorkflowsRouter from './modules/return-workflows/workflow.routes.js';
-import replenishmentsRouter from './modules/replenishments/replenishment.routes.js';
 
 const router = Router();
-router.use('/location-movements', locationMovementRouter);
-router.use('/warehouse-transfers', transferWriteRouter, transferReadRouter);
-router.use('/sales-orders', salesOrderRouter);
-router.use('/outbound-deliveries', outboundDeliveryRouter);
-
-router.use('/health', healthRouter);
-router.use('/auth', authRouter);
-router.use('/upload', uploadRouter);
-router.use('/users', usersRouter);
-router.use('/roles', rolesRouter);
-router.use('/defects', defectsRouter);
-router.use('/customer-returns', customerReturnsRouter);
-router.use('/replenishments', replenishmentsRouter);
-
 router.use(returnWorkflowsRouter);
+router.use("/location-movements", locationMovementRouter);
+router.use("/warehouse-transfers", transferWriteRouter, transferReadRouter);
+router.use("/sales-orders", salesOrderRouter);
+router.use("/outbound-deliveries", outboundDeliveryRouter);
+
+router.use("/health", healthRouter);
+router.use("/auth", authRouter);
+router.use("/upload", uploadRouter);
+router.use("/users", usersRouter);
+router.use("/roles", rolesRouter);
+router.use("/replenishments", replenishmentsRouter);
+router.use("/products", productsRouter);
+router.use("/suppliers", suppliersRouter);
+router.use("/lots", lotsRouter);
+router.use("/purchase-orders", purchaseOrdersRouter);
+router.use('/purchase-orders', purchaseOrderCommandsRouter);
+router.use("/purchase-orders", purchaseReceivingRouter);
+router.use("/goods-inspections", inspectionRouter);
+router.use("/stock-reversals", reversalRouter);
+router.use("/custody-receipts", custodyRouter);
+router.use("/purchase-receipts", receiptRouter);
+router.use('/putaway-tasks', putawayRouter);
+router.use('/purchase-receiving/queue', queueRouter);
+router.use('/purchase-documents', purchaseDocumentRouter);
+
 export default router;

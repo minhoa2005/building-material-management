@@ -1,0 +1,64 @@
+
+> sep490-api@1.0.0 test:db-rebuild
+> node --test test/db-rebuild.test.js test/reviewed-demo.test.js test/local-mongo-config.test.js test/consolidation.test.js test/reviewed-deploy.test.js test/reviewed-model-files.test.js
+
+✔ all merged record types retain IDs, fields, quantities and history (10.2942ms)
+✔ model serialization preserves every embedded history field and reference (237.6787ms)
+✔ consolidation leaves the original snapshot untouched (34.197ms)
+✔ orphan history stops consolidation instead of dropping data (12.7266ms)
+✔ missing carton quantity is detected after removing stacks (138.114ms)
+✔ duplicate warehouse threshold on the same product is rejected (1.1094ms)
+✔ an embedded movement must belong to its transaction and line numbers remain unique (0.718ms)
+✔ embedded confirmation cannot be moved to another sales order (1.9703ms)
+✔ embedded holds and both kinds of resolution plans retain their parent (3.3938ms)
+✔ reprocessing consolidated data neither duplicates histories nor changes quantities (3.0553ms)
+✔ cleanup removes catalogue and nested counters without dropping stock or security versions (0.4368ms)
+✔ duplicate revision can be removed only when it agrees with the canonical version (18.7435ms)
+✔ products have exact dimensions and mandatory color; SKU identity permits separate colors (0.8827ms)
+✔ batch has fixed pieces and measured outer carton dimensions, without calibre or tone (1.1252ms)
+✔ same lot cannot use a different number of pieces per carton (0.179ms)
+✔ a carton can have small volume but still be too long for a bin (0.1283ms)
+✔ empty-bin grid allows horizontal rotation and remaining-volume estimate is bounded (0.1547ms)
+✔ rebuild preserves document/item identities, sources, stock and external documents (4.1773ms)
+✔ handover becomes a child of its dispatch and maintains its original line ID (0.1786ms)
+✔ historical conversion uses line snapshot even if master conversion has changed (5.0303ms)
+✔ unknown collections and missing source references stop the migration (1.8388ms)
+✔ wrong historical quantities and stock differences are rejected (0.8074ms)
+✔ source snapshot stays immutable and reruns produce the same data (29.4639ms)
+✔ missing manufacturer, customer phone and historical prices are reported, never filled (81.645ms)
+✔ rebuilt invoice calculates accepted quantities and rejects billed excess (2.1592ms)
+✔ schema changes allow custom roles and enforce ownership/dimension constraints (0.5605ms)
+✔ local MongoDB configuration accepts only literal loopback endpoints (0.7139ms)
+✔ demo CLI refuses a remote write before opening any network connection (1154.066ms)
+✔ complete reviewed demo validates all schemas, links, balances and approved scenarios (191.6026ms)
+✔ MongoDB read order does not affect stock reconciliation (159.1914ms)
+✔ tile shop has three warehouses, surveyed staff counts and separate batches (0.4974ms)
+✔ cartons keep their batch and exact conversion and cannot contain another product (141.6359ms)
+✔ carton packaging cannot disagree with the entered quantity conversion (131.179ms)
+✔ BSON field order does not change the demo fingerprint but values do (63.1746ms)
+✔ rejects an inconsistent ending stock balance (125.4614ms)
+✔ rejects a source link whose item belongs to a different document (124.7499ms)
+✔ rejects occupied volume above the bin capacity using shared warehouse height (121.5289ms)
+✔ rejects active reservation above remaining physical stock (129.2804ms)
+✔ reservation counters cannot consume and release the same amount twice (0.8079ms)
+✔ dispatches cannot exceed the approved TR line quantity (128.3612ms)
+✔ destination receiver cannot be the source dispatcher (131.1171ms)
+✔ invoice keeps 100 issued units while billing only 98 accepted units (11.2704ms)
+✔ invoice cannot change historical accepted quantity just to match a total (129.7239ms)
+✔ extension fields remain present on discriminated SO and GI items (2.739ms)
+✔ schema profiles require separate isolated connections (0.0982ms)
+✔ only separate demo database names are allowed (0.1423ms)
+✔ occupied unmarked target is refused before any write (0.1732ms)
+✔ sample event queue cannot trigger an outbound email (120.4365ms)
+✔ deployment allows an empty target or empty collections from an interrupted setup (1.7292ms)
+✔ deployment rerun verifies identical data without inserting it twice (0.2797ms)
+✔ deployment refuses populated targets with different values, missing or unknown collections (0.382ms)
+✔ each current collection has its own model file and each embedded file declares one schema (449.4929ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3296.5148

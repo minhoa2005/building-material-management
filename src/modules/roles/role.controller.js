@@ -17,3 +17,6 @@ export const updateRolePermissions = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+export const createRole=catchAsync(async(req,res)=>formatApiResponse(res,{data:await roleService.createRole(req.validated.body)}));
+export const listPermissions=catchAsync(async(_req,res)=>formatApiResponse(res,{data:await roleService.listPermissions()}));

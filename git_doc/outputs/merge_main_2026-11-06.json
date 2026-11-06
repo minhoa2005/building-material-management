@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-06",
+  "branch": "HieuDT",
+  "sourceMain": "baf5fb4",
+  "priorHead": "5f4a296",
+  "fullTests": {
+    "tests": 161,
+    "pass": 135,
+    "fail": 0,
+    "skipped": 26
+  },
+  "reviewedTests": {
+    "tests": 57,
+    "pass": 57,
+    "fail": 0
+  },
+  "docs": {
+    "passed": true,
+    "collections": 59,
+    "links": 659
+  },
+  "httpUnauthenticated": {
+    "/api/purchase-orders": 401,
+    "/api/location-movements": 401,
+    "/api/warehouse-transfers": 401
+  },
+  "databaseWrites": false,
+  "limitations": [
+    "Local MongoDB is standalone; transaction integration tests not run",
+    "External-storage live tests not run",
+    "Legacy APIs have not been ported to reviewed database"
+  ]
+}

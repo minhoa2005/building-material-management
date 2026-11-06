@@ -1,0 +1,12 @@
+{
+  "status": "VERIFIED",
+  "collections": 58,
+  "rootModelFiles": 58,
+  "embeddedSchemaFiles": 96,
+  "metadataDifferences": [],
+  "serializationDifferences": [],
+  "serializedFixtureHashBefore": "fa330e814182eed887e15fe7783c5a3773774653b4a957d632eed1b6eb140b25",
+  "serializedFixtureHashAfter": "fa330e814182eed887e15fe7783c5a3773774653b4a957d632eed1b6eb140b25",
+  "schemaChanges": "None intended: file organization only",
+  "recordedAt": "2026-11-06T08:43:32.398Z"
+}

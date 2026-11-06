@@ -65,6 +65,7 @@ export function mapApproval(
         lineId: idString(line.lineId),
         approvedQtyBase: decimalString(line.approvedQty),
         outcome: line.outcome,
+        reason: line.reason ?? null,
       })),
     }),
   };

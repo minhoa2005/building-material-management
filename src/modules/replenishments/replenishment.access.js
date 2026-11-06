@@ -24,7 +24,7 @@ export function canAccessWarehouse(user, warehouseId) {
 // authenticate/checkPermission authorize the request before this record filter.
 export function replenishmentScope(user) {
   const role = currentRole(user);
-  if (!role || !BUSINESS_ROLES.includes(role.code))
+  if (!role || !rolePermissions(user).includes(READ_PERMISSION))
     throw new ApiError(403, "Bạn không có quyền xem yêu cầu bổ sung hàng");
   const scope = { documentKind: "REPLENISHMENT" };
   if (role.code !== "OWNER")

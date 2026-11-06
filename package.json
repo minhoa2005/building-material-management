@@ -8,11 +8,23 @@
     "start": "node src/index.js",
     "seed": "node src/seeds/run.js",
     "seed:sync-permissions": "node src/seeds/run.js --sync-permissions",
-    "migrate:replenishment": "node src/migrations/run-replenishment-3.3.js",
-    "test": "node --test",
+    "seed:purchase-read-permissions": "node src/seeds/run.js --purchase-read-only",
+    "test": "node --test test/*.test.js",
     "test:fe06:pack": "node scripts/generate-fe06-thunder.mjs",
     "test:fe06:server": "node scripts/start-fe06-thunder.mjs",
-    "migrate:single-role": "node src/migrations/run-single-role.js"
+    "purchase:reconcile": "node scripts/purchase-maintenance.mjs reconcile",
+    "purchase:cleanup-evidence": "node scripts/purchase-maintenance.mjs cleanup-evidence",
+    "test:db-rebuild": "node --test test/db-rebuild.test.js test/reviewed-demo.test.js test/local-mongo-config.test.js test/consolidation.test.js test/reviewed-deploy.test.js test/reviewed-model-files.test.js test/product-categories.test.js",
+    "db:demo": "node src/seeds/rebuild/run.js",
+    "db:local:start": "node scripts/local-mongo.mjs start",
+    "db:local:status": "node scripts/local-mongo.mjs status",
+    "db:local:seed": "node scripts/local-mongo.mjs seed",
+    "db:local:verify": "node scripts/local-mongo.mjs verify",
+    "test:db:local": "node scripts/test-local-models.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
+    "db:deploy": "node scripts/deploy-reviewed-db.mjs",
+    "db:categories": "node scripts/add-product-categories.mjs",
+    "test:returns": "node scripts/test-return-workflows.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -26,7 +38,10 @@
     "mongoose": "^9.10.1",
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
-    "zod": "^4.6.7"
+    "zod": "^4.6.7",
+    "jpeg-js": "0.4.4",
+    "pdf-lib": "1.17.1",
+    "pngjs": "7.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

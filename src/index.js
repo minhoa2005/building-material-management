@@ -8,8 +8,8 @@ async function startServer() {
   await connectDatabase();
 
   // Chỉ insert toàn bộ dữ liệu demo nếu database hoàn toàn trống.
-  // Tắt bằng SEED_ON_STARTUP=false.
-  const seedOnStartup = process.env.SEED_ON_STARTUP !== 'false';
+  // Chỉ bật chủ động bằng SEED_ON_STARTUP=true.
+  const seedOnStartup = process.env.SEED_ON_STARTUP === 'true';
   if (seedOnStartup && mongoose.connection.readyState === 1) {
     await runSeeds().catch((err) => {
       console.error('Failed to seed default data:', err);

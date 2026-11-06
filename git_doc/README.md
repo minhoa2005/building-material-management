@@ -1,84 +1,51 @@
-# Tài liệu đồ án WMSD
+# WMSD — Tài liệu chung của nhóm
 
-Kho tài liệu của Warehouse Management System Development — SEP490_G56, cửa hàng gạch ốp lát Tân Thương.
+Cập nhật ngày 06/11/2026. Đây là điểm bắt đầu khi phát triển backend và chuyển sang DB mới.
 
-**Chuẩn nghiệp vụ hiện hành: baseline 3.3.0, đồng bộ ngày 27/10/2026.** Áp dụng một form RR điền sẵn, lời hỏi sau lưu SO, thêm sản phẩm có căn cứ riêng và Notification theo đề xuất 1.4.0; giữ 8 BF, 5 role, 111 UC (97 active/14 retired), BR-01–33, SC-01–31 (28 active/3 retired). Model/seed hỗ trợ cấu trúc mới; API/consumer/UI mới chưa triển khai.
+[Quyết định gộp 10 bảng](docs/03_thiet_ke/DB_Rebuild_Review/36_Gop_10_bang.md) · [Từ điển 59 bảng hiện hành](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md)
 
-Luồng đơn: SO nhập lại từ nguồn ngoài đã xác minh → WIR liên kết → OD/soạn/PGI → Warehouse xác nhận POD có ảnh (DELIVERED) → Sales xác nhận đủ tiền ngoài hệ thống (PAY-CFM, COMPLETED). Giá bán, hóa đơn, thu/chuyển tiền và kế toán vẫn bên ngoài; không live MISA.
+## Đọc theo thứ tự
 
-Thay đổi chính: A1 nhận hàng giao thất bại bằng GR-FD và tái mở nhu cầu ròng trên SO/WIR/OD gốc; B1 ghi hold ngay và chốt delta/RECLASS kiểm kê trước mở khóa; C2 Sales chấp nhận CR thông thường sau kiểm, Owner chỉ ngoại lệ đủ điều kiện. BF-08 không Owner duyệt: Accountant xác minh thỏa thuận/đối chiếu/đóng, Warehouse post thực tế. UC-106 retired; giữ ID/lịch sử.
+[Merge main 06/11/2026 — model, API runtime và kiểm thử](docs/09_phat_trien/MERGE_MAIN_2026-11-06.md).
 
-| Lịch sử | Ngày | Nội dung |
-|---|---|---|
-| 3.0.0 | 22/10/2026 | Tám BF, SO/WIR/POD/PAY-CFM và bộ hình cùng mốc. |
-| 3.1.0 | 25/10/2026 | Đồng bộ tài liệu theo quyết định 24/10; loại trừ diagrams. Xem [báo cáo hậu kiểm](docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-25.md). |
-| Bổ sung Mermaid | 25/10/2026 | Theo yêu cầu tiếp theo, chỉ loại trừ file draw.io; cập nhật Mermaid nhúng, context và bản xuất PNG/HTML liên quan. |
+Bản hiện hành v8 có category: [từ điển trường](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md), [sản phẩm/lô/thùng và sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md), [kết quả rà trường v5](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md). DB mẫu mới nhất là `wmsd_demo_tile_shop_v8` tại `localhost:27017`. Các snapshot trước giữ làm lịch sử.
 
-**Quyết định mới:** [đề xuất bổ sung hàng](docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md) và [CR/ma trận tác động](docs/07_ra_soat/CR-2026-10-27-REPLENISHMENT.md). Các mục lịch sử25/10 giữ mốc3.1.0; sơ đồ draw.io là snapshot lịch sử đã ghi phiên bản, không thay nguồn nghiệp vụ hiện hành.
+1. [Hướng dẫn dự án và quyết định hiện hành](PROJECT_GUIDE.md).
+2. [Bản đồ toàn bộ 59 collection và nơi sửa model](MODEL_MAP.md).
+3. [Quy tắc tự cập nhật tài liệu khi code](DOCUMENTATION_RULES.md).
+4. [Phiếu duyệt từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/00_Hien_trang_va_cach_duyet.md) và [nhật ký quyết định](docs/03_thiet_ke/DB_Rebuild_Review/04_Nhat_ky_duyet.md).
+5. [DB Diagram kiểu SQL (59 bảng, PK/FK và crow's-foot)](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio), [DB Diagram chi tiết snapshot (94 tab)](docs/03_thiet_ke/WMSD_DB_Diagram_2026-11-05.drawio), [ERD / snapshot / từ điển dữ liệu lịch sử](docs/03_thiet_ke/DB_Current_2026-11-04/README.md).
+6. [MongoDB local và Compass](docs/09_phat_trien/MONGODB_LOCAL.md), [bộ seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md).
 
-Quyết định phân quyền 28/10/2026: Mỗi user bắt buộc có đúng một role trong OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN, kể cả tài khoản inactive; một role có thể được gán cho nhiều user. Quyền chỉ lấy từ role hiện tại, không cộng gộp hoặc chuyển role trong phiên. Phạm vi kho vẫn là nhiều kho được phân công. Đổi role chỉ áp dụng cho yêu cầu tiếp theo, không thay danh tính và quyết định lịch sử. SQL hiện có 84 bảng/2 view; Mongo giữ 39 collections. Xem [hướng dẫn migration và contract](../README.md#single-role-migration).
+## Tài liệu triển khai
 
-## Bộ tài liệu hiện hành
-
-Đã áp dụng [đề xuất 1.4.0 — một form tạo RR được điền sẵn](docs/03_thiet_ke/De_xuat_bo_sung_hang_theo_nguon_2026-10-27.md) và [quyết định nghiệp vụ](docs/03_thiet_ke/brainstorms/tao_rr_form_dien_san_2026-10-27.md) vào model/seed/contracts/context. Một form, nguồn từng dòng và lưu/gửi theo quyền; API/worker/UI chưa được triển khai bởi thay đổi cấu trúc này.
-
-| Tài liệu | Vai trò / trạng thái |
+| Tài liệu | Nội dung |
 |---|---|
-| [Quy trình VI](docs/02_nghiep_vu/de_xuat_quy_trinh_2_VI.md) / [EN](docs/02_nghiep_vu/de_xuat_quy_trinh_2_EN.md) | Chuẩn nghiệp vụ/tài liệu 3.3.0; 8 BF, CR/FD, B1, C2, quyền/chứng từ/BR và Mermaid |
-| [Report 1](docs/01_bao_cao/WMSD_Report1_Fix.docx.txt) | Bối cảnh, GAP, 9 FE, phạm vi và 8 To-be |
-| [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) | Catalogue/permission/spec đủ 111 UC, màn hình, BR, NFR và lỗi |
-| [Thiết kế hệ thống chi tiết](docs/03_thiet_ke/WMSD_Thiet_ke_he_thong_chi_tiet.md) | Bản tài liệu/baseline 3.3.0; API/trạng thái/transaction/MongoDB, GR-FD/B1 và truy vết 111 UC |
-| [Thiết kế database VI](docs/03_thiet_ke/de_xuat_database_design_VI.md) / [EN](docs/03_thiet_ke/de_xuat_database_design_EN.md) | Mô hình tham chiếu và MongoDB mapping; 30 quy tắc, 64 case nghiệm thu |
-| [SQL tham chiếu](docs/03_thiet_ke/WMSD_SQL_schema.sql) | 84 bảng, 2 view; T-SQL tham chiếu 3.3.0 có A1/B1/C2, chưa chạy SQL Server/MongoDB |
-| [Nhật ký](change_logs.md) | Thay đổi, kiểm tra thực tế và giới hạn theo từng mốc |
-| [Report 2](docs/01_bao_cao/WMSD_Report2.docx.txt) | Kế hoạch còn lại 5 tuần 26/10–29/11/2026 (tuần 8–12); 5 người theo nhóm nghiệp vụ; 92,25 pd / 100 pd khả dụng; review thử tuần 13 chưa chốt ngày |
-| [Project Tracking](docs/01_bao_cao/Project_Tracking_Template.xlsx) | Điền trực tiếp 97 UC active theo format gốc; danghh chỉ bán/xuất hàng, bachhm nhận UC-20–22 danh mục khách hàng; giữ nguyên phông chữ và các sheet |
+| [DB rebuild](docs/09_phat_trien/DB_REBUILD.md) | Registry mới, migration lịch sử và giới hạn runtime |
+| [BF03](docs/08_api/location-movements/README.md) | API chuyển vị trí cùng kho trên runtime hiện có |
+| [BF04](docs/08_api/transfers/BF04_API.md) / [quyền đọc TR](docs/08_api/transfers/README.md) | API chuyển giữa kho và phạm vi xem |
+| [RR](docs/08_api/replenishments/README.md) | Bổ sung hàng |
+| [SO / giao hàng](docs/08_api/sales-orders/README.md) | Hợp đồng API bán hàng hiện có |
+| [Gói test FE06](docs/08_api/test_packs/fe06-iteration1/README.md) | Cách gọi API và nguồn test lịch sử |
+| [Return workflows native](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) / [kết quả kiểm chứng](docs/08_api/RETURN_WORKFLOWS_VERIFICATION.md) | Port ba iteration Trungph theo schema hiện hành |
+| [Nhật ký thay đổi](change_logs.md) | Mỗi lượt thay đổi cùng kiểm chứng và phần còn mở |
+| [Nhật ký model](../src/models/CHANGELOG.md) | Thay đổi schema và ảnh hưởng dữ liệu |
 
-Các file .docx.txt là bản văn bản, không phải Word .docx. Bản Google Docs/Word báo cáo bên ngoài repo cần phát hành riêng từ nội dung đã đồng bộ; không suy ra đã sửa các bản trực tuyến.
+## Nguồn và mốc tài liệu
 
-## Mermaid hiện hành và draw.io tham chiếu
+Bộ duyệt DB ngày 31/10–05/11 là căn cứ cho thiết kế mới. Quy trình, UC và report baseline 3.3.x trong `docs/01_bao_cao`, `docs/02_nghiep_vu` và các thiết kế trước đó dùng để truy vết phần chưa bị thay thế. Khi khác nhau về role, UOM, giá/hóa đơn, chứng từ hoặc số đợt điều chuyển, áp dụng quyết định đã duyệt được chỉ ra trong PROJECT_GUIDE.
 
-Theo yêu cầu bổ sung, **chỉ file draw.io bị loại trừ**. Đã cập nhật Mermaid hiện hành trong hai quy trình, Report 3, database VI/EN, context độc lập và gói ERD; dựng lại hai PNG BF-04 và HTML ERD. Mermaid đã parse/render bằng Mermaid 12.2.0. Mainflow/database draw.io ngày 22/10 vẫn là snapshot 3.0.0 và không ghi đè logic mới. Gói ERD 14 thực thể là góc nhìn rút gọn; ba ERD Mermaid trong SRS/database diễn đạt A1, B1 và C2/BF-08, không vẽ đủ 82 bảng DDL.
+ERD/Data Dictionary ngày 04/11 là snapshot schema, đã bổ sung quy tắc một thùng một sản phẩm/một lô ngày 05/11. Số bản ghi trong snapshot thuộc bộ mẫu lúc chụp. Bộ seed cửa hàng ngày 05/11 có báo cáo riêng.
 
-- [Mainflow VI/EN](docs/04_so_do/WMSD_Mainflows_VI_EN.drawio): 16 trang, 8 BF × 2 ngôn ngữ; snapshot được dựng ngày 22/10/2026.
-- [Mainflow EN](docs/04_so_do/WMSD_Mainflows_EN.drawio): 8 trang; cùng snapshot 22/10 với bản song ngữ.
-- [BF-04 ảnh VI](docs/04_so_do/WMSD_Mainflow_BF04_VI.png) / [EN](docs/04_so_do/WMSD_Mainflow_BF04_EN.png): dựng lại 25/10 từ Mermaid mục 10 của quy trình 3.1.2, baseline nghiệp vụ 3.1.0; không xuất từ draw.io cũ.
-- [Sơ đồ database](docs/03_thiet_ke/WMSD_database_design.drawio): 10 trang; mỗi bảng có một định nghĩa đầy đủ, FK/stub có liên kết sang trang gốc.
-- [Context Mermaid](docs/04_so_do/context-diagrem.mermaid): cập nhật 25/10 cho C2, CR/FD, B1 và Accountant đóng SR; giữ 5 vai trò, SMTP API-01 và storage API-02 chưa chốt nhà cung cấp, không API MISA/thanh toán.
+Phiếu duyệt, thiết kế, hướng dẫn chuyển DB và API đã tập trung vào repo này. Đường dẫn cũ tại module dẫn về tài liệu chính. [Manifest nhập tài liệu](outputs/document_import_manifest_2026-11-05.json) ghi nguồn và mã kiểm tra tại lúc nhập. Từ lượt này sửa bản trong `git_doc`; nếu phát hành lại bản ở `docs_doan`, ghi rõ ngày xuất và nguồn.
 
-- [Gói ERD rút gọn](docs/03_thiet_ke/WMSD_ERD_3_1_0/README.md): bản 3.1.1 ngày 25/10, đồng bộ model/Mermaid/Markdown/HTML; giữ 14 thực thể và 32 quan hệ, bổ sung nhóm thuộc tính A1/B1/C2.
+## Lịch sử, khảo sát và báo cáo
 
-Mainflow chỉ có lane actor; kho đi/kho nhận là trách nhiệm theo kho của cùng Warehouse Staff. Mở .drawio bằng diagrams.net; .mermaid bằng trình hỗ trợ Mermaid.
+- [Context BE trước đợt tổng hợp](docs/99_lich_su/context_BE_truoc_tong_hop_2026-11-05.md) giữ các thẻ UC và ghi chú triển khai cũ để tra cứu.
+- [Chỉ mục tài liệu cũ](docs/99_lich_su/README_truoc_tong_hop_2026-11-05.md) giữ lịch sử 3.0–3.3.
+- Các file `docs/01_bao_cao` là bản so sánh/nộp bài, sửa trong mục hiện có và bảo toàn format.
+- Khảo sát ở `docs/05_khao_sat`, SAP tham khảo ở `docs/06_tham_khao`, rà soát theo ngày ở `docs/07_ra_soat`.
 
-## Tài liệu lịch sử
+Model runtime hiện hành dùng 59 file collection `src/models/*.model.js` và 96 schema nhúng `src/models/*.schema.js`, cùng một registry. Ba thư mục model cũ đã được bỏ theo quyết định ngày 06/11/2026. DB Atlas/v8 là bằng chứng có ngày, không phải đích runtime hiện tại. Xem [hợp đồng runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md) và [hướng dẫn local](docs/09_phat_trien/DB_REBUILD.md).
 
-- [Đề xuất 7 quy trình sau review 1](docs/02_nghiep_vu/De_xuat_7_quy_trinh_sau_review1.md): mốc ghi nhận 17/10, bổ sung 19/10; bảo toàn để đối chiếu.
-- [Business_Process.drawio](docs/04_so_do/Business_Process.drawio) và [WMSD_Bangach.drawio](docs/04_so_do/WMSD_Bangach.drawio): tất cả trang có banner HISTORICAL, không dùng làm thiết kế hiện hành.
-- Ảnh BF-03B ngày 20/10 [VI](docs/04_so_do/WMSD_Mainflow_BF03B_VI.png) / [EN](docs/04_so_do/WMSD_Mainflow_BF03B_EN.png): giữ bản gốc; ảnh hiện hành dùng BF-04 ở trên.
-- [Báo cáo rà soát trước sửa](docs/07_ra_soat/Bao_cao_dong_bo_tai_lieu_2026-10-22.md): snapshot ở commit fdf6e7a, số dòng phản ánh thời điểm trước sửa.
-- [Kết quả đồng bộ và hậu kiểm](docs/07_ra_soat/Ket_qua_dong_bo_tai_lieu_2026-10-22.md): trạng thái sau sửa và phần còn để mở.
-
-- [Rà soát theo góp ý GVHD 24/10](docs/07_ra_soat/Bao_cao_ra_soat_quy_trinh_theo_gop_y_GVHD_2026-10-24.md): snapshot trước chọn/sửa 3.1.0; kết quả hiện tại nằm trong hậu kiểm 25/10.
-
-## Khảo sát và biên bản họp
-
-Nguồn thực địa được giữ nguyên. CSV có một phản hồi, 26 câu hỏi đánh số và 47 cột gồm thời gian/cột lưới. Câu 13 chọn hai ý mâu thuẫn; D4 chọn có điều chuyển, không sửa CSV để làm khớp.
-
-- [Khảo sát kho gạch 20/10](docs/05_khao_sat/khao_sat_kho_gach.csv)
-- [Biên bản 12/9](docs/05_khao_sat/Biên%20bản%20họp%2012_9.docx)
-- [Biên bản 16/9](docs/05_khao_sat/Biên%20bản%20họp%2016_9.docx)
-- [Biên bản 26/9](docs/05_khao_sat/Biên%20bản%20họp%2026_9.docx)
-- [Biên bản 30/9](docs/05_khao_sat/Biên%20bản%20họp%2030_9.docx)
-- [Biên bản 3/10](docs/05_khao_sat/Biên%20bản%20họp%203_10.docx)
-- [Biên bản 09/10](docs/05_khao_sat/Biên%20bản%20họp%2009_10.docx)
-
-## Tài liệu tham khảo
-
-- SAP Global Bike WM v4.1, Last Update June 2022: [I](docs/06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_I_en_v4.1.pdf), [II](docs/06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_II_en_v4.1.pdf), [III](docs/06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_III_en_v4.1.pdf), [IV](docs/06_tham_khao/sap/Intro_S4HANA_Using_Global_Bike_Case_Study_WM_IV_en_v4.1.pdf).
-- [Tổng hợp quy trình gốc](docs/06_tham_khao/quy_trinh/Tổng%20hợp%20quy%20trình.pdf) và [liên kết tham khảo](docs/06_tham_khao/link_tham_khao.md).
-
-Quy trình/database hiện hành trích bộ SAP v4.1 trong repo và số trang đã đối chiếu. review1.md và bộ SAP v4.2 là nguồn lịch sử ngoài repo chưa đóng gói; không tạo bản giả hoặc dùng v4.1 để chứng minh nguyên văn v4.2. Các mô tả nguồn lịch sử được giữ dạng tên nguồn, không còn liên kết máy cá nhân.
-
-## Duy trì đồng bộ
-
-Đọc quy trình → Report 1/2/3 → thiết kế chi tiết/dữ liệu → nghiệm thu; đồng bộ sơ đồ ở lượt riêng khi nằm trong yêu cầu. Thay BF/UC/BR/SC hoặc quyền phải cập nhật mọi phần hiện hành tương ứng, ghi change log; chỉ xuất lại hình khi sơ đồ nằm trong phạm vi được yêu cầu. Giữ nội dung As-is, biên bản và bản chụp lịch sử theo đúng thời điểm.
+[Category v8: phân loại, dọn model và triển khai](docs/09_phat_trien/CATEGORIES_V8.md). Bản v7 trước là mốc lịch sử.

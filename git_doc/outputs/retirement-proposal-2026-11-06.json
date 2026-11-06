@@ -1,0 +1,182 @@
+{
+  "status": "APPROVED_AND_REMOVED",
+  "reason": "Only implementations and tests tied to removed model profiles. Native services, current model tests and fixture transformation remain.",
+  "files": [
+    {
+      "path": "src/migrations/iteration-1.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/run-iteration-1.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/replenishment-3.3.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/run-replenishment-3.3.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/po-receiving-demo.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/run-po-receiving-demo.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/single-role.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/run-single-role.js",
+      "tracked": true
+    },
+    {
+      "path": "src/migrations/rebuild/run.js",
+      "tracked": true
+    },
+    {
+      "path": "src/seeds/data/demo.data.js",
+      "tracked": true
+    },
+    {
+      "path": "src/seeds/user.seed.js",
+      "tracked": true
+    },
+    {
+      "path": "src/seeds/warehouse.seed.js",
+      "tracked": true
+    },
+    {
+      "path": "src/seeds/permission.seed.js",
+      "tracked": true
+    },
+    {
+      "path": "src/shared/utils/purchaseProvenance.js",
+      "tracked": true
+    },
+    {
+      "path": "src/modules/replenishments/replenishment.availability.js",
+      "tracked": true
+    },
+    {
+      "path": "scripts/benchmark-purchase-receiving.mjs",
+      "tracked": true
+    },
+    {
+      "path": "test-support/sales-fixtures.js",
+      "tracked": true
+    },
+    {
+      "path": "test/iteration1-migration.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/iteration1-purchase-order.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/iteration1-replenishment.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/location-movement-lifecycle.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/location-movements.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/model-compatibility.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/models.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/models.revision-3.1.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/models.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/po-receiving-reset.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/po-receiving.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/replenishment-migration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/replenishment-read.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/replenishment-read.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/replenishment.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/sales-create.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/sales-iteration1.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/seeds.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/seeds.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/single-role-migration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/single-role.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/single-role.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/transfer-lifecycle.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/transfer-reads.integration.test.js",
+      "tracked": true
+    },
+    {
+      "path": "test/users_roles.test.js",
+      "tracked": true
+    }
+  ],
+  "packageCommands": [
+    "migrate:replenishment",
+    "migrate:iteration-1",
+    "migrate:po-receiving",
+    "migrate:single-role",
+    "db:rebuild",
+    "purchase:benchmark"
+  ]
+}
