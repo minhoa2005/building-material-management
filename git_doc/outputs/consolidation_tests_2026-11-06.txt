@@ -1,0 +1,45 @@
+✔ all eight merged record types retain IDs, fields, quantities and history (6.9886ms)
+✔ model serialization preserves every embedded history field and reference (194.5824ms)
+✔ consolidation leaves the original snapshot untouched (31.6689ms)
+✔ orphan history stops consolidation instead of dropping data (13.2364ms)
+✔ missing carton quantity is detected after removing stacks (115.2487ms)
+✔ duplicate warehouse threshold on the same product is rejected (0.9249ms)
+✔ rebuild preserves document/item identities, sources, stock and external documents (3.4128ms)
+✔ handover becomes a child of its dispatch and maintains its original line ID (0.1082ms)
+✔ historical conversion uses line snapshot even if master conversion has changed (1.4952ms)
+✔ unknown collections and missing source references stop the migration (1.3337ms)
+✔ wrong historical quantities and stock differences are rejected (0.6273ms)
+✔ source snapshot stays immutable and reruns produce the same data (24.64ms)
+✔ missing manufacturer, customer phone and historical prices are reported, never filled (69.5239ms)
+✔ rebuilt invoice calculates accepted quantities and rejects billed excess (1.8841ms)
+✔ schema changes allow custom roles and enforce ownership/dimension constraints (0.5367ms)
+✔ local MongoDB configuration accepts only literal loopback endpoints (0.5114ms)
+✔ demo CLI refuses a remote write before opening any network connection (719.3099ms)
+✔ complete reviewed demo validates all schemas, links, balances and approved scenarios (154.5368ms)
+✔ MongoDB read order does not affect stock reconciliation (133.3539ms)
+✔ tile shop has three warehouses, surveyed staff counts and separate batches (0.5405ms)
+✔ cartons keep their batch and exact conversion and cannot contain another product (114.4778ms)
+✔ carton packaging cannot disagree with the entered quantity conversion (108.8875ms)
+✔ BSON field order does not change the demo fingerprint but values do (60.2788ms)
+✔ rejects an inconsistent ending stock balance (98.3301ms)
+✔ rejects a source link whose item belongs to a different document (103.8403ms)
+✔ rejects occupied volume above the bin capacity using shared warehouse height (101.4446ms)
+✔ rejects active reservation above remaining physical stock (118.894ms)
+✔ reservation counters cannot consume and release the same amount twice (0.8432ms)
+✔ dispatches cannot exceed the approved TR line quantity (109.2087ms)
+✔ destination receiver cannot be the source dispatcher (110.2323ms)
+✔ invoice keeps 100 issued units while billing only 98 accepted units (12.5752ms)
+✔ invoice cannot change historical accepted quantity just to match a total (107.7927ms)
+✔ extension fields remain present on discriminated SO and GI items (1.8648ms)
+✔ schema profiles require separate isolated connections (0.1233ms)
+✔ only separate demo database names are allowed (0.1466ms)
+✔ occupied unmarked target is refused before any write (0.1866ms)
+✔ sample event queue cannot trigger an outbound email (104.5514ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2547.3228

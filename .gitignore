@@ -4,6 +4,8 @@ dist/
 **/dist/
 .env
 **/.env
+.env.local
+.local/
 npm-debug.log*
 superpower/
 superpowers/

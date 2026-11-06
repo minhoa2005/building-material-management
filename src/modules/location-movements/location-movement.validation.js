@@ -14,7 +14,7 @@ export const createBody = z.object({
     sourceBalanceId: objectId,
     sourceBalanceVersion: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
     toLocationId: objectId,
-    conversionId: objectId,
+    enteredUnit: z.string().trim().min(1).max(60),
     enteredQty: quantity,
   }).strict()).min(1).max(100),
 }).strict().superRefine((body, ctx) => {
@@ -62,3 +62,4 @@ export const confirmSchema = z.object({ params: z.object({ id: objectId }).stric
     ids.add(line.lineId);
   });
 }) });
+

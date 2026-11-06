@@ -7,7 +7,6 @@ export function hasPermission(user, permission, roles = []) {
   return Boolean(
     user?.isActive &&
       role &&
-      (!roles.length || roles.includes(role.code)) &&
       rolePermissions(user).includes(permission),
   );
 }

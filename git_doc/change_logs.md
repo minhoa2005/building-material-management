@@ -1,3 +1,92 @@
+## 2026-11-06 — Đồng bộ runtime theo model mới (đang kiểm chứng)
+
+Theo xác nhận trực tiếp của người dùng: bỏ ba thư mục model và danh sách phụ thuộc đã rà. 59 collection + 96 nested schema chuyển về src/models; services/DTO/permissions/transaction và FE connected consumers chuyển hợp đồng native. Registry được đổi tên trung tính (`registry-entries.js`, `configureReferences`) để không còn chỉ dẫn profile cũ. Seed v9 thêm quyền mới, 642 bản ghi mẫu; không ghi DB ứng dụng hoặc remote. Xem [hợp đồng và giới hạn](docs/08_api/NATIVE_MODEL_RUNTIME.md). Ba test tích hợp native đã qua; FE build đã qua nhưng suite giao diện còn lỗi cần chuyển fixture. Chưa hoàn tất nghiệm thu/commit/push.
+
+## 06/11/2026 — Giải quyết merge main và giữ ranh giới model
+
+Merge baf5fb4 vào HieuDT; giữ API PO/nhận mua, auth, field sản phẩm/lô/NCC của main trong registry legacy (44 collection), giữ bộ schema/category v8 (59 collection). Union scripts/dependencies, sửa import API/test/tool và bổ sung export ReplenishmentSubmission. Fixture reviewed/migration tách khỏi seed PO_INSPECTION runtime bằng EJSON tổng hợp từ 5f4a296; schema lịch sử dùng connection riêng. Không đổi schema/ERD 59 collection, không ghi DB và không port API trong lượt này. Cập nhật MODEL_MAP, PROJECT_GUIDE, context, README và hướng dẫn MERGE_MAIN_2026-11-06. Kiểm chứng cuối ghi trong hướng dẫn merge.
+
+# Bỏ quản lý đội xe và lưu biển số theo lần bàn giao — 05/11/2026
+
+## 06/11/2026 — Category 1–n Product và bỏ builder không dùng (v8)
+
+Người dùng yêu cầu bảng category, tham khảo Gạch Tốt và duyệt 5 nhóm, mỗi product 1 category. Thêm category.model.js (code unique/immutable, name, description, isActive, timestamps), products.categoryId bắt buộc ref Category và index, registry reviewed 59 collection. Profile migration lịch sử giữ hợp đồng cũ. Seed v8 gắn 18 product theo hãng/SKU: lát nền 9, ốp tường 3, trang trí 2, sân vườn 2, giả gỗ 2. Không đổi nghiệp vụ tồn, giá, lô hay quyền API; chưa làm API category.
+
+Rà 315 file JS/MJS trong src/scripts/test: 96 schema embedded có nơi gọi; ít nhất 12 file module API dùng legacy; registry/ref/capacity/seed/migration dùng rebuild. Chỉ bỏ reviewed-events.js, reviewed-support.js, reviewed-workflows.js vì không có importer ngoài chính nhóm ba file này. Giữ các thư mục đang dùng. Báo cáo git_doc/outputs/model_folder_usage_2026-11-06.json.
+
+Khi kiểm tra, local v7 không còn và Atlas wmsd_database đang trống; công cụ nâng v7 dừng trước ghi. Không có nguồn để bảo toàn ID v7, nên tạo mới mẫu local wmsd_demo_tile_shop_v8, rồi deploy vào Atlas rỗng: 59 collection/638 bản ghi. Đọc lại Atlas khớp hash local và toàn bộ index, schema/ref/tồn/hạn mức/sức chứa/hóa đơn. Báo cáo categories_v8_local_seed_2026-11-06.json, categories_v8_atlas_deployed_2026-11-06.json, categories_v8_atlas_verified_2026-11-06.json. Không đổi kết nối ứng dụng, không lưu URI có mật khẩu vào Git.
+
+Bổ sung công cụ nâng category cho máy vẫn có đúng v7: chỉ thêm category/categoryId, không ghi đè dữ liệu khác; bảo vệ bằng so sánh snapshot và transaction Atlas. Nhánh nâng v7 chưa chạy thành công trên môi trường này do nguồn trống; guard và tính bảo toàn dữ liệu có test. 57/57 test DB/model/category/deploy đạt. Cập nhật MODEL_MAP, Data Dictionary 59_v8, SQL-style diagram (11 tab/493 quan hệ), context, PROJECT_GUIDE, hướng dẫn local/seed/category/Atlas, README và ba file luật giống nhau. Đã xuất và xem ảnh tab Warehouse & catalogue; tăng chiều cao theo dòng quấn và khoảng hàng để tránh cắt trường. Các báo cáo v7 giữ nguyên là lịch sử. API legacy chưa port; D07/D08 vẫn chờ; không commit/push Git.
+
+## 06/11/2026 — Tách model từng file, seed chỉ gạch và đưa DB lên Atlas
+
+Theo yêu cầu trực tiếp: mỗi schema hiện hành một file .model.js. 58 collection có file riêng ngay src/models; 96 schema nhúng có file riêng trong embedded, không tăng collection. reviewed-registry nạp factory mới; model cũ chuyển vào legacy cho API chưa port, rebuild giữ registry/helper/profile migration lịch sử. Không đổi trường, ref, default, index hay dữ liệu BSON sau serialize khi tách. Đã đối chiếu metadata trước/sau và hash serialize trên cùng fixture; xem git_doc/outputs/model_files_split_2026-11-06.json.
+
+Người dùng chọn bỏ thiết bị vệ sinh. Giữ nguyên local v6, sao dữ liệu thực đang có sang v7, loại các lô/tồn/ô/điểm tồn/phiếu đầu kỳ/giao dịch/NCC liên quan, kiểm không còn tham chiếu bị bỏ; giữ ID và dữ liệu khác. Seed v7 chỉ gạch: 58 collection, 633 bản ghi, 18 sản phẩm, 39 lô. Atlas wmsd_database trước khi ghi rỗng; đã triển khai từ v7, đọc lại đối chiếu hash toàn bộ dữ liệu cùng index và kiểm nghiệp vụ; xác minh độc lập đạt. Bí mật chỉ nhận qua biến môi trường, không đưa vào Git/tài liệu. Công cụ không ghi đè đích đã có dữ liệu khác.
+
+Cập nhật MODEL_MAP trỏ đúng 58 file, Data Dictionary v7 có sourceFile, hướng dẫn Atlas/local/seed/registry, context, PROJECT_GUIDE, ba file luật giống nhau và README. 52/52 test DB/model/deploy đạt. Full suite ở mốc trước seed v7: 114 đạt, 10 lỗi legacy (9 import thiếu src/shared/utils/domain.js, 1 fixture thiếu INTERNAL_TRANSFER_REQUIREMENT), 13 bỏ qua. Chưa port API/service, chưa đổi kết nối ứng dụng; D07/D08 vẫn chờ. Tiếp tục HieuDT không merge main theo lựa chọn đã có; không commit/push Git trong lượt này.
+
+## 06/11/2026 — Kích thước sản phẩm, màu và thùng theo lô (v6)
+
+Theo quyết định trực tiếp: products bỏ nominalSize, thêm dài/rộng/cao (mm) và màu bắt buộc; mỗi màu một ID, khóa hãng/SKU/màu. product_batches bỏ calibre/tone, khóa productId/manufacturerLot, số viên/thùng cố định và kích thước ngoài thực tế. Snapshot quy cách giữ trên dòng, số thùng trên lần nhập; kiểm quy cách khớp lô, cạnh thùng vừa ô và dung tích. Không suy kích thước ngoài từ thể tích viên. Helper chỉ ước tính lượng xếp được khi chưa có tọa độ/3D. Cập nhật schema, seed v6, validator, tests, dictionary, diagram, MODEL_MAP và hướng dẫn. 48 test DB/model đạt; kết quả local tại git_doc/outputs/product_carton_v6_local_2026-11-06.json. Vẫn 58 collection/654 bản ghi; DB trước giữ nguyên. API legacy chưa port, không ghi DB nhóm, không commit/push.
+
+## 06/11/2026 — Lược trường trùng/thừa trên 58 bảng
+
+Theo yêu cầu rà biến từng bảng: bỏ 44 đường dẫn field, giữ chức năng trạng thái và kiểm sửa đồng thời riêng. Chi tiết từng collection tại DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md; dictionary v5 và diagram đã tái tạo. Seed v5 có 58 collection / 654 bản ghi. 43 test DB/model đạt, docs:check và kiểm local. Danh mục bỏ version cần API kiểm updatedAt khi port; API legacy còn riêng. Không thay DB nhóm và không commit/push.
+
+## 06/11/2026 — Gộp tiếp 5 bảng, 63 → 58
+
+Theo yêu cầu người dùng: movements vào stock_transactions; holds và resolutionPlans vào defect_reports; resolutionPlans vào stocktakes; deliveryConfirmations vào sales_orders. Giữ ID/lịch sử, kiểm hồ sơ cha và trùng dòng, index truy vấn, preflight BSON. Seed v4 riêng ở localhost, API legacy chưa port. Kiểm 41 test và docs:check; kết quả local ở git_doc/outputs. Người dùng chọn tiếp tục HieuDT, chưa merge 5 commit mới của main do file trùng đang sửa; không commit/push.
+
+
+## 06/11/2026 — Gộp 10 collection theo duyệt của người dùng
+
+Reviewed registry giảm 73 → 63. Giữ ID và lịch sử trong bảng cha; packagingPortions thay chồng, ô dùng chiều cao kho. Cập nhật seed v3, bộ chuyển/kiểm dữ liệu, schema refs tới phần nhúng, sơ đồ và từ điển hiện hành. Migration profile lịch sử/API legacy tách riêng. Không ghi DB nhóm. Kiểm test:db-rebuild, seed preview/local và docs:check; báo cáo ở git_doc/outputs.
+
+
+Theo quyết định mới, bỏ collection/model `delivery_teams`, tham chiếu `carrierId` và snapshot tên đội. Thêm `vehiclePlate` tùy chọn trực tiếp trong header của từng lần bàn giao; chuyển đổi không đoán biển số từ carrier cũ và tạo cảnh báo khi hồ sơ nguồn có tham chiếu không chuyển được. Bộ seed mới là v2, 73 collection/849 bản ghi; không ghi đè database local v1. Tạo lại SQL-style DB diagram và cập nhật danh mục quyết định, model map, hướng dẫn DB/seed, tài liệu bàn giao và changelog. Các phiếu B08C lịch sử được giữ nhưng đánh dấu đã bị thay thế.
+
+# DB Diagram kiểu SQL theo model hiện hành — 05/11/2026
+
+Tạo [WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio) theo cách trình bày bảng như SQL/Miro: header tên collection, các trường PK/FK, kiểu dữ liệu, trường bắt buộc/tùy chọn và đường quan hệ crow's-foot. Tab `00` đặt toàn bộ 73 bảng trên một sơ đồ; 10 tab nhóm nghiệp vụ giúp đọc field và quan hệ rõ hơn. Sơ đồ được sinh trực tiếp từ 73 Mongoose model hiện hành để tránh lệch tên collection/ref. Kiểm XML đạt: 11 tab, 146 khung bảng và 502 đường quan hệ FK trực tiếp (gồm tab tổng hợp và các tab nhóm).
+
+# Sơ đồ database chi tiết theo model hiện hành — 05/11/2026
+
+Tạo [WMSD_DB_Diagram_2026-11-05.drawio](docs/03_thiet_ke/WMSD_DB_Diagram_2026-11-05.drawio) từ thiết kế 74 collection đã duyệt. File có 94 tab: chỉ mục, 74 collection, và 19 biến thể dòng hàng nhúng. Header phản ánh database mẫu `wmsd_demo_tile_shop` tại `localhost:27017`, 851 bản ghi seed; không dùng `_db_rebuild`. Nội dung field/ref/index kế thừa thiết kế đang được model hiện hành kiểm thử; D07/D08 và API chưa port vẫn được ghi rõ là điểm mở.
+
+# Đưa model đã duyệt thành model chính và dùng MongoDB Compass localhost — 05/11/2026
+
+Theo yêu cầu người dùng, `src/models/index.js` trở thành entry point của 74 collection đã duyệt qua `registerReviewedModels(connection)`. API chưa chuyển dùng rõ `src/models/legacy/index.js`; không trộn hai profile model trên một Mongoose connection. Giữ `registerMigrationModels` cho công cụ chuyển đổi cũ.
+
+Đã bỏ hoàn toàn collection/guard `_db_rebuild`. Seed và verify chỉ kiểm đúng 74 collection nghiệp vụ, schema/index và quy tắc dữ liệu. Chuyển đích local sang `mongodb://localhost:27017/wmsd_demo_tile_shop`; kiểm tra trực tiếp MongoDB đang chạy standalone, seed đã ghi/đọc lại 74 collection và 851 bản ghi. Seed hỗ trợ standalone, còn API ghi tồn đa collection phải dùng replica set hoặc Atlas khi được port.
+
+Kiểm chứng: `npm run test:db-rebuild` đạt 31/31; `npm run db:local:status` và `npm run db:local:seed` chạy tại localhost:27017. Cập nhật PROJECT_GUIDE, MODEL_MAP, luật agent, hướng dẫn local/seed và model changelog. API/DTO/permission/service chưa được chuyển sang model mới trong đợt này; D07/D08 tiếp tục chờ nghiệp vụ.
+
+# Tổng hợp tài liệu, luật agent và seed cửa hàng — 05/11/2026
+
+Theo yêu cầu người dùng, tập trung phiếu duyệt DB, ERD/Data Dictionary/snapshot, hướng dẫn migration/local, báo cáo chuyển thử và contract API vào git_doc. Manifest nhập tài liệu giữ nguồn/hash, các README module trỏ về bản chính. Tạo PROJECT_GUIDE, MODEL_MAP đủ 74 collection, DOCUMENTATION_RULES; context và README dẫn về đầu mối hiện hành. Các bản context/README trước được lưu theo ngày để tra cứu.
+
+AGENTS.md, CLAUDE.md và GEMINI.md đồng nhất. Agent phải tự cập nhật nội dung tài liệu liên quan trong cùng lượt khi thay model/API/quyền/nghiệp vụ/seed/config, ghi changelog và chạy docs:check. Kiểm này phát hiện lệch ba file luật, liên kết chính, thiếu collection và dấu vết cập nhật; nội dung nghiệp vụ vẫn cần review.
+
+Bổ sung tile-shop.js vào seed reviewed và đổi version thành wmsd-tile-shop-20261105-v1. Bộ gồm 3 kho, 20 sản phẩm, 43 lô, 15 nhân viên, 20 khách, 4 NCC, 2 đội nội bộ. Tồn đầu kỳ có nguồn và lịch sử, thùng nguyên/lẻ theo cùng sản phẩm/lô, kích thước kiện và bố trí chồng. Quy tắc một thùng một sản phẩm/một lô theo xác nhận 05/11; chưa đổi schema collection. Local target là wmsd_demo_tile_shop, bộ v2 giữ riêng. Không ghi DB nhóm.
+
+Kiểm chứng: main đã cập nhật trước code; 32 test DB migration/demo/local config đạt. Seed đã ghi và đọc lại MongoDB local, 74 collection/851 bản ghi nghiệp vụ, 55 số dư, 33 giao dịch/74 dòng biến động. Chạy seed lại trả ALREADY_SEEDED và cùng fingerprint. docs:check đạt, git diff --check sạch, liên kết các phiếu duyệt đã được kiểm. Báo cáo tại outputs/tile_shop_seed_2026-11-05.json. Chưa chuyển các API cũ sang model mới, marker runtimeReady=false; D07/D08 tiếp tục chờ nghiệp vụ.
+
+# Chuyển môi trường thử DB mới về localhost — 03/11/2026
+
+Theo yêu cầu thử trên máy trước DB chung: chạy instance MongoDB riêng tại 127.0.0.1:27018, replica set wmsd-local, dữ liệu dưới .local/mongodb. Giữ dịch vụ 27017 và DB cloud nguyên trạng. Nạp bộ wmsd_demo_v2 tại local; thêm lệnh start/status/stop/seed/verify, cấu hình .env.local và loại dữ liệu máy khỏi Git. Seed remote bị chặn mặc định, cần cờ triển khai rõ ràng.
+
+Kiểm thử trực tiếp bằng model mới trên DB local tạm: populate, commit/rollback transaction, khóa chống trừ lặp, tranh chấp phiên bản tồn, lịch sử append-only và unique hãng/SKU. Cả 7 test đạt; DB tạm được dọn sau kiểm tra. Hướng dẫn tại src/models/rebuild/LOCAL_DEVELOPMENT.md. Chưa chuyển toàn bộ service/API, không đổi URI trong .env nhóm và không commit/push.
+
+# Bộ DB mẫu theo thiết kế đã duyệt — 03/11/2026
+
+Người dùng xác nhận dữ liệu cũ chỉ để test và yêu cầu tạo bộ mới. Đã tạo wmsd_demo_v2 gồm 74 collection nghiệp vụ, 511 bản ghi; tách biệt sep490 và bản chuyển thử ngày 02/11. Bổ sung model hỗ trợ theo phiếu đã duyệt, kịch bản chuyển kho/nhập/xuất/bán/trả/kiểm kê, đơn vị và quy đổi trên dòng, giá mẫu, sức chứa, vai trò tùy chỉnh, ảnh bằng chứng giả lập. Hướng dẫn xem DB và danh mục collection tại E:/Doan/outputs/db_rebuild/HUONG_DAN_DB_MOI.md; mô tả cách chạy và giới hạn tại src/models/rebuild/README.md.
+
+Kiểm chứng: 27 test migration/demo đạt; đọc lại MongoDB đối chiếu liên kết, chuỗi tăng giảm tồn, số lượng điều chuyển, sức chứa và hóa đơn. Chạy lại không tạo thêm dữ liệu. Full suite còn lỗi có sẵn do thiếu dependency replenishment và fixture cũ thiếu INTERNAL_TRANSFER_REQUIREMENT. Chưa chuyển API sang schema mới, không đổi .env, không commit/push; D07/D08 tiếp tục chờ nghiệp vụ.
+
+# Chuyển thử DB và model — 02/11/2026
+
+Bổ sung hướng dẫn tại src/models/rebuild/README.md về model đích, lệnh chuyển và kiểm tra dữ liệu, tên DB sao lưu, dữ liệu cần bổ sung và phạm vi chưa chuyển ở API. Bản chuyển thử sep490_rebuild_20261102 đã được đối chiếu với nguồn. Các phiếu duyệt thiết kế tiếp tục là căn cứ nghiệp vụ.
 # PO draft edit and confirmation UI — 05/11/2026
 
 Added Accountant-only draft edit and confirmation actions to PO detail. The editor changes supplier, expected date and entered quantities while preserving line IDs and saved RR/approval references. Existing PUT and POST /confirm commands retain permission, assigned-warehouse, version and idempotency checks. The PO detail reader adds scoped draftEdit source data. Success refreshes purchase/replenishment queries; errors preserve input, and uncertain outcomes retry the exact request. Confirmation opens Warehouse receiving without posting stock.

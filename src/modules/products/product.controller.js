@@ -43,28 +43,6 @@ export const changeStatus = catchAsync(async (req, res) => {
   formatApiResponse(res, { data });
 });
 
-export const conversions = catchAsync(async (req, res) => {
-  const data = await service.listConversions(
-    req.user,
-    req.validated.params.id,
-    req.validated.query,
-  );
-  formatApiResponse(res, { data });
-});
-
-export const createConversion = catchAsync(async (req, res) => {
-  const data = await service.createConversion(
-    req.user,
-    req.validated.params.id,
-    req.validated.body,
-  );
-  formatApiResponse(res, {
-    statusCode: 201,
-    message: "Tạo phiên bản quy đổi thành công",
-    data,
-  });
-});
-
 export const policies = catchAsync(async (req, res) => {
   const data = await service.listPolicies(
     req.user,

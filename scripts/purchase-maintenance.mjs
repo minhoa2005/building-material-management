@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import { PurchaseEvidenceUpload } from '../src/models/index.js';
+import { Attachment } from '../src/models/runtime.js';
 import { cleanupPurchaseEvidence } from '../src/modules/po-receiving/purchase-evidence.service.js';
 import { reconcilePurchasing } from '../src/modules/po-receiving/purchase-reconciliation.js';
 
@@ -17,6 +17,6 @@ try {
     } finally { await session.endSession(); }
   } else {
     console.info(JSON.stringify(args.includes('--apply') ? await cleanupPurchaseEvidence() : { dryRun: true,
-      expired: await PurchaseEvidenceUpload.countDocuments({ status: { $in: ['UPLOADING','READY','DELETING'] }, expiresAt: { $lte: new Date() } }) }));
+      expired: await Attachment.countDocuments({ purpose:'PURCHASE_EVIDENCE', $or:[{status:'TEMPORARY'},{status:'SUPERSEDED',uploadSessionId:/^cleanup:/}], expiresAt: { $lte: new Date() } }) }));
   }
 } finally { await mongoose.disconnect(); }

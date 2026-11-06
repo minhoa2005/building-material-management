@@ -7,9 +7,7 @@ const checkPermission =
     const role = currentRole(req.user);
     if (
       !role ||
-      (requiredRoles.length &&
-        !requiredRoles.some((code) => code.toUpperCase() === role.code)) ||
-      !rolePermissions(req.user).includes(requiredPermission)
+!rolePermissions(req.user).includes(requiredPermission)
     ) {
       return next(forbiddenError());
     }

@@ -1,54 +1,24 @@
-import { AuditEvent } from "../../models/index.js";
-
-const MAX_DETAILS = 4000;
+import { randomUUID } from 'node:crypto';
+import { AuditLog } from '../../models/runtime.js';
+import { serialize } from './persistence.js';
 
 export function changedFields(before, after, fields) {
-  const changes = [];
-  for (const field of fields) {
-    const left = before?.[field] ?? null;
-    const right = after?.[field] ?? null;
-    const leftValue = left?.toString?.() ?? left;
-    const rightValue = right?.toString?.() ?? right;
-    if (JSON.stringify(leftValue) !== JSON.stringify(rightValue)) {
-      changes.push({ path: field, before: leftValue, after: rightValue });
-    }
-  }
-  return changes;
+  return fields.flatMap(field => {
+    const left = serialize(before?.[field] ?? null), right = serialize(after?.[field] ?? null);
+    return JSON.stringify(left) === JSON.stringify(right) ? [] : [{ field, before: left, after: right }];
+  });
 }
 
-export async function appendAudit({
-  documentId = null,
-  actorId,
-  action,
-  entityType = null,
-  entityId = null,
-  changes = [],
-  details = null,
-  eventAt = new Date(),
-  session = null,
-} = {}) {
-  if (Boolean(entityType) !== Boolean(entityId)) {
-    throw new Error("Audit entityType and entityId must be supplied together");
-  }
-  const summary =
-    details ??
-    (changes.length
-      ? { changedFields: changes.map((change) => change.path) }
-      : { action });
-  const serialized =
-    typeof summary === "string" ? summary : JSON.stringify(summary);
-  if (serialized.length > MAX_DETAILS) {
-    throw new Error("Audit details exceed the 4000-character limit");
-  }
-  const event = new AuditEvent({
-    ...(documentId && { documentId }),
-    actorId,
-    action,
-    eventAt,
-    details: serialized,
-    ...(entityType && { entityType, entityId }),
-    changes,
-  });
-  await event.save(session ? { session } : undefined);
-  return event;
+export async function appendAudit({ documentId, actorId, action, entityType, entityId,
+  changes = [], details, eventAt = new Date(), session, warehouseIds = [],
+  versionBefore, versionAfter, operationId, transactionId } = {}) {
+  const subjectId = entityId ?? documentId;
+  if (!subjectId) throw new Error('Audit requires a subject');
+  const reason = typeof details === 'string' ? details : details?.reason;
+  const event = new AuditLog({ eventKey: randomUUID(), actorType: actorId ? 'USER' : 'SYSTEM', actorId,
+    action, result: 'SUCCESS', subjectType: entityType ?? 'document', subjectId,
+    changes: changes.map(change => ({ field: change.field ?? change.path, before: change.before, after: change.after })),
+    warehouseIds, reason, versionBefore, versionAfter, operationId, transactionId,
+    occurredAt: eventAt, recordedAt: new Date() });
+  return event.save({ session });
 }

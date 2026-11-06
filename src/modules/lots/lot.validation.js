@@ -1,115 +1,19 @@
-import { z } from "zod";
-import {
-  calendarDateString,
-  objectIdString,
-} from "../../shared/utils/domain.js";
+import { z } from 'zod';
+import { calendarDateString, decimalStringSchema, objectIdString as oid } from '../../shared/utils/domain.js';
+const empty = z.object({}).strict();
+const params = z.object({ id: oid }).strict();
+const pager = (fallback, max = Number.MAX_SAFE_INTEGER) => z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().min(1).max(max)).default(fallback);
+const paging = { page: pager(1), limit: pager(10, 100) };
+const dimension = decimalStringSchema({ positive: true, scale: 3 });
+const fields = { manufacturerLot: z.string().trim().min(1).max(100), identificationStatus: z.enum(['VERIFIED','UNKNOWN']),
+  manufacturedOn: calendarDateString.nullable().optional(), piecesPerCarton: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  cartonLengthMm: dimension, cartonWidthMm: dimension, cartonHeightMm: dimension };
+const request = (body, query = empty, routeParams = params) => z.object({ body, query, params: routeParams });
+export const listLotsSchema = request(empty, z.object({ ...paging, productId: oid.optional(), manufacturerLot: z.string().max(100).optional(),
+  identificationStatus: fields.identificationStatus.optional(), warehouseId: oid.optional() }).strict().refine(q => Number.isSafeInteger((q.page - 1) * q.limit)), empty);
+export const lotIdSchema = request(empty);
+export const createLotSchema = request(z.object({ productId: oid, ...fields }).strict(), empty, empty);
+export const updateLotSchema = request(z.object(fields).partial().extend({ expectedUpdatedAt: z.string().datetime({ offset: true }) }).strict());
+export const lotMovementsSchema = request(empty, z.object(paging).strict().refine(q => Number.isSafeInteger((q.page - 1) * q.limit)));
 
-const positiveInteger = (fallback, max = Number.MAX_SAFE_INTEGER) =>
-  z
-    .string()
-    .regex(/^[1-9]\d*$/, "Phải là số nguyên dương")
-    .transform(Number)
-    .pipe(z.number().int().min(1).max(max))
-    .default(fallback);
 
-const emptyQuery = z.object({}).strict();
-const optionalText = (max) =>
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(max)
-    .nullable()
-    .optional();
-const expectedVersion = z
-  .number()
-  .int()
-  .min(1)
-  .max(Number.MAX_SAFE_INTEGER);
-const identityText = (max) => z.string().trim().min(1).max(max);
-
-export const listLotsSchema = z.object({
-  params: emptyQuery,
-  body: emptyQuery,
-  query: z
-    .object({
-      page: positiveInteger(1),
-      limit: positiveInteger(10, 100),
-      productId: objectIdString.optional(),
-      manufacturerLot: z.string().trim().max(100).optional(),
-      tone: z.string().trim().max(60).optional(),
-      calibre: z.string().trim().max(60).optional(),
-      identificationStatus: z.enum(["VERIFIED", "UNKNOWN"]).optional(),
-      warehouseId: objectIdString.optional(),
-    })
-    .strict()
-    .superRefine((query, ctx) => {
-      if (!Number.isSafeInteger((query.page - 1) * query.limit)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["page"],
-          message: "Trang vượt giới hạn hỗ trợ",
-        });
-      }
-    }),
-});
-
-export const lotIdSchema = z.object({
-  params: z.object({ id: objectIdString }).strict(),
-  query: emptyQuery,
-  body: emptyQuery,
-});
-
-export const createLotSchema = z.object({
-  params: emptyQuery,
-  query: emptyQuery,
-  body: z
-    .object({
-      productId: objectIdString,
-      manufacturerLot: identityText(100),
-      tone: identityText(60),
-      calibre: identityText(60),
-      identificationStatus: z.enum(["VERIFIED", "UNKNOWN"]),
-      manufacturedOn: calendarDateString.optional().nullable(),
-      verificationReference: optionalText(2000),
-      notes: optionalText(2000),
-    })
-    .strict(),
-});
-
-export const updateLotSchema = z.object({
-  params: z.object({ id: objectIdString }).strict(),
-  query: emptyQuery,
-  body: z
-    .object({
-      expectedVersion,
-      manufacturerLot: identityText(100).optional(),
-      tone: identityText(60).optional(),
-      calibre: identityText(60).optional(),
-      identificationStatus: z.enum(["VERIFIED", "UNKNOWN"]).optional(),
-      manufacturedOn: calendarDateString.optional().nullable(),
-      verificationReference: optionalText(2000),
-      notes: optionalText(2000),
-    })
-    .strict(),
-});
-
-export const lotMovementsSchema = z.object({
-  params: z.object({ id: objectIdString }).strict(),
-  body: emptyQuery,
-  query: z
-    .object({
-      page: positiveInteger(1),
-      limit: positiveInteger(10, 100),
-    })
-    .strict()
-    .superRefine((query, ctx) => {
-      if (!Number.isSafeInteger((query.page - 1) * query.limit)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["page"],
-          message: "Trang vượt giới hạn hỗ trợ",
-        });
-      }
-    }),
-});

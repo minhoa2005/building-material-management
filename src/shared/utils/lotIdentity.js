@@ -1,26 +1,18 @@
-import {
-  DocumentLine,
-  Lot,
-  StockBalance,
-} from "../../models/index.js";
+import { ProductBatch, InventoryBalance, models } from '../../models/runtime.js';
 
-// Writers call this inside the same transaction before creating a line or
-// balance that references the lot. It closes the "checked unused, then another
-// writer used it" race with UC-27's versioned identity update.
-export async function lockLotIdentity(lotId, session) {
-  const result = await Lot.updateOne(
-    { _id: lotId },
-    { $set: { identityLocked: true } },
-    { session },
-  );
-  if (result.matchedCount !== 1) {
-    throw new Error("Lot identity lock failed: lot no longer exists");
+export async function lockLotIdentity(batchId, session) {
+  const batch = await ProductBatch.findById(batchId).session(session);
+  if (!batch) throw new Error('Batch no longer exists');
+  const updatedAt = new Date(Math.max(Date.now(), (batch.updatedAt?.getTime() ?? 0) + 1));
+  const result = await ProductBatch.updateOne({ _id: batchId, updatedAt: batch.updatedAt },
+    { $set: { updatedAt } }, { session, timestamps: false });
+  if (result.matchedCount !== 1) throw new Error('Batch changed concurrently');
+}
+export async function lotHasReferences(batchId, session) {
+  if (await InventoryBalance.exists({ batchId }).session(session)) return true;
+  for (const Model of models.values()) {
+    if (Model.schema.path('items') && await Model.exists({ 'items.lotId': batchId }).session(session)) return true;
   }
+  return false;
 }
 
-export async function lotHasReferences(lotId, session) {
-  const line = await DocumentLine.exists({ lotId }).session(session);
-  if (line) return true;
-  const balance = await StockBalance.exists({ lotId }).session(session);
-  return Boolean(balance);
-}

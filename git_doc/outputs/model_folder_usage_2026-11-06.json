@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-11-06T08:50:15.360Z",
+  "scannedFiles": 315,
+  "kept": {
+    "embedded": "Nested schemas imported by current parent models",
+    "legacy": "Imported by active unported APIs and legacy fixtures",
+    "rebuild": "Registry/reference/collection maps, capacity and migration/seed helpers"
+  },
+  "externalImporters": [],
+  "removedFiles": [
+    "reviewed-events.js",
+    "reviewed-support.js",
+    "reviewed-workflows.js"
+  ],
+  "activeApiModuleFilesImportingLegacy": 12,
+  "embeddedSchemaFilesWithoutImporters": []
+}

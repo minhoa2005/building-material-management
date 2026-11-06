@@ -21,7 +21,7 @@ import {
   inspectionRouter,
   receiptRouter,
   purchaseReceivingRouter,
-  putawayRouter, queueRouter, purchaseDocumentRouter,
+  custodyRouter, reversalRouter, putawayRouter, queueRouter, purchaseDocumentRouter,
 } from "./modules/po-receiving/po-receiving.routes.js";
 
 const router = Router();
@@ -42,7 +42,9 @@ router.use("/lots", lotsRouter);
 router.use("/purchase-orders", purchaseOrdersRouter);
 router.use('/purchase-orders', purchaseOrderCommandsRouter);
 router.use("/purchase-orders", purchaseReceivingRouter);
-router.use("/po-inspections", inspectionRouter);
+router.use("/goods-inspections", inspectionRouter);
+router.use("/stock-reversals", reversalRouter);
+router.use("/custody-receipts", custodyRouter);
 router.use("/purchase-receipts", receiptRouter);
 router.use('/putaway-tasks', putawayRouter);
 router.use('/purchase-receiving/queue', queueRouter);

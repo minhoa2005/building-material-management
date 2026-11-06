@@ -1,0 +1,691 @@
+{
+  "date": "2026-11-05",
+  "purpose": "Imported source snapshots. Maintained documents are under git_doc; hashes describe import, not future edits.",
+  "files": [
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\00_Hien_trang_va_cach_duyet.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/00_Hien_trang_va_cach_duyet.md",
+      "sha256_at_import": "f501750e6be49b8131f123833e1066137361cf4e6c2e5aa52180a6972f22a8c3"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\01_Danh_muc_duyet.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md",
+      "sha256_at_import": "58b891065ab6b31f1e61d12bb80a76eef0748b8437b74ffc4b5d2df7d2883ae9"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\02_Duyet_tai_khoan_va_phan_quyen.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/02_Duyet_tai_khoan_va_phan_quyen.md",
+      "sha256_at_import": "0dc2251d00ffc1d64b8f959b16a720475a665fb8f9d4d27446b50599f28e2eef"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\03_Cau_truc_DB_hien_tai.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/03_Cau_truc_DB_hien_tai.md",
+      "sha256_at_import": "8ebe64283f3847ed4266ec2f48beaa93a93b1ce0a0e9d1ed4555dc9f8446513e"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\04_Nhat_ky_duyet.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/04_Nhat_ky_duyet.md",
+      "sha256_at_import": "15fb492a63d4931743071fbe1cbfd56ae67a840ceb867ef5f3d6e66e69e8d155"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\05_Duyet_kho_vi_tri_don_vi_tinh.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/05_Duyet_kho_vi_tri_don_vi_tinh.md",
+      "sha256_at_import": "f5e9c17a8776039fe6ef868400cebb03eee58afa27d81493b9b07e2f6b3ea847"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\06_Nhap_san_pham_lo_va_quy_cach.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/06_Nhap_san_pham_lo_va_quy_cach.md",
+      "sha256_at_import": "c71ce07f4a80d2ab28399ccd569fc4b9604f15992e041c662d3a1092cdc269e6"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\07_Duyet_nguong_ton_va_doi_tac.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/07_Duyet_nguong_ton_va_doi_tac.md",
+      "sha256_at_import": "1580751b40076babeef451b912655059fbd9aefa64887f829572dcdb7695baa6"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\08A_Khach_hang.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/08A_Khach_hang.md",
+      "sha256_at_import": "772d17ff401278c3893799d5002d78fb02e863e22993c15625154741aac93272"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\08B_Nha_cung_cap.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/08B_Nha_cung_cap.md",
+      "sha256_at_import": "18a194a077eadf5a163c4541653eaa2aa1ac716c7b3c877abaef144ee7896248"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\08C_Don_vi_van_chuyen.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/08C_Don_vi_van_chuyen.md",
+      "sha256_at_import": "b283798304b0f1285b5b8397b855abd68e41be7a1789c09aa596f37df704b397"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\09_Duyet_diem_ton_va_so_du.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/09_Duyet_diem_ton_va_so_du.md",
+      "sha256_at_import": "f8930010a4fc942712ec0a359a8dbea4c607f88493e12dc735d60742a36e78f3"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\10_Duyet_giao_dich_va_lich_su_ton.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/10_Duyet_giao_dich_va_lich_su_ton.md",
+      "sha256_at_import": "fa00a4d7dfbdb5f2392b9f38822925d626b99f818101787a311d01ec8169d6a2"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\11_Duyet_giu_hang_va_nguon_cung.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/11_Duyet_giu_hang_va_nguon_cung.md",
+      "sha256_at_import": "a977cf12ae1622701866926fe12edd17e1507554bcf65f075eb2db7615c5b798"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\12_Duyet_chong_hang_va_dong_goi_thuc_te.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/12_Duyet_chong_hang_va_dong_goi_thuc_te.md",
+      "sha256_at_import": "d899440d045c8278c15b50212bb8adb3f0f8cdee19d832bc95c960f979fd7925"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\13_Duyet_yeu_cau_bo_sung_va_don_mua.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md",
+      "sha256_at_import": "e2343e00399e304b3bb16a9190bd0bddfccf57079e00eb4360e2ebf7b8860489"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\14_Bo_UOM_va_luu_quy_doi_tren_dong.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/14_Bo_UOM_va_luu_quy_doi_tren_dong.md",
+      "sha256_at_import": "e188c7d3d16c35405fc2184e72b7de44dbd899adea54ac2b76c7d8fc3872af7b"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md",
+      "sha256_at_import": "1d5b26d551e373b2c96e72f3922373402d4a4c68f3eded8314f384c85dda57af"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\16_Duyet_lenh_va_yeu_cau_chuyen_kho.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/16_Duyet_lenh_va_yeu_cau_chuyen_kho.md",
+      "sha256_at_import": "5766d9f28f579ae83505ccf861cfbc63e17cef7e4a0c86025bdbc65e1a05a0bf"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md",
+      "sha256_at_import": "9cf7ef5a64ecd8380cebb4f834c99f6e43a77292c68b6ffd66d3f69dafcdaf8d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md",
+      "sha256_at_import": "168f1be5d0ec7c927724cd72390dc00245a876fd0655edf9bb02fcd70013736d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\19_Duyet_xuat_ban_giao_nhan_va_hoa_don.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/19_Duyet_xuat_ban_giao_nhan_va_hoa_don.md",
+      "sha256_at_import": "d1b27dba860f6d36e2b9605b84a1c11d32e0a4add5b91737b95dcd1f1a60186a"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\20_Duyet_xac_nhan_tien_ngoai.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/20_Duyet_xac_nhan_tien_ngoai.md",
+      "sha256_at_import": "581340f1b5a049e135f663847eaf9049698874c12d5b9d0da0b205233b2b283b"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\21_Duyet_hang_loi_phuong_an_va_phieu_huy.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/21_Duyet_hang_loi_phuong_an_va_phieu_huy.md",
+      "sha256_at_import": "1382d8a5d5170c383a5f6ba563460d3c7b7ace83fd12a716dc979f4df3e0936b"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\22_Duyet_giao_that_bai_nhan_ve_va_giao_bu.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/22_Duyet_giao_that_bai_nhan_ve_va_giao_bu.md",
+      "sha256_at_import": "0675b5d49c9fc6bb8e31f42fd4863db742d62040509382c4b2d55af9d55d0d93"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\23_Duyet_doi_lenh_giao_bu_va_huy_phan_don.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/23_Duyet_doi_lenh_giao_bu_va_huy_phan_don.md",
+      "sha256_at_import": "e2dee50b296198bf2510d477f21ae751439c7d971052fd6f8466f418e7138d62"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\24_Duyet_khach_tra_hang_sau_khi_nhan.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/24_Duyet_khach_tra_hang_sau_khi_nhan.md",
+      "sha256_at_import": "b6a559e6f1515943cd00338a4d26317314f6dea3ceff07edac8f93a2eebfafe0"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\25_Duyet_han_muc_tra_va_hang_giu_ho.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/25_Duyet_han_muc_tra_va_hang_giu_ho.md",
+      "sha256_at_import": "c8aaafb4d3421a2b5de0aa21da5c7d8649f45bef1a87281ec97b3d981a4823ad"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\26_Duyet_yeu_cau_xuat_tra_va_xac_nhan_nha_cung_cap.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/26_Duyet_yeu_cau_xuat_tra_va_xac_nhan_nha_cung_cap.md",
+      "sha256_at_import": "b3d178db172901dfa158599d69f4c421a94c323be6979984253e677013cc6d3d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\27_Duyet_chan_hang_doi_chat_luong_va_chenh_lech.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/27_Duyet_chan_hang_doi_chat_luong_va_chenh_lech.md",
+      "sha256_at_import": "227d5ce8054b6c2f0c067fcb008f1bc50625081fbcd258a4803cc98e726cf330"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\28_Duyet_dot_kiem_ke_moc_ton_va_khoa_vi_tri.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/28_Duyet_dot_kiem_ke_moc_ton_va_khoa_vi_tri.md",
+      "sha256_at_import": "f5f663dcf57112c2c185a73d716dba1bcbb161d6f40d3298054578d932b8ce9f"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh.md",
+      "sha256_at_import": "2cbc02cbab66b88f0796e7861944af89f2d31c826c14aacc0e655d5da802e796"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\30_Duyet_dao_giao_dich_va_ton_dau_ky.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/30_Duyet_dao_giao_dich_va_ton_dau_ky.md",
+      "sha256_at_import": "b5358b1bf666ebc470d071eabd46a480478739eeeb52b411299fda6c2ffe7a67"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\31_Duyet_cach_to_chuc_ho_so_nghiep_vu.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/31_Duyet_cach_to_chuc_ho_so_nghiep_vu.md",
+      "sha256_at_import": "2a8a712474dea49e827fdfdf4af4e9d951b389ab6455701d130754000278a4b8"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\32_Duyet_dong_hang_va_lien_ket_chung_tu.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/32_Duyet_dong_hang_va_lien_ket_chung_tu.md",
+      "sha256_at_import": "192e6a59ba493c03979379ba8b287209ee7e9c488c85b5aef5bffe1acc4ae964"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem.md",
+      "sha256_at_import": "8e21a1f8ce395ed3194a9d49d3421b0edab9069c63d084c69b75b4722c40c059"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\34_Duyet_thong_bao_nhat_ky_va_su_kien.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/34_Duyet_thong_bao_nhat_ky_va_su_kien.md",
+      "sha256_at_import": "229aaa788bfd99e26c01b54b42b140fda2c232c35bae9fd2079f99c19ba87e77"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\35_Duyet_chong_lap_thao_tac_va_kiem_soat_dong_thoi.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/35_Duyet_chong_lap_thao_tac_va_kiem_soat_dong_thoi.md",
+      "sha256_at_import": "05c2c3d100f36fee913d60f51c8e902d176995625279b8d7e0e006c1b682d526"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\00_Hien_trang_va_cach_duyet_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/00_Hien_trang_va_cach_duyet_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "09623d90fe0db6d351a8bc3cfeb51a59273e20346d23b9c89215c4f7108ed82d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\01_Danh_muc_duyet_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/01_Danh_muc_duyet_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "de6d38f8c22e48ac33a986ba540f70a7616fdd7aab3fcf5961c0da9c07496efd"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\02_Duyet_tai_khoan_va_phan_quyen_v0.1.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/02_Duyet_tai_khoan_va_phan_quyen_v0.1.md",
+      "sha256_at_import": "6b061bcfc8da134885f9227ffb171467a337ef9b43222a724691fa7f0a08089e"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\02_Duyet_tai_khoan_va_phan_quyen_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/02_Duyet_tai_khoan_va_phan_quyen_v0.2_de_xuat.md",
+      "sha256_at_import": "392fdbd3897fa77b2b7662977c4fd22fb0b7ec6ce3af9b249c05cbf96cbbe6bf"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\04_Nhat_ky_duyet_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/04_Nhat_ky_duyet_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "fc7421ad148daaa4357be0d6f93e789669691ff7190b253c46b5464766befbf4"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\05_Duyet_kho_vi_tri_don_vi_tinh_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/05_Duyet_kho_vi_tri_don_vi_tinh_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "bb0f38f7958503e27ad6cd2503076234da3a166cabe282d119b657554f5beea1"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\05_Duyet_kho_vi_tri_don_vi_tinh_v0.1.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/05_Duyet_kho_vi_tri_don_vi_tinh_v0.1.md",
+      "sha256_at_import": "4ca2edee8dc409ad69120f833400e2c6197afc2c222c355fdb77ef1602a0df11"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\05_Duyet_kho_vi_tri_don_vi_tinh_v0.2.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/05_Duyet_kho_vi_tri_don_vi_tinh_v0.2.md",
+      "sha256_at_import": "14b27bd46b5639521b530302125b9d8df702ad4a3e7c2658c3339206d7abe2c8"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\05_Duyet_kho_vi_tri_don_vi_tinh_v0.3_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/05_Duyet_kho_vi_tri_don_vi_tinh_v0.3_de_xuat.md",
+      "sha256_at_import": "b0f38ea6e2d685ff6b008e658849968883232cf82cf53d90cba261f12bfe5567"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\05_Duyet_kho_vi_tri_don_vi_tinh_v0.4_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/05_Duyet_kho_vi_tri_don_vi_tinh_v0.4_de_xuat.md",
+      "sha256_at_import": "e892d3368b0a9d49a87bb4f5f78742525dd3e2737e1eb9dd5a8f006631a0975d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\06_Nhap_san_pham_lo_va_quy_cach_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/06_Nhap_san_pham_lo_va_quy_cach_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "ab2a5455ef649ad7c99ea5a3b77ade5f9c493ecb9d4712658b3cb1ddfda1db4e"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\06_Nhap_san_pham_lo_va_quy_cach_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/06_Nhap_san_pham_lo_va_quy_cach_v0.2_de_xuat.md",
+      "sha256_at_import": "734947ebcd08c1e1de796fc0b5c5cbf614b4fc388f732ff41365766d3c0da8f2"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\06_Nhap_san_pham_lo_va_quy_cach_v0.3_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/06_Nhap_san_pham_lo_va_quy_cach_v0.3_de_xuat.md",
+      "sha256_at_import": "5190fc60271b0dace74e373d62290adfa5c5909a0b7a5b6c542abbc1177c6375"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\07_Duyet_nguong_ton_va_doi_tac_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/07_Duyet_nguong_ton_va_doi_tac_v0.1_de_xuat.md",
+      "sha256_at_import": "e28e985d423b68ec9d2227f062e07310c1129ea98fdd38ced0525c8d75858d80"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08A_Khach_hang_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08A_Khach_hang_v0.1_de_xuat.md",
+      "sha256_at_import": "25d2bb2b07e032784d3b34b11a1546cdd84328af98a0d2bf85dd2ab219c60721"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08A_Khach_hang_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08A_Khach_hang_v0.2_de_xuat.md",
+      "sha256_at_import": "8af9f750cbc043a1ee7a6cb43e1da161399f09bcccac5cc1321d7fbd45603b84"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08A_Khach_hang_v0.3_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08A_Khach_hang_v0.3_de_xuat.md",
+      "sha256_at_import": "b8f54af37186ac730d57acf25c0bff89a59b4f379108454db8c8521538660029"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08B_Nha_cung_cap_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08B_Nha_cung_cap_v0.1_de_xuat.md",
+      "sha256_at_import": "7764f39efca20d9bc4afe30d388e8a8a673bd7bbf18c34c92df81a901b47d5fa"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08C_Don_vi_van_chuyen_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08C_Don_vi_van_chuyen_v0.1_de_xuat.md",
+      "sha256_at_import": "262546d691a191cd406bd1ccaf34d8989e7ab957d68c702e08bbab477eb94152"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08C_Don_vi_van_chuyen_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08C_Don_vi_van_chuyen_v0.2_de_xuat.md",
+      "sha256_at_import": "800fade014947b962faba3d2ef12dc44d67eece2922cc730eab7994b38e0d346"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\08C_Don_vi_van_chuyen_v0.3_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/08C_Don_vi_van_chuyen_v0.3_de_xuat.md",
+      "sha256_at_import": "1dcf3df4ed14d0d5152328042a50ce265e92c35a2bac609eded1476a4c1421e8"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\09_Duyet_diem_ton_va_so_du_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/09_Duyet_diem_ton_va_so_du_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "4a429b8951a512f957a05e6d6f595b6909b8407ae5e298085a6d17715cf2e3da"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\09_Duyet_diem_ton_va_so_du_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/09_Duyet_diem_ton_va_so_du_v0.1_de_xuat.md",
+      "sha256_at_import": "58b51b9f1f46b14dbf4abc51e173b23ba7754a5354c228c1d9aefb583e724c99"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\09_Duyet_diem_ton_va_so_du_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/09_Duyet_diem_ton_va_so_du_v0.2_de_xuat.md",
+      "sha256_at_import": "5d4d84bccf95f09458644710d4c432f40950938cbd7133dccfe3001041945dad"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\10_Duyet_giao_dich_va_lich_su_ton_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/10_Duyet_giao_dich_va_lich_su_ton_v0.1_de_xuat.md",
+      "sha256_at_import": "530c1c7783c0cb93eb1cd7f7eeed04f242e2d736fe50331807ac3fc8ceef61ca"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\11_Duyet_giu_hang_va_nguon_cung_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/11_Duyet_giu_hang_va_nguon_cung_v0.1_de_xuat.md",
+      "sha256_at_import": "e127603c75856aa46e11a4ae3136a96dbffe510f3b3a852c3808abf25e09e836"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\12_Duyet_chong_hang_va_dong_goi_thuc_te_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/12_Duyet_chong_hang_va_dong_goi_thuc_te_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "2997902ee250a9701c66cc4461d5d1185ca1785a19633d4cdabc6fdebb0a8397"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\12_Duyet_chong_hang_va_dong_goi_thuc_te_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/12_Duyet_chong_hang_va_dong_goi_thuc_te_v0.1_de_xuat.md",
+      "sha256_at_import": "44edf0e743fbefe23b9f86aa1894387a5c13630f14e087f996eacaeee671ff6d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\13_Duyet_yeu_cau_bo_sung_va_don_mua_truoc_bo_UOM_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/13_Duyet_yeu_cau_bo_sung_va_don_mua_truoc_bo_UOM_2026-11-01.md",
+      "sha256_at_import": "c58bb4f8c1c9cd8b1e6fccb89305b9fb532de65616a7ceaa3acb9fb541ed9889"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\13_Duyet_yeu_cau_bo_sung_va_don_mua_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/13_Duyet_yeu_cau_bo_sung_va_don_mua_v0.1_de_xuat.md",
+      "sha256_at_import": "811340255dc3cfb564e15cb9661aa24d7259a96a10c66052aae03d8472a40a3d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\15_Duyet_hang_den_kiem_nhan_va_phieu_nhap_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap_v0.1_de_xuat.md",
+      "sha256_at_import": "5107767b9a97859bb8974061961df4a208492515081569467e23be87d6721e7c"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\16_Duyet_lenh_va_yeu_cau_chuyen_kho_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/16_Duyet_lenh_va_yeu_cau_chuyen_kho_v0.1_de_xuat.md",
+      "sha256_at_import": "49fb6ac0f3aff489ff9b177023f6a219058818992bbb58b4e51de9354ba52db9"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho_v0.1_de_xuat.md",
+      "sha256_at_import": "6a5c7ce23029773ca5b3e9b59b04207bdaf5a66ac9dded5bc264bb8b136c4ab5"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao_v0.1_de_xuat.md",
+      "sha256_at_import": "846629d8366775b9291fde8e9e044873c6dbf2d3abc207e4626ca91d8cc76efd"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao_v0.2_de_xuat.md",
+      "sha256_at_import": "513a5be1c76e919bc6c8bc51f86de2e5ad9dc753eda2d79df0459dddfa15ce48"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\19_Duyet_xuat_ban_giao_nhan_va_hoa_don_truoc_duyet_H15_H16_v0.1.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/19_Duyet_xuat_ban_giao_nhan_va_hoa_don_truoc_duyet_H15_H16_v0.1.md",
+      "sha256_at_import": "c361a735f7d6d1431bc44aba2377b7d17f0336ba66712a2b054d0fcdc1aaecb3"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\19_Duyet_xuat_ban_giao_nhan_va_hoa_don_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/19_Duyet_xuat_ban_giao_nhan_va_hoa_don_v0.1_de_xuat.md",
+      "sha256_at_import": "a7472f59f53cb245ce2ace94845974a269f95980a8f712a3b5f452545681db45"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\20_Duyet_xac_nhan_tien_ngoai_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/20_Duyet_xac_nhan_tien_ngoai_v0.1_de_xuat.md",
+      "sha256_at_import": "923c6c6d5ffd5b25dbb168bec983a8c94c859b6d95bfc5717b522b117eb04937"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\21_Duyet_hang_loi_phuong_an_va_phieu_huy_truoc_chot_BF08_2026-11-01.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/21_Duyet_hang_loi_phuong_an_va_phieu_huy_truoc_chot_BF08_2026-11-01.md",
+      "sha256_at_import": "0a971303b792b7f9ff5a0a1503dd126c7ed8cd1c05899dda63c6fdeba2717368"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\21_Duyet_hang_loi_phuong_an_va_phieu_huy_v0.1_bo_sung_giai_thich.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/21_Duyet_hang_loi_phuong_an_va_phieu_huy_v0.1_bo_sung_giai_thich.md",
+      "sha256_at_import": "a3a8a60ea7628197119aeefff65d22ed11a4cb6a60380bad430830f864e7a50c"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\21_Duyet_hang_loi_phuong_an_va_phieu_huy_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/21_Duyet_hang_loi_phuong_an_va_phieu_huy_v0.1_de_xuat.md",
+      "sha256_at_import": "b053ccee595880e3803dc5de423fc786e4c365b429ef47862ace73658f08615d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\22_Duyet_giao_that_bai_nhan_ve_va_giao_bu_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/22_Duyet_giao_that_bai_nhan_ve_va_giao_bu_v0.1_de_xuat.md",
+      "sha256_at_import": "d0fabc8691b1cfef46b20b90ebff8def7518fa6d35437687c772476361f0531a"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\23_Duyet_doi_lenh_giao_bu_va_huy_phan_don_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/23_Duyet_doi_lenh_giao_bu_va_huy_phan_don_v0.1_de_xuat.md",
+      "sha256_at_import": "955087b1d2dbaba12094d9a6e584822180194d3f10f6a704120946524b6a7828"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\24_Duyet_khach_tra_hang_sau_khi_nhan_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/24_Duyet_khach_tra_hang_sau_khi_nhan_v0.1_de_xuat.md",
+      "sha256_at_import": "6b2051af87086602f0732f6b7ba8a32e4b39fcbfbb2080279afa79d634b84dd2"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\24_Duyet_khach_tra_hang_sau_khi_nhan_v0.2_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/24_Duyet_khach_tra_hang_sau_khi_nhan_v0.2_de_xuat.md",
+      "sha256_at_import": "d7801f3a991416a8d23ceefd19c37b6ea3306d0738a5762224e36be2ff4183ed"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\25_Duyet_han_muc_tra_va_hang_giu_ho_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/25_Duyet_han_muc_tra_va_hang_giu_ho_v0.1_de_xuat.md",
+      "sha256_at_import": "d180e2369257d135dddd9097c3970d5fc2c54b9a0fc80a1a892d048079298484"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\26_Duyet_yeu_cau_xuat_tra_va_xac_nhan_nha_cung_cap_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/26_Duyet_yeu_cau_xuat_tra_va_xac_nhan_nha_cung_cap_v0.1_de_xuat.md",
+      "sha256_at_import": "24dbda8b7d21472a7d6d9861476eb29c0d63a6975a280a6b6926a075b370f661"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\27_Duyet_chan_hang_doi_chat_luong_va_chenh_lech_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/27_Duyet_chan_hang_doi_chat_luong_va_chenh_lech_v0.1_de_xuat.md",
+      "sha256_at_import": "4045a742c6f9ad77c7bd527131dcba7043200b4ed0a9844b6b5efb70fcc86f6e"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\28_Duyet_dot_kiem_ke_moc_ton_va_khoa_vi_tri_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/28_Duyet_dot_kiem_ke_moc_ton_va_khoa_vi_tri_v0.1_de_xuat.md",
+      "sha256_at_import": "d10d8ca1d00bc30a13b57fadda4c04236e7c65864a9d996d524cdfdc9d51f140"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh_v0.1_de_xuat.md",
+      "sha256_at_import": "1242abeda63fc1d2f4623edfbe74e835b399cbb9702927a38094358a91ddac9e"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\30_Duyet_dao_giao_dich_va_ton_dau_ky_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/30_Duyet_dao_giao_dich_va_ton_dau_ky_v0.1_de_xuat.md",
+      "sha256_at_import": "5a61b62c0eae8bd2517955823d4fac76d5a9910daa7e761a0d9742c4c039a5e5"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\31_Duyet_cach_to_chuc_ho_so_nghiep_vu_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/31_Duyet_cach_to_chuc_ho_so_nghiep_vu_v0.1_de_xuat.md",
+      "sha256_at_import": "fa69d3078f3a6cb9af81950abbcf5f0dda0dd82bc03bae822552ef7e8099994d"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\32_Duyet_dong_hang_va_lien_ket_chung_tu_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/32_Duyet_dong_hang_va_lien_ket_chung_tu_v0.1_de_xuat.md",
+      "sha256_at_import": "52b9ee347c19a2c0d52828b3ecf4a4d36f380ad0ff3eee791aa75c76b7039f9c"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem_v0.1_de_xuat.md",
+      "sha256_at_import": "423fd987abcb0bb90fa0521abfe437d45c93c7292d2a1774c91d46a96aab3f6f"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\34_Duyet_thong_bao_nhat_ky_va_su_kien_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/34_Duyet_thong_bao_nhat_ky_va_su_kien_v0.1_de_xuat.md",
+      "sha256_at_import": "d3690fb1d2dc40686c3c7c4fa0900cf7333e4490f5fd3a306cde9f0726cadade"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\35_Duyet_chong_lap_thao_tac_va_kiem_soat_dong_thoi_v0.1_de_xuat.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/35_Duyet_chong_lap_thao_tac_va_kiem_soat_dong_thoi_v0.1_de_xuat.md",
+      "sha256_at_import": "7eb107706b568edee319915e14dea9136fe51f89b0c270087581d320d3ac8f31"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\00_Hien_trang_va_cach_duyet.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/00_Hien_trang_va_cach_duyet.md",
+      "sha256_at_import": "7c25d1e5667b11a4717939b65c06d060c56e6cb77f1e6990240df72261edf4f1"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\01_Danh_muc_duyet.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/01_Danh_muc_duyet.md",
+      "sha256_at_import": "dccbdada1b9bc882eb4207c41b8ba9890ad59cd96d9ed6819e8925003986038a"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\04_Nhat_ky_duyet.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/04_Nhat_ky_duyet.md",
+      "sha256_at_import": "43fb46647af7a4c02cf1e42473917c1494019204623a314214bac2982dd8c657"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\13_Duyet_yeu_cau_bo_sung_va_don_mua.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/13_Duyet_yeu_cau_bo_sung_va_don_mua.md",
+      "sha256_at_import": "d21d022366640bcb93716d67779d70db630cba938b009faab4b18e202ea8de62"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\14_Bo_UOM_va_luu_quy_doi_tren_dong.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/14_Bo_UOM_va_luu_quy_doi_tren_dong.md",
+      "sha256_at_import": "e287214ea02074449f66586e3ebac3c568df188fc2954804dfc09c6ab53e20ee"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md",
+      "sha256_at_import": "aae61ad15bc3ed9792a8e8dd0deeade146ff2ef648e69ca87e70981fd070eaef"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md",
+      "sha256_at_import": "0df6eae6d02c78f8e35e7abc176bf122d9b1ce6b3011d47971e6ad72f40f9b1b"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/29_Duyet_ket_qua_dem_phuong_an_va_dieu_chinh.md",
+      "sha256_at_import": "260bef138212223d76294957e4738048c996513b7bd68e262aa6e1f5d953cb39"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\30_Duyet_dao_giao_dich_va_ton_dau_ky.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/30_Duyet_dao_giao_dich_va_ton_dau_ky.md",
+      "sha256_at_import": "cb7f9bd674d707f07ae651555aaaa660411a236235f8127fd2bf9ad325acf300"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\31_Duyet_cach_to_chuc_ho_so_nghiep_vu.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/31_Duyet_cach_to_chuc_ho_so_nghiep_vu.md",
+      "sha256_at_import": "6211c5866a2cd01e5e1d9fe310f3eb4bd5efd46555482cbe80dfd5255d1e2732"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\32_Duyet_dong_hang_va_lien_ket_chung_tu.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/32_Duyet_dong_hang_va_lien_ket_chung_tu.md",
+      "sha256_at_import": "f8bb0bf7c5acca70e8de90bd1791b3dcf7c010e97db627cb9e6be39512d915df"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/33_Duyet_lich_su_quyet_dinh_va_tep_dinh_kem.md",
+      "sha256_at_import": "883b73cc5e87283379a77fbd113e02724c038bfaa54e5653f6c99bddf1b66909"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\34_Duyet_thong_bao_nhat_ky_va_su_kien.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/34_Duyet_thong_bao_nhat_ky_va_su_kien.md",
+      "sha256_at_import": "e135908c7c47d40ea60323b55de1eef23b61434612ff28a65339009360d6ef41"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Rebuild_Review\\history\\H01_H35_before_approval_20261102\\35_Duyet_chong_lap_thao_tac_va_kiem_soat_dong_thoi.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Rebuild_Review/history/H01_H35_before_approval_20261102/35_Duyet_chong_lap_thao_tac_va_kiem_soat_dong_thoi.md",
+      "sha256_at_import": "9fd0e206c1b95802698f9f61978d844df46445278e646a81e090b51876d4ff25"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\Previews\\Carton_Purchase_Receipt.png",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/Previews/Carton_Purchase_Receipt.png",
+      "sha256_at_import": "3ed23385c36b9c6ab72e942e3cb53b166aa3befbef4d253d86d0e6b2530f5d33"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\Previews\\Overall_ERD.png",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/Previews/Overall_ERD.png",
+      "sha256_at_import": "3f4963b19613eaec7a855b9c1415a3e84917d054f0d0013e2de18aec84711270"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\Previews\\Purchase_Order_DB_Design.png",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/Previews/Purchase_Order_DB_Design.png",
+      "sha256_at_import": "7435cfe18ac7d2876ba2f1a0f6e787898533e546a9fa599874c192c234f1b21f"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\Previews\\Purchasing_Carton_ERD.png",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/Previews/Purchasing_Carton_ERD.png",
+      "sha256_at_import": "6a97ca3295f05673657867dc5fb74cec51fd0df9533b99ebe511fc59d5ce6963"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\Previews\\Warehouse_Transfers_ERD.png",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/Previews/Warehouse_Transfers_ERD.png",
+      "sha256_at_import": "6339a5334c64e1bafb209777ec7c2b561c134349a328b27233038b1fbaae15b4"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\README.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/README.md",
+      "sha256_at_import": "f4f581217d469e7a70aa7bdcc29b2782aa5f741c790e1402fccf950c882b3148"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\schema_snapshot.json",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/schema_snapshot.json",
+      "sha256_at_import": "836447f96be2d9bebbbca5053985e2a2522e5f2e31ecd11959ca914e97681da3"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\validation.json",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/validation.json",
+      "sha256_at_import": "f2afb31d4c07d25b3a4c8c0072392c3cd0e14512604428e168ef5642458602ec"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\WMSD_Data_Dictionary.md",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/WMSD_Data_Dictionary.md",
+      "sha256_at_import": "ccdd061c3fdc3606983f58cccbf062c420097ffdf52b4621a8c508477371ca1c"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\WMSD_DB_Design_Current.drawio",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/WMSD_DB_Design_Current.drawio",
+      "sha256_at_import": "fae390f93731721fb078e7a8c97570d07e151227545110548bbff54a75ae2a23"
+    },
+    {
+      "source": "E:\\Doan\\docs_doan\\docs\\03_thiet_ke\\DB_Current_2026-11-04\\WMSD_ERD_Current.drawio",
+      "target": "git_doc/docs/03_thiet_ke/DB_Current_2026-11-04/WMSD_ERD_Current.drawio",
+      "sha256_at_import": "3f46aa3f9967baf6b725fee30a5690818a2d10cfb3cffda13ded8b5d12fa2cb0"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\models\\rebuild\\README.md",
+      "target": "git_doc/docs/09_phat_trien/DB_REBUILD.md",
+      "sha256_at_import": "f28b5745c67d955cd9ef421464d83e191df619c6b76c552bc0fb749d584e354f"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\models\\rebuild\\LOCAL_DEVELOPMENT.md",
+      "target": "git_doc/docs/09_phat_trien/MONGODB_LOCAL.md",
+      "sha256_at_import": "d2bc187669a2554e641b8b1ae50cffb39352014b92c28aafffac0f8ac829ebd3"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\HUONG_DAN_DB_MOI.md",
+      "target": "git_doc/docs/99_lich_su/HUONG_DAN_DB_MOI_2026-11-03.md",
+      "sha256_at_import": "3c03a3534a34bbf7274c251c040f7d5638fe51e549f98c8813adc95a94cf4e10"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\modules\\location-movements\\README.md",
+      "target": "git_doc/docs/08_api/location-movements/README.md",
+      "sha256_at_import": "c213d9a03df73171e34ba08e7e70f958f9acd5f6271c7951b5f9136187ea18dc"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\modules\\replenishments\\README.md",
+      "target": "git_doc/docs/08_api/replenishments/README.md",
+      "sha256_at_import": "76be43ed1125e99514d7af0e5555b26322cee85240add8c6dee49a65727adaa3"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\modules\\sales-orders\\README.md",
+      "target": "git_doc/docs/08_api/sales-orders/README.md",
+      "sha256_at_import": "a354bbfd96b9797c720a30d2846331693790f2e2c6cfddbe3af399e98872b30a"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\modules\\transfers\\BF04_API.md",
+      "target": "git_doc/docs/08_api/transfers/BF04_API.md",
+      "sha256_at_import": "2755ee8653f3b4a46f2c4ea26688e0f49a010a703ae0f62dbe63f5c60e7a457a"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\src\\modules\\transfers\\README.md",
+      "target": "git_doc/docs/08_api/transfers/README.md",
+      "sha256_at_import": "65ee4eeee2f8504cfdd5a2171e3f045890e440b69fa73c8ad5531321321cc8eb"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\docs\\api\\fe06-iteration1\\README.md",
+      "target": "git_doc/docs/08_api/test_packs/fe06-iteration1/README.md",
+      "sha256_at_import": "da2ed84dc05e81ef1512ad70654f7d7c7795bf6a9be02f1185b2c3353458d411"
+    },
+    {
+      "source": "E:\\Doan\\CODE\\BE\\building-material-management\\docs\\api\\fe06-iteration1\\VERIFICATION.md",
+      "target": "git_doc/docs/08_api/test_packs/fe06-iteration1/VERIFICATION.md",
+      "sha256_at_import": "a45cc107b32e45a6813f1c250bb0319b838c4bf6b588e4f0f1cd38c9c9be38cb"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\applied_20261102.json",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/applied_20261102.json",
+      "sha256_at_import": "c65fd667f3ccd14a3850e92595f43b184f48cc73566f794916a9174f960ac770"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\demo_applied_20261103.json",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/demo_applied_20261103.json",
+      "sha256_at_import": "126c7fd24aa89693992b27664a3bebd1804b2fa6a38b98d599f27a3b856d424c"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\demo_rerun_20261103.json",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/demo_rerun_20261103.json",
+      "sha256_at_import": "51313a1ba200e7df4486914bd3858b8165e965ab764b56c4ede4be236274eeef"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\demo_verified_20261103.json",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/demo_verified_20261103.json",
+      "sha256_at_import": "6f6e76145f71b81eaa8c0eef80d52cf61690b5ebd271b5a704b4e0fa15d0100c"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\preview_20261102_01.json",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/preview_20261102_01.json",
+      "sha256_at_import": "bf54742f4e7cb8114174817be6d34ef70c1c6da5ecf1b936ae48e0a8b22d4755"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\tests_20261103.txt",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/tests_20261103.txt",
+      "sha256_at_import": "9859f64d102d9a4a0c5a7c25e46e06bd12eb48ce92c71aec04d6b6a0d14716fc"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\test_run_20261102.txt",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/test_run_20261102.txt",
+      "sha256_at_import": "795b56c92f2b7fb0803cc6af43218c7349a2cfa09628704da0600c848eded937"
+    },
+    {
+      "source": "E:\\Doan\\outputs\\db_rebuild\\verified_20261102.json",
+      "target": "git_doc/outputs/db_rebuild_20261102_03/verified_20261102.json",
+      "sha256_at_import": "b2c87df36c5e5f8d285bf2198b96e51944bb0f57650f332b230a4894ec08bed9"
+    }
+  ]
+}

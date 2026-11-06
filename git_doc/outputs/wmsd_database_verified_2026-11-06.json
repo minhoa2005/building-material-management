@@ -1,0 +1,29 @@
+{
+  "status": "VERIFIED",
+  "sourceDatabase": "wmsd_demo_tile_shop_v7",
+  "targetDatabase": "wmsd_database",
+  "sourceHash": "9733ef98830f8d3d2ea97ff2981f457ad944e97965107acb6a741528f631863b",
+  "validation": {
+    "collections": 58,
+    "records": 633,
+    "businessDocuments": 81,
+    "embeddedItems": 115,
+    "balances": 51,
+    "stockTransactions": 32,
+    "stockMovements": 70,
+    "invoices": 1,
+    "checks": [
+      "schemas",
+      "references",
+      "stock ledger",
+      "reservations",
+      "approval permissions",
+      "BF03/BF04 quantities",
+      "bin capacities",
+      "invoice accepted quantities",
+      "outbound messages disabled"
+    ]
+  },
+  "recordedAt": "2026-11-06T08:38:51.914Z",
+  "applicationStatus": "Legacy APIs have not been ported; application connection unchanged"
+}

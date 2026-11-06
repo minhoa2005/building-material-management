@@ -40,18 +40,6 @@ router.put(
   controller.configurePolicy,
 );
 router.get(
-  "/:id/conversions",
-  checkPermission("product:read", BUSINESS_ROLES),
-  validate(validation.conversionHistorySchema),
-  controller.conversions,
-);
-router.post(
-  "/:id/conversions",
-  checkPermission("product:update", ["OWNER"]),
-  validate(validation.createConversionSchema),
-  controller.createConversion,
-);
-router.get(
   "/:id",
   checkPermission("product:read", BUSINESS_ROLES),
   validate(validation.productIdSchema),

@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { User } from "../../models/index.js";
+import { User } from "../../models/runtime.js";
 import { ApiError } from "../../shared/utils/ApiError.js";
 import { rolePermissions, userRoleDto } from "../../shared/utils/userRole.js";
 import { generateRefreshToken } from "../../config/jwt.js";
@@ -18,6 +18,7 @@ function profile(user) {
     username: user.username,
     fullName: user.fullName,
     phone: user.phone,
+    warehouseIds: (user.warehouseIds || []).map(String),
     ...userRoleDto(user),
     permissions: rolePermissions(user),
   };

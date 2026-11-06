@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBody, detailSchema } from '../src/modules/location-movements/location-movement.validation.js';
-import { netMovedQuantity } from '../src/modules/location-movements/location-movement.service.js';
+import { splitPortions } from '../src/shared/utils/stock.js';
 
 const id = '123456789012345678901234';
 const body = () => ({
   idempotencyKey: 'move-1', warehouseId: id, reason: 'Reorganize storage',
-  lines: [{ sourceBalanceId: id, sourceBalanceVersion: 0, toLocationId: id, conversionId: id, enteredQty: '2.500000' }],
+  lines: [{ sourceBalanceId: id, sourceBalanceVersion: 0, toLocationId: id, enteredUnit:'PIECE', enteredQty: '2.500000' }],
 });
 
 test('UC-36 validates decimal strings and rejects client-controlled business fields', () => {
@@ -27,15 +27,9 @@ test('UC-36 validates decimal strings and rejects client-controlled business fie
   assert.equal(detailSchema.safeParse({ params: { id: 'not-an-id' } }).success, false);
 });
 
-test('UC-35 derives actual movement once per ledger row, including reversals', () => {
-  const batches = [{ _id: 'a' }, { _id: 'b' }, { _id: 'r', reversalOf: 'a' }];
-  const movements = [
-    { batchId: 'a', qtyBase: '0.1' }, { batchId: 'b', qtyBase: '0.2' },
-    { batchId: 'r', qtyBase: '0.1' }, { batchId: 'uncommitted', qtyBase: '99' },
-  ];
-  assert.equal(netMovedQuantity(movements, batches).toFixed(), '0.2');
-  assert.equal(netMovedQuantity([], []).toFixed(), '0');
-  assert.equal(netMovedQuantity([
-    { batchId: 'a', qtyBase: '2' }, { batchId: 'r', qtyBase: '2' }, { batchId: 'rr', qtyBase: '2' },
-  ], [{ _id: 'a' }, { _id: 'r', reversalOf: 'a' }, { _id: 'rr', reversalOf: 'r' }]).toFixed(), '2');
+test('sealed portions split exactly and loose packaging requires measurement',()=>{
+  const portions=[{_id:'original',packagingState:'SEALED',sealedPackCount:3,quantityBase:'12',packagingSnapshot:{baseUnitsPerPackage:'4'}}];
+  const split=splitPortions(portions,'4',id);assert.equal(split.kept[0].quantityBase,'8');assert.equal(split.taken[0].quantityBase,'4');assert.equal(split.kept[0]._id,'original');assert.notEqual(String(split.taken[0]._id),'original');
+  assert.throws(()=>splitPortions(portions,'3',id),/nguyên thùng/);
+  assert.throws(()=>splitPortions([{packagingState:'LOOSE',quantityBase:'4'}],'2',id),/đo và tách/);
 });
