@@ -162,7 +162,11 @@ export async function createProduct(user, input) {
         name: input.name,
         baseUomId: input.baseUomId,
         wholeBaseUnits: input.wholeBaseUnits,
-        ...(input.nominalSize != null && { nominalSize: input.nominalSize }),
+        nominalSize:
+          input.nominalSize ??
+          (input.lengthMm && input.widthMm
+            ? `${Math.round(Number(input.lengthMm))}x${Math.round(Number(input.widthMm))}`
+            : undefined),
         ...(input.category != null && { category: input.category }),
         ...(input.brand != null && { brand: input.brand }),
         ...(input.material != null && { material: input.material }),

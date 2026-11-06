@@ -280,6 +280,15 @@ test("Iteration 1 replenishment commands are scoped, versioned, idempotent and s
       }
     });
 
+    await t.test('RV-03 creation replay enforces current warehouse scope', async()=>{
+      const body=createBody('rv03-replay-scope','SAVE_DRAFT',[line(product1,piece1,'2','Scope regression')]);
+      const created=await ok('POST','/replenishments',sales,body,201);
+      await models.User.updateOne({_id:sales._id},{$set:{warehouseIds:[]}});
+      try {assert.equal((await api('POST','/replenishments',sales,body)).status,403);}
+      finally {await models.User.updateOne({_id:sales._id},{$set:{warehouseIds:sales.warehouseIds}});}
+      assert.equal((await ok('POST','/replenishments',sales,body)).id,created.id);
+    });
+
     await t.test("UC-05 submit writes an immutable snapshot and submission history", async () => {
       const submitted = await ok("POST", `/replenishments/${draft.id}/submit`, sales, {
         expectedVersion: 2,

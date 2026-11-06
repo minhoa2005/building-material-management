@@ -415,6 +415,7 @@ async function replayCreated(user, creationKey, hash) {
     "header.creationKey": creationKey,
   }).lean();
   if (!document) return null;
+  if (!canAccessWarehouse(user, document.header.warehouseId)) throw scopeError();
   const operation = await findOperation(key);
   if (!operation) return null;
   if (
@@ -463,6 +464,7 @@ export async function createReplenishment(user, input) {
         session,
       );
       if (existing) {
+        if (!canAccessWarehouse(user, existing.header.warehouseId)) throw scopeError();
         const operation = await findOperation(operationKey, session);
         if (!operation) throw operationConflict();
         if (

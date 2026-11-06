@@ -237,7 +237,7 @@ Nguồn quyết định đã được người dùng yêu cầu áp dụng: [đ�
 - Outbox STOCKTAKE_CLOSED/SALES_ORDER_SAVED lưu documentVersion cùng transaction nguồn; consumer sau commit đánh giá và lưu Notification, không tạo RR. Notification có recipient/type/title/message/warehouse/sourceDocumentId/sourceDocumentVersion/eventKey/evaluatedAt/readAt/dedupKey; retry không tạo trùng hay reset readAt. Warehouse active đúng kho nhận thông báo tổng hợp; SO chỉ báo người có quyền nguồn.
 - List, unread count và mở nguồn đều kiểm recipient + quyền nguồn/kho hiện hành. Đã đọc không phải đã giải quyết thiếu hàng; khi mở cảnh báo/tạo RR tính lại dữ liệu. Để sau không tạo pending coverage/ẩn cảnh báo. MVP không có StockAlert; chưa hỗ trợ assignment/snooze/dismissal lifecycle.
 - Contract [TK]: POST /api/replenishments/evaluate, POST /api/replenishments, GET /api/notifications, GET /api/notifications/unread-count, POST /api/notifications/:id/read. Envelope theo data hiện có, ObjectId/decimal strings/UTC ISO. Quyền evaluate + notification:read/mark_read chỉ OWNER/WAREHOUSE/SALES theo scope; Owner không được create RR chỉ vì có evaluate, ADMIN không bypass.
-- Seed có39 collections/35 document kinds/19 line kinds; có RR lưu từ form kiểm kê, RR SO chưa WIR có thêm dòng dự trữ riêng, SO chưa có nguồn đúng tone chưa tạo RR và hai recipient readAt độc lập. DB đã có dữ liệu không bị seed lại; SQL tham chiếu84 bảng/2 view.
+- Seed có40 collections/35 document kinds/19 line kinds; có RR lưu từ form kiểm kê, RR SO chưa WIR có thêm dòng dự trữ riêng, SO chưa có nguồn đúng tone chưa tạo RR và hai recipient readAt độc lập. DB đã có dữ liệu không bị seed lại; SQL tham chiếu84 bảng/2 view.
 
 
 **Form tạo RR thống nhất (đề xuất 1.4.0 được chấp thuận, baseline 3.3.0):** Người dùng chọn dòng cảnh báo và bấm Tạo yêu cầu, hoặc mở từ menu rồi chọn nguồn/nhu cầu khác. Form điền sẵn sản phẩm, kho, lượng gợi ý, lý do và refs có căn cứ. Sửa lượng/ngày cần/lý do; dòng nguồn giữ sản phẩm/kho/refs. Đổi ngữ cảnh phải chọn lại và tính lại. Một RR một kho/ngày cần; khác nhóm tạo phiếu riêng sau review.
@@ -321,13 +321,24 @@ Runtime mount **/api**, không /api/v1. Có:
 | POST /api/auth/login | Username/password; data={accessToken,user}; set refresh_token HttpOnly cookie. |
 | GET /api/auth/me | Active user/roles/permissions. |
 | POST /api/auth/refresh | Cookie refresh; access token và user mới. |
+| POST /api/auth/logout | Xóa refresh_token và claim_access_token cookie bằng cùng cookie options lúc set; thành công cả khi token thiếu/hết hạn. Không yêu cầu authenticate. |
 | GET/POST /api/users, GET/PUT /api/users/:id, PATCH /api/users/:id/status | Account module; list data={items,total,page,limit}. |
 | GET /api/roles, PUT /api/roles/:code/permissions | Catalogue/ma trận role hiện tại. |
 | GET /api/replenishments | UC-01; scoped list; data={items,total,page,limit}; optional code/warehouse/creator/status/latest-decision/Vietnam-date filters. |
 | GET /api/replenishments/:id | UC-02; saved RR/source/coverage snapshots/versioned approvals, stored demand records/PO links and separate live product/warehouse available stock. |
 | POST /api/upload | multipart field file, image/*, memory5MB; trả url/publicId/format/width/height. |
+| GET/POST /api/replenishments; GET/PUT /:id | Iteration 1 manual RR list/detail/create/update; owner review and submission snapshots use command routes below. |
+| POST /api/replenishments/:id/submit · /review | Saved-RR submit and Owner decision; expectedVersion/operationKey, immutable submission snapshot. |
+| GET /api/replenishments/options · /:id/submissions(/:version) | Create/filter warehouse lookup and versioned submission history. |
+| GET /api/purchase-orders | UC-07 scoped PO list with typed arrival/inspection/GR ledger quantities and outstanding filter. |
+| GET/POST /api/products; GET/PUT /:id; PATCH /:id/status | UC-17–21 product master, versioned metadata/status. |
+| GET/POST /api/products/:id/conversions; GET/PUT /:id/warehouse-policies; GET /api/products/options | UC-22/23 conversion versions, Owner policy and lookup. |
+| GET/POST /api/lots; GET/PUT /:id; GET /:id/movements | UC-24–27 catalog/detail/history and identity locking. |
+| GET/POST /api/suppliers; GET/PUT /:id; PATCH /:id/status; GET /:id/history · /documents | UC-28–32 supplier master, status history and scoped PO/GR/SR references. |
 
-Success hiện {success:true,message,data?,meta?}; lỗi {success:false,message,stack?} (stack chỉ development). Không hứa field code/fieldErrors/correlationId đã có.
+Iteration 1 backend is implemented on `codex/uc-01-32-iteration-1` for UC-01–07 and UC-17–32; FE remains unwired. Contract: [API reference](docs/api/iteration-1/README.md), [implementation summary](docs/iteration-1/README.md), [verification](docs/iteration-1/VERIFICATION.md). New errors use `{code,fieldErrors,details}`; commands use creationKey/operationKey replay and expectedVersion. Collection count is 40 after `replenishment_submissions`.
+
+Success hiện {success:true,message,data?,meta?}; lỗi {success:false,message,stack?} (stack chỉ development). Từ Iteration 1, lỗi mới trả thêm `code`, `fieldErrors`, `details`; không hứa field correlationId.
 
 API /sessions, /accounts, /sales-orders, /goods-receipts, /stocktake-resolutions... ở thiết kế mục 8 prefix /api/v1 đều là [TK], **chưa mount**. Khi xây module dùng semantics của thiết kế nhưng thống nhất prefix/envelope với FE; không đổi silently endpoint auth/users/roles đang dùng. GET không mutate; command riêng create/submit/review/confirm/post/void/cancel thay PATCH status tùy ý. Dữ liệu trả ID ObjectId string, quantity/factor decimal string, status/version/operationId và postingId chỉ khi có stock posting. DTO serialize Decimal128 rõ ràng, không trả object $numberDecimal chưa mapping.
 
@@ -345,13 +356,13 @@ Permission catalogue thực ở src/seeds/data/permissions.data.js, dạng resou
 2. users/roles routes còn allow OWNER ở outer authorize và một số read gate khác baseline UC-107–112 Admin-only. role.service tự tạo Permission khi gặp code lạ; cần whitelist catalogue/role-operation compatibility và audit, cấm retired/arbitrary quyền. Giao diện hay seed không thay kiểm server.
 3. users API chưa có luồng gán warehouseIds đầy đủ dù User model đã có; roleCode gán/thay đúng một roleId. Cần thiết kế assignment đúng UC-112 trước enforce multi-warehouse, không dùng kho demo làm assignment thật.
 4. upload route hiện chưa authenticate/parent scope và trả Cloudinary secure_url; middleware chỉ kiểm MIME khai báo image/*, giới hạn5MB kỹ thuật. Chưa đạt private Evidence/hash/ownership/authorized download của API-02/POD. Mức5MB có trong implementation, không phải cửa hàng đã chốt mọi hạn mức.
-5. JWT có secret fallback hardcode và refresh helper hiện chỉ ký/verify, chưa thấy rotation/reuse detection/revocation hoặc logout endpoint. Không đưa fallback vào cấu hình triển khai hoặc khẳng định comment FE đã đúng. CORS origin:true/cookie strict cần kiểm cùng deployment khi làm auth, không suy là kiểm soát production hoàn tất.
+5. JWT có secret fallback hardcode và refresh helper hiện chỉ ký/verify, chưa có rotation/reuse detection/revocation. POST /auth/logout đã xóa cookie refresh_token và claim_access_token bằng cùng defaults; không thu hồi bản sao JWT ở nơi khác. FE chặn phản hồi phiên cũ bằng session generation, chỉ reauth khi có phiên local, luôn xóa cache/về login kể cả logout lỗi hoặc timeout 5 giây. Không đưa fallback vào cấu hình triển khai. CORS origin:true/cookie strict cần kiểm cùng deployment khi làm auth, không suy là kiểm soát production hoàn tất.
 
 Không tự sửa tất cả lỗi trong task một UC; nhưng không xây tiếp phụ thuộc lên phần lỗi rồi báo hoàn tất. Nêu/sửa prerequisite trong scope công việc được giao và kiểm behavior thực.
 
 ### 5.4 Mô hình dữ liệu và persistence contract thực
 
-Đọc src/models/README.md trước viết nghiệp vụ. 84 bảng SQL tham chiếu đã có representation trên **39 collections**, **35 document discriminators**, **19 line discriminators**; schema/index không thay transaction/service hoặc FK.
+Đọc src/models/README.md trước viết nghiệp vụ. 84 bảng SQL tham chiếu đã có representation trên **40 collections**, **35 document discriminators**, **19 line discriminators**; schema/index không thay transaction/service hoặc FK.
 
 | Nhóm | Model/file và lưu ý |
 |---|---|
@@ -1715,6 +1726,6 @@ Các hash dùng nhận biết nguồn đã đổi, không thay kiểm thử. Fil
 
 ### Đồng bộ phân quyền 28/10/2026
 
-Model/BE dùng roleId đơn; API role lowercase và aliases roles=[role], primaryRole=role. Payload gán nhiều role bị từ chối. FE còn màn hình chọn nhiều role và cần sửa riêng; aliases chỉ tương thích đăng nhập/đọc. Chuẩn bị migration mặc định dry-run, ánh xạ userId→roleCode cho ca mơ hồ, backup và transaction trước apply; chưa chạy trên database đang dùng. Duy trì 84 bảng SQL tham chiếu, 39 collections Mongo, năm role và nguyên IDs UC/BR. Không tự commit.
+Model/BE dùng roleId đơn; API role lowercase và aliases roles=[role], primaryRole=role. Payload gán nhiều role bị từ chối. FE còn màn hình chọn nhiều role và cần sửa riêng; aliases chỉ tương thích đăng nhập/đọc. Chuẩn bị migration mặc định dry-run, ánh xạ userId→roleCode cho ca mơ hồ, backup và transaction trước apply; chưa chạy trên database đang dùng. Duy trì 84 bảng SQL tham chiếu, 40 collections Mongo, năm role và nguyên IDs UC/BR. Không tự commit.
 
 Danh mục UC theo tài liệu 3.3.2: [crosswalk 30/10/2026](git_doc/docs/07_ra_soat/CR-2026-10-30-UC-SPLIT.md). Giữ nguyên API và permission keys runtime; không suy ra tính năng đã triển khai từ việc tách tài liệu.
