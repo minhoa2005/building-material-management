@@ -24,6 +24,8 @@ import {
   custodyRouter, reversalRouter, putawayRouter, queueRouter, purchaseDocumentRouter,
 } from "./modules/po-receiving/po-receiving.routes.js";
 
+import returnWorkflowsRouter from './modules/return-workflows/workflow.routes.js';
+
 const router = Router();
 router.use("/location-movements", locationMovementRouter);
 router.use("/warehouse-transfers", transferWriteRouter, transferReadRouter);
@@ -49,5 +51,6 @@ router.use("/purchase-receipts", receiptRouter);
 router.use('/putaway-tasks', putawayRouter);
 router.use('/purchase-receiving/queue', queueRouter);
 router.use('/purchase-documents', purchaseDocumentRouter);
+router.use(returnWorkflowsRouter);
 
 export default router;

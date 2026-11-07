@@ -8,7 +8,8 @@ import {
   integer,
   date,
 } from "./model-utils.js";
-import { objectId, opt, version } from "./schema-helpers.js";
+import { objectId, opt, version, embedRecordArray } from "./schema-helpers.js";
+import { createSupplierAcknowledgementSchema } from "./supplier-acknowledgement.schema.js";
 
 import { createDocumentSourceSchema } from "./document-source.schema.js";
 import { createDocumentItemSchema } from "./document-item.schema.js";
@@ -47,6 +48,7 @@ export function createCustodyReleaseSchema() {
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   attachDocumentItems(schema, item);
   addDocumentIndexesAndRules(schema);
+  embedRecordArray(schema, "supplier_acknowledgements", "acknowledgements", createSupplierAcknowledgementSchema());
 
   return schema;
 }

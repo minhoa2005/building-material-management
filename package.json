@@ -23,7 +23,8 @@
     "test:db:local": "node scripts/test-local-models.mjs",
     "docs:check": "node scripts/check-docs.mjs",
     "db:deploy": "node scripts/deploy-reviewed-db.mjs",
-    "db:categories": "node scripts/add-product-categories.mjs"
+    "db:categories": "node scripts/add-product-categories.mjs",
+    "test:returns": "node scripts/test-return-workflows.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

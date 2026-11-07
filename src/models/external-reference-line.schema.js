@@ -7,6 +7,11 @@ export function createExternalReferenceLineSchema() {
       lineKey: text(100),
       productId: ref("Product"),
       eligibleQty: decimal(),
+      lotId: ref("Lot", false),
+      enteredUnit: text(60, { required: false }),
+      baseUnitSnapshot: text(60, { required: false }),
+      baseUnitsPerUnit: decimal({ positive: true, required: false, precision: 24, scale: 12 }),
+      previouslyReturnedQty: decimal({ default: "0" }),
     },
     options("external_reference_lines"),
   );

@@ -54,17 +54,18 @@ export async function command(user, code, permission, targetId, input, authorize
       requirePermission(actor, permission);
       const prior = await OperationRecord.findOne({ operationKey }).session(session);
       if (prior) return replay(prior, actor, session);
-      const { document, versionBefore = 0, resultRefs = [], stockTransactionId, decisionId, auditChanges = [], reason } = await work(session, actor);
+      const operationId = newId();
+      const { document, versionBefore = 0, resultRefs = [], stockTransactionId, decisionId, auditChanges = [], reason } = await work(session, actor, operationId);
       const subjectType = document.constructor.collection.name;
-      const operation = await new OperationRecord({ actorType: 'USER', actorId: actor._id, operationCode: code,
+      const operation = await new OperationRecord({ _id: operationId, actorType: 'USER', actorId: actor._id, operationCode: code,
         requestKey, requestHash, operationKey, subjectType, subjectId: document._id,
-        versionBefore, versionAfter: document.version, resultCode: document.workflowStatus,
+        versionBefore, versionAfter: document.version ?? 1, resultCode: document.workflowStatus ?? document.status,
         completedAt: new Date(), resultRefs, stockTransactionId, decisionId }).save({ session });
       await appendAudit({ actorId: actor._id, action: code, entityType: subjectType, entityId: document._id,
-        versionBefore, versionAfter: document.version, operationId: operation._id, transactionId: stockTransactionId, changes: auditChanges, details: { reason },
-        warehouseIds: document.header.warehouseId ? [document.header.warehouseId] : [], session });
+        versionBefore, versionAfter: document.version ?? 1, operationId: operation._id, transactionId: stockTransactionId, changes: auditChanges, details: { reason },
+        warehouseIds: document.header?.warehouseId ? [document.header.warehouseId] : document.warehouseId ? [document.warehouseId] : [], session });
       await new SystemEvent({ eventKey: operationKey, handlerCode: 'BUSINESS_NOTIFICATION', eventType: code,
-        sourceType: subjectType, sourceId: document._id, sourceVersion: document.version,
+        sourceType: subjectType, sourceId: document._id, sourceVersion: document.version ?? 1,
         payload: { operationId: String(operation._id) }, payloadVersion: 1, status: 'PENDING', attempts: 0, occurredAt: new Date() }).save({ session });
       return receipt(operation, false);
     });

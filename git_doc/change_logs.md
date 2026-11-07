@@ -1,3 +1,7 @@
+## 2026-11-07 — Trungph native return workflows, iterations 1–3
+
+User requested implementation and branch pushes for merge review; explicitly confirmed Accountant historical-source verification with uploaded evidence. Ported defects/proposals/decisions/execution, CR custody/assessment/acceptance/receipt/handback, FD receipt and atomic reopening, supplier agreements/dispatch/ACK correction/closure, lot trace and external references to the current registry. Removed the replaced generic services. Added native transaction/HTTP/regression tests and frontend embedded-record mapping, permissions, packaging, recipients and historical evidence forms. Shared commands expose the actual operation ID to claim writers; quantity holds and ownership/packaging use native balances and transactions. No Atlas data/configuration/index change. See [canonical contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) for scope, additive fields, migration limits and verification commands. Broader new-SO source decisions remain separate from historical CR verification.
+
 ## 2026-11-06 — Đồng bộ runtime theo model mới (đang kiểm chứng)
 
 Theo xác nhận trực tiếp của người dùng: bỏ ba thư mục model và danh sách phụ thuộc đã rà. 59 collection + 96 nested schema chuyển về src/models; services/DTO/permissions/transaction và FE connected consumers chuyển hợp đồng native. Registry được đổi tên trung tính (`registry-entries.js`, `configureReferences`) để không còn chỉ dẫn profile cũ. Seed v9 thêm quyền mới, 642 bản ghi mẫu; không ghi DB ứng dụng hoặc remote. Xem [hợp đồng và giới hạn](docs/08_api/NATIVE_MODEL_RUNTIME.md). Ba test tích hợp native đã qua; FE build đã qua nhưng suite giao diện còn lỗi cần chuyển fixture. Chưa hoàn tất nghiệm thu/commit/push.
@@ -293,6 +297,9 @@ Kiểm chứng: rà soát các mục đã sửa, đối chiếu VI/EN, kiểm c�
 
 # Cập nhật hướng dẫn agent và changelog — 28/10/2026
 
+## 2026-10-29 — Trungph iterations 1–3 application contracts
+
+Implemented and connected UC-63–73, UC-79–83, UC-102, UC-107 and UC-108 through the return-workflow API screens. Added transaction/HTTP verification on an isolated temporary database, frontend permission/error tests, and the shared manual acceptance guide at workspace ALL_ITERATIONS_TEST_GUIDE.md. Runtime contract and optional model additions are documented in src/modules/return-workflows/README.md and src/models/CHANGELOG.md. Existing report/submission copies were not edited.
 ## 2026-10-30 — Revised BF04 backend main flow
 
 Implemented request/review/outbound/internal requirement/generated TO/dispatch/receipt/putaway/closure commands.

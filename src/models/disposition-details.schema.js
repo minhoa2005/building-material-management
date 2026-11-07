@@ -7,6 +7,7 @@ export function createDispositionDetailsSchema() {
       defectLineId: ref("DocumentLine"),
       outcome: code(["RELEASE", "REGRADE", "SCRAP", "RETURN_SUPPLIER"]),
       approvalId: ref("Approval", false),
+      targetQuality: code(["GOOD", "DAMAGED", "BLOCKED"], { required: false }),
     },
     embeddedOptions,
   );

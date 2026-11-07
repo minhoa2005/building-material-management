@@ -11,7 +11,7 @@ This file must be byte-for-byte identical to AGENTS.md, CLAUDE.md and GEMINI.md 
 
 ## Authority and scope
 
-The latest explicit user decision overrides older project documents. Approved DB review sheets are the business authority for the redesigned database. Code proves implementation state, not a new business decision. Old reports/context/SQL diagrams remain dated reference where superseded. D07/D08 external-source verification remains pending. Ask before implementing an unresolved business choice or an unapproved table/relationship redesign; continue independent approved work.
+The latest explicit user decision overrides older project documents. Approved DB review sheets are the business authority for the redesigned database. Code proves implementation state, not a new business decision. Old reports/context/SQL diagrams remain dated reference where superseded. Historical CR source verification by Accountant with uploaded evidence was confirmed on 2026-11-07; see git_doc/docs/08_api/RETURN_WORKFLOWS_NATIVE.md. Broader D07/D08 new-SO external-source decisions remain pending. Ask before implementing an unresolved business choice or an unapproved table/relationship redesign; continue independent approved work.
 
 ## Model and runtime boundaries
 

@@ -3366,6 +3366,36 @@
         "target": ""
       },
       {
+        "path": "customerId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "Customer"
+      },
+      {
+        "path": "warehouseId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "Warehouse"
+      },
+      {
+        "path": "evidenceIds",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "status",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "note",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
         "path": "_id",
         "type": "ObjectId",
         "required": false,
@@ -3403,6 +3433,36 @@
       },
       {
         "path": "items[].eligibleQty",
+        "type": "Decimal128",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "items[].lotId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "ProductBatch"
+      },
+      {
+        "path": "items[].enteredUnit",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "items[].baseUnitSnapshot",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "items[].baseUnitsPerUnit",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "items[].previouslyReturnedQty",
         "type": "Decimal128",
         "required": true,
         "target": ""
@@ -14217,6 +14277,12 @@
         "target": ""
       },
       {
+        "path": "header.sourceKind",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
         "path": "updatedBy",
         "type": "ObjectId",
         "required": false,
@@ -24486,6 +24552,564 @@
         "type": "Embedded",
         "required": true,
         "target": ""
+      },
+      {
+        "path": "acknowledgements",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].documentNo",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].documentKind",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].workflowStatus",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].version",
+        "type": "Number",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].createdBy",
+        "type": "ObjectId",
+        "required": true,
+        "target": "User"
+      },
+      {
+        "path": "acknowledgements[].occurredAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].note",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].externalReferenceIds",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].documentId",
+        "type": "ObjectId",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].subjectCollection",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].relationCode",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].handoverId",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].createdAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].updatedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].itemId",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[].linkedQty",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].sources[]._id",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].header",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].header.supplierReturnId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "SupplierReturn"
+      },
+      {
+        "path": "acknowledgements[].header.supplierId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "Supplier"
+      },
+      {
+        "path": "acknowledgements[].header.acknowledgedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].header.supplierContact",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].header.recordedBy",
+        "type": "ObjectId",
+        "required": false,
+        "target": "User"
+      },
+      {
+        "path": "acknowledgements[].header.recordedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].updatedBy",
+        "type": "ObjectId",
+        "required": false,
+        "target": "User"
+      },
+      {
+        "path": "acknowledgements[].evidenceIds",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].cancelledBy",
+        "type": "ObjectId",
+        "required": false,
+        "target": "User"
+      },
+      {
+        "path": "acknowledgements[].cancelledAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].cancelReason",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[]._id",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].createdAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].updatedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].lineNo",
+        "type": "Number",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].lineKind",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].productId",
+        "type": "ObjectId",
+        "required": true,
+        "target": "Product"
+      },
+      {
+        "path": "acknowledgements[].items[].lotId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "ProductBatch"
+      },
+      {
+        "path": "acknowledgements[].items[].enteredUnit",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].baseUnitSnapshot",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].baseUnitsPerUnit",
+        "type": "Decimal128",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].packagingSnapshot",
+        "type": "Embedded",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].packagingSnapshot.packageUnit",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].packagingSnapshot.baseUnitsPerPackage",
+        "type": "Decimal128",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].packagingSnapshot.outerLengthMm",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].packagingSnapshot.outerWidthMm",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].packagingSnapshot.outerHeightMm",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].enteredQty",
+        "type": "Decimal128",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].qtyBase",
+        "type": "Decimal128",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].productNameSnapshot",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].documentId",
+        "type": "ObjectId",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].subjectCollection",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].relationCode",
+        "type": "String",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].handoverId",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].createdAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].updatedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].itemId",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[].linkedQty",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].sources[]._id",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].createdAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].updatedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[]._id",
+        "type": "ObjectId",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].note",
+        "type": "String",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].evidenceIds",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_REPLENISHMENT}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_SALES_ORDER}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_OUTBOUND_DELIVERY}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_SALES_GOODS_ISSUE}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_DELIVERY_CONFIRMATION}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_FAILED_DELIVERY}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_FAILED_DELIVERY_RECEIPT}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_ST_RESOLUTION}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_INSPECTION}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_TRANSFER_RECEIPT}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_TRANSFER_OUTBOUND}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_ISSUE_REQUEST}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_WAREHOUSE_TASK}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_DISPOSITION}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_CUSTOMER_RETURN}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_SUPPLIER_RETURN}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_SUPPLIER_ACK}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_DISCREPANCY}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].items[].{DocumentLine_ADJUSTMENT}.details",
+        "type": "Embedded",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].reconciliations",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].itemId",
+        "type": "ObjectId",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].performedBy",
+        "type": "ObjectId",
+        "required": true,
+        "target": "User"
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].performedAt",
+        "type": "Date",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].quantityBase",
+        "type": "Decimal128",
+        "required": true,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].transactionId",
+        "type": "ObjectId",
+        "required": false,
+        "target": "StockTransaction"
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].evidenceIds",
+        "type": "Array",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "acknowledgements[].reconciliations[].note",
+        "type": "String",
+        "required": false,
+        "target": ""
       }
     ],
     "indexes": [
@@ -24522,6 +25146,15 @@
           "createdAt": -1
         },
         {}
+      ],
+      [
+        {
+          "acknowledgements._id": 1
+        },
+        {
+          "unique": true,
+          "sparse": true
+        }
       ]
     ]
   },
