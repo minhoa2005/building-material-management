@@ -3,7 +3,6 @@ import { ApiError } from "../../shared/utils/ApiError.js";
 import { currentRole, rolePermissions } from "../../shared/utils/userRole.js";
 
 export const READ_PERMISSION = "replenishment_request:read";
-export const BUSINESS_ROLES = ["OWNER", "ACCOUNTANT", "SALES", "WAREHOUSE"];
 export const idString = (value) => {
   if (value == null) return null;
   const text = String(value._id ?? value);

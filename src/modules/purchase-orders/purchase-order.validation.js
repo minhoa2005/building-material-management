@@ -18,6 +18,12 @@ export const getPurchaseOrderSchema = z.object({
   query: z.object({}).strict(),
 });
 
+export const purchaseOrderSupplierOptionsSchema = z.object({
+  params: z.object({}).strict(),
+  body: z.object({}).strict(),
+  query: z.object({ warehouseId: objectIdString.optional() }).strict(),
+});
+
 export const listPurchaseOrdersSchema = z.object({
   params: z.object({}).strict(),
   body: z.object({}).strict(),

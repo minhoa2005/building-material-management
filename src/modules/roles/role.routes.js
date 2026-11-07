@@ -11,12 +11,12 @@ router.use(authenticate);
 
 router.get(
   "/",
-  checkPermission("access_control:read", ["OWNER", "ADMIN"]),
+  checkPermission("access_control:read"),
   roleController.listRoles,
 );
 router.put(
   "/:code/permissions",
-  checkPermission("access_control:update", ["ADMIN"]),
+  checkPermission("access_control:update"),
   validate(roleValidation.updateRolePermissionsSchema),
   roleController.updateRolePermissions,
 );
