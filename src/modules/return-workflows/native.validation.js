@@ -12,6 +12,15 @@ const portions=z.array(z.object({packagingState:z.enum(['SEALED','OPEN','LOOSE']
 export const params=z.object({id});
 export const listSchema=z.object({query:z.object({page:z.coerce.number().int().min(1).default(1),limit:z.coerce.number().int().min(1).max(100).default(25),search:z.string().trim().max(100).optional(),status:z.string().max(40).optional(),supplierId:id.optional(),warehouseId:id.optional(),lotId:id.optional(),locationId:id.optional(),ownerPartyId:id.optional(),hasEvidence:z.enum(['yes','no']).optional(),unresolvedOnly:z.enum(['yes','no']).optional(),disposition:z.enum(['RELEASE','REGRADE','SCRAP','RETURN_SUPPLIER']).optional(),sourceKind:z.string().max(30).optional()}).strict()});
 export const idSchema=z.object({params});
+export const optionsSchema=z.object({query:z.object({compact:z.enum(['true','false']).optional()}).strict()});
+export const traceRecordsSchema=z.object({params,query:z.object({section:z.enum(['documents','movements','reservations','evidence','history']),page:z.coerce.number().int().min(1).max(10000).default(1),limit:z.coerce.number().int().min(1).max(25).default(10)}).strict()});
+export const lookupSchema=z.object({query:z.object({
+ kind:z.enum(['customers','suppliers','parties','lots','locations','balances','sources','documents','document-lines','evidence','stocktakes','holds']),
+ page:z.coerce.number().int().min(1).max(10000).default(1),limit:z.coerce.number().int().min(1).max(25).default(10),
+ search:z.string().trim().max(100).optional(),warehouseId:id.optional(),customerId:id.optional(),supplierId:id.optional(),lotId:id.optional(),balanceId:id.optional(),documentId:id.optional(),
+ purpose:z.enum(['customer-returns','failed-deliveries','supplier-returns','defects','external-references']).optional(),
+ sourceKind:z.enum(['RECEIPT','ISSUE','TRANSFER','CUSTOMER_RETURN']).optional(),locationKinds:z.string().regex(/^(RECEIVING|STORAGE|QUARANTINE|CUSTODY)(,(RECEIVING|STORAGE|QUARANTINE|CUSTODY))*$/).optional(),
+}).strict().refine(query=>query.kind!=='sources'||Boolean(query.purpose&&query.purpose!=='external-references'&&(query.purpose!=='defects'||query.sourceKind)),'Chọn mục đích và loại nguồn hợp lệ')});
 const mutation=body=>z.object({params,body:z.object(body).strict()});
 export const supplierCreateSchema=z.object({body:z.object({idempotencyKey:key,warehouseId:id,supplierId:id,note,lines:unique({originLineId:id,balanceId:id,defectHoldId:id.optional(),qtyBase:qty})}).strict()});
 export const agreementSchema=mutation({...base,evidenceIds,reference:note,lines:unique({lineId:id,qtyBase:zero})});

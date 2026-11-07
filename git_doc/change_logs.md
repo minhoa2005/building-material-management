@@ -1,3 +1,11 @@
+## 2026-11-07 — Tutor feedback: request terminology and source entry
+
+Updated frontend CR/SR creation, list and detail wording to use business-specific requests instead of generic hồ sơ; defects remain reports and failed deliveries are recordings. Replaced record-selection modals with searchable dropdowns backed by scoped paginated lookup APIs. CR/SR/FD creation uses one entry area and a table of added lines; incomplete drafts cannot be silently omitted. No backend contract or database changes.
+
+## 2026-11-07 — Trung workflow usability and scalable selection
+
+Reviewed all routed Trung workflows after the reported customer-dropdown problem. Added scoped paginated selection and trace-section APIs, compact bootstrap and current external-reference version context. Frontend uses searchable record tables, dependency clearing, explicit actual quantities/outcomes, optional defect proposals, confirmation of consequences, stable partial-row identities, upload-safe form state, readable context and responsive navigation. Corrected strict supplier-close payload, reference list totals and the unreachable detail redaction. No model, collection, permission or Atlas change. See [UX review](docs/08_api/RETURN_WORKFLOWS_UX_REVIEW_2026-11-07.md) and [API contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) for behavior, checks and limits.
+
 ## 07/11/2026 — Sửa các request frontend gây 403
 
 - Chuyển form RR sang API lô theo kho/sản phẩm, bộ lọc PO sang NCC theo PO và tab kiểm nhận sang danh sách lô trong inspection context. Thêm ngữ cảnh sửa RR cho API tùy chọn và capability theo kho cho chứng từ nhận mua.
