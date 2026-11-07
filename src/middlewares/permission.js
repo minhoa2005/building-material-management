@@ -1,14 +1,10 @@
 import { forbiddenError } from "../shared/utils/ApiError.js";
-import { currentRole, rolePermissions } from "../shared/utils/userRole.js";
+import { hasPermission } from "../shared/utils/access.js";
 
 const checkPermission =
-  (requiredPermission, requiredRoles = []) =>
+  (requiredPermission) =>
   (req, _res, next) => {
-    const role = currentRole(req.user);
-    if (
-      !role ||
-!rolePermissions(req.user).includes(requiredPermission)
-    ) {
+    if (!hasPermission(req.user, requiredPermission)) {
       return next(forbiddenError());
     }
     next();

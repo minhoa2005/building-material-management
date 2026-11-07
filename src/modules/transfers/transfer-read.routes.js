@@ -8,7 +8,7 @@ import { listQuery, detailParams } from './transfer-read.validation.js';
 import * as service from './transfer-read.service.js';
 
 const router = Router();
-router.use(authenticate, checkPermission('stock_transfer:read', ['OWNER', 'ACCOUNTANT', 'WAREHOUSE', 'SALES']));
+router.use(authenticate, checkPermission('stock_transfer:read'));
 router.get('/', catchAsync(async (req, res) => {
   const parsed = listQuery.safeParse(req.query);
   if (!parsed.success) throw new ApiError(400, 'Bộ lọc điều chuyển không hợp lệ');

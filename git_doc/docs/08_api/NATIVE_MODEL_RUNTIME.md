@@ -16,6 +16,8 @@ Lệnh ghi chứng từ kiểm quyền hiện tại, kho, trạng thái, nguồn
 
 User có một roleId và warehouseIds; email/phone/fullName được lưu trực tiếp. GET /users/options trả vai trò hoạt động và kho hoạt động. GET /roles/permissions trả danh mục để chọn quyền; tạo role không tạo permission mới. Vai trò tùy chỉnh được xét theo quyền thay vì chỉ tên vai trò. Giá mua vẫn chỉ dành Owner/Accountant theo quyết định đã duyệt.
 
+Middleware nạp role và permission hiện hành từ DB cho mỗi request. Route khai báo mã quyền thao tác, ví dụ `GET /api/roles` dùng `access_control:read` mặc định của Admin. Service kiểm thêm kho, người lập, nguồn và trạng thái theo nghiệp vụ. Thiếu quyền thao tác trả `ERR-CORE-403-001`; các endpoint có kiểm kho trực tiếp trả `ERR-CORE-403-002` khi ngoài phân công.
+
 Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits, lengthMm/widthMm/heightMm và stockThresholds nhúng. Lô dùng productId, manufacturerLot, identificationStatus VERIFIED/UNKNOWN, piecesPerCarton, cartonLengthMm/cartonWidthMm/cartonHeightMm. Không tone/calibre hay bảng quy đổi. Uom là danh mục mã/tên/trạng thái do Owner quản lý; Product.baseUnit giữ mã được kiểm bởi service. Supplier dùng contactName, taxCode, notes và status ACTIVE/SUSPENDED/TERMINATED; tạo mới ACTIVE. Tồn lô dùng quantityBase/qualityStatus; biến động dùng quantityBase.
 
 ## Mua và nhập
@@ -38,7 +40,11 @@ Chuyển ô dùng TransferOrder RELOCATE, một lần xác nhận toàn lệnh b
 
 API sales-orders dùng SalesOrder, ExternalReference và Attachment mới, redaction giá theo quyền. D07/D08 chưa có quyết định xác minh nguồn ngoài; không tự suy ra người xác minh được duyệt. Các màn hình prototype ngoài router API đang triển khai không chứng minh đã có đầy đủ nghiệp vụ phía server.
 
+Role tùy chỉnh có `sales_order:read` chỉ xem SO có yêu cầu xuất tại kho được giao và chỉ nhận các dòng liên quan. `outbound_delivery:read` cho xem lệnh giao khi cả lệnh và yêu cầu xuất nguồn nằm trong kho được giao. Danh sách rỗng khi role chưa có kho. DTO giới hạn ẩn giá, tham chiếu nội bộ và thông tin bằng chứng. API tải ảnh nguồn SO trả 404 cho role tùy chỉnh. Giới hạn của các role mặc định giữ theo phạm vi nghiệp vụ đã duyệt.
+
 ## Bằng chứng và việc đang làm
+
+Dùng endpoint upload riêng của từng nghiệp vụ với xác thực, permission và scope của chứng từ. Route upload chung `POST /api/upload` đã được gỡ. Router hàng lỗi và trả hàng áp dụng xác thực theo route của nhóm, nên `/api/health` và các route xác thực công khai vẫn được xử lý bởi router tương ứng.
 
 Ba test tích hợp native trên DB local riêng đã qua: mua/nhập/xếp từng phần và replay; đảo nhập độc lập; chuyển kho đủ bước. FE build đã qua tại mốc kiểm tra trước các chỉnh sửa tiếp theo. Toàn suite FE hiện có 102 test thất bại/264 qua, 2 lỗi không bắt: nhiều fixture và kỳ vọng vẫn theo hợp đồng cũ; đang chuyển và chưa tuyên bố hoàn thành. Các kiểm tra cần chạy lại sau chỉnh sửa cuối. Không ghi dữ liệu Atlas, không commit/push.
 

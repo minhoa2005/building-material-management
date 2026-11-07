@@ -1,6 +1,6 @@
 import { PurchaseOrder, PurchaseReceipt, GoodsArrival, GoodsInspection, AuditLog, ApprovalHistory } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
-import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
+import { requirePermission, requireWarehouseAccess } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
 import { escapeRegex, calendarDateRange } from '../../shared/utils/domain.js';
@@ -29,11 +29,32 @@ export async function getPurchaseOrder(user,id){
     ...(financial(user)&&{history:history.map(dto),approvals:approvals.map(dto)})};
   return financial(user)?result:redactPrices(result);
 }
+function purchaseOrderScope(user, warehouseId) {
+  if (warehouseId) {
+    if (!financial(user)) requireWarehouseAccess(user, warehouseId);
+    return { 'header.warehouseId': warehouseId };
+  }
+  return financial(user) ? {} : { 'header.warehouseId': { $in: user.warehouseIds || [] } };
+}
+
+export async function listPurchaseOrderSupplierOptions(user, { warehouseId }) {
+  requirePermission(user, 'purchase_order:read');
+  const orders = await PurchaseOrder.find(purchaseOrderScope(user, warehouseId))
+    .select('header.supplierId header.supplierSnapshot.code header.supplierSnapshot.name')
+    .sort({ createdAt: -1, _id: -1 }).lean();
+  const suppliers = new Map();
+  for (const { header } of orders) {
+    const { supplierId, supplierSnapshot } = header ?? {};
+    if (!supplierId || !supplierSnapshot?.code || !supplierSnapshot?.name) continue;
+    const id = String(supplierId);
+    if (!suppliers.has(id)) suppliers.set(id, { id, code: supplierSnapshot.code, name: supplierSnapshot.name });
+  }
+  return [...suppliers.values()].sort((a, b) => a.name.localeCompare(b.name, 'vi') || a.id.localeCompare(b.id));
+}
+
 export async function listPurchaseOrders(user,query){
   requirePermission(user,'purchase_order:read');
-  const filter={};
-  if(!isOwner(user)&&currentRole(user)?.code!=='ACCOUNTANT')filter['header.warehouseId']={$in:user.warehouseIds||[]};
-  if(query.warehouseId){if(!financial(user))requireWarehouseAccess(user,query.warehouseId);filter['header.warehouseId']=query.warehouseId;}
+  const filter = purchaseOrderScope(user, query.warehouseId);
   if(query.supplierId)filter['header.supplierId']=query.supplierId;if(query.status)filter.workflowStatus=query.status;
   if(query.search)filter.documentNo=new RegExp(escapeRegex(query.search),'i');
   const date=calendarDateRange(query.createdFrom,query.createdTo);if(date)filter.createdAt=date;

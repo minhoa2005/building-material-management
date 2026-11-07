@@ -222,10 +222,23 @@ export const reviewReplenishmentSchema = z.object({
     .strict(),
 });
 
+export const replenishmentLotOptionsSchema = z.object({
+  query: z.object({
+    productId: objectIdSchema,
+    warehouseId: objectIdSchema,
+    requestId: objectIdSchema.optional(),
+    page: positiveInteger(1),
+    limit: positiveInteger(20, 100),
+  }).strict().refine(({ page, limit }) => Number.isSafeInteger((page - 1) * limit)),
+});
+
 export const replenishmentOptionsSchema = z.object({
   params: emptyQuery,
   body: emptyQuery,
-  query: z.object({ mode: z.enum(["CREATE", "FILTER"]) }).strict(),
+  query: z.object({
+    mode: z.enum(["CREATE", "FILTER"]),
+    requestId: objectIdSchema.optional(),
+  }).strict().refine(query => !query.requestId || query.mode === "CREATE"),
 });
 
 export const evaluateReplenishmentSchema = z.object({

@@ -29,7 +29,13 @@ export const options = catchAsync(async (req, res) => {
   const data = await commands.getReplenishmentOptions(
     req.user,
     req.validated.query.mode,
+    req.validated.query.requestId,
   );
+  formatApiResponse(res, { data });
+});
+
+export const lotOptions = catchAsync(async (req, res) => {
+  const data = await commands.getReplenishmentLotOptions(req.user, req.validated.query);
   formatApiResponse(res, { data });
 });
 

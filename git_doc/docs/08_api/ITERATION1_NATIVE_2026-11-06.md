@@ -15,6 +15,7 @@ PurchaseReceipt và CustodyRelease có custodyDecisionId → ApprovalHistory. GR
 - GET /api/uoms và GET /:id: uom:read. POST /api/uoms: code,name; uom:create. PUT /:id: expectedUpdatedAt,name; uom:update. PATCH /:id/status: expectedUpdatedAt,isActive,reason; uom:activate. Owner có quyền quản lý; business roles đọc. Không có DELETE hoặc đổi mã.
 - Sản phẩm native dùng manufacturerCode/categoryId/baseUnit/heightMm và metadata mới. Không nhận baseUomId, conversionId, thicknessMm hoặc nominalSize ghi vào.
 - NCC dùng contactName/status/taxCode/notes, expectedUpdatedAt. names yêu cầu supplier:read và chỉ trả ACTIVE.
+- `GET /api/purchase-orders/supplier-options` dùng `purchase_order:read` để lấy bộ lọc NCC cho danh sách PO. Query `warehouseId` là tùy chọn và dùng cùng scope với danh sách PO. Response `data: [{ id, code, name }]` lấy từ snapshot trên PO, gộp theo ID NCC và lấy snapshot mới nhất trong phạm vi. Kết quả gồm NCC lịch sử có snapshot đầy đủ. Form tạo/sửa PO tiếp tục dùng danh sách NCC đang hoạt động từ API danh mục.
 - RR → PO là một–một, unique index bảo vệ cả hai lệnh đồng thời. PO có giá, currency và tổng decimal; Owner/Accountant xem giá, các vai trò khác bị redaction. Confirm kiểm lại quyết định duyệt, lượng, sản phẩm và NCC.
 - Kiểm nhận ACCEPT chỉ GOOD; confirm tạo GR/CustodyReceipt DRAFT, không ghi tồn. Post GR trực tiếp ghi STORE/GOOD tại RECEIVING. Post custody ghi SUPPLIER vào CUSTODY/QUARANTINE; REJECT không ghi tồn. Lượng giữ hộ không tính đã nhập sở hữu PO.
 
@@ -32,6 +33,8 @@ Các POST dưới /api/custody-receipts/:id đều có expectedVersion,operation
 POST /api/custody-releases/:id/post có expectedVersion,operationKey,recipientName; cùng quyền execute. GET /api/custody-releases/:id dùng quyền đọc nhận mua. Decision command trả decisionId, replay trả cùng ID. Kết quả kiểm lại là GoodsInspection CONFIRMED mới, không tạo chuyến vật lý mới. Quyết định áp dụng đúng source version; một lần lập phiếu tiêu thụ quyết định, lượng còn lại lập quyết định mới. Tổng lượng đã thực hiện và nháp không vượt nguồn. ACCEPT cần GOOD, headroom PO và PO mở. RETURN vẫn được thực hiện khi PO đã đóng.
 
 GR từ giữ hộ trừ SUPPLIER và cộng STORE trong một transaction, giữ packaging và tổng lượng vật lý; không nhập từ bên ngoài lần hai. Quy tắc tách bao bì giữ nguyên: thùng niêm phong chia theo nguyên thùng; phần mở/lẻ đã đo phải chọn trọn phần, không tự suy thể tích cho lượng lẻ. Trả NCC chỉ giảm SUPPLIER, không giảm lượng PO nhận sở hữu. Kho, người dùng, chứng cứ, nguồn, trạng thái, version, freeze và capacity được kiểm phía BE.
+
+Đợt FE 07/11 dùng bộ lọc NCC của PO và lấy `batches` trực tiếp từ `inspection-context`. DTO nhận mua trả `capabilities.writeWarehouse` để tách quyền xem xuyên kho của Accountant với quyền thao tác trong kho được giao. Capability đảo nhập kiểm cả `post` và `reverse`; post GR từ giữ hộ kiểm thêm `purchase_custody:execute`. FE kiểm grant của từng lệnh giữ hộ và từng bước put-away. Các modal quyết định giữ hộ, kiểm lại và đảo nhập dùng danh sách tệp đã gắn, gửi `evidenceIds` và dùng version trả về khi gắn tệp mới.
 
 ### Đảo nhập
 
