@@ -161,5 +161,10 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
   addStorageExamples(dataContext(data),warehouse);
   buildTileShopScenario(data);
   const categorized=addTileCategories(data);
+  const codes=new Set(['PIECE','BOX','M2',...categorized.products.map(p=>p.baseUnit)]);
+  for(const rows of Object.values(categorized))for(const row of rows)for(const item of row.items||[])if(item.enteredUnit)codes.add(item.enteredUnit);
+  categorized.uoms=[...codes].map(code=>({_id:fixtureId('uom:'+code),code,name:code,isActive:true,createdAt:demoDate(1),updatedAt:demoDate(1)}));
+  for(const supplier of categorized.suppliers){if(supplier.status!=='ACTIVE')supplier.status='SUSPENDED';}
+
   return consolidate ? consolidateData(categorized) : categorized;
 }

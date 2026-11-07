@@ -1,10 +1,12 @@
+> Quyết định mới 06/11/2026: [Iteration 1 native](ITERATION1_NATIVE_2026-11-06.md) thay quy tắc UOM, NCC, giữ hộ và đảo nhập ở các phần lịch sử bên dưới. Danh mục UOM được khôi phục; không có bảng conversion. Warehouse tự đảo nhận mua; Accountant quyết định xử lý giữ hộ.
+
 # Hợp đồng runtime theo model mới — 06/11/2026
 
 Nguồn quyết định: người dùng yêu cầu đồng bộ toàn project, xác nhận bỏ src/models/legacy, rebuild, embedded và duyệt danh sách 42 file phụ thuộc cùng 6 lệnh cũ. Đây là hợp đồng hiện hành; các test pack và báo cáo trước lần chuyển là bằng chứng lịch sử, không phải payload cho runtime này.
 
 ## Lưu trữ và bảo vệ thao tác
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 59 collection schemas (`*.model.js`) and 96 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 60 collection schemas (`*.model.js`) and 96 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 API trả decimal dưới dạng chuỗi; ObjectId thành chuỗi. Chứng từ có _id/id, documentNo, documentKind, workflowStatus, version, header, items và sources. items có _id ổn định, productId, lotId khi có, enteredQty, enteredUnit, baseUnitsPerUnit, qtyBase, baseUnitSnapshot. Sources dùng subjectCollection, documentId, itemId, linkedQty, relationCode. Không gửi conversionId hoặc dòng BusinessDocument cũ.
 
@@ -14,7 +16,7 @@ Lệnh ghi chứng từ kiểm quyền hiện tại, kho, trạng thái, nguồn
 
 User có một roleId và warehouseIds; email/phone/fullName được lưu trực tiếp. GET /users/options trả vai trò hoạt động và kho hoạt động. GET /roles/permissions trả danh mục để chọn quyền; tạo role không tạo permission mới. Vai trò tùy chỉnh được xét theo quyền thay vì chỉ tên vai trò. Giá mua vẫn chỉ dành Owner/Accountant theo quyết định đã duyệt.
 
-Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits, lengthMm/widthMm/heightMm và stockThresholds nhúng. Lô dùng productId, manufacturerLot, identificationStatus VERIFIED/UNKNOWN, piecesPerCarton, cartonLengthMm/cartonWidthMm/cartonHeightMm. Không tone/calibre hay bảng quy đổi. Supplier dùng contactName và status PENDING/ACTIVE/INACTIVE. Tồn lô dùng quantityBase/qualityStatus; biến động dùng quantityBase.
+Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits, lengthMm/widthMm/heightMm và stockThresholds nhúng. Lô dùng productId, manufacturerLot, identificationStatus VERIFIED/UNKNOWN, piecesPerCarton, cartonLengthMm/cartonWidthMm/cartonHeightMm. Không tone/calibre hay bảng quy đổi. Uom là danh mục mã/tên/trạng thái do Owner quản lý; Product.baseUnit giữ mã được kiểm bởi service. Supplier dùng contactName, taxCode, notes và status ACTIVE/SUSPENDED/TERMINATED; tạo mới ACTIVE. Tồn lô dùng quantityBase/qualityStatus; biến động dùng quantityBase.
 
 ## Mua và nhập
 
@@ -28,7 +30,7 @@ packaging là [{lineId,portions:[{packagingState,quantityBase,measuredVolumeMm3,
 
 GET receipt/custody bổ sung inspectionResult trên từng item để hiển thị chất lượng và tình trạng bao bì từ kiểm nhận; đây là dữ liệu đọc, không thêm field lưu trên item. GET inspection bổ sung arrival, receipts, custodyReceipts. FE chuyển các DTO này thành dòng bảng hiển thị, không ghi trở lại dạng cũ.
 
-Putaway tạo TransferOrder và xác nhận từng phần; lượng đã xếp lấy từ ledger. Hủy chỉ hủy phần chưa thực hiện. Đảo nhập tạo StockReversal PENDING_APPROVAL; /stock-reversals/:id/review yêu cầu người duyệt khác người lập, /post thực hiện bút toán ngược một lần và khôi phục hạn mức PO. Không đảo khi đã có nghiệp vụ phụ thuộc. Bằng chứng là Attachment riêng tư, kiểm nội dung JPEG/PNG/PDF, quyền tải và hạn dùng.
+Putaway tạo TransferOrder và xác nhận từng phần; lượng đã xếp lấy từ ledger. Hủy chỉ hủy phần chưa thực hiện. Warehouse đảo nhập trực tiếp qua /purchase-receipts/:id/reverse, tạo StockReversal POSTED và bút toán ngược một lần, khôi phục hạn mức PO; không yêu cầu duyệt độc lập. GR từ giữ hộ đảo STORE về SUPPLIER gốc. Trường duyệt chỉ giữ cho lịch sử. Không đảo khi đã có nghiệp vụ phụ thuộc. Bằng chứng là Attachment riêng tư, kiểm nội dung JPEG/PNG/PDF, quyền tải và hạn dùng.
 
 ## Chuyển kho và bán
 
@@ -43,3 +45,7 @@ Ba test tích hợp native trên DB local riêng đã qua: mua/nhập/xếp từ
 ## Historical return-source decision — 7 November 2026
 
 The user confirmed Accountant verification with uploaded evidence for historical customer-delivery sources. This scope is implemented in [the native return contract](RETURN_WORKFLOWS_NATIVE.md). It does not settle broader new-SO external-source gates. Trungph return workflows now use the native registry; local automated verification and rollout limits are recorded in that contract and the PR evidence. No Atlas data or connection change.
+
+## Chống trùng bổ sung theo nguồn — 07/11/2026
+
+[Hợp đồng RR coverage](REPLENISHMENT_COVERAGE.md) quy định evaluate/source/token, cảnh báo thủ công, hủy RR và giao thức lock chung RR–PO–tồn. 60 collections, 97 nested schemas; nguồn RR và snapshot gửi duyệt dùng native schema, không tạo bảng policy/conversion.

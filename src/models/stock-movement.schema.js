@@ -17,6 +17,7 @@ export function createStockMovementSchema() {
     {
       transactionId: ref("PostingBatch"),
       lineNo: integer(1),
+      packagingPortionIds: {type:[objectId],default:undefined},
       sourceLineId: { type: objectId, required: true },
       fromBalanceId: ref("StockBalance", false),
       toBalanceId: ref("StockBalance", false),

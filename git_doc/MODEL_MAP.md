@@ -1,12 +1,12 @@
 # Bản đồ model WMSD
 
-Mốc schema 06/11/2026. Có 59 collection nghiệp vụ; không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật. Bảng này định hướng file cần đọc, xem DB diagram kiểu SQL để tra field/ref hiện hành.
+Mốc schema 06/11/2026. Có 60 collection nghiệp vụ; không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật. Bảng này định hướng file cần đọc, xem DB diagram kiểu SQL để tra field/ref hiện hành.
 
 [Từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md) · [Rà trường từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md) · [Phiếu duyệt](docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md)
 
 ## Registry và các file cùng tác động
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 59 collection schemas (`*.model.js`) and 96 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 60 collection schemas (`*.model.js`) and 97 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 [Hợp đồng API hiện hành](docs/08_api/NATIVE_MODEL_RUNTIME.md). Các bản v8/Atlas trước đây là bằng chứng triển khai có ngày; lượt đồng bộ này không ghi lên Atlas hay đổi dữ liệu ứng dụng.
 
@@ -20,6 +20,7 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 | `warehouses` | Kho vật lý, thông tin nhận diện và kích thước sử dụng được. | [warehouse.model.js](../src/models/warehouse.model.js) |
 | `warehouse_locations` | Ô/vị trí thuộc một kho, loại ô và kích thước phục vụ kiểm sức chứa. | [warehouse-location.model.js](../src/models/warehouse-location.model.js) |
 | `categories` | Nhóm phân loại sản phẩm: 5 nhóm đã duyệt, mỗi sản phẩm thuộc một category. | [category.model.js](../src/models/category.model.js) |
+| `uoms` | Danh mục đơn vị; mã bất biến, baseUnit tham chiếu mã qua service; không lưu hệ số. | [uom.model.js](../src/models/uom.model.js) |
 | `products` | Hãng + SKU + màu; categoryId thuộc một nhóm; dài/rộng/cao từng viên (mm), đơn vị gốc lưu trực tiếp. | [product.model.js](../src/models/product.model.js) |
 | `customers` | Khách hàng gồm mã WMSD, tên và điện thoại; không lưu địa chỉ giao mặc định. | [customer.model.js](../src/models/customer.model.js) |
 | `suppliers` | Nhà cung cấp và thông tin liên hệ; theo dõi trạng thái chờ/kích hoạt/ngừng. | [supplier.model.js](../src/models/supplier.model.js) |
@@ -88,4 +89,10 @@ Tìm collection, ref, model name và các trường liên quan bằng `rg` trong
 
 ## Native return workflows — 7 November 2026
 
-See [current return API and compatibility rules](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). SupplierReturn item details now distinguish an honest PROPOSED request from VERIFIED agreement facts, bind sourceBalanceId and optionally an evidenced defectHoldId. Embedded dispositions preserve targetQuality; defect headers preserve sourceKind. ExternalReference and its embedded items carry verified historical customer/warehouse/evidence, lot/conversion and prior returns without synthetic POD. CustodyRelease also holds supplier acknowledgements when supplier-owned goods are returned. Holds, plans, inspections, movements and claims retain their existing parents and IDs. There are still 59 collections and 96 nested schema files. Missing historical warehouse/source facts are not invented; no database migration or rollout was executed.
+See [current return API and compatibility rules](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). SupplierReturn item details now distinguish an honest PROPOSED request from VERIFIED agreement facts, bind sourceBalanceId and optionally an evidenced defectHoldId. Embedded dispositions preserve targetQuality; defect headers preserve sourceKind. ExternalReference and its embedded items carry verified historical customer/warehouse/evidence, lot/conversion and prior returns without synthetic POD. CustodyRelease also holds supplier acknowledgements when supplier-owned goods are returned. Holds, plans, inspections, movements and claims retain their existing parents and IDs. These return changes added no collections or nested schema files. The 59-collection baseline preceded the local UOM and replenishment changes described below. Missing historical warehouse/source facts are not invented; no database migration or rollout was executed.
+
+Schema hiện hành sau quyết định Iteration 1: [Data Dictionary 60 collections](docs/03_thiet_ke/DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md), [quan hệ thay đổi](docs/03_thiet_ke/DB_Current_2026-11-06_60/Iteration1_Model_Relationships.mmd). Các enum/default trong snapshot cũ được thay bằng contract ngày 06/11.
+
+## Nguồn bổ sung native — 07/11/2026
+
+Không thêm collection: 60 collection, 97 nested schemas. ReplenishmentRequest.items.details.source dùng [replenishment-source.schema.js](../src/models/replenishment-source.schema.js), canonicalSourceKey và snapshot đánh giá; submissions.lines.evaluation giữ bản lịch sử. SalesOrder.replenishmentPlanningVersion phối hợp nguồn giữa nhiều kho; ReplenishmentLock.lastOperationId chỉ thao tác commit. [API và tương thích](docs/08_api/REPLENISHMENT_COVERAGE.md).

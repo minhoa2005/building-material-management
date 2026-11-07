@@ -165,8 +165,9 @@ export async function receiveStock(balance, item, portions, posting, user, sessi
   if (!packaging.reduce((sum,row) => sum.plus(String(row.quantityBase)), exact('0')).eq(amount)) throw validationError('Tổng quy cách khác lượng thực nhập');
   const before = exact(balance.quantityBase);
   balance.quantityBase = before.plus(amount).toFixed();
-  balance.packagingPortions.push(...packaging.map(row => ({ ...row, _id: newId(), createdBy: user._id })));
+  const received=packaging.map(row => ({ ...row, _id: newId(), createdBy: user._id }));
+  balance.packagingPortions.push(...received);
   await saveBalance(balance, balance.version, session);
   posting.movements.push({ transactionId: posting._id, lineNo: posting.movements.length + 1,
-    sourceLineId: item._id, toBalanceId: balance._id, quantityBase: amount.toFixed(), toBefore: before.toFixed(), toAfter: balance.quantityBase });
+    packagingPortionIds: received.map(row=>row._id), sourceLineId: item._id, toBalanceId: balance._id, quantityBase: amount.toFixed(), toBefore: before.toFixed(), toAfter: balance.quantityBase });
 }

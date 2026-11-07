@@ -35,28 +35,28 @@ export function mapProductSummary(product, uoms) {
     category: product.category ?? null,
     brand: product.brand ?? null,
     nominalSize: product.nominalSize ?? null,
+    lengthMm: decimalString(product.lengthMm),
+    widthMm: decimalString(product.widthMm),
+    thicknessMm: decimalString(product.thicknessMm),
     baseUom: mapUom(product.baseUomId, uoms),
+    wholeBaseUnits: product.wholeBaseUnits,
     isActive: product.isActive,
     version: product.version,
+    createdAt: isoDate(product.createdAt),
+    updatedAt: isoDate(product.updatedAt),
   };
 }
 
 export function mapProductDetail(product, uoms, currentConversions = []) {
   return {
     ...mapProductSummary(product, uoms),
-    wholeBaseUnits: product.wholeBaseUnits,
     material: product.material ?? null,
     surface: product.surface ?? null,
-    lengthMm: decimalString(product.lengthMm),
-    widthMm: decimalString(product.widthMm),
-    thicknessMm: decimalString(product.thicknessMm),
     origin: product.origin ?? null,
     description: product.description ?? null,
     currentConversions: currentConversions.map((conversion) =>
       mapConversion(conversion, uoms),
     ),
-    createdAt: isoDate(product.createdAt),
-    updatedAt: isoDate(product.updatedAt),
   };
 }
 

@@ -1,6 +1,10 @@
 ## 2026-11-07 — Native return workflow contracts
 
-Supplier-return details add PROPOSED/VERIFIED phase, sourceBalanceId and optional defectHoldId; actual agreement facts remain required for VERIFIED records. Defect report headers retain sourceKind; disposition details retain targetQuality. ExternalReference adds optional customer/warehouse/evidence/status/note; embedded items add historical lot/conversion/prior returns. CustodyRelease embeds the existing supplier acknowledgement schema for actual supplier-owned handbacks. All additions preserve the 59 collections and 96 schema files. No bulk data rewrite or Atlas index creation. Current dictionary/schema and SQL-style diagram regenerated from the registry; runtime and compatibility rules are in ../../git_doc/docs/08_api/RETURN_WORKFLOWS_NATIVE.md. Verification is recorded in the PR evidence.
+Supplier-return details add PROPOSED/VERIFIED phase, sourceBalanceId and optional defectHoldId; actual agreement facts remain required for VERIFIED records. Defect report headers retain sourceKind; disposition details retain targetQuality. ExternalReference adds optional customer/warehouse/evidence/status/note; embedded items add historical lot/conversion/prior returns. CustodyRelease embeds the existing supplier acknowledgement schema for actual supplier-owned handbacks. These additions introduced no collections or nested schema files. The return workflow branch had 59 collections and 96 nested schema files. No bulk data rewrite or Atlas index creation. Current dictionary/schema and SQL-style diagram regenerated from the registry; runtime and compatibility rules are in ../../git_doc/docs/08_api/RETURN_WORKFLOWS_NATIVE.md. Verification is recorded in the PR evidence.
+
+# 06/11/2026 — Iteration 1 native theo kế hoạch được duyệt
+
+Thêm Uom, metadata sản phẩm/NCC, xử lý giữ hộ trọn vòng đời và Warehouse tự đảo nhập. Registry 60 collections; giữ items/source/snapshot native. Quyết định mới trong git_doc/docs/08_api/ITERATION1_NATIVE_2026-11-06.md. Có migration dry-run chỉ test DB local; không chạy Atlas, không commit/push. Kết quả kiểm thử ghi trong tài liệu bàn giao cùng đợt.
 
 ## 2026-11-06 — Flat native runtime
 
@@ -136,3 +140,7 @@ Added TRANSFER_OUTBOUND line details linking TR line, source balance and staging
 TRANSFER_RECEIPT optionally stores destination balance and receiving location;
 TRANSFER_REQUEST optionally stores approvedVersion so read projections retain the
 approved quantity after closure. Existing records remain valid. No production data migration was run.
+
+## 07/11/2026 — Nguồn và kiểm soát đồng thời RR
+
+Theo kế hoạch người dùng duyệt: thêm STOCK_THRESHOLD, nested ReplenishmentSource, canonicalSourceKey/xác nhận nhu cầu độc lập và snapshot evaluation trên submission. SO thêm replenishmentPlanningVersion mặc định 0. Không tăng collection (60); nested schemas 97. Lock có unique kho/sản phẩm hiện hữu được dùng trong transaction; không migrate/xóa dữ liệu từ schema. Hợp đồng tại ../../git_doc/docs/08_api/REPLENISHMENT_COVERAGE.md.

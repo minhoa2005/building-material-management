@@ -10,6 +10,9 @@ const REQUEST_ROLES = ["WAREHOUSE", "SALES"];
 const router = Router();
 router.use(authenticate);
 
+router.post('/evaluate', validate(validation.evaluateReplenishmentSchema), controller.evaluate);
+router.post('/:id/cancel', validate(validation.cancelReplenishmentSchema), controller.cancel);
+
 router.get(
   "/options",
   validate(validation.replenishmentOptionsSchema),

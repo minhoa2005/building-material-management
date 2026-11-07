@@ -1,11 +1,25 @@
 import mongoose from 'mongoose';
 import { notFoundError, validationError, versionConflict } from './ApiError.js';
+import { observePlanning } from './replenishment-observability.js';
 
 export const transactionOptions = { readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } };
 export async function transaction(work) {
-  const session = await mongoose.startSession();
-  try { return await session.withTransaction(() => work(session), transactionOptions); }
-  finally { await session.endSession(); }
+  for (let attempt = 0; ; attempt++) {
+    const session = await mongoose.startSession();
+    let runs = 0;
+    try { return await session.withTransaction(() => {
+      if (runs++) observePlanning('transaction_retry', { reason: 'snapshot_conflict' });
+      session.replenishmentGuards = undefined;
+      return work(session);
+    }, transactionOptions); }
+    catch (error) {
+      if (attempt < 3 && error.code === 11000 && error.message?.includes('warehouseId_1_productId_1')) {
+        observePlanning('transaction_retry', { reason: 'first_guard_creation', attempt: attempt + 1 });
+        continue;
+      }
+      throw error;
+    } finally { await session.endSession(); }
+  }
 }
 
 export function serialize(value) {

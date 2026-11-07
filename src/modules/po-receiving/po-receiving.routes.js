@@ -11,6 +11,7 @@ import * as service from './po-receiving.service.js';
 import * as reads from './purchase-read.service.js';
 import * as tasks from './purchase-putaway.service.js';
 import * as correction from './purchase-correction.service.js';
+import * as custody from './purchase-custody.service.js';
 import * as evidence from './purchase-evidence.service.js';
 
 export const empty = z.object({}).strict();
@@ -79,3 +80,12 @@ custodyRouter.get('/:id',validate(schema()),handle((u,v)=>reads.getDocument(u,v.
 custodyRouter.post('/:id/post',validate(schema(z.object({...commandBody,handedOverBy:z.string().trim().min(1).max(160),destinations:z.array(z.object({lineId:oid,locationId:oid}).strict()).min(1).max(100),packaging}).strict())),handle((u,v)=>service.postCustodyReceipt(u,v.params.id,v.body)));
 
 
+
+const custodyLines=(shape)=>z.array(z.object(shape).strict()).min(1).max(100).refine(rows=>new Set(rows.map(r=>r.custodyItemId)).size===rows.length,'Trùng dòng giữ hộ');
+custodyRouter.post('/:id/reinspections',validate(schema(z.object({...commandBody,reason,evidenceIds,lines:custodyLines({custodyItemId:oid,qtyBase:qty,qualityCode:z.enum(['GOOD','DAMAGED','PENDING','BLOCKED'])})}).strict())),handle((u,v)=>custody.reinspectCustody(u,v.params.id,v.body)));
+custodyRouter.post('/:id/resolution-decisions',validate(schema(z.object({...commandBody,reason,evidenceIds,decision:z.enum(['ACCEPT','RETURN']),lines:custodyLines({custodyItemId:oid,qtyBase:qty,reinspectionId:oid.optional()})}).strict())),handle((u,v)=>custody.decideCustody(u,v.params.id,v.body)));
+custodyRouter.post('/:id/purchase-receipts',validate(schema(z.object({...commandBody,decisionId:oid,expectedPoVersion:ver,lines:custodyLines({custodyItemId:oid,qtyBase:qty,destinationLocationId:oid})}).strict())),handle((u,v)=>custody.createCustodyResolution(u,v.params.id,v.body,'ACCEPT')));
+custodyRouter.post('/:id/releases',validate(schema(z.object({...commandBody,decisionId:oid,lines:custodyLines({custodyItemId:oid,qtyBase:qty})}).strict())),handle((u,v)=>custody.createCustodyResolution(u,v.params.id,v.body,'RETURN')));
+export const custodyReleaseRouter=Router();custodyReleaseRouter.use(authenticate);
+custodyReleaseRouter.get('/:id',validate(schema()),handle((u,v)=>reads.getDocument(u,v.params.id,'CUSTODY_RELEASE')));
+custodyReleaseRouter.post('/:id/post',validate(schema(z.object({...commandBody,recipientName:reason}).strict())),handle((u,v)=>custody.postCustodyRelease(u,v.params.id,v.body)));

@@ -1,0 +1,53 @@
+---
+id: DOC-API-RR-COVERAGE-001
+title: Chống trùng yêu cầu bổ sung theo nguồn
+version: 1.0.0
+phase: Implementation
+domain: Replenishment
+tags: [replenishment, concurrency, coverage]
+depends_on: [DOC-API-NATIVE-RUNTIME]
+author: Codex
+last_updated: 2026-11-07
+---
+
+# Yêu cầu bổ sung theo nguồn
+
+Quyết định triển khai: người dùng yêu cầu thực hiện toàn bộ kế hoạch chống trùng ngày 07/11/2026. G05/H01 vẫn là căn cứ nghiệp vụ; lần này bổ sung xử lý RR thủ công tương tự bằng cảnh báo, xác nhận nhu cầu độc lập và giải trình. Không thực hiện xác minh nguồn ngoài D07/D08.
+
+## Giao thức API
+
+`POST /api/replenishments/evaluate` chỉ đọc trong snapshot transaction. Body gồm `warehouseId`, `neededOn` (YYYY-MM-DD), `lines[]` và `requestId` nếu đánh giá phiếu đang sửa. Dòng có `productId` và `source`. Form chưa lưu không tạo RR/khóa/cam kết.
+
+Nguồn `MANUAL_OTHER` không có chứng từ giả. `SALES_SHORTAGE` dùng `documentType: sales_orders | warehouse_issue_requests`, `documentId`, `itemId`, `version`; WIR chuẩn hóa về SO/dòng gốc. `STOCK_THRESHOLD` dùng sản phẩm/kho hiện hành. `STOCKTAKE_LOW_STOCK` dùng `documentType: stocktakes`, `documentId`, `version`, tham chiếu kiểm kê đã chốt và dùng chung định danh dự trữ kho/sản phẩm. Nguồn không xác định được không được coi là lượng 0. Response source có thêm định danh SO chuẩn hóa do server ghi; khi gửi lại chỉ gửi trường source input trong hợp đồng, không gửi các trường suy ra. `GET /replenishments/options?mode=CREATE` trả thêm nguồn SO/WIR/kiểm kê theo quyền, kể cả sản phẩm lấy từ snapshot kiểm kê. Ngày cần luôn là ngày lịch Asia/Saigon, không cắt trực tiếp ngày UTC để nhập form.
+
+Response `data` là mảng đánh giá theo dòng: `lineNo`, `canonicalKey`, `source`, `evaluationKey`, `evaluatedAt`, các lượng `availableQtyBase`, `reservedForDemandQtyBase`, `remainingDemandQtyBase`, `incomingCoverageQtyBase`, `pendingRequestCoverageQtyBase`, `suggestedQtyBase`, ngưỡng minimum/target và `relatedRequests` theo quyền. Mọi lượng là decimal string.
+
+Create/update dùng `enteredUnit`, `enteredQty`, `lotId` khi chọn đơn vị thùng; không nhận `conversionId`. Dòng mang `source`, `evaluationKey`, `quantityAdjustmentReason`; nhu cầu thủ công đã được cảnh báo cần `independentNeedConfirmed: true` và `independentNeedReason`. Server tự tính quy đổi/snapshot, không nhận số liệu tồn từ browser.
+
+Submit/review và PO create/update/confirm/amend hỗ trợ `evaluations: [{lineId,evaluationKey}]` để xác nhận lại đánh giá. RR lifecycle còn hỗ trợ giải trình độc lập/điều chỉnh lượng trong từng xác nhận. Thiếu token hiện hành, phần thiếu không đủ hoặc thiếu xác nhận thủ công trả HTTP 409 `ERR-RR-409-004`, `details.requiresReview`, `latestEvaluations`, `invalidLines` khi có. Không lưu một phần; frontend giữ input để người dùng xem và gửi lại. Thay nội dung đã gửi cần key mới sau khi đã xác định kết quả lần trước; retry kết quả chưa rõ giữ nguyên key/payload.
+
+`POST /api/replenishments/:id/cancel` dùng `expectedVersion`, `operationKey`, `reason`. Người lập rút nháp/chờ duyệt còn đủ điều kiện; Owner xử lý phần đã duyệt chưa có PO. RR có PO không được bỏ qua quy trình PO. Không có API mở khóa thủ công.
+
+## Coverage và ghi đồng thời
+
+RR DRAFT đã lưu, SUBMITTED và phần APPROVED chưa chuyển nguồn cung chiếm lượng. REVISION_REQUIRED/REJECTED/CANCELLED không chiếm lượng. Loại chính RR đang đánh giá, cộng gộp các dòng cùng nguồn. SO/WIR cùng nguồn và RR khác kho dùng chung trần nghĩa vụ SO. Ngưỡng và ngữ cảnh kiểm kê cùng kho/sản phẩm là một nhu cầu dự trữ. Phân chia pool tồn chưa giữ theo SO: ngày cần, thời điểm tạo, ID SO và ID dòng; phần còn lại mới xét dự trữ. Đây là phép đánh giá, không tự tạo reservation. Tồn RECEIVING/STAGING đủ quyền sở hữu/chất lượng được tính là phần bù đang chờ xử lý, tách khỏi available có thể lấy ngay. Giữ hàng bị chặn lỗi/khóa kiểm kê không được coi là phần đáp ứng khả dụng.
+
+RR → PO → tồn/giữ hàng phải chuyển phần đáp ứng một lần. PO nháp tiếp tục được đại diện bởi RR; nguồn PO/TR có hiệu lực xét sản phẩm/kho, hạn và phần chưa dành nơi khác. Hàng giữ hộ không phải tồn sở hữu. Hàng khả dụng ở kho khác trả trong `otherWarehouseAvailableQtyBase`, `otherWarehouseOptions` theo quyền và tổng hạn chế; `supplyStatus: OPTIONS_AVAILABLE` yêu cầu người dùng xem xét phương án, không tự tính là coverage cho tới khi có TR/phân bổ thực. Stocktake chỉ đọc nguồn chốt đủ dữ liệu, không bổ sung toàn bộ API vận hành kiểm kê trong thay đổi này.
+
+Helper ghi chứng từ thu thập sản phẩm từ input, chứng từ đích, dòng nhúng, tồn/lô và chuỗi nguồn trước khi ghi. Khóa SO theo ID tăng `replenishmentPlanningVersion`, tiếp theo khóa cặp kho/sản phẩm theo thứ tự cố định, rồi mới tới khóa vị trí. Hiện khóa tất cả kho cho các sản phẩm bị ảnh hưởng vì nguồn ở kho khác có thể thay đổi lựa chọn đáp ứng; đánh đổi này tăng tranh chấp theo sản phẩm nhưng không khóa mọi sản phẩm/toàn hệ thống. Chuỗi nguồn quá sâu bị từ chối, không tiếp tục với tập khóa thiếu.
+
+Tăng phiên bản guard, ghi RR/PO/tồn, OperationRecord, audit và outbox cùng transaction. `lastOperationId` chỉ cập nhật sau khi OperationRecord tồn tại. Thử lại transaction xóa tập guard trong session, đọc lại snapshot; xử lý duplicate-key khi hai bên tạo guard lần đầu bằng transaction mới, tối đa 3 lần retry ngoài lần đầu. Replay thành công không tăng guard.
+
+Đổi ngưỡng, trạng thái/sửa sản phẩm và lô tham gia cùng giao thức guard; thay đổi catalogue tiếp tục dùng `expectedUpdatedAt`. OperationRecord catalogue dùng versionBefore=0/versionAfter=1 làm receipt thao tác, không thêm trường version giả vào catalogue.
+
+## Dữ liệu và triển khai
+
+Không tăng số collection. Thêm nested schema `replenishment-source.schema.js`. Dòng RR giữ `details.source`, `canonicalSourceKey`, token/thời điểm/snapshot và xác nhận nhu cầu độc lập. Submission giữ snapshot `evaluation` riêng của từng lần gửi. SO thêm số nguyên `replenishmentPlanningVersion` mặc định 0, độc lập với phiên bản nội dung. SO cũ thiếu trường sẽ được `$inc` khởi tạo khi cần.
+
+Chạy `node scripts/audit-replenishment-coverage.mjs --uri mongodb://127.0.0.1:27017/<local_database>?replicaSet=rs0` trước bật tính năng. Script luôn read-only; kiểm unique index, RR active thiếu canonical source và nhóm cùng nguồn cần đối chiếu. Exit 2 nếu thiếu index/nguồn chưa giải được. Không tự gộp/xóa/từ chối phiếu hoặc chuyển RR cũ sang nguồn khác. Nhu cầu thủ công cũ giữ nguyên và áp dụng cảnh báo khi thao tác tiếp. Chuẩn hóa nguồn cũ chỉ sau khi xác minh đủ liên kết.
+
+Bật BE/FE cùng đợt sau kiểm local; không có rollout Atlas tự động. Theo dõi mã 409 coverage, retry transaction, lỗi nguồn không xác định và độ trễ theo sản phẩm. Không ghi payload/giá/chứng từ riêng tư vào log tổng hợp. Instrumentation có thể subscribe Node `diagnostics_channel` tên `wmsd.replenishment`: `coverage_conflict` gồm operationCode/durationMs, `transaction_retry` gồm reason/attempt; không chứa ID phiếu, giá, payload hay danh tính.
+
+## Kiểm chứng
+
+Kiểm transaction local bằng `RUN_NATIVE_API_TESTS=1` với các file `test/replenishment-*.integration.test.js` và native API tests. Mỗi suite tạo database riêng và xóa đúng database test sau chạy. Đã kiểm 24 ca tích hợp local ở bốn file native/RR (8 evaluator, 6 RR API, 1 guard+audit, 9 native flow), gồm ledger tái mở/đảo, chặn lỗi/freeze, PO lấy một phần và policy stale. Frontend build/typecheck và các test tập trung qua; kết quả chi tiết/giới hạn trong changelog. Full suite chưa xanh: hai file BE import module cũ không còn trong checkout và các test/fixture FE ngoài nghiệm thu tập trung còn lỗi. Browser local dừng ở tài khoản demo đăng nhập thất bại; không xác nhận visual QA form bằng trình duyệt.

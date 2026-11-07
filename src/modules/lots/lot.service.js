@@ -1,4 +1,6 @@
-import { ProductBatch, Product, InventoryBalance, StockHoldingPoint, WarehouseLocation, StockTransaction } from '../../models/runtime.js';
+import { guardCommandCoverage, completeReplenishmentGuards } from '../../shared/utils/replenishment-guard.js';
+import { hash } from '../../shared/utils/document-command.js';
+import { ProductBatch, Product, InventoryBalance, StockHoldingPoint, WarehouseLocation, StockTransaction, OperationRecord } from '../../models/runtime.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
 import { notFoundError, validationError } from '../../shared/utils/ApiError.js';
 import { escapeRegex } from '../../shared/utils/domain.js';
@@ -44,13 +46,16 @@ export async function createLot(user, input) {
 export async function updateLot(user, id, input) {
   requirePermission(user, 'product_lot:update');
   return transaction(async session => {
+    await guardCommandCoverage(id, input, session);
     const before = await batch(id, session);
     const { expectedUpdatedAt, ...changes } = input;
     const immutable = ['manufacturerLot', 'piecesPerCarton', 'cartonLengthMm', 'cartonWidthMm', 'cartonHeightMm'];
     const identityChanged = immutable.some(field => field in changes && String(changes[field]) !== String(before[field]));
     if (identityChanged && await lotHasReferences(id, session)) throw validationError('Lô đã có chứng từ hoặc tồn; không đổi nhận diện và quy cách');
     const row = await updateCatalogue(ProductBatch, id, expectedUpdatedAt, changes, session);
-    await appendAudit({ actorId: user._id, action: 'UPDATE_PRODUCT_BATCH', entityType: 'product_batches', entityId: row._id, changes: changedFields(before, row, Object.keys(changes)), session });
+    const operation = await new OperationRecord({actorType:'USER',actorId:user._id,operationCode:'UPDATE_PRODUCT_BATCH',requestKey:id+':'+expectedUpdatedAt,requestHash:hash(input),operationKey:hash({actor:String(user._id),id,input}),subjectType:'product_batches',subjectId:row._id,versionBefore:0,versionAfter:1,resultCode:'UPDATED',completedAt:new Date()}).save({session});
+    await completeReplenishmentGuards(session,operation._id);
+    await appendAudit({ operationId:operation._id, actorId: user._id, action: 'UPDATE_PRODUCT_BATCH', entityType: 'product_batches', entityId: row._id, changes: changedFields(before, row, Object.keys(changes)), session });
     return dto(row);
   });
 }

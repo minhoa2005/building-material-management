@@ -44,6 +44,7 @@ export function createPurchaseReceiptSchema() {
     },
     options("purchase_receipts"),
   );
+  schema.add({ custodyDecisionId: ref("ApprovalHistory", false) });
   const item = createDocumentItemSchema();
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   item.add({

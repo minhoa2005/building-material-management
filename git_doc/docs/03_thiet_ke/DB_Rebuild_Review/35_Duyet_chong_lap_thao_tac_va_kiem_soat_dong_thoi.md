@@ -10,6 +10,10 @@ Căn cứ: [C03/C04 ghi tồn đúng một lần](10_Duyet_giao_dich_va_lich_su_
 | G05 · replenishment_locks | Hai người cùng thấy một nhu cầu thiếu 10 viên và cùng đề nghị bổ sung | Người sau tính lại phần thiếu sau kết quả người trước; không đề nghị trùng 10 viên. |
 | G06 · return_source_locks | Khách có 20 viên còn được đề nghị trả; hai người đồng thời lập mỗi người 15 | Chỉ một yêu cầu 15 được ghi trước; yêu cầu sau thấy còn tối đa 5 và phải sửa. |
 
+## Tích hợp runtime theo yêu cầu 07/11/2026
+
+[Hợp đồng triển khai](../../08_api/REPLENISHMENT_COVERAGE.md) mô tả đánh giá nguồn, cảnh báo RR thủ công kèm xác nhận nhu cầu độc lập/giải trình, token stale, vòng đời coverage và thứ tự khóa. RR nháp đã lưu chiếm lượng, form chưa lưu không chiếm lượng. Nguồn ngưỡng dùng Product.stockThresholds, không khôi phục bảng policy. Kết quả kiểm thử được ghi riêng trong changelog ngày triển khai; các phiếu duyệt bên dưới giữ nguyên lịch sử.
+
 ## G04 · operation_records · Kết quả thao tác đã thực hiện
 
 Đề xuất một bản ghi lưu **kết quả thành công của một lần thao tác**, kể cả thao tác chưa thay đổi tồn như tạo phiếu, gửi duyệt hoặc phát hành hóa đơn. Lỗi nghiệp vụ có thể được ghi ở G02; G04 không đánh dấu thành công khi toàn bộ lần lưu đã thất bại.

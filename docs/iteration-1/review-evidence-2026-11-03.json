@@ -1,0 +1,30 @@
+{
+  "reviewedOn": "2026-11-03",
+  "database": "sep490_review_20261103_6ae9c3a3b96e94f4909fe1fb",
+  "checks": {
+    "supplierNames_sales": {
+      "listStatus": 403,
+      "namesStatus": 200,
+      "namesCount": 1
+    },
+    "supplierNames_warehouse": {
+      "listStatus": 403,
+      "namesStatus": 200,
+      "namesCount": 1
+    },
+    "supplierNames_admin": {
+      "listStatus": 403,
+      "namesStatus": 200,
+      "namesCount": 1
+    },
+    "unknownLot": {
+      "createStatus": 200,
+      "confirmStatus": 200,
+      "postStatus": 200,
+      "putawayAllocatableStatus": 409,
+      "putawayCode": "ERR-REC-LOT",
+      "interpretation": "UNKNOWN is allowed into owned Receiving; allocatable Storage is blocked."
+    }
+  },
+  "databaseRemoved": true
+}

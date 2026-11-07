@@ -1,11 +1,14 @@
-import { ReplenishmentRequest, Warehouse, Product, PurchaseOrder, ApprovalHistory } from '../../models/runtime.js';
+import { ReplenishmentRequest, Warehouse, Product, PurchaseOrder, ApprovalHistory, SalesOrder, WarehouseIssueRequest, Stocktake, StocktakeSnapshot, ProductBatch } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { validationError, forbiddenError, notFoundError } from '../../shared/utils/ApiError.js';
-import { dto } from '../../shared/utils/persistence.js';
+import { dto, serialize } from '../../shared/utils/persistence.js';
 import { command, scopedDocument, checkVersion, saveVersion, newId, same, hash } from '../../shared/utils/document-command.js';
 import { makeItem } from '../../shared/utils/document-items.js';
+import { evaluateLines, reviewRequired } from './replenishment.evaluation.js';
+import { canReadRelated } from './replenishment.access.js';
+import { transaction } from '../../shared/utils/persistence.js';
 
 export async function readRequest(id, user, session) {
   const document = await scopedDocument(ReplenishmentRequest, id, user, session);
@@ -20,19 +23,86 @@ async function header(input, user, session) {
   if (!warehouse) throw validationError('Kho không hợp lệ');
   return { warehouseId: warehouse._id, neededOn: new Date(input.neededOn + 'T00:00:00+07:00'), triggerReason: input.triggerReason };
 }
-async function items(input, session, previous = []) {
-  const result = [];
-  const seen = new Set();
+const snapshotNames = ['availableQty','otherWarehouseCoverageQty','remainingDemandQty','reservedForDemandQty','onHandCoverageQty','incomingCoverageQty','pendingRequestCoverageQty','minimumQty','targetQty'];
+function evaluatedDetails(line, evaluation) {
+  return { triggerType: evaluation.source.triggerType, source: evaluation.source,
+    canonicalSourceKey: evaluation.canonicalKey, evaluationKey: evaluation.evaluationKey,
+    evaluatedAt: new Date(evaluation.evaluatedAt), reasonNote: line.reasonNote,
+    independentNeedConfirmed: line.independentNeedConfirmed === true,
+    independentNeedReason: line.independentNeedReason, quantityAdjustmentReason: line.quantityAdjustmentReason,
+    ...(exact(evaluation.suggestedQtyBase).gt(0) && { suggestedQty: evaluation.suggestedQtyBase }),
+    ...Object.fromEntries(snapshotNames.filter(name => evaluation[name + 'Base'] != null).map(name => [name + 'Snapshot', evaluation[name + 'Base']])),
+  };
+}
+function checkAssessments(lines, evaluated, quantities, { requireAdjustmentReason = true } = {}) {
+  const totals = new Map(), invalid = [];
+  for (const [index, line] of lines.entries()) {
+    const evaluation = evaluated[index];
+    if (exact(quantities[index]).isZero()) continue;
+    if (evaluation.source.triggerType !== 'MANUAL_OTHER') {
+      const amount = exact(quantities[index]);
+      if (amount.isZero()) continue;
+      totals.set(evaluation.canonicalKey, (totals.get(evaluation.canonicalKey) ?? exact('0')).plus(amount));
+      if (line.evaluationKey !== evaluation.evaluationKey || amount.gt(evaluation.suggestedQtyBase) ||
+          (requireAdjustmentReason && amount.lt(evaluation.suggestedQtyBase) && !line.quantityAdjustmentReason?.trim())) invalid.push(index);
+    } else if (evaluation.warningRequired && (line.evaluationKey !== evaluation.evaluationKey || line.independentNeedConfirmed !== true || !line.independentNeedReason?.trim())) invalid.push(index);
+  }
+  for (const [index, evaluation] of evaluated.entries()) {
+    if (totals.has(evaluation.canonicalKey) && totals.get(evaluation.canonicalKey).gt(evaluation.suggestedQtyBase)) invalid.push(index);
+  }
+  if (invalid.length) {
+    const error = reviewRequired(evaluated);
+    error.details.invalidLines = [...new Set(invalid)].map(index => ({ lineNo: index + 1, message: 'Nguồn, lượng còn thiếu hoặc xác nhận nhu cầu độc lập cần được kiểm tra lại' }));
+    throw error;
+  }
+}
+async function items(input, actor, session, previous = [], requestId) {
+  const evaluated = await evaluateLines(actor, { ...input, requestId }, session);
+  const result = [], seen = new Set();
   for (const [index, line] of input.lines.entries()) {
     const old = line.id ? previous.find(item => same(item._id, line.id)) : null;
     if (line.id && (!old || seen.has(line.id))) throw validationError('Dòng hàng không thuộc yêu cầu hoặc bị trùng');
     if (line.id) seen.add(line.id);
-    if (old?.details?.triggerType && old.details.triggerType !== 'MANUAL_OTHER') throw validationError('Không sửa dòng phát sinh từ nguồn bằng biểu mẫu thủ công');
-    result.push({ ...await makeItem(line, index + 1, session, { previous: old, lineKind: 'REPLENISHMENT' }),
-      details: { triggerType: 'MANUAL_OTHER', reasonNote: line.reasonNote } });
+    if (old?.details?.triggerType && old.details.triggerType !== 'MANUAL_OTHER' && old.details.canonicalSourceKey !== evaluated[index].canonicalKey) throw validationError('Không đổi nguồn của dòng đã lưu; xóa dòng và chọn nguồn hợp lệ');
+    const value = await makeItem(line, index + 1, session, { previous: old, lineKind: 'REPLENISHMENT' });
+    const source = evaluated[index].source;
+    const sources = source.documentId ? [{ subjectCollection: source.documentType, documentId: source.documentId,
+      ...(source.itemId && { itemId: source.itemId }), relationCode: source.triggerType === 'SALES_SHORTAGE' ? 'REPLENISHES_DEMAND' : 'STOCKTAKE_REPLENISHMENT', linkedQty: value.qtyBase }] : [];
+    result.push({ ...value, sources, details: evaluatedDetails(line, evaluated[index]) });
   }
-  if (previous.some(item => item.details.triggerType !== 'MANUAL_OTHER' && !seen.has(String(item._id)))) throw validationError('Không xóa dòng phát sinh từ nguồn');
+  checkAssessments(input.lines, evaluated, result.map(row => row.qtyBase));
   return result;
+}
+export function savedAssessmentInput(document, overrides = []) {
+  return { warehouseId: String(document.header.warehouseId), neededOn: new Date(new Date(document.header.neededOn).getTime() + 7 * 3600000).toISOString().slice(0,10),
+    requestId: String(document._id), lines: document.items.map(item => {
+      const details = item.details?.toObject ? item.details.toObject() : item.details ?? {};
+      const override = overrides.find(row => same(row.lineId, item._id)) ?? {};
+      if (details.triggerType && details.triggerType !== 'MANUAL_OTHER' && !details.source) throw reviewRequired([], 'Nguồn RR cũ cần được chuẩn hóa trước khi thực hiện tiếp');
+      return { id: String(item._id), productId: String(item.productId), enteredUnit: item.enteredUnit,
+        enteredQty: String(item.enteredQty), ...(item.lotId && { lotId: String(item.lotId) }),
+        source: details.source ? serialize(details.source) : { triggerType: 'MANUAL_OTHER' }, reasonNote: details.reasonNote,
+        evaluationKey: override.evaluationKey ?? details.evaluationKey,
+        independentNeedConfirmed: override.independentNeedConfirmed ?? details.independentNeedConfirmed,
+        independentNeedReason: override.independentNeedReason ?? details.independentNeedReason,
+        quantityAdjustmentReason: override.quantityAdjustmentReason ?? details.quantityAdjustmentReason };
+    }) };
+}
+export async function assessSavedRequest(document, actor, session, { evaluations = [], quantities, excludePurchaseOrderId, selectedItemIds, requireAdjustmentReason = true } = {}) {
+  const input = savedAssessmentInput(document, evaluations);
+  if (excludePurchaseOrderId) input.excludePurchaseOrderId = excludePurchaseOrderId;
+  const evaluated = await evaluateLines(actor, input, session, { internal: true });
+  const indexes = document.items.map((item,index) => !selectedItemIds || selectedItemIds.some(id => same(id,item._id)) ? index : -1).filter(index => index >= 0);
+  checkAssessments(indexes.map(i => input.lines[i]), indexes.map(i => evaluated[i]), indexes.map(i => (quantities ?? document.items.map(item => item.qtyBase))[i]), { requireAdjustmentReason });
+  document.items.forEach((item, index) => { item.details = evaluatedDetails(input.lines[index], evaluated[index]); });
+  return evaluated;
+}
+export async function evaluateReplenishment(user, input) {
+  requirePermission(user, input.requestId ? 'replenishment_request:read' : 'replenishment_request:create');
+  return transaction(async session => {
+    if (input.requestId) await readRequest(input.requestId, user, session);
+    return evaluateLines(user, input, session, { permission: input.requestId ? 'replenishment_request:read' : 'replenishment_request:create' });
+  });
 }
 async function submission(document, user, session) {
   const warehouse = await Warehouse.findById(document.header.warehouseId).session(session);
@@ -44,6 +114,7 @@ async function submission(document, user, session) {
       productSkuSnapshot: product.sku, productNameSnapshot: item.productNameSnapshot,
       baseUomCodeSnapshot: item.baseUnitSnapshot, enteredUomCodeSnapshot: item.enteredUnit,
       conversionVersion: document.version, enteredQty: item.enteredQty, conversionSnapshot: item.baseUnitsPerUnit,
+      evaluation: item.details.toObject ? item.details.toObject() : item.details,
       qtyBase: item.qtyBase, triggerType: item.details.triggerType, reasonNote: item.details.reasonNote,
       baseUnitSnapshot: item.baseUnitSnapshot, enteredUnit: item.enteredUnit, baseUnitsPerUnit: item.baseUnitsPerUnit });
   }
@@ -62,14 +133,34 @@ export async function getReplenishmentOptions(user, mode) {
     Warehouse.find({ ...scope, isActive: true }).select('_id code name').lean(),
     Product.find({ isActive: true }).select('_id sku name baseUnit lengthMm widthMm').lean(),
   ]);
-  return { warehouses: warehouses.map(dto), products: products.map(dto) };
+  const sources = [];
+  if (mode === 'CREATE') {
+    for (const [Model, documentType] of [[SalesOrder,'sales_orders'],[WarehouseIssueRequest,'warehouse_issue_requests'],[Stocktake,'stocktakes']]) {
+      const records = await Model.find({ workflowStatus: { $nin: ['CANCELLED','REJECTED','COMPLETED'] } }).sort({ createdAt: -1 }).limit(100);
+      const closed = Model === Stocktake ? await Stocktake.find({ workflowStatus: { $in: ['COMPLETED','CLOSED'] }, 'header.completedAt': { $exists: true } }).sort({ createdAt: -1 }).limit(100) : records;
+      for (const record of closed) {
+        if (!canReadRelated(record, user)) continue;
+        const sourceItems = record.items.map(item => ({ id: String(item._id), productId: String(item.productId), label: item.productNameSnapshot ?? 'Dòng ' + item.lineNo }));
+        if (Model === Stocktake) {
+          const snapshots = await StocktakeSnapshot.find({ stocktakeId: record._id }).select('batchId');
+          const lots = await ProductBatch.find({ _id: { $in: snapshots.map(row => row.batchId) } }).select('productId');
+          const products = await Product.find({ _id: { $in: lots.map(row => row.productId) } }).select('name');
+          for (const product of products) if (!sourceItems.some(item => item.productId === String(product._id))) sourceItems.push({ id: String(product._id), productId: String(product._id), label: product.name });
+        }
+        sources.push({ id: String(record._id), documentNo: record.documentNo, documentType, version: record.version,
+          ...(record.header.warehouseId && { warehouseId: String(record.header.warehouseId) }),
+          items: sourceItems });
+      }
+    }
+  }
+  return { warehouses: warehouses.map(dto), products: products.map(dto), sources };
 }
 export function createReplenishment(user, input) {
   return command(user, 'CREATE_REPLENISHMENT', 'replenishment_request:create', null, input, replay, async (session, actor) => {
     const document = new ReplenishmentRequest({ _id: newId(), documentNo: 'RR-' + newId(),
       workflowStatus: 'DRAFT', version: 1, createdBy: actor._id, note: input.note,
       header: { ...await header(input, actor, session), creationKey: input.creationKey },
-      items: await items(input, session) });
+      items: await items(input, actor, session) });
     if (input.action === 'SUBMIT') await submission(document, actor, session);
     await document.save({ session });
     return { document };
@@ -82,7 +173,7 @@ export function updateReplenishment(user, id, input) {
     if (!same(document.createdBy, actor._id)) throw forbiddenError('Chỉ người lập được sửa');
     if (!['DRAFT','REVISION_REQUIRED'].includes(document.workflowStatus)) throw validationError('Yêu cầu không còn được sửa');
     if (await PurchaseOrder.exists({ replenishmentRequestId: id }).session(session)) throw validationError('Yêu cầu đã có đơn mua');
-    document.items = await items(input, session, document.items);
+    document.items = await items(input, actor, session, document.items, id);
     document.header.set(await header(input, actor, session)); document.note = input.note; document.updatedBy = actor._id;
     return { document: await saveVersion(document, input.expectedVersion, session), versionBefore: input.expectedVersion };
   });
@@ -93,6 +184,7 @@ export function submitReplenishment(user, id, input) {
     checkVersion(document, input.expectedVersion);
     if (!same(document.createdBy, actor._id)) throw forbiddenError('Chỉ người lập được gửi');
     if (!['DRAFT','REVISION_REQUIRED'].includes(document.workflowStatus)) throw validationError('Yêu cầu không thể gửi ở trạng thái hiện tại');
+    await assessSavedRequest(document, actor, session, { evaluations: input.evaluations });
     document.version = input.expectedVersion + 1;
     await submission(document, actor, session);
     return { document: await saveVersion(document, input.expectedVersion, session), versionBefore: input.expectedVersion };
@@ -124,6 +216,10 @@ export function reviewReplenishment(user, id, input) {
       return { itemId: item._id, approvedQtyBase: quantity.toFixed(), outcome: input.decision, reason: decision?.reason || input.reason };
     });
     if (input.decision === 'APPROVE' && !positive) throw validationError('Duyệt cần có lượng lớn hơn 0');
+    if (input.decision === 'APPROVE') await assessSavedRequest(document, actor, session, {
+      evaluations: document.items.map(item => ({ lineId: String(item._id), quantityAdjustmentReason: input.lines.find(row => same(row.lineId,item._id))?.reason || input.reason,
+        ...(input.evaluations?.find(row => same(row.lineId,item._id)) ?? {}) })),
+      quantities: document.items.map(item => item.approvedQtyBase) });
     const approval = await new ApprovalHistory({ decisionKey: hash({ id, version: document.version, key: input.operationKey }),
       subjectType: 'replenishment_requests', subjectId: document._id, subjectRevision: document.version,
       decisionScope: 'REPLENISHMENT', reviewedContent: document.toObject(), decision: input.decision, reason: input.reason,
@@ -133,5 +229,21 @@ export function reviewReplenishment(user, id, input) {
     if (input.decision === 'APPROVE') document.header.approvedRevision = document.version;
     document.workflowStatus = { APPROVE: 'APPROVED', REJECT: 'REJECTED', REVISE: 'REVISION_REQUIRED' }[input.decision];
     return { document: await saveVersion(document, input.expectedVersion, session), versionBefore: input.expectedVersion, decisionId: approval._id };
+  });
+}
+
+export function cancelReplenishment(user, id, input) {
+  const permission = isOwner(user) ? 'replenishment_request:approve' : 'replenishment_request:update';
+  return command(user, 'CANCEL_REPLENISHMENT', permission, id, input, replay, async (session, actor) => {
+    const document = await readRequest(id, actor, session);
+    checkVersion(document, input.expectedVersion);
+    if (await PurchaseOrder.exists({ replenishmentRequestId: id }).session(session)) throw validationError('Yêu cầu đã có PO; xử lý theo luồng PO');
+    if (document.workflowStatus === 'APPROVED') {
+      if (!isOwner(actor)) throw forbiddenError('Owner xử lý phần đã duyệt');
+    } else if (!['DRAFT','SUBMITTED','REVISION_REQUIRED'].includes(document.workflowStatus) || !same(document.createdBy, actor._id)) throw forbiddenError('Chỉ người lập được rút yêu cầu chưa duyệt');
+    if (!input.reason?.trim()) throw validationError('Cần lý do rút/hủy yêu cầu');
+    document.workflowStatus = 'CANCELLED'; document.cancelReason = input.reason;
+    document.cancelledBy = actor._id; document.cancelledAt = new Date();
+    return { document: await saveVersion(document, input.expectedVersion, session), versionBefore: input.expectedVersion, reason: input.reason };
   });
 }

@@ -16,7 +16,7 @@ router.get(
   controller.list,
 );
 
-router.get("/names", controller.getNames);
+router.get("/names", checkPermission("supplier:read", READ_ROLES), controller.getNames);
 
 router.post(
   "/",

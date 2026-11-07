@@ -79,7 +79,7 @@ export const listQuerySchema = z
     warehouseId: objectIdSchema.optional(),
     createdBy: objectIdSchema.optional(),
     status: z
-      .enum(["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "REVISION_REQUIRED"])
+      .enum(["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "REVISION_REQUIRED", "CANCELLED"])
       .optional(),
     approvalDecision: z
       .enum(["APPROVE", "REJECT", "REVISE", "NONE"])
@@ -131,12 +131,26 @@ const headerShape = {
   note: optionalNote,
 };
 
+export const sourceSchema = z.discriminatedUnion('triggerType', [
+  z.object({ triggerType: z.literal('MANUAL_OTHER') }).strict(),
+  z.object({ triggerType: z.literal('STOCK_THRESHOLD') }).strict(),
+  z.object({ triggerType: z.literal('STOCKTAKE_LOW_STOCK'), documentType: z.literal('stocktakes'), documentId: objectIdSchema, version: expectedVersion }).strict(),
+  z.object({ triggerType: z.literal('SALES_SHORTAGE'), documentType: z.enum(['sales_orders','warehouse_issue_requests']), documentId: objectIdSchema, itemId: objectIdSchema, version: expectedVersion }).strict(),
+]);
+const assessmentFields = {
+  evaluationKey: z.string().regex(/^[a-f\d]{64}$/i).optional(),
+  independentNeedConfirmed: z.boolean().optional(),
+  independentNeedReason: reasonNote.optional(),
+  quantityAdjustmentReason: reasonNote.optional(),
+};
 const createLineSchema = z
   .object({
     productId: objectIdSchema,
     enteredUnit: z.string().trim().min(1).max(60), lotId: objectIdSchema.optional(),
     enteredQty: lineQty,
     reasonNote,
+    source: sourceSchema.optional(),
+    ...assessmentFields,
   })
   .strict();
 
@@ -160,6 +174,8 @@ const updateLineSchema = z
     enteredUnit: z.string().trim().min(1).max(60), lotId: objectIdSchema.optional(),
     enteredQty: lineQty,
     reasonNote,
+    source: sourceSchema.optional(),
+    ...assessmentFields,
   })
   .strict();
 
@@ -176,10 +192,11 @@ export const updateReplenishmentSchema = z.object({
     .strict(),
 });
 
+const evaluations = z.array(z.object({ lineId: objectIdSchema, ...assessmentFields }).strict()).max(100).optional();
 export const submitReplenishmentSchema = z.object({
   params: z.object({ id: objectIdSchema }).strict(),
   query: emptyQuery,
-  body: z.object({ expectedVersion, operationKey }).strict(),
+  body: z.object({ expectedVersion, operationKey, evaluations }).strict(),
 });
 
 const reviewLineSchema = z
@@ -198,6 +215,7 @@ export const reviewReplenishmentSchema = z.object({
       expectedVersion,
       operationKey,
       decision: z.enum(["APPROVE", "REJECT", "REVISE"]),
+      evaluations,
       reason: z.string().trim().max(2000).optional().nullable(),
       lines: z.array(reviewLineSchema).max(100).optional().default([]),
     })
@@ -208,6 +226,21 @@ export const replenishmentOptionsSchema = z.object({
   params: emptyQuery,
   body: emptyQuery,
   query: z.object({ mode: z.enum(["CREATE", "FILTER"]) }).strict(),
+});
+
+export const evaluateReplenishmentSchema = z.object({
+  params: emptyQuery, query: emptyQuery,
+  body: z.object({ warehouseId: objectIdSchema, neededOn: calendarDate,
+    requestId: objectIdSchema.optional(),
+    lines: z.array(z.object({ id: objectIdSchema.optional(), productId: objectIdSchema,
+      source: sourceSchema.optional(), enteredUnit: z.string().trim().min(1).max(60).optional(),
+      lotId: objectIdSchema.optional(), enteredQty: lineQty.optional(), reasonNote: reasonNote.optional(),
+    }).strict()).min(1).max(100),
+  }).strict(),
+});
+export const cancelReplenishmentSchema = z.object({
+  params: z.object({ id: objectIdSchema }).strict(), query: emptyQuery,
+  body: z.object({ expectedVersion, operationKey, reason: reasonNote }).strict(),
 });
 
 export const listSubmissionsSchema = z.object({

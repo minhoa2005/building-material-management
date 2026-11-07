@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { registerModels } from "./registry.js";
 export const models = registerModels(mongoose.connection);
+export const Uom = models.get("uoms");
 export const Category = models.get("categories");
 export const User = models.get("users");
 export const Role = models.get("roles");

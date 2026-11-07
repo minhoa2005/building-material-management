@@ -36,6 +36,7 @@ export function createSalesOrderSchema() {
       documentKind: code(["SALES_ORDER"], { default: "SALES_ORDER" }),
       workflowStatus: text(40),
       version: integer(1),
+      replenishmentPlanningVersion: integer(0, { default: 0 }),
       createdBy: ref("User"),
       occurredAt: Date,
       note: text(2000, { required: false }),
