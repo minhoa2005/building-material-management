@@ -9,12 +9,16 @@ import { formatApiResponse } from '../../shared/utils/ApiResponse.js';
 import * as v from './native.validation.js';
 import * as service from './native.service.js';
 import * as read from './native.read.js';
+import { lookup } from './native.lookup.js';
+import { traceRecords } from './native.trace.js';
 import { resources, m, serialize, validationError } from './native.shared.js';
 const uploadSingleImage = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } }).single('file');
 const router=Router();router.use(authenticate);
 const send=fn=>catchAsync(async(req,res)=>{res.set('Cache-Control','no-store');formatApiResponse(res,{data:await fn(req)});});
 const multipart=(req,_res,next)=>{try{if(typeof req.body.payload==='string')req.body=JSON.parse(req.body.payload);next();}catch{next(validationError('Biểu mẫu không hợp lệ'));}};
-router.get('/return-workflows/options',send(req=>read.options(req.user)));
+router.get('/return-workflows/options',validate(v.optionsSchema),send(req=>read.options(req.user,{compact:req.validated.query.compact==='true'})));
+router.get('/return-workflows/lookup',validate(v.lookupSchema),catchAsync(async(req,res)=>{const result=await lookup(req.user,req.validated.query);res.set('Cache-Control','no-store');formatApiResponse(res,{data:result.items,meta:{total:result.total,page:result.page,limit:result.limit}});}));
+router.get('/return-workflows/:id/context',checkPermission('external_reference:create'),validate(v.idSchema),send(async req=>{const doc=await read.parent(req.user,req.params.id);let canUpload=true;try{await read.parent(req.user,req.params.id,undefined,true);}catch(error){if(error.statusCode!==403)throw error;canUpload=false;}return {id:String(doc._id),version:doc.version,warehouseId:String(doc.header.warehouseId),canUpload};}));
 for(const [resource,[,permission]] of Object.entries(resources)){
  router.get(`/${resource}`,checkPermission(permission),validate(v.listSchema),catchAsync(async(req,res)=>{const result=await read.list(req.user,resource,req.validated.query);formatApiResponse(res,{data:result.items,meta:{total:result.total,page:result.page,limit:result.limit}});}));
  router.get(`/${resource}/:id`,checkPermission(permission),validate(v.idSchema),send(req=>read.detail(req.user,resource,req.params.id)));
@@ -44,8 +48,9 @@ for(const [path,permission,schema,fn] of [
 router.post('/return-workflows/:id/evidence',validate(v.idSchema),uploadSingleImage,send(req=>read.uploadEvidence(req.user,req.params.id,req.file)));
 router.get('/return-workflows/:id/evidence/:evidenceId',validate(v.idSchema),send(req=>{v.id.parse(req.params.evidenceId);return read.downloadEvidence(req.user,req.params.id,req.params.evidenceId);}));
 router.get('/lots/:id/trace',validate(v.idSchema),send(req=>read.traceLot(req.user,req.params.id)));
+router.get('/lots/:id/trace/records',validate(v.traceRecordsSchema),catchAsync(async(req,res)=>{const result=await traceRecords(req.user,req.params.id,req.validated.query);res.set('Cache-Control','no-store');formatApiResponse(res,{data:{items:result.items,lot:result.lot},meta:{total:result.total,page:result.page,limit:result.limit}});}));
 router.get('/lots/:id/trace/evidence/:evidenceId',validate(v.idSchema),send(async req=>{v.id.parse(req.params.evidenceId);const trace=await read.traceLot(req.user,req.params.id),attachment=trace.evidence.find(e=>e._id===req.params.evidenceId);if(!attachment)throw validationError('Chứng cứ ngoài phạm vi lô');return read.downloadEvidence(req.user,attachment.ownerDocumentId,attachment._id);}));
-router.get('/external-references',checkPermission('external_reference:read'),validate(v.listSchema),send(async req=>{const warehouses=req.user.warehouseIds??[];return serialize(await m.ExternalReference.find({warehouseId:{$in:warehouses}}).sort({createdAt:-1}).skip((req.validated.query.page-1)*req.validated.query.limit).limit(req.validated.query.limit));}));
+router.get('/external-references',checkPermission('external_reference:read'),validate(v.listSchema),catchAsync(async(req,res)=>{const result=await read.listExternal(req.user,req.validated.query);res.set('Cache-Control','no-store');formatApiResponse(res,{data:result.items,meta:{total:result.total,page:result.page,limit:result.limit}});}));
 router.post('/external-references/historical',checkPermission('external_reference:create'),uploadSingleImage,multipart,validate(v.historicalSchema),send(async req=>{const stored=await read.storeFile(req.file);try{const result=await read.createHistoricalSource(req.user,req.body,stored);if(result.replayed)await evidenceStorage.destroy(stored.storageKey,stored.mediaType==='application/pdf'?'raw':'image');return result;}catch(error){if([400,403,404,409,422].includes(error.statusCode))await evidenceStorage.destroy(stored.storageKey,stored.mediaType==='application/pdf'?'raw':'image').catch(()=>{});throw error;}}));
 router.post('/external-references',checkPermission('external_reference:create'),(req,_res,next)=>{req.params.id=req.body.documentId;next();},validate(v.externalSchema),send(req=>read.recordExternalReference(req.user,req.body)));
 export default router;
