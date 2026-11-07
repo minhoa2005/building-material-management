@@ -1,3 +1,15 @@
+## 07/11/2026 — Sửa các request frontend gây 403
+
+- Chuyển form RR sang API lô theo kho/sản phẩm, bộ lọc PO sang NCC theo PO và tab kiểm nhận sang danh sách lô trong inspection context. Thêm ngữ cảnh sửa RR cho API tùy chọn và capability theo kho cho chứng từ nhận mua.
+- Route, sidebar và các request phụ dùng grant phù hợp. Tách quyền từng thao tác UOM, giữ hộ, đảo nhập và put-away. Bổ sung chọn/gắn bằng chứng và giữ payload khi retry.
+- Kiểm chứng 49 test FE và 15 test BE tập trung, cùng kiểm HTTP chỉ đọc trên DB local đang dùng. Giữ worktree FE hiện tại theo quyết định người dùng và để tích hợp main sau. [Báo cáo trước/sau và giới hạn](docs/08_api/ITERATION1_NATIVE_VERIFICATION.md).
+
+## 07/11/2026 — Sửa phạm vi phân quyền backend và bổ sung API lựa chọn
+
+- Theo kế hoạch BE được người dùng duyệt, dùng permission hiệu lực ở route và kiểm scope ở service. Role tùy chỉnh đọc SO/lệnh giao theo kho được giao và nhận DTO đã lọc giá, tham chiếu, bằng chứng. Gỡ upload chung và giới hạn xác thực của router trả hàng vào route thuộc nhóm.
+- Thêm endpoint chọn lô theo quyền RR và endpoint lọc NCC theo quyền PO. FE nối hai endpoint trong đợt sau. Contract tại [RR coverage](docs/08_api/REPLENISHMENT_COVERAGE.md), [Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md) và [native runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md).
+- Thêm [lệnh đồng bộ quyền local](docs/09_phat_trien/ITERATION1_NATIVE_MIGRATION.md) và test HTTP/transaction. Dry-run xác nhận DB cấu hình đủ quyền, `sep490` thiếu bảy mã. Apply chỉ dùng fixture cô lập. Hành vi trước/sau và kết quả thực chạy ở [báo cáo kiểm chứng](docs/08_api/ITERATION1_NATIVE_VERIFICATION.md).
+
 ## 2026-11-07 — Trungph native return workflows, iterations 1–3
 
 User requested implementation and branch pushes for merge review; explicitly confirmed Accountant historical-source verification with uploaded evidence. Ported defects/proposals/decisions/execution, CR custody/assessment/acceptance/receipt/handback, FD receipt and atomic reopening, supplier agreements/dispatch/ACK correction/closure, lot trace and external references to the current registry. Removed the replaced generic services. Added native transaction/HTTP/regression tests and frontend embedded-record mapping, permissions, packaging, recipients and historical evidence forms. Shared commands expose the actual operation ID to claim writers; quantity holds and ownership/packaging use native balances and transactions. No Atlas data/configuration/index change. See [canonical contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) for scope, additive fields, migration limits and verification commands. Broader new-SO source decisions remain separate from historical CR verification.

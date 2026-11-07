@@ -1,5 +1,5 @@
 import { GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLog, StockTransaction, User } from '../../models/runtime.js';
-import { requirePermission, requireWarehouseAccess, isOwner, hasPermission } from '../../shared/utils/access.js';
+import { requirePermission, requireWarehouseAccess, isOwner, hasPermission, canAccessWarehouse } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
 import { exact } from '../../models/model-utils.js';
@@ -12,7 +12,21 @@ const financial=u=>['OWNER','ACCOUNTANT'].includes(currentRole(u)?.code);
 function warehouseFilter(user,id){const all=isOwner(user)||currentRole(user)?.code==='ACCOUNTANT';if(id){if(!all)requireWarehouseAccess(user,id);return {'header.warehouseId':id};}return all?{}:{'header.warehouseId':{$in:user.warehouseIds||[]}};}
 async function enriched(user,document){
   const value=dto(document),kind=document.documentKind;
-  value.capabilities={edit:document.workflowStatus==='DRAFT'&&hasPermission(user,'goods_receipt_inspection:update'),confirm:kind==='INSPECTION'&&document.workflowStatus==='DRAFT'&&hasPermission(user,'goods_receipt_inspection:update'),post:kind==='GR_PURCHASE'&&document.workflowStatus==='DRAFT'&&hasPermission(user,'goods_receipt_inspection:post'),cancel:document.workflowStatus==='DRAFT'&&hasPermission(user,'goods_receipt_inspection:update'),reversePreflight:kind==='GR_PURCHASE'&&document.workflowStatus==='POSTED'&&hasPermission(user,'goods_receipt_inspection:reverse'),planPutaway:kind==='GR_PURCHASE'&&document.workflowStatus==='POSTED'&&hasPermission(user,'putaway_task:create')};
+  const writeWarehouse = canAccessWarehouse(user, document.header.warehouseId);
+  const draft = document.workflowStatus === 'DRAFT';
+  const posted = document.workflowStatus === 'POSTED';
+  const canUpdate = writeWarehouse && hasPermission(user, 'goods_receipt_inspection:update');
+  const canPost = writeWarehouse && hasPermission(user, 'goods_receipt_inspection:post');
+  value.capabilities = {
+    writeWarehouse,
+    edit: draft && canUpdate,
+    confirm: kind === 'INSPECTION' && draft && canUpdate,
+    post: kind === 'GR_PURCHASE' && draft && canPost
+      && (!document.custodyDecisionId || hasPermission(user, 'purchase_custody:execute')),
+    cancel: draft && canUpdate,
+    reversePreflight: kind === 'GR_PURCHASE' && posted && canPost && hasPermission(user, 'goods_receipt_inspection:reverse'),
+    planPutaway: kind === 'GR_PURCHASE' && posted && writeWarehouse && hasPermission(user, 'putaway_task:create'),
+  };
   if(kind==='INSPECTION'){
     value.arrival=dto(await GoodsArrival.findById(document.header.arrivalId));
     value.receipts=(await PurchaseReceipt.find({'items.inspectionId':document._id})).map(dto);

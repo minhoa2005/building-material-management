@@ -18,7 +18,7 @@ export async function uploadSourceEvidence(user,file){
   return {receipt};
 }
 export function createSalesOrder(user,input){
-  return command(user,'CREATE_SALES_ORDER','sales_order:create',null,input,(id,actor,session)=>orderSource(actor,id,session),async(session,actor)=>{
+  return command(user,'CREATE_SALES_ORDER','sales_order:create',null,input,(id,actor,session)=>orderSource(actor,id,session,{ replay: true }),async(session,actor)=>{
     let evidence;
     try{evidence=jwt.verify(input.evidenceReceipt,secret(),{algorithms:['HS256'],audience:'sales-source-evidence'});}catch{throw validationError('Bằng chứng không hợp lệ hoặc hết hạn');}
     if(evidence.actorId!==String(actor._id))throw forbiddenError('Bằng chứng không thuộc người tạo');

@@ -3,7 +3,7 @@ import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { validationError, forbiddenError, notFoundError } from '../../shared/utils/ApiError.js';
-import { dto, serialize } from '../../shared/utils/persistence.js';
+import { dto, page, serialize } from '../../shared/utils/persistence.js';
 import { command, scopedDocument, checkVersion, saveVersion, newId, same, hash } from '../../shared/utils/document-command.js';
 import { makeItem } from '../../shared/utils/document-items.js';
 import { evaluateLines, reviewRequired } from './replenishment.evaluation.js';
@@ -126,8 +126,17 @@ async function submission(document, user, session) {
     neededOn: document.header.neededOn, triggerReason: document.header.triggerReason, note: document.note, lines: snapshots });
   document.workflowStatus = 'SUBMITTED';
 }
-export async function getReplenishmentOptions(user, mode) {
-  requirePermission(user, mode === 'CREATE' ? 'replenishment_request:create' : 'replenishment_request:read');
+async function requireEditableRequest(user, requestId) {
+  const document = await readRequest(requestId, user);
+  if (!same(document.createdBy, user._id)) throw forbiddenError('Chỉ người lập được sửa');
+  if (!['DRAFT', 'REVISION_REQUIRED'].includes(document.workflowStatus)) throw validationError('Yêu cầu không còn được sửa');
+  if (await PurchaseOrder.exists({ replenishmentRequestId: requestId })) throw validationError('Yêu cầu đã có đơn mua');
+}
+
+export async function getReplenishmentOptions(user, mode, requestId) {
+  requirePermission(user, requestId ? 'replenishment_request:update'
+    : mode === 'CREATE' ? 'replenishment_request:create' : 'replenishment_request:read');
+  if (requestId) await requireEditableRequest(user, requestId);
   const scope = isOwner(user) ? {} : { _id: { $in: user.warehouseIds || [] } };
   const [warehouses, products] = await Promise.all([
     Warehouse.find({ ...scope, isActive: true }).select('_id code name').lean(),
@@ -154,6 +163,22 @@ export async function getReplenishmentOptions(user, mode) {
     }
   }
   return { warehouses: warehouses.map(dto), products: products.map(dto), sources };
+}
+
+export async function getReplenishmentLotOptions(user, query) {
+  const { productId, warehouseId, requestId } = query;
+  requirePermission(user, requestId ? 'replenishment_request:update' : 'replenishment_request:create');
+  requireWarehouseAccess(user, warehouseId);
+  if (requestId) await requireEditableRequest(user, requestId);
+  if (!await Warehouse.exists({ _id: warehouseId, isActive: true })) throw validationError('Kho không hợp lệ');
+  if (!await Product.exists({ _id: productId, isActive: true })) throw validationError('Sản phẩm không hợp lệ');
+
+  const result = await page(ProductBatch, { productId, identificationStatus: 'VERIFIED' },
+    { ...query, sortBy: 'manufacturerLot', sortOrder: 'asc' }, 'manufacturerLot piecesPerCarton');
+  return {
+    ...result,
+    items: result.items.map(({ id, manufacturerLot, piecesPerCarton }) => ({ id, manufacturerLot, piecesPerCarton })),
+  };
 }
 export function createReplenishment(user, input) {
   return command(user, 'CREATE_REPLENISHMENT', 'replenishment_request:create', null, input, replay, async (session, actor) => {

@@ -9,15 +9,13 @@ const router = Router();
 router.use(authenticate);
 router.get(
   "/",
-  checkPermission("purchase_order:read", [
-    "OWNER",
-    "ACCOUNTANT",
-    "WAREHOUSE",
-  ]),
+  checkPermission("purchase_order:read"),
   validate(validation.listPurchaseOrdersSchema),
   controller.list,
 );
-router.get("/:id", checkPermission("purchase_order:read", ["OWNER", "ACCOUNTANT", "WAREHOUSE"]),
+router.get("/supplier-options", checkPermission("purchase_order:read"),
+  validate(validation.purchaseOrderSupplierOptionsSchema), controller.supplierOptions);
+router.get("/:id", checkPermission("purchase_order:read"),
   validate(validation.getPurchaseOrderSchema), controller.get);
 
 export default router;
