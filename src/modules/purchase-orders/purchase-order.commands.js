@@ -1,3 +1,4 @@
+import { assessSavedRequest } from '../replenishments/replenishment.commands.js';
 import { PurchaseOrder, ReplenishmentRequest, Supplier, Warehouse, Product, ApprovalHistory, AuditLog } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { requireWarehouseAccess } from '../../shared/utils/access.js';
@@ -7,6 +8,19 @@ import { command, checkVersion, saveVersion, same, hash, newId } from '../../sha
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
 import { findPurchase, replayPurchase, newDocument, evidenceFor } from '../po-receiving/purchase-core.js';
 import { purchaseOrderQuantities } from './purchase-order.service.js';
+
+async function assessPurchaseSource(request, items, actor, input, session, poId) {
+  try { return await assessSavedRequest(request, actor, session, { evaluations: input.evaluations,
+    quantities: request.items.map(source => items.find(item => same(item.requestItemId, source._id))?.qtyBase ?? '0'),
+    selectedItemIds: items.map(item => String(item.requestItemId)), excludePurchaseOrderId: poId, requireAdjustmentReason: false }); }
+  catch (error) {
+    if (error.code === 'ERR-RR-409-004' && error.details?.latestEvaluations) {
+      error.details.latestEvaluations = error.details.latestEvaluations.map((value, index) => ({ ...value,
+        lineId: String(request.items[(value.lineNo ?? index + 1) - 1]._id) }));
+    }
+    throw error;
+  }
+}
 
 async function draftItems(actor,input,session,previous=[]){
   requireWarehouseAccess(actor,input.warehouseId);
@@ -35,6 +49,7 @@ async function draftItems(actor,input,session,previous=[]){
 export function createPurchaseOrder(user,input){
   return command(user,'CREATE_PURCHASE_ORDER','purchase_order:create',null,input,replayPurchase,async(session,actor)=>{
     const prepared=await draftItems(actor,input,session);
+    await assessPurchaseSource(prepared.request,prepared.items,actor,input,session);
     const po=newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
       supplierSnapshot:{code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone}},prepared.items);
     po.replenishmentRequestId=prepared.request._id;po.totalAmount=prepared.total;po.currency=input.currency;po.sources=[sourceLink(prepared.request)];
@@ -47,6 +62,7 @@ export function updatePurchaseOrder(user,id,input){
     if(po.workflowStatus!=='DRAFT')throw validationError('Chỉ sửa trực tiếp PO nháp');
     const prepared=await draftItems(actor,input,session,po.items);
     if(!same(prepared.request._id,po.replenishmentRequestId))throw validationError('Không đổi RR nguồn của PO');
+    await assessPurchaseSource(prepared.request,prepared.items,actor,input,session,po._id);
     po.items=prepared.items;po.totalAmount=prepared.total;po.currency=input.currency;
     po.header.warehouseId=input.warehouseId;po.header.supplierId=input.supplierId;po.header.expectedOn=input.expectedOn;
     po.header.supplierSnapshot={code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone};
@@ -59,6 +75,14 @@ export function confirmPurchaseOrder(user,id,input){
     if(po.workflowStatus!=='DRAFT'||!po.items.length)throw validationError('PO không phải nháp có dòng hàng');
     const rr=await ReplenishmentRequest.findById(po.replenishmentRequestId).session(session);
     if(rr?.workflowStatus!=='APPROVED'||rr.header.approvedRevision!==po.header.approvedRequestRevision)throw validationError('Nguồn RR đã đổi');
+    const approval=await ApprovalHistory.findOne({_id:rr.header.latestDecisionId,subjectType:'replenishment_requests',subjectId:rr._id,subjectRevision:rr.header.approvedRevision,decision:'APPROVE'}).session(session);
+    const seen=new Set();
+    for(const item of po.items){const source=rr.items.id(item.requestItemId),decision=approval?.itemDecisions.find(d=>same(d.itemId,item.requestItemId));
+      if(!source||!decision||seen.has(String(item.requestItemId))||!same(source.productId,item.productId)||exact(item.qtyBase).gt(String(decision.approvedQtyBase)))throw validationError('Nguồn duyệt PO không còn hợp lệ');seen.add(String(item.requestItemId));
+      if(!await Product.exists({_id:item.productId,isActive:true}).session(session))throw validationError('Sản phẩm đã ngừng hoạt động');
+    }
+    if(!await Supplier.exists({_id:po.header.supplierId,status:'ACTIVE'}).session(session))throw validationError('NCC đã ngừng hoạt động');
+    await assessPurchaseSource(rr,po.items,actor,input,session,po._id);
     po.workflowStatus='OPEN';po.header.issuedAt=new Date();
     return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion};
   });
@@ -81,6 +105,7 @@ export function amendPurchaseOrder(user,id,input){
       changes.push({field:'items.'+item._id+'.qtyBase',before:String(item.qtyBase),after:amount.toFixed()});
       item.enteredQty=row.enteredQty;item.qtyBase=amount.toFixed();item.lineAmount=exact(item.unitPurchasePrice).mul(row.enteredQty).toFixed();
     }
+    await assessPurchaseSource(rr,po.items,actor,input,session,po._id);
     po.totalAmount=po.items.reduce((sum,row)=>sum.plus(String(row.lineAmount)),exact('0')).toFixed();if(input.expectedOn)po.header.expectedOn=input.expectedOn;
     return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,auditChanges:changes,reason:input.reason};
   });

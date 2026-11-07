@@ -12,12 +12,17 @@ import {
 } from "./model-utils.js";
 
 import { REPLENISHMENT_TRIGGER_TYPES } from "./constants.js";
+import { createReplenishmentSourceSchema } from './replenishment-source.schema.js';
 
 // Embedded schema; no standalone collection.
 export function createReplenishmentDetailsSchema() {
   const replenishmentDetails = new Schema(
     {
       triggerType: code(REPLENISHMENT_TRIGGER_TYPES),
+      source: { type: createReplenishmentSourceSchema(), required: false },
+      canonicalSourceKey: text(200, { required: false }),
+      independentNeedConfirmed: { type: Boolean, default: false },
+      independentNeedReason: text(2000, { required: false }),
       sourceSalesOrderLineId: ref("DocumentLine", false),
       sourceSalesOrderVersion: integer(1, { required: false }),
       sourceIssueRequestLineId: ref("DocumentLine", false),
@@ -44,6 +49,12 @@ export function createReplenishmentDetailsSchema() {
     embeddedOptions,
   );
   rules(replenishmentDetails, function validateReplenishmentSource() {
+    if (this.source) {
+      if (this.source.triggerType !== this.triggerType) this.invalidate('source', 'Source type must match the line');
+      if (!this.canonicalSourceKey || !this.evaluationKey || !this.evaluatedAt) this.invalidate('source', 'Native source requires a server evaluation');
+      if (this.independentNeedConfirmed && !this.independentNeedReason?.trim()) this.invalidate('independentNeedReason', 'An independent need requires an explanation');
+      return;
+    }
     const requireFields = (fields) => {
       for (const field of fields) {
         if (this[field] == null || this[field] === "")

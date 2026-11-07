@@ -2,6 +2,10 @@
 
 **H01 và H02 v0.1 ĐÃ DUYỆT RIÊNG.** Ngày 02/11/2026, người dùng trả lời “Duyệt H01 v0.1” sau khi đã được giải thích; H02 đã được duyệt trước đó. Giữ nguyên trường và quy tắc đã trình. [Bản ngay trước khi duyệt H01](history/H01_H35_before_approval_20261102/13_Duyet_yeu_cau_bo_sung_va_don_mua.md) lưu nội dung giải thích và quyết định bỏ UOM để đối chiếu. [Phiếu v0.1 đã trình](history/13_Duyet_yeu_cau_bo_sung_va_don_mua_v0.1_de_xuat.md). Cơ sở: BF-01, UC-01–10 trong [Report 3](../../01_bao_cao/WMSD_Report3_Fix.docx.txt), cấu trúc REPLENISHMENT/PO trong [snapshot MongoDB](03_Cau_truc_DB_hien_tai.md), [B08B nhà cung cấp](08B_Nha_cung_cap.md) và [C05–C06](11_Duyet_giu_hang_va_nguon_cung.md). Tài liệu/code cũ là nguồn đối chiếu; các quyết định mới của người dùng được ưu tiên. H01 được duyệt qua câu trả lời riêng, không suy từ việc H02 đã được duyệt. Phần đơn vị/quy cách được sửa theo [Quyết định bỏ UOM và lưu quy đổi trên dòng](14_Bo_UOM_va_luu_quy_doi_tren_dong.md); H01 đã duyệt cả đầu phiếu và dòng nhúng theo cách lưu này.
 
+## Tích hợp runtime theo yêu cầu 07/11/2026
+
+[Hợp đồng triển khai](../../08_api/REPLENISHMENT_COVERAGE.md) mô tả đánh giá nguồn, cảnh báo RR thủ công kèm xác nhận nhu cầu độc lập/giải trình, token stale, vòng đời coverage và thứ tự khóa. RR nháp đã lưu chiếm lượng, form chưa lưu không chiếm lượng. Nguồn ngưỡng dùng Product.stockThresholds, không khôi phục bảng policy. Kết quả kiểm thử được ghi riêng trong changelog ngày triển khai; các phiếu duyệt bên dưới giữ nguyên lịch sử.
+
 ## Những điểm đã chốt trước phiếu này
 
 - Một Replenishment Request (RR) tạo **tối đa một Purchase Order (PO)**. Không hỏi lại hoặc tự đổi thành một RR nhiều PO.

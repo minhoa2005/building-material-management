@@ -11,6 +11,7 @@ import { lockLotIdentity } from '../../shared/utils/lotIdentity.js';
 import { redactPrices } from '../sales-orders/sales-read.service.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
 
+import { postOwnedCustody } from './purchase-custody.service.js';
 export async function activePo(user,id,expectedVersion,session){
   const po=await findPurchase(id,user,session,{kind:'PO'});checkVersion(po,expectedVersion);
   if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở để nhận hàng');return po;
@@ -75,6 +76,7 @@ export function confirmInspection(user,id,input){
     const po=await activePo(actor,arrival.header.purchaseOrderId,input.expectedPoVersion,session),quantities=await purchaseOrderQuantities(po,session);
     const free=new Map(quantities.map(row=>[row.lineId,exact(row.acceptanceHeadroomQtyBase)]));
     const accepted=inspection.items.filter(row=>row.details.ownershipDecision==='ACCEPT');
+    if(accepted.some(row=>row.details.qualityCode!=='GOOD'))throw validationError('Chỉ GOOD được nhận sở hữu');
     const destinations=input.destinations||[];
     if(destinations.length!==accepted.length||new Set(destinations.map(row=>row.inspectionItemId)).size!==accepted.length)throw validationError('Chọn vị trí nhập cho từng phần nhận sở hữu');
     const receipt=accepted.length?newDocument(PurchaseReceipt,'GR',actor,{purchaseOrderId:po._id,arrivalId:arrival._id,warehouseId:po.header.warehouseId,supplierId:po.header.supplierId}):null;
@@ -111,8 +113,9 @@ export function postReceipt(user,id,input){
     const locations=receipt.items.map(row=>row.destinationLocationId);await guardLocations(locations,session);
     const posting=beginStock(receipt,actor,'PURCHASE_RECEIPT',input);
     for(const item of receipt.items){
+      if(item.custodyBalanceId){await postOwnedCustody(receipt,item,po,posting,actor,session);continue;}
       const inspection=await GoodsInspection.findOne({_id:item.inspectionId,workflowStatus:'CONFIRMED','header.arrivalId':receipt.header.arrivalId}).session(session),source=inspection?.items.id(item.inspectionResultId);
-      if(!source||source.details.ownershipDecision!=='ACCEPT'||!same(source.lotId,item.lotId)||!same(source.productId,item.productId)||!exact(source.qtyBase).eq(String(item.qtyBase)))throw validationError('Nguồn nhận sở hữu không hợp lệ');
+      if(!source||source.details.qualityCode!=='GOOD'||source.details.ownershipDecision!=='ACCEPT'||!same(source.lotId,item.lotId)||!same(source.productId,item.productId)||!exact(source.qtyBase).eq(String(item.qtyBase)))throw validationError('Nguồn nhận sở hữu không hợp lệ');
       await locationAt(item.destinationLocationId,po.header.warehouseId,[source.details.qualityCode==='GOOD'?'RECEIVING':'QUARANTINE'],session);
       const target=await balanceAt({type:'LOCATION',locationId:item.destinationLocationId},{batchId:item.lotId,ownerType:'STORE',ownerId:null},source.details.qualityCode,session);
       const portions=input.packaging?.find(row=>same(row.lineId,item._id))?.portions;

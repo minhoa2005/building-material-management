@@ -3,6 +3,15 @@ import { formatApiResponse } from "../../shared/utils/ApiResponse.js";
 import * as service from "./replenishment.service.js";
 import * as commands from "./replenishment.commands.js";
 
+export const evaluate = catchAsync(async (req, res) => {
+  const data = await commands.evaluateReplenishment(req.user, req.validated.body);
+  formatApiResponse(res, { data });
+});
+export const cancel = catchAsync(async (req, res) => {
+  const data = await commands.cancelReplenishment(req.user, req.validated.params.id, req.validated.body);
+  formatApiResponse(res, { message: 'Đã rút/hủy yêu cầu bổ sung', data });
+});
+
 export const listReplenishments = catchAsync(async (req, res) => {
   const data = await service.listReplenishments(req.user, req.validated.query);
   formatApiResponse(res, { data });

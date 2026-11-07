@@ -9,6 +9,7 @@ import {
 } from "./model-utils.js";
 
 import { REPLENISHMENT_TRIGGER_TYPES } from "./constants.js";
+import { createReplenishmentDetailsSchema } from './replenishment-details.schema.js';
 
 // Embedded schema; no standalone collection.
 export function createReplenishmentSubmissionLineSchema() {
@@ -26,6 +27,7 @@ export function createReplenishmentSubmissionLineSchema() {
       conversionSnapshot: decimal({ positive: true, precision: 24, scale: 12 }),
       qtyBase: decimal({ positive: true }),
       triggerType: code(REPLENISHMENT_TRIGGER_TYPES),
+      evaluation: { type: createReplenishmentDetailsSchema(), required: false },
       reasonNote: text(2000),
       baseUnitSnapshot: text(60),
       enteredUnit: text(60),

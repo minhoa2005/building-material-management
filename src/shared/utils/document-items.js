@@ -1,4 +1,4 @@
-import { Product, ProductBatch } from '../../models/runtime.js';
+import { Product, ProductBatch, Uom } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { validationError } from './ApiError.js';
 import { newId } from './document-command.js';
@@ -8,6 +8,7 @@ export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', 
   const product = await Product.findOne({ _id: input.productId, isActive: true }).session(session);
   if (!product) throw validationError('Sản phẩm không tồn tại hoặc đã ngừng sử dụng');
   const enteredUnit = input.enteredUnit;
+  if (!(previous && String(previous.productId)===String(input.productId) && previous.enteredUnit===enteredUnit && String(previous.lotId??'')===String(input.lotId??'')) && !await Uom.exists({code:enteredUnit,isActive:true}).session(session)) throw validationError('Đơn vị không hoạt động');
   let factor;
   let packagingSnapshot;
   let batch;

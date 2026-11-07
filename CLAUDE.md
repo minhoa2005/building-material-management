@@ -7,7 +7,7 @@ This file must be byte-for-byte identical to AGENTS.md, CLAUDE.md and GEMINI.md 
 1. Read [context.md](context.md) and [git_doc/PROJECT_GUIDE.md](git_doc/PROJECT_GUIDE.md).
 2. Read [git_doc/MODEL_MAP.md](git_doc/MODEL_MAP.md), the relevant approved review sheets and the exact source/test files for the task.
 3. Read [git_doc/DOCUMENTATION_RULES.md](git_doc/DOCUMENTATION_RULES.md). The documentation index is [git_doc/README.md](git_doc/README.md).
-4. When changing an API/DTO/permission contract consumed by the frontend, inspect its context and consumer too. The paired local checkout is `../../FE/NameUi`; on another machine locate the actual FE checkout rather than assuming a broken path.
+4. When changing an API/DTO/permission contract consumed by the frontend, inspect its context and consumer too. The paired local checkout is `../fe`; on another machine locate the actual FE checkout rather than assuming a broken path.
 
 ## Authority and scope
 
@@ -17,10 +17,10 @@ The latest explicit user decision overrides older project documents. Approved DB
 
 - Each current collection schema lives in its own `src/models/<name>.model.js`; each nested schema lives in its own `src/models/<name>.schema.js`. Keep one schema per file. Do not restore aggregate reviewed builders.
 
-- `src/models/index.js` registers the approved 59-collection model set through `registerModels(connection)`. `runtime.js` exports these models for API services; `registerReviewedModels` is a compatibility alias for the same registry.
+- `src/models/index.js` registers the approved 60-collection model set through `registerModels(connection)`. `runtime.js` exports these models for API services; `registerReviewedModels` is a compatibility alias for the same registry.
 - The legacy, rebuild and embedded model directories were removed by explicit user approval on 2026-11-06. Do not restore them or generic BusinessDocument/DocumentLine persistence. Read the current native API contract in `git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md`.
 - Use Warehouse Staff terminology. Users have one role and multiple assigned warehouses. Admin may create roles and select existing permissions. Enforce permission plus warehouse, record, state, version and identity constraints.
-- Each carton contains one product from one batch. Store base units on products and historical conversion/packaging on embedded document items. Do not restore UOM/UOMVersion collections.
+- Each carton contains one product from one batch. Store base units on products and historical conversion/packaging on embedded document items. The 06/11 user-approved change restores Uom only as a unit catalogue; Product.baseUnit stores its code. Do not restore conversion/version collections.
 - Preserve stable item IDs, source chains, quality/ownership, exact decimals, reservations, capacity, inventory history, idempotency and approved separation of duties. Full rules and BF03/BF04 are in PROJECT_GUIDE.
 - Keep Node ESM/module structure and existing file style. Validate payloads and scope server-side. Model refs are not database foreign-key checks. Schema validation is not proof of API transactions.
 

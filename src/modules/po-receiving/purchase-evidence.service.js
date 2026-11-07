@@ -41,6 +41,7 @@ export async function inspectFile(file) {
 async function parent(user,id,write=false,session){
   const document=await findPurchase(id,user,session,{readOnly:!write});
   const permission=document.documentKind==='PO'?'purchase_order:'+ (write?'update':'read'):document.documentKind==='TO'?'putaway_task:'+(write?'confirm':'read'):'goods_receipt_inspection:'+(write?'update':'read');
+  if(write&&document.documentKind==='CUSTODY_RECEIPT'&&hasPermission(user,'purchase_custody:decide')) return {document,permission:'purchase_custody:decide'};
   if(write&&document.documentKind==='PO'&&!hasPermission(user,permission))requirePermission(user,'purchase_order:approve_exception');else requirePermission(user,permission);
   return {document,permission:write&&document.documentKind==='PO'&&!hasPermission(user,permission)?'purchase_order:approve_exception':permission};
 }

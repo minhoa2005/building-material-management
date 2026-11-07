@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-05",
+  "namedFunctions": 342,
+  "sourceFiles": 51,
+  "markdownDocuments": 10,
+  "markdownLines": 24115,
+  "linksChecked": 3330,
+  "routeRegistrations": 72,
+  "schemaDeclarations": 53,
+  "sourceHashesUnchanged": true,
+  "changedSourceFiles": [],
+  "testResult": {
+    "date": "2026-11-05",
+    "command": "node --test test/iteration1-master.integration.test.js test/iteration1-purchase-order.integration.test.js test/iteration1-replenishment.integration.test.js test/po-receiving.integration.test.js test/replenishment-read.test.js test/replenishment-read.integration.test.js",
+    "total": 84,
+    "passed": 84,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 14588.4602,
+    "scope": "Separate generated test databases; not full backend or live storage/browser."
+  },
+  "problems": []
+}

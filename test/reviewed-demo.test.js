@@ -13,13 +13,13 @@ const clone=()=>mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.string
 
 test('complete reviewed demo validates all schemas, links, balances and approved scenarios',async()=>{
   const result=await validateReviewedDemo(data,models);
-  assert.equal(result.collections,59);
-  assert.equal(result.records,642);
+  assert.equal(result.collections,60);
+  assert.equal(result.records,653);
   assert.equal(data.roles.filter(row=>!row.isSystemRole).length,1);
   assert.equal(data.sales_invoices[0].items.length,2);
   assert.notEqual(+data.sales_invoices[0].items[0].issuedAt,+data.sales_invoices[0].items[1].issuedAt);
   assert.equal(data.stocktake_counts.filter(row=>row.attemptNo===2).length,1);
-  for(const old of ['uoms','product_uom_versions','business_documents','document_lines','line_links']) assert.ok(!Object.hasOwn(data,old));
+  for(const old of ['product_uom_versions','business_documents','document_lines','line_links']) assert.ok(!Object.hasOwn(data,old));
 });
 test('MongoDB read order does not affect stock reconciliation',async()=>{
   const sample=clone();sample.stock_transactions.forEach(row=>row.movements.reverse());sample.inventory_balances.reverse();

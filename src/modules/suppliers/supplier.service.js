@@ -6,7 +6,7 @@ import { notFoundError } from '../../shared/utils/ApiError.js';
 import { appendAudit, changedFields } from '../../shared/utils/audit.js';
 import { dto, page, transaction, updateCatalogue } from '../../shared/utils/persistence.js';
 
-const fields = ['name', 'contactName', 'phone', 'email', 'address'];
+const fields = ['name', 'contactName', 'phone', 'email', 'address', 'taxCode', 'notes'];
 async function supplier(id, session) {
   const row = await Supplier.findById(id).session(session);
   if (!row) throw notFoundError('Không tìm thấy nhà cung cấp');
@@ -26,7 +26,7 @@ export async function getSupplier(user, id) {
 export async function createSupplier(user, input) {
   requirePermission(user, 'supplier:create');
   return transaction(async session => {
-    const row = await new Supplier({ ...input, status: 'PENDING' }).save({ session });
+    const row = await new Supplier({ ...input, status: 'ACTIVE' }).save({ session });
     await appendAudit({ actorId: user._id, action: 'CREATE_SUPPLIER', entityType: 'suppliers', entityId: row._id, session });
     return dto(row);
   });
@@ -44,7 +44,7 @@ export async function updateSupplier(user, id, input) {
 export async function changeSupplierStatus(user, id, input) {
   requirePermission(user, 'supplier:activate');
   return transaction(async session => {
-    const row = await updateCatalogue(Supplier, id, input.expectedUpdatedAt, { status: input.status }, session);
+    const row = await updateCatalogue(Supplier, id, input.expectedUpdatedAt, { status: input.status, statusReason: input.reason }, session);
     await appendAudit({ actorId: user._id, action: 'CHANGE_SUPPLIER_STATUS', entityType: 'suppliers', entityId: row._id, details: { reason: input.reason }, session });
     return dto(row);
   });
@@ -64,7 +64,7 @@ export async function getSupplierDocuments(user, id, query) {
   // This endpoint exposes summaries only; purchase prices require their own permission.
   return page(Model, filter, query, '_id documentNo documentKind workflowStatus version header.warehouseId createdAt updatedAt');
 }
-export async function getSupplierNames() {
+export async function getSupplierNames(user) {
+  requirePermission(user, 'supplier:read');
   return Supplier.find({ status: 'ACTIVE' }).select('_id name').lean();
 }
-

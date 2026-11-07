@@ -58,6 +58,6 @@ export const documents = catchAsync(async (req, res) => {
 });
 
 export const getNames = catchAsync(async (req, res) => {
-  const data = await service.getSupplierNames();
+  const data = await service.getSupplierNames(req.user);
   formatApiResponse(res, { data });
 });

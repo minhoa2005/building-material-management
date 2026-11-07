@@ -1,0 +1,12 @@
+erDiagram
+ Uom ||--o{ Product : "baseUnit code (service validated)"
+ Product ||--o{ ProductBatch : "productId"
+ Supplier ||--o{ PurchaseOrder : "header.supplierId"
+ ReplenishmentRequest ||--o| PurchaseOrder : "unique replenishmentRequestId"
+ GoodsInspection ||--o{ CustodyReceipt : "sources"
+ CustodyReceipt ||--o{ ApprovalHistory : "PURCHASE_CUSTODY"
+ ApprovalHistory ||--o{ PurchaseReceipt : "custodyDecisionId"
+ ApprovalHistory ||--o{ CustodyRelease : "custodyDecisionId"
+ CustodyReceipt ||--o{ PurchaseReceipt : "custodyReceiptRef/item sources"
+ PurchaseReceipt ||--o| StockReversal : "original transaction unique"
+ StockTransaction ||--|{ StockMovement : "embedded movements[]"

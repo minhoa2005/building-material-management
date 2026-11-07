@@ -2,6 +2,43 @@
 
 User requested implementation and branch pushes for merge review; explicitly confirmed Accountant historical-source verification with uploaded evidence. Ported defects/proposals/decisions/execution, CR custody/assessment/acceptance/receipt/handback, FD receipt and atomic reopening, supplier agreements/dispatch/ACK correction/closure, lot trace and external references to the current registry. Removed the replaced generic services. Added native transaction/HTTP/regression tests and frontend embedded-record mapping, permissions, packaging, recipients and historical evidence forms. Shared commands expose the actual operation ID to claim writers; quantity holds and ownership/packaging use native balances and transactions. No Atlas data/configuration/index change. See [canonical contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) for scope, additive fields, migration limits and verification commands. Broader new-SO source decisions remain separate from historical CR verification.
 
+## 07/11/2026 — Seed khởi động database tự động và phân quyền chuẩn 60 models
+
+- Nguồn quyết định: Yêu cầu đọc toàn bộ models hiện tại và tạo file seed khởi động database, tự động kiểm tra database đã có dữ liệu chưa; chỉ chạy seed khi DB hoàn toàn trống và đảm bảo phân quyền chuẩn theo tài liệu dự án.
+- Phân quyền & Tài khoản: Cấp chuẩn 5 vai trò (ADMIN, OWNER, SALES, WAREHOUSE, ACCOUNTANT) theo `de_xuat_quy_trinh_2_VI.md` §3 & §6. Danh mục 77+ quyền nghiệp vụ chuẩn (gồm các quyền mới native UOM, custody, reversal, exception chốt thiếu PO, hủy putaway). Bổ sung đầy đủ 6 tài khoản chuẩn `SEED_ACCOUNTS` (`admin@ceratile.vn`, `owner@ceratile.vn`, `sales@ceratile.vn`, `warehouse@ceratile.vn`, `warehouse2@ceratile.vn`, `accountant@ceratile.vn`) băm mật khẩu bcrypt cost 10, gán role và kho tương ứng (giữ nguyên quy tắc người nhận khác người xuất giữa 2 tài khoản kho).
+- Cơ chế khởi động: Thêm `src/seeds/seed.js` và cập nhật `src/seeds/index.js`, `src/index.js`. Khi server khởi động và kết nối MongoDB, hệ thống tự động kiểm tra `databaseHasData(db)`: nếu DB đã có dữ liệu sẽ ghi log bỏ qua; nếu DB trống sẽ tự động khởi tạo collections, indexes và insert đầy đủ dữ liệu 60 models (hỗ trợ cả standalone MongoDB và Replica Set/Atlas qua transaction).
+- Kiểm chứng: Thêm `test/database-seed.test.js` (3 test qua); toàn bộ 24 test liên quan (rebuild demo, model files, password migration) tiếp tục qua 100%. `npm run docs:check` qua.
+
+## 07/11/2026 — Tích hợp chống trùng RR theo nguồn
+
+- Nguồn quyết định: người dùng yêu cầu triển khai toàn bộ kế hoạch RR coverage; RR thủ công tương tự cần cảnh báo, xác nhận độc lập và giải trình. Không tự xử lý D07/D08, không thêm module kiểm kê vận hành.
+- BE: evaluator SO/WIR/ngưỡng/kiểm kê đã chốt; canonical nguồn xuyên kho, chia pool tồn chung, RR→PO→tồn một lần, hàng lỗi/freeze và ledger giao thất bại/đảo. Source/token/snapshot gửi duyệt, hủy/rút RR, recheck PO một phần và giải phóng approval chưa đặt khi PO kết thúc. Shared command guard + thay ngưỡng/sản phẩm/lô dùng cùng khóa SO/kho/sản phẩm, retry và OperationRecord; audit dry-run local có kiểm read-only.
+- FE: form native enteredUnit/lotId/source/evaluation, cảnh báo nhu cầu độc lập, giữ input khi409 và nguyên key/payload khi kết quả chưa rõ. Detail/PO có bước xác nhận lại nguồn; DTO giữ snapshot đầy đủ, ngày cần theo Saigon; phép đổi lượng duyệt dùng decimal chính xác thay vì làm tròn đơn vị gốc. Test danh sách kiểm đúng từng row khi trùng tên kho/sản phẩm.
+- Tài liệu: [contract RR](docs/08_api/REPLENISHMENT_COVERAGE.md), native runtime, PROJECT_GUIDE/MODEL_MAP, G05/H01, dictionary/schema hiện hành, model changelog và context FE/BE. 60 collections/97 nested schemas; không tạo collection policy/conversion.
+- Kiểm chứng cuối: bốn suite integration native/RR local 24/24 qua; FE focus 46/46 ở9 file qua. Build/typecheck, lint9 file mới/sửa và docs:check đều qua.
+- Full BE npm test:70 qua/32 bỏ qua/2 file lỗi import src/migrations/iteration-1.js và src/seeds/data/demo.data.js không có trong checkout. Full FE lượt kiểm rộng:342 qua/25 lỗi; sau đó sửa assertion RR list và focused qua, chưa tuyên bố toàn suite xanh. Nhiều lỗi còn ở receiving fixture dùng endpoint cũ và timeout, không sửa ngoài phạm vi.
+- Browser local: mở trang RR bị chuyển login; tài khoản demo kho báo sai thông tin, không đổi mật khẩu/data để vượt qua. Chưa xác nhận visual QA form thật; test component/API không thay bằng chứng đó.
+- Dữ liệu/Git: chỉ ghi database test local ngẫu nhiên và xóa đúng test DB. Không rollout/migrate dữ liệu đang dùng, không commit/push; giữ thay đổi có sẵn. Lock mọi kho cho sản phẩm liên quan để bảo vệ nguồn khác kho, có đánh đổi tranh chấp theo sản phẩm. Instrumentation qua diagnostics_channel không chứa dữ liệu riêng tư.
+
+## 07/11/2026 — Tự đồng bộ mật khẩu seed khi khởi động
+
+- Theo yêu cầu, `src/index.js` gọi `src/config/seed-password-startup.js` sau kết nối và seed tùy chọn, trước khi mở API; chỉ chạy với MongoDB loopback đã kết nối và `NODE_ENV` khác `production`. Mỗi lần khởi động đưa mật khẩu user seed về giá trị trong source; lỗi đồng bộ chặn mở cổng. Kết nối ban đầu thất bại hoặc remote thì bỏ qua, không tự thử lại sau khi kết nối phục hồi.
+- Cập nhật [hướng dẫn](docs/09_phat_trien/SEED_PASSWORD_MIGRATION.md); kiểm tra `node --test test/seed-password-migration.test.js` (3 test thành công với collection giả). Chưa ghi DB hoặc kiểm tra API đăng nhập.
+
+## 07/11/2026 — Migration mật khẩu theo tài khoản seed
+
+- Yêu cầu: đồng bộ mật khẩu user với `src/seeds/data/accounts.data.js` trên database local dev/test.
+- Thêm `scripts/migrate-seed-passwords.mjs`: xem trước mặc định, `--apply` băm bcrypt cost 10 cho các username seed hiện có và chưa khớp; không tạo user, không sửa trường khác. Từ chối DB không phải loopback, kiểm tra username trùng, không thu hồi token; ghi từng user nên có thể cần chạy lại sau lỗi.
+- Hướng dẫn và giới hạn tại [SEED_PASSWORD_MIGRATION](docs/09_phat_trien/SEED_PASSWORD_MIGRATION.md). Test logic bằng `node --test test/seed-password-migration.test.js` (2 test thành công, collection giả); chưa ghi DB hoặc kiểm tra API đăng nhập.
+
+## 07/11/2026 — Script đặt lại mật khẩu database test local
+
+Theo yêu cầu tạo và chạy script cho `wmsd_api_test_6aedf823b3e33975e06c07d1`, thêm `scripts/reset-test-user-password.mjs` và [hướng dẫn chạy](docs/09_phat_trien/RESET_TEST_USER_PASSWORD.md). Script mặc định xem trước; `--apply` băm bcrypt cost 10 và chỉ cập nhật `passwordHash` của một trong bốn user được chỉ định trên localhost. Đã kiểm tra xem trước, từ chối user không hợp lệ và thiếu mật khẩu; đã cập nhật cả bốn user và đối chiếu bcrypt thành công. Chưa kiểm thử đăng nhập qua API.
+
+# 06/11/2026 — Iteration 1 native theo kế hoạch được duyệt
+
+Thêm Uom, metadata sản phẩm/NCC, xử lý giữ hộ trọn vòng đời và Warehouse tự đảo nhập. Registry 60 collections; giữ items/source/snapshot native. Quyết định mới trong git_doc/docs/08_api/ITERATION1_NATIVE_2026-11-06.md. Có migration dry-run chỉ test DB local; không chạy Atlas, không commit/push. Kết quả kiểm thử ghi trong tài liệu bàn giao cùng đợt.
+
 ## 2026-11-06 — Đồng bộ runtime theo model mới (đang kiểm chứng)
 
 Theo xác nhận trực tiếp của người dùng: bỏ ba thư mục model và danh sách phụ thuộc đã rà. 59 collection + 96 nested schema chuyển về src/models; services/DTO/permissions/transaction và FE connected consumers chuyển hợp đồng native. Registry được đổi tên trung tính (`registry-entries.js`, `configureReferences`) để không còn chỉ dẫn profile cũ. Seed v9 thêm quyền mới, 642 bản ghi mẫu; không ghi DB ứng dụng hoặc remote. Xem [hợp đồng và giới hạn](docs/08_api/NATIVE_MODEL_RUNTIME.md). Ba test tích hợp native đã qua; FE build đã qua nhưng suite giao diện còn lỗi cần chuyển fixture. Chưa hoàn tất nghiệm thu/commit/push.
@@ -107,11 +144,35 @@ Thêm `npm run seed:purchase-read-permissions` để bổ sung ba quyền đọc
 
 ---
 
+# Giải thích từng hàm và tương tác cơ sở dữ liệu — 05/11/2026
+
+Thêm bộ tài liệu `docs/iteration-1/function-guide-2026-11-05/`: 342 hàm có tên trong sáu nhóm module Iteration 1 và các helper liên quan, mỗi hàm có tham số, mục đích, thứ tự xử lý, nơi gọi/gọi tiếp, query MongoDB nguyên văn, bước ghi qua helper với model/đối số cụ thể, ví dụ và code đối chiếu. Thêm luồng đọc/ghi theo từng bước của tạo/gửi/duyệt yêu cầu, mở PO, confirm/post GR, cất/đảo/chứng cứ; bảng72 route,53 khai báo kiểm tra và các model/collection/header/details liên quan. Lưu inventory/source hashes và cập nhật mục lục.
+
+Đọc lại phạm vi kế toán được mở rộng ở reader mua nhưng không ở command và tab supplier; ghi rõ các giới hạn về xóa dòng nháp có chứng cứ, trạng thái cuối khi chốt thiếu/nhận nốt và các điểm quyền/nhận dạng đã biết. Chạy lại sáu tệp kiểm thử liên quan (gồm hai tệp reader RR sau cập nhật bộ lọc PO): 84/84 đạt, 0 lỗi, 0 bỏ qua, khoảng 14,6 giây trên database thử riêng. Không chạy lại full suite/storage thật/browser/benchmark, không sửa runtime hoặc reset/seed demo, không commit/push.
+
+---
+
+# Sửa logic đăng xuất FE/BE — 03/11/2026
+
+Thêm POST /api/auth/logout để xóa HttpOnly refresh_token và cookie claim_access_token bằng cùng cookie defaults, kể cả khi token thiếu/hết hạn. FE xóa token/profile và tăng session generation ngay khi thoát; chặn refresh/phản hồi cũ khôi phục hoặc ghi đè phiên mới. Logout đi trực tiếp ngoài mutex, không retry401, timeout 5 giây; luôn reset RTK Query cache và thay route bằng /login khi thành công, lỗi mạng/API hoặc timeout. Nút thoát khóa trong lúc xử lý, nội dung bảo vệ được ẩn. Login thành công cũng bắt đầu generation mới.
+
+Cập nhật context FE/BE và sửa comment authToken về cookie/rotation theo runtime. JWT vẫn stateless; xóa cookie không thu hồi bản sao token ở nơi khác. Thêm test HTTP cookie cleanup, test menu thật/reset cache/navigation và test race refresh/late 401/đăng nhập tài khoản khác. Kiểm tra: 21 test FE liên quan và 7 test BE auth/role đạt; typecheck, lint các file thay đổi và production build FE đạt. UI kiểm bằng RTL/MSW, HTTP BE chạy Express thật không cần DB; chưa kiểm bằng phiên trình duyệt đang mở. Không thay model/database, không commit/push.
+
+---
+
 # Review và giải thích nhận mua v3 — 03/11/2026
 
 Thêm docs/po-receiving-proposal/REVIEW_GIAI_THICH_NHAN_HANG_V3.md: giải thích bằng tiếng Việt các nghiệp vụ đã triển khai, người thực hiện, luồng chứng từ, vai trò/liên kết model, hàm xử lý, bảng lượng trước/sau và ví dụ theo từng tình huống. Có mục riêng cho quyền, phiên bản, gửi lại an toàn, chứng cứ, cất từng phần, sửa sai và đối soát.
 
 Đã đối chiếu source và tái hiện hai vấn đề trên database thử ngẫu nhiên: xóa dòng inspection DRAFT để Evidence.lineId tham chiếu dòng đã mất; chốt thiếu trước đợt nhập cuối làm trạng thái PO thành COMPLETED trong khi đường chốt thiếu chọn CLOSED. Báo cáo ghi rõ ảnh hưởng, hướng sửa, kiểm thử cần bổ sung và các giới hạn đã biết. Chỉ thêm tài liệu/changelog; không sửa code nghiệp vụ, không thay sep490, không chạy lại full suite hoặc upload storage thật trong lượt này. Không commit/push.
+
+---
+
+# Review code hiện tại bằng tiếng Việt, kèm ví dụ nghiệp vụ — 03/11/2026
+
+Thêm `docs/iteration-1/REVIEW_GIAI_THICH_CODE_2026-11-03.md`: đọc lại code cho đủ 23 UC gốc và các phần mua/nhận/cất/sửa sai/chứng cứ đã triển khai; giải thích luồng, hàm, model, phiên bản, lượng, quyền và ví dụ từng nghiệp vụ. Phân biệt luồng hiện tại chỉ nhận lượng đồng ý nhập với custody lịch sử đã bỏ; cập nhật link bản hiện hành trong README Iteration 1.
+
+Chạy lại toàn bộ backend: 189 bài, 187 đạt, 0 lỗi, 2 bỏ qua kiểm storage live. Thêm script kiểm tra review dùng database ngẫu nhiên riêng và kết quả JSON: xác nhận `/suppliers/names` thiếu quyền đọc nghiệp vụ, cùng hành vi lô UNKNOWN được post Receiving nhưng chặn cất vào Storage allocatable. Lưu dấu kiểm source và kết quả kiểm thử để nhận biết code đổi sau review. Không sửa runtime, không reset/seed demo, không commit/push.
 
 ---
 
@@ -163,6 +224,14 @@ Thêm [kế hoạch UI](../docs/po-receiving-proposal/ui/design-plan.md), [luồ
 
 ---
 
+# Review toàn bộ UC Iteration 1 của minhtd — 02/11/2026
+
+Thêm [báo cáo tổng hợp23 UC](../docs/iteration-1/REVIEW_TOAN_BO_UC_2026-11-02.md), đọc lại trực tiếp bản plan chi tiết cuối trong chat `01a18c8f-8d7c-7032-965b-95a746e96ae6`, đối chiếu working tree hiện tại. Mỗi UC-01–07/17–32 có nghiệp vụ/actor/API/input, chuỗi function và các bước xử lý, model đọc/ghi, ví dụ, lỗi và test references. Giải thích quyền, decimal/version/snapshot/idempotency, sơ đồ quan hệ model, luồng RR và PO_INSPECTION/custody/GR ảnh hưởng UC-07/29; ghi rõ extension không thay danh sách phân công23 UC và RV-01–04 đã sửa. Bổ sung giới hạn UI/performance/transit/lot race/reversal thay vì coi pass test là nghiệm thu toàn hệ thống.
+
+Kiểm chứng tài liệu: kiểm đủ23 mã UC không trùng/thiếu, liên kết source và git diff --check. Kết quả172 tests/171 pass/1 skip được dẫn từ lượt triển khai trước cùng ngày, không nhận là full-suite chạy lại. Chỉ viết tài liệu/index/changelog; không sửa runtime/model/test, không reset hoặc ghi DB, không commit/push.
+
+---
+
 # Triển khai backend PO_INSPECTION, custody và GR — 02/11/2026
 
 Theo các lựa chọn đã chốt, triển khai model/command kiểm hàng theo chuyến, intake giữ hộ toàn bộ phần keptOnSite thuộc NCC, một GR draft cho phần ACCEPT và post GR riêng chuyển custody sang STORE receiving/quarantine. Thêm API context/list/detail/create/update/confirm/handling-note/post, source PO/inspection/supplier và thông tin người giao; transaction, PO/location CAS guards, freeze, scope, idempotent receipt/batch IDs và audit. Không thêm FE UI, put-away hay command xử lý/return hàng chưa chấp nhận.
@@ -178,6 +247,32 @@ Contract, quyết định và kế hoạch thực hiện: [IMPLEMENTATION.md](..
 Thêm [gap analysis](../docs/po-receiving-proposal/gap-analysis.md) cho ý tưởng gộp ARRIVAL/INSPECTION trong nhánh mua hàng, GR tham chiếu trực tiếp PO và ghi người giao. Đánh giá nhận nhiều đợt, actual/accepted/rejected/pending, lot/quality/ownership, note xử lý lỗi, nguồn inspection cho GR, supplier từ PO, concurrency/retry và ảnh hưởng CR/FD/legacy. Đề xuất giới hạn thay đổi trong flow PO; đây là tài liệu đánh giá, chưa chấp thuận thay baseline hoặc triển khai.
 
 Kiểm chứng: đọc context và model/seed/readers liên quan, kiểm liên kết và git diff --check. Không sửa runtime/model/test, không migration hoặc thao tác DB, không commit/push.
+
+---
+
+# Giải thích chi tiết nghiệp vụ và luồng code của các finding — 01/11/2026
+
+Thêm [báo cáo giải thích bốn vấn đề](../docs/iteration-1/BAO_CAO_GIAI_THICH_VAN_DE_2026-11-01.md): nghiệp vụ đúng, vai trò model, chuỗi gọi function và vị trí source, ví dụ tính từng bước, nguyên nhân RV-01/02/03/04, phạm vi tác động thực tế, hướng sửa và regression cases. Làm rõ dữ liệu bất thường trong probe khác dữ liệu thật, GET sai kết quả khác post sai tồn, quyền record khác idempotency; giải thích nguy cơ đảo dấu reversal hai lần khi sửa và yêu cầu kiểm scope cả replay fallback. Bổ sung liên kết trong README iteration, giữ nguyên review và bằng chứng lịch sử.
+
+Kiểm chứng: đối chiếu checkout HEAD `2e31d79`, chạy lại sáu probe trên database localhost random và nhận lại kết quả cũ; kiểm liên kết source và git diff --check. Số157 pass/1 skip là kết quả full suite của lượt review trước, không phải full suite mới trong lượt viết giải thích này. Không sửa logic/model/API ứng dụng, không apply migration vào DB dùng chung, không commit/push.
+
+---
+
+# Review backend Iteration 1 và giải thích module — 31/10/2026
+
+Thêm [báo cáo review](../docs/iteration-1/REVIEW_2026-10-31.md) đối chiếu bản plan chi tiết trong chat `01a18c8f-8d7c-7032-965b-95a746e96ae6` với checkout `2e31d79`: đủ 23 UC có endpoint/service; giải thích kiến trúc, logic/flow/function, transaction/retry/version và quan hệ model của replenishments, products, lots, suppliers, purchase-orders. Ghi bốn phát hiện P2 đã tái hiện: PO tính dương movement sai chiều; PO thiếu kiểm lot-product/batch-document; replay tạo RR bỏ qua scope kho hiện tại; supplier GR traversal chấp nhận nguồn thiếu ARRIVAL/INSPECTION. Kèm JSON bằng chứng và script probe chỉ dùng DB localhost random, cập nhật liên kết tại README iteration.
+
+Kiểm chứng mới: `npm test` 90 test/75 pass/15 skip; replica set cục bộ 158 test/157 pass/1 skip Cloudinary; sáu probe gồm một control và năm ca xác nhận bốn phát hiện. Các DB test riêng được dọn sau chạy. Không sửa logic/model ứng dụng, không apply migration vào DB dùng chung, không commit/push. Báo cáo cũng ghi các ca race/rollback/reversal còn thiếu và giới hạn hiệu năng chưa benchmark.
+
+---
+
+# Triển khai backend Iteration 1 — 30/10/2026
+
+Triển khai backend UC-01–UC-07 và UC-17–UC-32 trên nhánh `codex/uc-01-32-iteration-1`; frontend chưa nối. Thêm API RR thủ công (tạo nháp/gửi trực tiếp, sửa, gửi, Owner duyệt lượng từng dòng), snapshot bất biến theo version, lịch sử submission; PO list đọc lượng nhận từ chuỗi PO→ARRIVAL→INSPECTION→GR→ledger/reversal; product/master, conversion, policy, lot, supplier và history/documents. Bổ sung model/version/audit/submission và migration mặc định dry-run.
+
+Tài liệu mới: [đặc tả Iteration 1](docs/iteration-1/README.md), [API reference](docs/api/iteration-1/README.md), [use-case cards](docs/iteration-1/use-cases.md), [migration guide](docs/iteration-1/MIGRATION.md), [verification](docs/iteration-1/VERIFICATION.md). Cập nhật context BE/FE, model README/changelog và ánh xạ UC trong permission metadata; giữ nguyên permission keys runtime. Số collection MongoDB tăng 39→40 do `replenishment_submissions`.
+
+Kiểm chứng: `npm test` (90 test, 75 pass, 15 skip khi không có DB); với MongoDB replica set cục bộ (DB random) 158 test, 157 pass, 1 skip Cloudinary live. Không chạy frontend/browser, không apply migration lên DB dùng chung, không commit/push thay đổi implementation.
 
 ---
 
@@ -703,3 +798,5 @@ Các script kiểm tra, bản chụp trước sửa, parser tải về và ảnh
 - Added the implementation/API handoff document at `src/modules/location-movements/README.md` and linked it from the root README.
 - Updated the BE context entries for UC-35/36 to point at the implemented routes. Business scope and permissions remain unchanged; FE mock screens are not represented as HTTP-integrated.
 - Documented additive task-source fields and the Location planning guard in `src/models/CHANGELOG.md`, including future cross-module guard obligations and replica-set tests.
+
+Kiểm chứng đợt native 06/11: [báo cáo](docs/08_api/ITERATION1_NATIVE_VERIFICATION.md), 75 pass/9 skip/0 fail cho bộ test hiện hành. Hai test legacy untracked không import được module đã bị main xóa, được giữ nguyên. Không ghi Atlas, commit/push hoặc merge commit.

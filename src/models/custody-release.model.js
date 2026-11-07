@@ -44,6 +44,7 @@ export function createCustodyReleaseSchema() {
     },
     options("custody_releases"),
   );
+  schema.add({ custodyDecisionId: ref("ApprovalHistory", false) });
   const item = createDocumentItemSchema();
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   attachDocumentItems(schema, item);

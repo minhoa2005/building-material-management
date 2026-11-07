@@ -37,6 +37,8 @@ const contactShape = {
   address: optionalText(500),
   
   contactName: optionalText(160),
+  taxCode: optionalText(50),
+  notes: optionalText(2000),
   
 };
 
@@ -49,7 +51,7 @@ export const listSuppliersSchema = z.object({
       limit: positiveInteger(10, 100),
       search: z.string().trim().max(100).optional(),
       status: z
-        .enum(["PENDING", "ACTIVE", "INACTIVE"])
+        .enum(["ACTIVE", "SUSPENDED", "TERMINATED"])
         .optional(),
     })
     .strict()
@@ -105,7 +107,7 @@ export const changeSupplierStatusSchema = z.object({
   body: z
     .object({
       expectedUpdatedAt: z.string().datetime({ offset: true }),
-      status: z.enum(["PENDING", "ACTIVE", "INACTIVE"]),
+      status: z.enum(["ACTIVE", "SUSPENDED", "TERMINATED"]),
       reason: z.string().trim().min(1).max(2000),
     })
     .strict(),

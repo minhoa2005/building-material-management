@@ -6,6 +6,7 @@ const text = max => z.string().trim().min(1).max(max);
 const decimal = decimalStringSchema({ positive: true, scale: 3 });
 const fields = {
   name: text(200), manufacturerCode: text(100), categoryId: oid, material: text(160).nullable().optional(),
+  surface: text(100).nullable().optional(), origin: text(100).nullable().optional(), description: text(2000).nullable().optional(),
   baseUnit: text(60), wholeBaseUnits: z.boolean().default(true),
   lengthMm: decimal, widthMm: decimal, heightMm: decimal, color: text(160),
 };

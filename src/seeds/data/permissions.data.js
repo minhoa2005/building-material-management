@@ -32,6 +32,10 @@ const BUSINESS_ROLES = [OWNER, ACCOUNTANT, WAREHOUSE, SALES];
  *  - roles: vai trò được cấp mặc định.
  */
 export const PERMISSION_CATALOGUE = [
+ ...['read','create','update','activate'].map(action=>({code:'uom:'+action,description:'UOM '+action,uc:[],roles:action==='read'?BUSINESS_ROLES:[OWNER]})),
+ {code:'purchase_custody:decide',description:'Chốt thỏa thuận hàng giữ hộ NCC',uc:[],roles:[ACCOUNTANT]},
+ {code:'purchase_custody:execute',description:'Thực hiện xử lý giữ hộ NCC',uc:[],roles:[WAREHOUSE]},
+
   // ---------- FE-01: Bổ sung hàng, mua hàng, nhập kho (BF-01) ----------
   { code: 'replenishment_request:evaluate', description: 'Xem cảnh báo và đánh giá lại nhu cầu bổ sung theo nguồn/kho', uc: ['UC-03', 'UC-103'], roles: [OWNER, WAREHOUSE, SALES] },
   { code: 'notification:read', description: 'Xem thông báo của chính mình trong phạm vi nguồn/kho hiện hành', uc: ['UC-03', 'UC-47', 'UC-48', 'UC-93', 'UC-103'], roles: [OWNER, WAREHOUSE, SALES] },
@@ -50,7 +54,7 @@ export const PERMISSION_CATALOGUE = [
   { code: 'goods_receipt_inspection:update', description: 'Ghi kết quả kiểm nhận', uc: ['UC-37'], roles: [WAREHOUSE] },
   { code: 'goods_receipt_inspection:post', description: 'Post nhập kho (GR) sau kiểm nhận', uc: ['UC-37'], roles: [WAREHOUSE] },
   { code: 'stock_reversal:approve', description: 'Duyệt độc lập và ghi đảo giao dịch tồn', uc: ['UC-37'], roles: [OWNER] },
-  { code: 'goods_receipt_inspection:reverse', description: 'Đề nghị đảo phiếu nhập ghi nhầm, có chứng cứ', uc: ['UC-37'], roles: [WAREHOUSE] },
+  { code: 'goods_receipt_inspection:reverse', description: 'Warehouse đảo phiếu nhập ghi nhầm, có chứng cứ và kiểm phụ thuộc', uc: ['UC-37'], roles: [WAREHOUSE] },
   { code: 'purchase_order:approve_exception', description: 'Duyệt chốt thiếu PO đúng phiên bản', uc: ['UC-13'], roles: [OWNER] },
   { code: 'putaway_task:cancel', description: 'Hủy phần chưa cất của task nhận mua', uc: ['UC-45', 'UC-46'], roles: [WAREHOUSE] },
 

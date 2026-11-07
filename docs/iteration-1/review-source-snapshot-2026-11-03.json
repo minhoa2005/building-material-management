@@ -1,0 +1,418 @@
+{
+  "reviewedOn": "2026-11-03",
+  "gitHead": "46569c5bdc87bfd6b89da09ab61d009990717768",
+  "includesUncommittedWorkingTree": true,
+  "testRun": {
+    "command": "npm test",
+    "databaseUriDescription": "local MongoDB replica set rs0; separate generated test databases",
+    "total": 189,
+    "passed": 187,
+    "failed": 0,
+    "skipped": 2,
+    "durationMs": 32289.5913,
+    "liveStorageRechecked": false
+  },
+  "files": [
+    {
+      "file": "src/app.js",
+      "bytes": 605,
+      "sha256": "16072d5032802374035fb7caf3d322b17eb45a20e4c533407b6cd2b61203f067"
+    },
+    {
+      "file": "src/middlewares/auth.js",
+      "bytes": 1935,
+      "sha256": "ba2f9c5b4f708e088ef99e9e0a51247c3c4d379da377d0c5c2a911a351db94ec"
+    },
+    {
+      "file": "src/middlewares/permission.js",
+      "bytes": 568,
+      "sha256": "8373b45496597783256d386d42187aa893038cc7e08a54525ab60f2a35a0d9ef"
+    },
+    {
+      "file": "src/middlewares/validate.js",
+      "bytes": 1046,
+      "sha256": "d13d9c9010c3df6220ca8370e6c1c45092f59da436daa93be3256db71b0c2e3c"
+    },
+    {
+      "file": "src/models/access.model.js",
+      "bytes": 491,
+      "sha256": "14b73a5351914f393fb1158af15d266f77ffba10c839ca6f9b0c3f1fedfdf3ed"
+    },
+    {
+      "file": "src/models/approval.model.js",
+      "bytes": 1476,
+      "sha256": "1edada9280df9e1aa5cc06cf28f4c1234207ee1e633ba2ea7c07e340b9f14718"
+    },
+    {
+      "file": "src/models/business-document.model.js",
+      "bytes": 10829,
+      "sha256": "6352f7061764394ef6c426ed842c25c35da4bf1d837d5d996fc0a141abcdd56f"
+    },
+    {
+      "file": "src/models/business-operation.model.js",
+      "bytes": 1885,
+      "sha256": "38f12024f6bf96afd39ea36e73b4e8c8614bef4523912e025b68ccc758ebc728"
+    },
+    {
+      "file": "src/models/constants.js",
+      "bytes": 2281,
+      "sha256": "b1246e0a308625a3c578b959c92f20bbbc05e19ae0ea960d765df08aa690f0aa"
+    },
+    {
+      "file": "src/models/document-line.model.js",
+      "bytes": 14384,
+      "sha256": "99a7ebc5e37f6f0cca8445061f5b45fc764a416a3ce09fd0b032d0ea1466fa4a"
+    },
+    {
+      "file": "src/models/document-link.model.js",
+      "bytes": 1357,
+      "sha256": "ff439671ccc65478e4232368f44c6e5e7357e916bdcfeb36a512923675af43c8"
+    },
+    {
+      "file": "src/models/event.model.js",
+      "bytes": 1677,
+      "sha256": "fe8dbdf0eaf98638e9053444d5b66d55906152e6ee7ebc3573b71dc98344d72f"
+    },
+    {
+      "file": "src/models/evidence.model.js",
+      "bytes": 572,
+      "sha256": "290a975bc0b8beaa690dba04a21b9bbf3e73e7469d445d07f617805f330c068d"
+    },
+    {
+      "file": "src/models/external-reference.model.js",
+      "bytes": 1004,
+      "sha256": "09ea2d595f7b9ccc25b279fa3fd9bf4e7903eee5ba06a0c276950fcb0a559f97"
+    },
+    {
+      "file": "src/models/index.js",
+      "bytes": 1899,
+      "sha256": "a624437852de521db0f97d2ffdc7e71fbe7d1cb5c490547e68e995ef87b11404"
+    },
+    {
+      "file": "src/models/inventory.model.js",
+      "bytes": 5585,
+      "sha256": "e035d4b43ad21223f7e94180c59d152a56be71c9393eb3a5e2633c27e59e4aba"
+    },
+    {
+      "file": "src/models/model-utils.js",
+      "bytes": 4553,
+      "sha256": "197940e4e5d20930c7a730791769a208265186f9ffc77aa403b1015025483809"
+    },
+    {
+      "file": "src/models/notification.model.js",
+      "bytes": 1692,
+      "sha256": "8db09c730bd0cd6c718a3709ed00bc7a68b96a24a0743e07b8eed86fb5de1662"
+    },
+    {
+      "file": "src/models/party.model.js",
+      "bytes": 1178,
+      "sha256": "fc28ddd3197b247aa036edb942b0110091578a917cd64b03c8f465e4dfa58967"
+    },
+    {
+      "file": "src/models/product.model.js",
+      "bytes": 3915,
+      "sha256": "2a241283d9b1a49d854ad66f4e32764377861ef346669316fe8b524b0fe69e48"
+    },
+    {
+      "file": "src/models/purchase.model.js",
+      "bytes": 3818,
+      "sha256": "78b95f3007462bf6d0d165b79067855d13581a238cfb9009f070555ba91da320"
+    },
+    {
+      "file": "src/models/replenishment-submission.model.js",
+      "bytes": 1794,
+      "sha256": "a6955259b92b3c2cfed900ab1b54eba0ced699d24b3faca9de4d2d0337a9ac2e"
+    },
+    {
+      "file": "src/models/replenishment.model.js",
+      "bytes": 612,
+      "sha256": "fe8db8c141ece9aae802881c3349b3ede0a92bd645b58b7d24c401e50c6170f4"
+    },
+    {
+      "file": "src/models/return.model.js",
+      "bytes": 4980,
+      "sha256": "7c613f054f68caee7056ff1ac33a0dd536527e2f36dbc8ed1ab8f8efec1a9004"
+    },
+    {
+      "file": "src/models/stocktake.model.js",
+      "bytes": 2187,
+      "sha256": "80b1ba93f4f8efe17f9dd3578a9c7543152a2e12c153594fd6f865805d11c3c6"
+    },
+    {
+      "file": "src/models/user.model.js",
+      "bytes": 745,
+      "sha256": "41bb9ae3ea678ffdf62e70695294560d0a3dd2dfa1d4080c68aa00fd0fd3fa1d"
+    },
+    {
+      "file": "src/models/warehouse.model.js",
+      "bytes": 1311,
+      "sha256": "ef6a18ed49b227aa3fbc8e04a659853f2cb708129035f9f6ea2e76f473e3f884"
+    },
+    {
+      "file": "src/modules/lots/lot.controller.js",
+      "bytes": 1175,
+      "sha256": "d0e349a5d365b9449e586b0225c04f2030a877c35930be15fedcb3ff83093226"
+    },
+    {
+      "file": "src/modules/lots/lot.mapper.js",
+      "bytes": 1911,
+      "sha256": "ae1628deb1b0387abddaa67c6b3270a86400292a3e344fc51cc24c3c55433b57"
+    },
+    {
+      "file": "src/modules/lots/lot.routes.js",
+      "bytes": 1174,
+      "sha256": "dd8b8c9016f3de004f4133e885b9d3a14bc1c9c5b53d31722fb5cb7c173eafca"
+    },
+    {
+      "file": "src/modules/lots/lot.service.js",
+      "bytes": 20889,
+      "sha256": "1d8049452ac6ba5f95e7f10db8880062c4619101a0389e0bc45dc03894369641"
+    },
+    {
+      "file": "src/modules/lots/lot.validation.js",
+      "bytes": 3134,
+      "sha256": "b8405ba299dfc8beb0869a2950eec0af85aef269a8f5b1818309039faaff435a"
+    },
+    {
+      "file": "src/modules/po-receiving/po-receiving.routes.js",
+      "bytes": 8907,
+      "sha256": "076bd27f78c4e13cf9b1e4cb0faff5a49ac82dbb54b08076a36f0660cb0fabdb"
+    },
+    {
+      "file": "src/modules/po-receiving/po-receiving.service.js",
+      "bytes": 18232,
+      "sha256": "539a2ae5ede190c97f0f6393e9579332fbf7c93b9a4164f7c27e9ec1e21827a3"
+    },
+    {
+      "file": "src/modules/po-receiving/purchase-core.js",
+      "bytes": 7681,
+      "sha256": "299095a2317fd1fbc37b2dfd89c7711d8e5a2be2edba5f30bdcdc57c7180f0e7"
+    },
+    {
+      "file": "src/modules/po-receiving/purchase-correction.service.js",
+      "bytes": 9577,
+      "sha256": "f6d6295e521da2154225ce57a6b57adc29228c04c71b2d646dd44e376eb524b0"
+    },
+    {
+      "file": "src/modules/po-receiving/purchase-evidence.service.js",
+      "bytes": 9193,
+      "sha256": "83ba21754954f4911889d9524a50c3143f8e968d7806333317f7803d009fbe3e"
+    },
+    {
+      "file": "src/modules/po-receiving/purchase-putaway.service.js",
+      "bytes": 12357,
+      "sha256": "6322aed6469649dfa814dbc430f0eba265225350fb43d6e953498cc00e341924"
+    },
+    {
+      "file": "src/modules/po-receiving/purchase-read.service.js",
+      "bytes": 11543,
+      "sha256": "c3b0c6c1accbd309bb1e41d48426eaa878e5cba57eaf386ad8ca84fd1c8638f7"
+    },
+    {
+      "file": "src/modules/po-receiving/purchase-reconciliation.js",
+      "bytes": 4629,
+      "sha256": "e2b0f2fd27d0944e3c598e77fd610be4af77bc75bccf7a8b5e0af8161c65b27b"
+    },
+    {
+      "file": "src/modules/products/product.controller.js",
+      "bytes": 2384,
+      "sha256": "bfcbde2224072cbcfa5d8239b371f67fa59b6406cf6181075c5d90396cd64a23"
+    },
+    {
+      "file": "src/modules/products/product.mapper.js",
+      "bytes": 2325,
+      "sha256": "f43545a3f6dc9debfa0c9a4afc1499e2d38669506a3843fded6230aa3eec1aec"
+    },
+    {
+      "file": "src/modules/products/product.routes.js",
+      "bytes": 1986,
+      "sha256": "940e09a6df241ee84fef005c5d19595bb89ea426945d05be9b212d57534f70ac"
+    },
+    {
+      "file": "src/modules/products/product.service.js",
+      "bytes": 20462,
+      "sha256": "aaf902f3c95c1fcfee98e1a6962aefdfb449a23fc8d018a4bf0b9a891538be80"
+    },
+    {
+      "file": "src/modules/products/product.validation.js",
+      "bytes": 5367,
+      "sha256": "8a8742eaf057772770f2082c3242bbeba2edbc4e5a1defa04cab3c8d35ee2779"
+    },
+    {
+      "file": "src/modules/purchase-orders/purchase-order.commands.js",
+      "bytes": 17643,
+      "sha256": "b9ceb85055a9c26e6400ceb2b0c7ba6f3186b0cc8e7f1aaf3cc273453120bbaa"
+    },
+    {
+      "file": "src/modules/purchase-orders/purchase-order.commands.routes.js",
+      "bytes": 2348,
+      "sha256": "6f4f00830a6bde338c9436d7c77f3583da7163cc274e85febffab3c7c67616e1"
+    },
+    {
+      "file": "src/modules/purchase-orders/purchase-order.controller.js",
+      "bytes": 538,
+      "sha256": "0cb8fdcbb83836d1a28f0c22d17f5bd24590e76e584eff715f1a65f495834778"
+    },
+    {
+      "file": "src/modules/purchase-orders/purchase-order.routes.js",
+      "bytes": 761,
+      "sha256": "3720ed62f5127fd100b89e2fac3358ff9251976e299e47fe5b271a3458d03c8b"
+    },
+    {
+      "file": "src/modules/purchase-orders/purchase-order.service.js",
+      "bytes": 23732,
+      "sha256": "d5a876710a7046d83745ffcea6bee0e08ca9732f2b33e7f6cd6833f9a7b98e51"
+    },
+    {
+      "file": "src/modules/purchase-orders/purchase-order.validation.js",
+      "bytes": 1681,
+      "sha256": "408bcb800b754f79940aa44ecd994a4e38acf762a8972ad91b4f1b4bb60b01a2"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.access.js",
+      "bytes": 3119,
+      "sha256": "5ff0737467f64d26eeef955aa6b328b69863b8cdfddca5e4939bc164106aa462"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.availability.js",
+      "bytes": 4379,
+      "sha256": "9c2a1e614dc6402141fc8feabaab50a3df2195d20c211067e8d44d5233518671"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.commands.js",
+      "bytes": 37630,
+      "sha256": "29e71eff0534179421c076bf4f682fc337ea2d559957f7b83df47edafeebdcae"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.controller.js",
+      "bytes": 2755,
+      "sha256": "a953fccb5596fd6e403ff3b10dcefa7d940f4b768c699c2291838d7ff2118967"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.mapper.js",
+      "bytes": 4729,
+      "sha256": "0a66c45c45d258f16185abae81925680c773d0fd913e3f3f66e340627448aa87"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.routes.js",
+      "bytes": 1934,
+      "sha256": "da9b8caf1ce8b19fae4cc1ff61d4c99e82ce13bfcbb75a568cb9024f4fa5c1c5"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.service.js",
+      "bytes": 23049,
+      "sha256": "2bf1ffc043d05e90024a491f334b4550546bcc39e54e7148fbb77a8669120cf4"
+    },
+    {
+      "file": "src/modules/replenishments/replenishment.validation.js",
+      "bytes": 6008,
+      "sha256": "bbb09c2bf75ef1ed1f05cfe2f6221d7249e849feb12bdd5fb23321d8d5684191"
+    },
+    {
+      "file": "src/modules/suppliers/supplier.controller.js",
+      "bytes": 1803,
+      "sha256": "fa987b035fd8cdd9d6a6bb9169981825f44e3a4b0574534fa04f4c7b965d8db2"
+    },
+    {
+      "file": "src/modules/suppliers/supplier.mapper.js",
+      "bytes": 1564,
+      "sha256": "709e531a5a67ed90b8a9a52ed1fe5fe6a7b65ba84d9ef8373163468def93afab"
+    },
+    {
+      "file": "src/modules/suppliers/supplier.routes.js",
+      "bytes": 1514,
+      "sha256": "4a237edca1a021cee4f1f8c09b8275c33e30b554239ba5c1a04e75aacf709371"
+    },
+    {
+      "file": "src/modules/suppliers/supplier.service.js",
+      "bytes": 13191,
+      "sha256": "a48ce4c0d295babc9347166b7375786ffa255af956d8b4d78951c4d24542c711"
+    },
+    {
+      "file": "src/modules/suppliers/supplier.validation.js",
+      "bytes": 3925,
+      "sha256": "2fef05c97cbf86b771adf0396fb8eb59d5b7ec1d1a6c5acbff13c369c1e92f05"
+    },
+    {
+      "file": "src/routes.js",
+      "bytes": 2411,
+      "sha256": "013964956a6bdf98d82854fdca806b4170a801836175250bcb70ed026ff6aaf1"
+    },
+    {
+      "file": "src/seeds/data/permissions.data.js",
+      "bytes": 16453,
+      "sha256": "0c1fb113da415a51c11b5a53fa9d064f615aa5532d93ab37ac1ac3b1813f9fc4"
+    },
+    {
+      "file": "src/shared/utils/ApiError.js",
+      "bytes": 2116,
+      "sha256": "7c5a9f231ae003c9ae6b93eacbe03de51538dfb543074a8c4f8311fbfbfd9ae3"
+    },
+    {
+      "file": "src/shared/utils/ApiResponse.js",
+      "bytes": 266,
+      "sha256": "78cb528d5772dcae821154efe2a86390758cf14140f587a03d3669fcb2974f3a"
+    },
+    {
+      "file": "src/shared/utils/access.js",
+      "bytes": 1186,
+      "sha256": "9b01174694852812c3ef9a2061c923a6ceeff390d1ffe061a11a5ce71d20d6b1"
+    },
+    {
+      "file": "src/shared/utils/audit.js",
+      "bytes": 1507,
+      "sha256": "e2a197e223fc8e977ee1d2dd19d79f627c20c203eb8b18eb1872280ba591c154"
+    },
+    {
+      "file": "src/shared/utils/catchAsync.js",
+      "bytes": 110,
+      "sha256": "dd58635e284c1a23919d6c8c2c8bbb88d1622d9af8cc732886b3449fdbe6f232"
+    },
+    {
+      "file": "src/shared/utils/domain.js",
+      "bytes": 4172,
+      "sha256": "a1bb334d217d400f69aeec8854fe8391917ee20e72528e66e1c4daa5892ae83c"
+    },
+    {
+      "file": "src/shared/utils/lotIdentity.js",
+      "bytes": 842,
+      "sha256": "99c1ffc6aaab9ace48362124332773d965c818b21aca933fbc528ec92826e210"
+    },
+    {
+      "file": "src/shared/utils/purchaseProvenance.js",
+      "bytes": 670,
+      "sha256": "527b2888b23fb49eda4167ad06e2e6f2373e82c55ae6d57562edc65552622b50"
+    },
+    {
+      "file": "src/shared/utils/userRole.js",
+      "bytes": 1009,
+      "sha256": "ffda796dd2c62842d495cf19a60604bc4909d1aa80f16e8140a380d31b450f02"
+    },
+    {
+      "file": "test/iteration1-master.integration.test.js",
+      "bytes": 27152,
+      "sha256": "e4fe028d361d755dbfc54609a98bac01da46bb8617724f0638e5e4d8bb10e3a2"
+    },
+    {
+      "file": "test/iteration1-purchase-order.integration.test.js",
+      "bytes": 19365,
+      "sha256": "2d1bcffd18265316a33244183aac45e024e91519319eedf6a1dee60f6f8b39c9"
+    },
+    {
+      "file": "test/iteration1-replenishment.integration.test.js",
+      "bytes": 27910,
+      "sha256": "7333982c95bfe81b8247f86aec9c653e4692d18d6608812bfac9f8ef096f3d8b"
+    },
+    {
+      "file": "test/po-receiving.integration.test.js",
+      "bytes": 35913,
+      "sha256": "4d8b57797fcc5b66be64b9d852c29491f16b508c9b7bdf27ae472d66951aba93"
+    },
+    {
+      "file": "test/purchase-evidence.test.js",
+      "bytes": 1496,
+      "sha256": "fb2a11d761a0178c0c907c5de43a06cccbf682fe2f93db0d113eb6f0987f3e34"
+    }
+  ],
+  "fileListPurpose": "Content fingerprints for reviewed module groups and adjacent model/helper dependencies. Inclusion is not a claim that every adjacent file was individually audited in full."
+}
