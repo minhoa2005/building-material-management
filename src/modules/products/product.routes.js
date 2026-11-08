@@ -39,6 +39,18 @@ router.put(
   controller.configurePolicy,
 );
 router.get(
+  "/:id/conversions",
+  checkPermission("product:read"),
+  validate(validation.listConversionsSchema),
+  controller.conversions,
+);
+router.post(
+  "/:id/conversions",
+  checkPermission("product:update"),
+  validate(validation.createConversionSchema),
+  controller.createConversion,
+);
+router.get(
   "/:id",
   checkPermission("product:read"),
   validate(validation.productIdSchema),

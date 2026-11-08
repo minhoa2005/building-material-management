@@ -1,3 +1,8 @@
+## 07/11/2026 — Sửa danh mục khi tạo sản phẩm
+
+- Form tạo sản phẩm lấy danh mục đang hoạt động từ API tùy chọn, bắt buộc chọn và gửi ObjectId tương ứng. Đơn vị gốc gửi mã UOM. Giữ nguyên API, model và dữ liệu. [Hợp đồng Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md).
+- Sáu test form đạt, gồm kiểm giá trị danh mục, mã UOM, yêu cầu chọn danh mục và hiển thị lỗi `body.categoryId` tại ô phân loại. Kiểm thử form dùng fixture API.
+
 ## 07/11/2026 — Sửa các request frontend gây 403
 
 - Chuyển form RR sang API lô theo kho/sản phẩm, bộ lọc PO sang NCC theo PO và tab kiểm nhận sang danh sách lô trong inspection context. Thêm ngữ cảnh sửa RR cho API tùy chọn và capability theo kho cho chứng từ nhận mua.
