@@ -14,6 +14,7 @@ PurchaseReceipt và CustodyRelease có custodyDecisionId → ApprovalHistory. GR
 
 - GET /api/uoms và GET /:id: uom:read. POST /api/uoms: code,name; uom:create. PUT /:id: expectedUpdatedAt,name; uom:update. PATCH /:id/status: expectedUpdatedAt,isActive,reason; uom:activate. Owner có quyền quản lý; business roles đọc. Không có DELETE hoặc đổi mã.
 - Sản phẩm native dùng manufacturerCode/categoryId/baseUnit/heightMm và metadata mới. Không nhận baseUomId, conversionId, thicknessMm hoặc nominalSize ghi vào.
+- Form tạo sản phẩm dùng `GET /api/products/options` với quyền `product:read`. Danh mục đang hoạt động hiển thị theo tên và bắt buộc chọn. Khi gửi `POST /api/products`, FE dùng `categories[].id` cho `categoryId` và `uoms[].code` cho `baseUnit`. BE kiểm lại trạng thái của cả hai danh mục khi tạo.
 - NCC dùng contactName/status/taxCode/notes, expectedUpdatedAt. names yêu cầu supplier:read và chỉ trả ACTIVE.
 - `GET /api/purchase-orders/supplier-options` dùng `purchase_order:read` để lấy bộ lọc NCC cho danh sách PO. Query `warehouseId` là tùy chọn và dùng cùng scope với danh sách PO. Response `data: [{ id, code, name }]` lấy từ snapshot trên PO, gộp theo ID NCC và lấy snapshot mới nhất trong phạm vi. Kết quả gồm NCC lịch sử có snapshot đầy đủ. Form tạo/sửa PO tiếp tục dùng danh sách NCC đang hoạt động từ API danh mục.
 - RR → PO là một–một, unique index bảo vệ cả hai lệnh đồng thời. PO có giá, currency và tổng decimal; Owner/Accountant xem giá, các vai trò khác bị redaction. Confirm kiểm lại quyết định duyệt, lượng, sản phẩm và NCC.
@@ -44,7 +45,7 @@ POST /api/purchase-receipts/:id/reverse: expectedVersion,expectedPoVersion,opera
 
 ## Mapping FE đợt sau
 
-FE src/fe hiện còn payload cũ. Chuyển baseUomId→baseUnit code; thicknessMm→heightMm; brand→manufacturerCode; category text→categoryId; contactPerson→contactName; cooperationStatus→status; expectedVersion catalogue→expectedUpdatedAt. Không giả conversionId tương ứng UOM; bỏ endpoint conversion cũ. Render nominalSize chỉ đọc. Đổi /po-inspections thành /goods-inspections. Nhận mua cần ownershipDecision/qualityCode/packagingCondition và destinations. Đảo nhập không cần review bước hai. Sửa fixture/UI trong đợt FE riêng; không claim FE đang tương thích.
+Checklist chuyển các form cũ sang hợp đồng native: baseUomId→baseUnit code; thicknessMm→heightMm; brand→manufacturerCode; category text→categoryId; contactPerson→contactName; cooperationStatus→status; expectedVersion catalogue→expectedUpdatedAt. Không giả conversionId tương ứng UOM; bỏ endpoint conversion cũ. Render nominalSize chỉ đọc. Đổi /po-inspections thành /goods-inspections. Nhận mua cần ownershipDecision/qualityCode/packagingCondition và destinations. Đảo nhập không cần review bước hai. Trạng thái nối form tạo sản phẩm ghi ở mục API và quyền.
 
 ## Dữ liệu và giới hạn triển khai
 
