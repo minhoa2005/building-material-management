@@ -32,11 +32,19 @@ export async function detail(user,resource,id){
   const rows=await Related.find({...scope(user),$or:[{'items.sources.documentId':doc._id},{'sources.documentId':doc._id},{'header.returnId':doc._id},{'header.supplierReturnId':doc._id},{'header.planId':{$in:(doc.resolutionPlans??[]).map(p=>p._id)}}]});related.push(...rows.map(serialize));
  }
  const attachments=await m.Attachment.find({ownerDocumentId:doc._id,status:'ATTACHED',accessCategory:'BUSINESS'}).select('-storageKey -checksum -uploadSessionId');
- const history=await m.AuditLog.find({subjectId:doc._id}).sort({createdAt:1}).select('-changes');return {...serialize(doc),...(Model===m.DefectReport&&{unresolvedQty:doc.holds.filter(h=>h.status==='ACTIVE').reduce((n,h)=>n.plus(s.sum(h.allocations,'quantityBase').minus(s.sum(h.events,'quantityBase'))),exact('0')).toFixed()}),relatedDocuments:related,evidence:attachments.map(serialize),history:history.map(serialize)};return ['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code)?result:redactPrices(result);
+ const history=await m.AuditLog.find({subjectId:doc._id}).sort({createdAt:1}).select('-changes');const lots=await m.ProductBatch.find({_id:{$in:doc.items.map(item=>item.lotId).filter(Boolean)}}).select('manufacturerLot');const products=await m.Product.find({_id:{$in:doc.items.map(item=>item.productId)}}).select('wholeBaseUnits');const result={...serialize(doc),items:doc.items.map(item=>({...serialize(item),wholeBaseUnits:products.find(product=>same(product._id,item.productId))?.wholeBaseUnits,lotCode:lots.find(lot=>same(lot._id,item.lotId))?.manufacturerLot})),...(Model===m.DefectReport&&{unresolvedQty:doc.holds.filter(h=>h.status==='ACTIVE').reduce((n,h)=>n.plus(s.sum(h.allocations,'quantityBase').minus(s.sum(h.events,'quantityBase'))),exact('0')).toFixed()}),relatedDocuments:related,evidence:attachments.map(serialize),history:history.map(serialize)};return ['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code)?result:redactPrices(result);
 }
-export async function options(user){
+export async function listExternal(user,query){
+ requirePermission(user,'external_reference:read');const filter=currentRole(user)?.code==='OWNER'?{}:{warehouseId:{$in:user.warehouseIds??[]}};
+ if(query.search){const re=query.search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');filter.$or=['sourceSystem','referenceNo','correlationId'].map(field=>({[field]:{$regex:re,$options:'i'}}));}
+ if(query.status)filter.status=query.status;const page=query.page??1,limit=query.limit??25;
+ const [items,total]=await Promise.all([m.ExternalReference.find(filter).select('-items -evidenceIds').sort({createdAt:-1,_id:-1}).skip((page-1)*limit).limit(limit),m.ExternalReference.countDocuments(filter)]);
+ return {items:items.map(serialize),total,page,limit};
+}
+export async function options(user,{compact=false}={}){
  if(!Object.values(s.resources).some(([,p])=>hasPermission(user,p))&&!hasPermission(user,'external_reference:create'))throw new s.ApiError(403,'Không có quyền');
  const warehouses=await m.Warehouse.find({isActive:true,...(currentRole(user)?.code!=='OWNER'&&{_id:{$in:user.warehouseIds??[]}})});
+ if(compact)return {warehouses:warehouses.map(serialize),permissions:user.roleId.permissionIds.map(p=>p.code),locations:[],holdingPoints:[],balances:[],lots:[],customers:[],suppliers:[],sourceDocuments:[],sourceLines:[],holds:[]};
  const locations=await m.WarehouseLocation.find({warehouseId:{$in:warehouses.map(w=>w._id)},isActive:true});const points=await m.StockHoldingPoint.find({type:'LOCATION',locationId:{$in:locations.map(l=>l._id)}});const balances=await m.InventoryBalance.find({holdingPointId:{$in:points.map(p=>p._id)},quantityBase:{$gt:0}});
  const [lots,customers,suppliers]=await Promise.all([m.ProductBatch.find({identificationStatus:'VERIFIED'}),m.Customer.find({}).select('code name'),m.Supplier.find({status:'ACTIVE'}).select('code name')]);
  const sourceDocuments=[];if(hasPermission(user,'defect:create'))sourceDocuments.push(...await m.Stocktake.find(scope(user)));
