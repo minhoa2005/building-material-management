@@ -59,9 +59,6 @@ run('conversion versions use the right scope and preserve document snapshots', a
  await productService.createConversion(owner, pid, {
    uomId: String(custom._id), basePerUnit: '3', validFrom: '2020-01-01', verificationReference: 'Supplier pack',
  });
- const detail = await productService.getProduct(owner, pid);
- assert.equal(detail.currentConversions.find(row => row.uom.id === String(box._id)).basePerUnit, '6');
- assert.equal(detail.currentConversions.find(row => row.uom.id === String(custom._id)).basePerUnit, '3');
  const batchEight = await m.ProductBatch.create({
    productId: product._id, manufacturerLot: 'DETAIL-8', identificationStatus: 'VERIFIED',
    piecesPerCarton: 8, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50',
@@ -71,17 +68,14 @@ run('conversion versions use the right scope and preserve document snapshots', a
    version: 1, validFrom: new Date('2020-01-01T00:00:00Z'), verificationReference: 'Verified batch factor',
    createdBy: owner._id,
  });
- const batchDetail = await productService.getProduct(owner, pid, { batchId: String(batchEight._id) });
- assert.equal(batchDetail.currentConversions.length, 1);
- assert.equal(batchDetail.currentConversions[0].basePerUnit, '8');
- assert.equal(batchDetail.currentConversions[0].productBatchId, String(batchEight._id));
- assert.deepEqual((await productService.getProduct(owner, pid, { batchId: 'null' })).currentConversions.map(row => row.basePerUnit).sort(), ['3', '6']);
- await assert.rejects(productService.getProduct(owner, pid, { batchId: key() }), /Không tìm thấy lô/);
- const unknownBatch = await m.ProductBatch.create({
+ await m.ProductBatch.create({
    productId: product._id, manufacturerLot: 'DETAIL-UNKNOWN', identificationStatus: 'UNKNOWN',
    piecesPerCarton: 2, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50',
  });
- await assert.rejects(productService.getProduct(owner, pid, { batchId: String(unknownBatch._id) }), /Lô chưa xác minh/);
+ const batchDetail = await productService.getProduct(owner, pid);
+ assert.equal(batchDetail.currentConversions.length, 1);
+ assert.equal(batchDetail.currentConversions[0].basePerUnit, '8');
+ assert.equal(batchDetail.currentConversions[0].productBatchId, String(batchEight._id));
  const records = await productService.listConversions(owner, pid, { uomId: String(box._id), productBatchId: 'null', limit: 1 });
  assert.equal(records.total, 2);
  assert.equal(records.items[0].isCurrent, false);
@@ -91,6 +85,11 @@ run('conversion versions use the right scope and preserve document snapshots', a
  assert.equal((await make('BOX')).qtyBase, '12');
  assert.equal((await make('BOX', lotId)).qtyBase, '8');
  await assert.rejects(productService.createConversion(owner, pid, { ...payload, productBatchId: key() }), /không thuộc/);
+ await m.ProductBatch.create({
+   productId: product._id, manufacturerLot: 'DETAIL-NO-CONVERSION', identificationStatus: 'VERIFIED',
+   piecesPerCarton: 8, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50',
+ });
+ assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit).sort(), ['3', '6']);
  const concurrent = { ...payload, uomId: String(custom._id), validFrom: '2025-01-01' };
  const writes = await Promise.allSettled([
    productService.createConversion(owner, pid, concurrent),
@@ -100,7 +99,7 @@ run('conversion versions use the right scope and preserve document snapshots', a
  assert.equal(writes.find(row => row.status === 'rejected').reason.statusCode, 409);
  const original = await make('PACK');
  await m.Uom.updateOne({ _id: custom._id }, { $set: { isActive: false } });
- assert.equal((await productService.getProduct(owner, pid)).currentConversions.some(row => row.uom.id === String(custom._id)), false);
+ assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit), ['6']);
  await assert.rejects(make('PACK'), /ngừng hoạt động/);
  assert.equal((await make('PACK', undefined, original)).qtyBase, original.qtyBase);
  await assert.rejects(make('M2'), /Thiếu quy đổi/);
@@ -303,17 +302,22 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  assert.equal(productResult.body.data.conversions[0].basePerUnit,'6');
  const conversionPath='/products/'+productId+'/conversions';
  const detailPath='/products/'+productId;
- assert.equal((await api('GET',detailPath+'?batchId=invalid',owner)).status,400);
- assert.equal((await api('GET',detailPath+'?batchId='+key(),owner)).status,404);
- assert.equal((await api('GET',detailPath+'?batchId='+String(batch._id),owner)).status,404);
- const unverifiedBatch = await m.ProductBatch.create({
+ assert.equal((await api('GET',detailPath+'?batchId=null',owner)).status,400);
+ assert.equal((await api('GET',detailPath+'?batchId='+String(batch._id),owner)).status,400);
+ await m.ProductBatch.create({
    productId: new mongoose.Types.ObjectId(productId), manufacturerLot: key(), identificationStatus: 'UNKNOWN',
    piecesPerCarton: 1, cartonLengthMm: '600', cartonWidthMm: '600', cartonHeightMm: '10',
  });
- assert.equal((await api('GET',detailPath+'?batchId='+String(unverifiedBatch._id),owner)).status,400);
  const workerDetail = await api('GET',detailPath,worker);
  assert.equal(workerDetail.status,200);
  assert.equal(workerDetail.body.data.currentConversions[0].basePerUnit,'6');
+ await m.ProductBatch.create({
+   productId, manufacturerLot: key(), identificationStatus: 'VERIFIED',
+   piecesPerCarton: 8, cartonLengthMm: '600', cartonWidthMm: '600', cartonHeightMm: '10',
+ });
+ const fallbackDetail = await api('GET', detailPath, worker);
+ assert.deepEqual(fallbackDetail.body.data.currentConversions, workerDetail.body.data.currentConversions);
+ assert.equal(fallbackDetail.body.data.currentConversions[0].productBatchId, null);
  const noConversionProduct = await api('POST','/products',owner,{
    ...body, sku:key(), name:'No conversion product',
  });

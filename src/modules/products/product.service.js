@@ -2,7 +2,10 @@ import {
   guardCommandCoverage,
   completeReplenishmentGuards,
 } from "../../shared/utils/replenishment-guard.js";
-import { configureConversion, conversionDto } from "../../shared/utils/conversions.js";
+import {
+  configureConversion,
+  conversionDto,
+} from "../../shared/utils/conversions.js";
 import { hash } from "../../shared/utils/document-command.js";
 import {
   Product,
@@ -127,43 +130,56 @@ async function currentConversions(productId, productBatchId, asOf) {
     { $sort: { uomId: -1, validFrom: -1 } },
     {
       $group: {
-        _id: '$uomId',
-        conversion: { $first: '$$ROOT' },
+        _id: "$uomId",
+        conversion: { $first: "$$ROOT" },
       },
     },
-    { $replaceRoot: { newRoot: '$conversion' } },
+    { $replaceRoot: { newRoot: "$conversion" } },
   ]);
   if (!rows.length) return [];
 
   const [units, creators] = await Promise.all([
-    Uom.find({ _id: { $in: rows.map(row => row.uomId) }, isActive: true }).lean(),
-    User.find({ _id: { $in: rows.map(row => row.createdBy).filter(Boolean) } })
-      .select('fullName username').lean(),
+    Uom.find({
+      _id: { $in: rows.map((row) => row.uomId) },
+      isActive: true,
+    }).lean(),
+    User.find({
+      _id: { $in: rows.map((row) => row.createdBy).filter(Boolean) },
+    })
+      .select("fullName username")
+      .lean(),
   ]);
-  const unitById = new Map(units.map(unit => [String(unit._id), unit]));
-  const creatorById = new Map(creators.map(creator => [String(creator._id), creator]));
-  return rows.flatMap(row => {
+  const unitById = new Map(units.map((unit) => [String(unit._id), unit]));
+  const creatorById = new Map(
+    creators.map((creator) => [String(creator._id), creator]),
+  );
+  return rows.flatMap((row) => {
     const unit = unitById.get(String(row.uomId));
-    return unit ? [conversionDto(row, unit, creatorById.get(String(row.createdBy)), true)] : [];
+    return unit
+      ? [conversionDto(row, unit, creatorById.get(String(row.createdBy)), true)]
+      : [];
   });
 }
 
-export async function getProduct(user, id, query = {}) {
+export async function getProduct(user, id) {
   requirePermission(user, "product:read");
   const row = await product(id);
-  let productBatchId = null;
-  if (query.batchId && query.batchId !== 'null') {
-    const batch = await ProductBatch.findOne({ _id: query.batchId, productId: row._id });
-    if (!batch) throw notFoundError('Không tìm thấy lô thuộc sản phẩm');
-    if (batch.identificationStatus !== 'VERIFIED') {
-      throw validationError('Lô chưa xác minh');
-    }
-    productBatchId = batch._id;
-  }
+  const latestBatch = await ProductBatch.findOne({
+    productId: row._id,
+    identificationStatus: "VERIFIED",
+  })
+    .sort({ createdAt: -1, _id: -1 })
+    .select("_id")
+    .lean();
+  const productBatchId = latestBatch?._id ?? null;
   const asOf = new Date();
+  let conversions = await currentConversions(row._id, productBatchId, asOf);
+  if (productBatchId && !conversions.length) {
+    conversions = await currentConversions(row._id, null, asOf);
+  }
   return {
     ...dto(row),
-    currentConversions: await currentConversions(row._id, productBatchId, asOf),
+    currentConversions: conversions,
   };
 }
 export async function getProductOptions(user) {
@@ -260,7 +276,9 @@ export async function createProduct(user, input) {
 
       const createdConversions = [];
       for (const conversion of conversions) {
-        createdConversions.push(await configureConversion(row, conversion, user, session));
+        createdConversions.push(
+          await configureConversion(row, conversion, user, session),
+        );
       }
 
       await appendAudit({
@@ -463,40 +481,78 @@ export async function listConversions(user, id, query = {}) {
   const filter = { productId: productRow._id };
   if (query.uomId) filter.uomId = query.uomId;
   if (query.productBatchId !== undefined) {
-    filter.productBatchId = query.productBatchId === "null" ? null : query.productBatchId;
+    filter.productBatchId =
+      query.productBatchId === "null" ? null : query.productBatchId;
   }
   const pageNumber = query.page ?? 1;
   const limit = query.limit ?? 50;
   const [rows, total] = await Promise.all([
-    Conversion.find(filter).sort({ validFrom: -1, _id: -1 })
-      .skip((pageNumber - 1) * limit).limit(limit).lean(),
+    Conversion.find(filter)
+      .sort({ validFrom: -1, _id: -1 })
+      .skip((pageNumber - 1) * limit)
+      .limit(limit)
+      .lean(),
     Conversion.countDocuments(filter),
   ]);
   if (!rows.length) return { items: [], total, page: pageNumber, limit };
 
-  const key = row => String(row.productBatchId) + ":" + row.uomId;
-  const scopes = new Map(rows.map(row => [key(row), {
-    productBatchId: row.productBatchId, uomId: row.uomId,
-  }]));
+  const key = (row) => String(row.productBatchId) + ":" + row.uomId;
+  const scopes = new Map(
+    rows.map((row) => [
+      key(row),
+      {
+        productBatchId: row.productBatchId,
+        uomId: row.uomId,
+      },
+    ]),
+  );
   const [units, creators, effective] = await Promise.all([
-    Uom.find({ _id: { $in: rows.map(row => row.uomId) } }).lean(),
-    User.find({ _id: { $in: rows.map(row => row.createdBy).filter(Boolean) } }).select("fullName username").lean(),
+    Uom.find({ _id: { $in: rows.map((row) => row.uomId) } }).lean(),
+    User.find({
+      _id: { $in: rows.map((row) => row.createdBy).filter(Boolean) },
+    })
+      .select("fullName username")
+      .lean(),
     Conversion.aggregate([
-      { $match: { productId: productRow._id, $or: [...scopes.values()], validFrom: { $lte: new Date() } } },
+      {
+        $match: {
+          productId: productRow._id,
+          $or: [...scopes.values()],
+          validFrom: { $lte: new Date() },
+        },
+      },
       { $sort: { validFrom: -1 } },
-      { $group: { _id: { productBatchId: "$productBatchId", uomId: "$uomId" }, id: { $first: "$_id" } } },
+      {
+        $group: {
+          _id: { productBatchId: "$productBatchId", uomId: "$uomId" },
+          id: { $first: "$_id" },
+        },
+      },
     ]),
   ]);
-  const uomById = new Map(units.map(unit => [String(unit._id), unit]));
-  const creatorById = new Map(creators.map(creator => [String(creator._id), creator]));
-  const currentIds = new Set(effective.map(row => String(row.id)));
+  const uomById = new Map(units.map((unit) => [String(unit._id), unit]));
+  const creatorById = new Map(
+    creators.map((creator) => [String(creator._id), creator]),
+  );
+  const currentIds = new Set(effective.map((row) => String(row.id)));
   return {
-    items: rows.map(row => conversionDto(row, uomById.get(String(row.uomId)), creatorById.get(String(row.createdBy)), currentIds.has(String(row._id)))),
-    total, page: pageNumber, limit,
+    items: rows.map((row) =>
+      conversionDto(
+        row,
+        uomById.get(String(row.uomId)),
+        creatorById.get(String(row.createdBy)),
+        currentIds.has(String(row._id)),
+      ),
+    ),
+    total,
+    page: pageNumber,
+    limit,
   };
 }
 
 export async function createConversion(user, id, input) {
   requirePermission(user, "product:update");
-  return transaction(async session => configureConversion(await product(id, session), input, user, session));
+  return transaction(async (session) =>
+    configureConversion(await product(id, session), input, user, session),
+  );
 }

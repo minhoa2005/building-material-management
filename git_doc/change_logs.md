@@ -1,3 +1,20 @@
+## 09/11/2026 — CI trên GitHub Actions cho FE và BE
+
+- Theo yêu cầu người dùng, hoàn thiện workflow BE và thêm workflow FE trong `.github/workflows/ci.yml` của từng repo. Kiểm tra tự chạy khi push lên `main` hoặc cập nhật pull request vào `main`, và hỗ trợ chạy thủ công. Xem [hướng dẫn CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md).
+- BE chạy kiểm tra tài liệu và test mặc định. FE chạy build, test và báo cáo lint ở chế độ tham khảo vì có 47 lỗi lint hiện hữu. Các kiểm tra chạy với lockfile của từng repo, không cần truy cập dữ liệu ứng dụng.
+- Đã kiểm tra hai workflow bằng `actionlint`. Build FE và `npm run docs:check` đạt. FE đạt 396/396 ca test. Bộ test mặc định BE có 96 ca đạt và 62 ca bỏ qua. Workflow chưa chạy trên runner GitHub.
+
+## 09/11/2026 — Bỏ query batchId khỏi chi tiết sản phẩm
+
+- Theo yêu cầu người dùng, `GET /api/products/:id` chỉ dùng ID sản phẩm trên đường dẫn. API tự chọn lô đã xác minh mới nhất hoặc trả cấu hình mặc định. Gửi query `batchId` trả 400. Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) và kiểm thử tích hợp.
+- Kiểm tra tích hợp BE trên MongoDB loopback đạt 12/12. `npm run docs:check` đạt.
+
+## 09/11/2026 — Tự chọn lô mới nhất khi xem sản phẩm
+
+- Theo yêu cầu người dùng, khi bỏ `batchId`, `getProduct` ưu tiên hệ số hiện hành của lô `VERIFIED` được tạo gần nhất. Dùng cấu hình cấp sản phẩm nếu chưa có lô phù hợp hoặc lô được chọn chưa có hệ số hiện hành. Query chọn lô cụ thể và `batchId=null` vẫn chọn phạm vi trực tiếp.
+- Trang chi tiết ưu tiên bảng quy đổi hiện hành và giữ tab lịch sử riêng. Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) và context FE. Thay đổi chỉ đọc, không cần migration.
+- Kiểm tra tích hợp BE trên MongoDB loopback đạt 12/12, gồm ca tự chọn lô và ca trả cấu hình mặc định. Bộ test sản phẩm FE đạt 25/25. `npm run docs:check` đạt.
+
 ## 09/11/2026 — Chi tiết sản phẩm lấy Conversion theo phạm vi lô
 
 - Bổ sung `batchId` tùy chọn cho GET `/api/products/:id`. Không có lô trả hệ số mặc định; có lô trả hệ số thuộc đúng lô, chỉ bản hiệu lực mới nhất trên mỗi UOM hoạt động. Batch thuộc sản phẩm và phải VERIFIED.

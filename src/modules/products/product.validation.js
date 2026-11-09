@@ -50,10 +50,7 @@ export const listProductsSchema = schema(empty, z.object({ page: pager(1), limit
   isActive: z.enum(['true', 'false']).transform(v => v === 'true').optional(),
   sortBy: z.enum(['createdAt', 'sku', 'name']).default('createdAt'), sortOrder: z.enum(['asc', 'desc']).default('desc'),
 }).strict().refine(q => Number.isSafeInteger((q.page - 1) * q.limit)), empty);
-export const productIdSchema = schema(
-  empty,
-  z.object({ batchId: z.union([oid, z.literal('null')]).optional() }).strict(),
-);
+export const productIdSchema = schema();
 export const productOptionsSchema = schema(empty, empty, empty);
 export const createProductSchema = schema(
   z.object({

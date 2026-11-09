@@ -21,6 +21,7 @@ Bản v8 là snapshot lịch sử có category. Registry hiện hành có 58 col
 
 | Tài liệu | Nội dung |
 |---|---|
+| [GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md) | Trigger và lệnh kiểm tra cho hai repo FE và BE |
 | [DB rebuild](docs/09_phat_trien/DB_REBUILD.md) | Registry mới, migration lịch sử và giới hạn runtime |
 | [BF03](docs/08_api/location-movements/README.md) | API chuyển vị trí cùng kho trên runtime hiện có |
 | [BF04](docs/08_api/transfers/BF04_API.md) / [quyền đọc TR](docs/08_api/transfers/README.md) | API chuyển giữa kho và phạm vi xem |
