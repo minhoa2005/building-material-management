@@ -1,17 +1,17 @@
 export const documentCollections = Object.freeze({
   REPLENISHMENT: 'replenishment_requests', PO: 'purchase_orders',
-  ARRIVAL: 'goods_arrivals', INSPECTION: 'goods_inspections', GR_PURCHASE: 'purchase_receipts',
+  ARRIVAL: 'goods_arrivals', INSPECTION: 'goods_inspections', GR_PURCHASE: 'goods_receipts', PURCHASE: 'goods_receipts',
   TO: 'transfer_orders', TRANSFER_REQUEST: 'warehouse_transfer_requests',
   INTERNAL_TRANSFER_REQUIREMENT: 'internal_transfer_requirements',
-  TRANSFER_DISPATCH: 'transfer_dispatches', MWTR: 'transfer_receipts',
+  TRANSFER_DISPATCH: 'transfer_dispatches', MWTR: 'goods_receipts', TRANSFER: 'goods_receipts',
   SALES_ORDER: 'sales_orders', ISSUE_REQUEST: 'warehouse_issue_requests',
   OUTBOUND_DELIVERY: 'delivery_orders', GI_SALE: 'sales_goods_issues',
   DELIVERY_CONFIRMATION: 'delivery_confirmations', PAYMENT_CONFIRMATION: 'external_payment_confirmations',
   DEFECT_CASE: 'defect_reports', DISPOSITION: 'defect_resolution_plans', SCRAP: 'stock_scrap_records',
   STOCKTAKE: 'stocktakes', ADJUSTMENT: 'stock_adjustments', FAILED_DELIVERY: 'failed_deliveries',
-  GR_FAILED_DELIVERY: 'failed_delivery_receipts', ST_RESOLUTION: 'stocktake_resolution_plans',
+  GR_FAILED_DELIVERY: 'goods_receipts', ST_RESOLUTION: 'stocktake_resolution_plans',
   RECLASS: 'stock_quality_changes', CUSTOMER_RETURN: 'customer_returns',
-  GR_CUSTOMER_RETURN: 'customer_return_receipts', SUPPLIER_RETURN: 'supplier_returns',
+  GR_CUSTOMER_RETURN: 'goods_receipts', SUPPLIER_RETURN: 'supplier_returns', OTHER: 'goods_receipts',
   GI_SUPPLIER_RETURN: 'supplier_return_issues', SUPPLIER_ACK: 'supplier_acknowledgements',
   DISCREPANCY: 'stock_discrepancies', CUSTODY_RECEIPT: 'custody_receipts',
   CUSTODY_RELEASE: 'custody_releases', REVERSAL: 'stock_reversals', OPENING: 'opening_stocks',
@@ -44,10 +44,18 @@ export const migrationCollections = [
   'customers', 'suppliers', 'storage_stacks', 'storage_stack_items', 'sales_invoices',
 ];
 
+// The archived v8 fixture is projected into its historical four receipt arrays
+// before the clean seed combines them into goods_receipts.
+export const legacyDocumentCollections = Object.freeze({ ...documentCollections,
+  GR_PURCHASE: 'purchase_receipts', GR_CUSTOMER_RETURN: 'customer_return_receipts',
+  GR_FAILED_DELIVERY: 'failed_delivery_receipts', MWTR: 'transfer_receipts' });
+export const legacyMigrationCollections = [...new Set([...migrationCollections.filter(name => name !== 'goods_receipts'),
+  'purchase_receipts', 'customer_return_receipts', 'failed_delivery_receipts', 'transfer_receipts'])];
+
 import { removedCollections } from './consolidation.js';
 // Categories belong to the current design; the historical migration profile
 // deliberately retains its original collection/field contract.
-export const newCollections = [...migrationCollections.filter(name => !removedCollections.includes(name)), 'categories', 'uoms'];
+export const newCollections = [...new Set(migrationCollections.filter(name => !removedCollections.includes(name))), 'categories', 'uoms'];
 
 export const workflowModelNames = Object.freeze({
   REPLENISHMENT: 'ReplenishmentRequest', PO: 'PurchaseOrder', ARRIVAL: 'GoodsArrival',

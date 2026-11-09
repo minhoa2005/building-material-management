@@ -1,6 +1,6 @@
 import { isDeepStrictEqual } from 'node:util';
 import { exact } from '../../models/model-utils.js';
-import { documentCollections, collectionNames, splitSources, migrationCollections as newCollections } from '../../models/collections.js';
+import { legacyDocumentCollections as documentCollections, collectionNames, splitSources, legacyMigrationCollections as newCollections } from '../../models/collections.js';
 import { PERMISSION_CATALOGUE } from '../../seeds/data/permissions.data.js';
 
 const roleNames = { OWNER: 'Store Owner', WAREHOUSE: 'Warehouse Staff', ACCOUNTANT: 'Accountant', SALES: 'Sales Staff', ADMIN: 'Administrator' };

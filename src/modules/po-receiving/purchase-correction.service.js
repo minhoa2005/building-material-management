@@ -1,8 +1,8 @@
-import { StockReversal, StockTransaction, InventoryBalance, StockReservation, TransferOrder, GoodsInspection, GoodsArrival, PurchaseReceipt, PurchaseOrder, ApprovalHistory, StocktakeCount, models } from '../../models/runtime.js';
+import { StockReversal, StockTransaction, InventoryBalance, StockReservation, TransferOrder, GoodsInspection, GoodsArrival, PurchaseReceipt, PurchaseOrder, StocktakeCount, models } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess } from '../../shared/utils/access.js';
-import { validationError, forbiddenError, notFoundError, versionConflict } from '../../shared/utils/ApiError.js';
-import { command, checkVersion, saveVersion, same, newId, hash } from '../../shared/utils/document-command.js';
+import { validationError, notFoundError, versionConflict } from '../../shared/utils/ApiError.js';
+import { command, checkVersion, saveVersion, same, newId } from '../../shared/utils/document-command.js';
 import { dto } from '../../shared/utils/persistence.js';
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
 import { guardLocations, sourceContext, splitPortions, beginStock, remainingReservation, verifyCapacity } from '../../shared/utils/stock.js';
@@ -12,7 +12,7 @@ import { transferCustodyStock } from './purchase-custody.service.js';
 import { balanceAt } from '../../shared/utils/stock.js';
 import { prepare, activePo, inspectionSource } from './po-receiving.service.js';
 
-async function eligible(gr,user,session){
+export async function eligible(gr,user,session){
   if(gr.workflowStatus!=='POSTED')throw validationError('Phiếu chưa ghi hoặc đã đảo');
   const original=await StockTransaction.findById(gr.stockTransactionId).session(session);
   if(!original||original.reversedTransactionId||await StockTransaction.exists({reversedTransactionId:original._id}).session(session))throw validationError('Giao dịch gốc không đủ điều kiện đảo');
@@ -39,17 +39,11 @@ export async function reversalPreflight(user,id){
 }
 async function replayReversal(id,user,session){const d=await StockReversal.findById(id).session(session);if(!d)throw notFoundError();for(const wh of d.header.warehouseIds)requireWarehouseAccess(user,wh);return d;}
 export async function getReversal(user,id){requirePermission(user,'goods_receipt_inspection:read');return dto(await replayReversal(id,user));}
-export function reviewReversal(user,id,input){return command(user,'REVIEW_STOCK_REVERSAL','stock_reversal:approve',id,input,replayReversal,async(session,actor)=>{
-  const d=await replayReversal(id,actor,session);checkVersion(d,input.expectedVersion);if(d.workflowStatus!=='PENDING_APPROVAL')throw validationError('Yêu cầu không còn chờ duyệt');if(same(actor._id,d.header.requestedBy))throw forbiddenError('Người đề nghị không tự duyệt');
-  const decision=await new ApprovalHistory({decisionKey:hash({id,version:d.version}),subjectType:'stock_reversals',subjectId:d._id,subjectRevision:d.version,decisionScope:'STOCK_REVERSAL',reviewedContent:d.toObject(),decision:input.decision,reason:input.reason,requestedBy:d.header.requestedBy,decidedBy:actor._id,decidedAt:new Date(),recordedAt:new Date(),evidenceIds:d.evidenceIds}).save({session});
-  d.approvalDecision={decisionId:decision._id,revision:d.version,reviewedBy:actor._id,reviewedAt:decision.decidedAt,decision:input.decision,reason:input.reason};d.workflowStatus=input.decision==='APPROVE'?'APPROVED':'REJECTED';
-  return {document:await saveVersion(d,input.expectedVersion,session),versionBefore:input.expectedVersion,decisionId:decision._id,reason:input.reason};
-});}
 export function reverseReceipt(user,id,input){return command(user,'REVERSE_PURCHASE_RECEIPT','goods_receipt_inspection:reverse',id,input,replayReversal,async(session,actor)=>{
  requirePermission(actor,'goods_receipt_inspection:post');requireWarehouseAccess(actor,(await findPurchase(id,actor,session,{kind:'GR_PURCHASE'})).header.warehouseId);
  const source=await findPurchase(id,actor,session,{kind:'GR_PURCHASE'});checkVersion(source,input.expectedVersion);await evidenceFor(actor,source,input.evidenceIds,session,true);
  const originalSource=await eligible(source,actor,session);
- const d=newDocument(StockReversal,'REV',actor,{originalTransactionId:originalSource.original._id,sourceDocument:{documentType:'purchase_receipts',documentId:source._id,revision:source.version},sourceVersion:source.version,warehouseIds:[source.header.warehouseId],requestedBy:actor._id,requestedAt:new Date(),reason:input.reason},originalSource.original.movements.map((m,i)=>copyItem(source.items.id(m.sourceLineId),m.quantityBase,{lineNo:i+1,sources:[{subjectCollection:'stock_transactions',documentId:originalSource.original._id,itemId:m._id,linkedQty:String(m.quantityBase),relationCode:'REVERSES'}]})));
+ const d=newDocument(StockReversal,'REV',actor,{originalTransactionId:originalSource.original._id,sourceDocument:{documentType:'goods_receipts',documentId:source._id,revision:source.version},sourceVersion:source.version,warehouseIds:[source.header.warehouseId],requestedBy:actor._id,requestedAt:new Date(),reason:input.reason},originalSource.original.movements.map((m,i)=>copyItem(source.items.id(m.sourceLineId),m.quantityBase,{lineNo:i+1,sources:[{subjectCollection:'stock_transactions',documentId:originalSource.original._id,itemId:m._id,linkedQty:String(m.quantityBase),relationCode:'REVERSES'}]})));
  d.evidenceIds=input.evidenceIds;
   const gr=await findPurchase(d.header.sourceDocument.documentId,actor,session,{kind:'GR_PURCHASE'});checkVersion(gr,d.header.sourceVersion);const {original,locations}=await eligible(gr,actor,session);await guardLocations(locations,session);
   const po=await findPurchase(gr.header.purchaseOrderId,actor,session,{kind:'PO'});checkVersion(po,input.expectedPoVersion);
@@ -63,7 +57,6 @@ export function reverseReceipt(user,id,input){return command(user,'REVERSE_PURCH
   await verifyCapacity(locations,session);await posting.save({session});gr.workflowStatus='REVERSED';await saveVersion(gr,gr.version,session);const quantities=await purchaseOrderQuantities(po,session);po.workflowStatus=quantities.some(q=>exact(q.receivedQtyBase).gt(0))?'PARTIAL':'OPEN';await saveVersion(po,po.version,session);
   d.workflowStatus='POSTED';d.stockTransactionId=posting._id;d.postedBy=actor._id;d.postedAt=new Date();await d.save({session});return {document:d,versionBefore:0,stockTransactionId:posting._id};
 });}
-export function postReversal(){throw validationError('Luồng duyệt đảo cũ không được post qua API nhập mua mới');}
 export function replaceInspection(user,id,input){return command(user,'REPLACE_GOODS_INSPECTION','goods_receipt_inspection:update',id,input,replayPurchase,async(session,actor)=>{
   const {inspection,arrival}=await inspectionSource(actor,id,session);checkVersion(inspection,input.expectedVersion);if(inspection.workflowStatus!=='CONFIRMED')throw validationError('Chỉ thay kết quả đã xác nhận');
   await evidenceFor(actor,inspection,input.evidenceIds,session,true);

@@ -12,7 +12,7 @@ export async function traceRecords(user, id, query) {
   if (!lot) throw s.notFoundError();
   const purchasingOnly = currentRole(user)?.code === 'ACCOUNTANT';
   const models = purchasingOnly ? [m.PurchaseOrder, m.GoodsArrival, m.GoodsInspection, m.PurchaseReceipt, m.SupplierReturn, m.SupplierReturnIssue, m.CustodyReceipt, m.CustodyRelease]
-    : [m.PurchaseOrder, m.GoodsArrival, m.GoodsInspection, m.PurchaseReceipt, m.SupplierReturn, m.SupplierReturnIssue, m.CustodyReceipt, m.CustodyRelease, m.DefectReport, m.CustomerReturn, m.CustomerReturnReceipt, m.FailedDelivery, m.FailedDeliveryReceipt, m.SalesGoodsIssue, m.TransferOrder, m.TransferReceipt, m.StockQualityChange, m.StockScrapRecord];
+    : [m.PurchaseOrder, m.GoodsArrival, m.GoodsInspection, m.PurchaseReceipt, m.OtherGoodsReceipt, m.SupplierReturn, m.SupplierReturnIssue, m.CustodyReceipt, m.CustodyRelease, m.DefectReport, m.CustomerReturn, m.CustomerReturnReceipt, m.FailedDelivery, m.FailedDeliveryReceipt, m.SalesGoodsIssue, m.TransferOrder, m.TransferReceipt, m.StockQualityChange, m.StockScrapRecord];
   const scope = currentRole(user)?.code === 'OWNER' ? {} : { 'header.warehouseId': { $in: user.warehouseIds || [] } };
   const graph = new Map();
   for (const Model of models) {

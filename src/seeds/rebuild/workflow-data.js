@@ -6,7 +6,7 @@ export function createDocument(data,key,kind,actor,header,status='DRAFT',day=28)
   const document={_id:fixtureId('doc:'+key),documentNo:'DEMO2-'+key,documentKind:kind,workflowStatus:status,
     version:1,createdBy:actor,occurredAt:demoDate(day),createdAt:demoDate(day),updatedAt:demoDate(day),
     note:'Kịch bản mẫu tổng hợp, không phải giao dịch của cửa hàng.',header,items:[],sources:[]};
-  data[documentCollections[kind]].push(document);
+  data[kind === 'MWTR' ? 'transfer_receipts' : documentCollections[kind]].push(document);
   return document;
 }
 export function addItem(document,key,product,batch,qty,lineKind='STANDARD',details) {

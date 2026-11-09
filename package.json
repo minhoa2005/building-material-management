@@ -7,6 +7,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed": "node src/seeds/run.js",
+    "seed:goods-receipts": "node src/seeds/goods-receipt.seed.js",
     "seed:sync-permissions": "node src/seeds/run.js --sync-permissions",
     "seed:purchase-read-permissions": "node src/seeds/run.js --purchase-read-only",
     "test": "node --test test/*.test.js",

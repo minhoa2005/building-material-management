@@ -36,7 +36,3 @@ export function requireWarehouseAccess(user, warehouseId) {
     throw scopeError();
   }
 }
-
-export function scopedWarehouseIds(user) {
-  return (user?.warehouseIds || []).map((id) => idString(id));
-}

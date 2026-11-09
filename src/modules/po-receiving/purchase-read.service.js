@@ -21,18 +21,18 @@ async function enriched(user,document){
     writeWarehouse,
     edit: draft && canUpdate,
     confirm: kind === 'INSPECTION' && draft && canUpdate,
-    post: kind === 'GR_PURCHASE' && draft && canPost
+    post: kind === 'PURCHASE' && draft && canPost
       && (!document.custodyDecisionId || hasPermission(user, 'purchase_custody:execute')),
     cancel: draft && canUpdate,
-    reversePreflight: kind === 'GR_PURCHASE' && posted && canPost && hasPermission(user, 'goods_receipt_inspection:reverse'),
-    planPutaway: kind === 'GR_PURCHASE' && posted && writeWarehouse && hasPermission(user, 'putaway_task:create'),
+    reversePreflight: kind === 'PURCHASE' && posted && canPost && hasPermission(user, 'goods_receipt_inspection:reverse'),
+    planPutaway: kind === 'PURCHASE' && posted && writeWarehouse && hasPermission(user, 'putaway_task:create'),
   };
   if(kind==='INSPECTION'){
     value.arrival=dto(await GoodsArrival.findById(document.header.arrivalId));
     value.receipts=(await PurchaseReceipt.find({'items.inspectionId':document._id})).map(dto);
     value.custodyReceipts=(await CustodyReceipt.find({sources:{$elemMatch:{subjectCollection:'goods_inspections',documentId:document._id}}})).map(dto);
   }
-  if(['GR_PURCHASE','CUSTODY_RECEIPT'].includes(kind)){
+  if(['PURCHASE','CUSTODY_RECEIPT'].includes(kind)){
     for(const item of value.items){
       const ref=item.sources?.find(r=>r.subjectCollection==='goods_inspections');
       const inspection=await GoodsInspection.findOne({_id:item.inspectionId??ref?.documentId,'header.warehouseId':document.header.warehouseId});
@@ -40,7 +40,7 @@ async function enriched(user,document){
       if(source)item.inspectionResult=dto(source.details);
     }
   }
-  if(kind==='GR_PURCHASE'){value.reversed=!!await StockTransaction.exists({reversedTransactionId:document.stockTransactionId});if(document.workflowStatus==='POSTED')value.placements=await placementQuantities(document);}
+  if(kind==='PURCHASE'){value.reversed=!!await StockTransaction.exists({reversedTransactionId:document.stockTransactionId});if(document.workflowStatus==='POSTED')value.placements=await placementQuantities(document);}
   return financial(user)?value:redactPrices(value);
 }
 export async function getDocument(user,id,kind){requirePermission(user,'goods_receipt_inspection:read');return enriched(user,await findPurchase(id,user,null,{kind,readOnly:true}));}

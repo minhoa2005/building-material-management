@@ -20,9 +20,9 @@ function authorize(user, query) {
     : ['documents','document-lines','evidence'].includes(query.kind) ? ['external_reference:create']
     : query.kind === 'stocktakes' ? ['defect:create']
     : query.kind === 'holds' ? ['supplier_return:create']
-    : ['defect:read', 'customer_return:read', 'supplier_return:read', 'external_reference:create'];
+    : ['defect:read', 'customer_return:read', 'failed_delivery:read', 'failed_delivery:inspect', 'supplier_return:read', 'external_reference:create'];
   if (!permissions.some(permission => hasPermission(user, permission))) requirePermission(user, permissions[0]);
-  if (query.kind === 'sources') requirePermission(user, query.purpose === 'customer-returns' ? 'customer_return:create' : query.purpose === 'failed-deliveries' ? 'customer_return:inspect' : query.purpose === 'supplier-returns' ? 'supplier_return:create' : 'defect:create');
+  if (query.kind === 'sources') requirePermission(user, query.purpose === 'customer-returns' ? 'customer_return:create' : query.purpose === 'failed-deliveries' ? 'failed_delivery:inspect' : query.purpose === 'supplier-returns' ? 'supplier_return:create' : 'defect:create');
 }
 async function page(Model, stages, query, searchFields = ['code', 'name']) {
   if (query.search) stages.push({ $match: { $or: searchFields.map(field => ({ [field]: { $regex: escape(query.search), $options: 'i' } })) } });

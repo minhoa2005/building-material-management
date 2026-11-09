@@ -18,13 +18,13 @@ import purchaseOrdersRouter from "./modules/purchase-orders/purchase-order.route
 import purchaseOrderCommandsRouter from './modules/purchase-orders/purchase-order.commands.routes.js';
 import {
   inspectionRouter,
-  receiptRouter,
   purchaseReceivingRouter,
   custodyReleaseRouter, custodyRouter, reversalRouter, putawayRouter, queueRouter, purchaseDocumentRouter,
 } from "./modules/po-receiving/po-receiving.routes.js";
 
 import returnWorkflowsRouter from './modules/return-workflows/workflow.routes.js';
 import uomRouter from './modules/uoms/uom.routes.js';
+import goodsReceiptRouter from './modules/goods-receipts/goods-receipt.routes.js';
 
 const router = Router();
 router.use('/uoms',uomRouter);
@@ -48,7 +48,7 @@ router.use("/goods-inspections", inspectionRouter);
 router.use("/stock-reversals", reversalRouter);
 router.use("/custody-receipts", custodyRouter);
 router.use("/custody-releases", custodyReleaseRouter);
-router.use("/purchase-receipts", receiptRouter);
+router.use('/goods-receipts', goodsReceiptRouter);
 router.use('/putaway-tasks', putawayRouter);
 router.use('/purchase-receiving/queue', queueRouter);
 router.use('/purchase-documents', purchaseDocumentRouter);

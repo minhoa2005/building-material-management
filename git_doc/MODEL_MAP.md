@@ -1,14 +1,14 @@
 # Bản đồ model WMSD
 
-Mốc schema 06/11/2026. Có 60 collection nghiệp vụ; không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật. Bảng này định hướng file cần đọc, xem DB diagram kiểu SQL để tra field/ref hiện hành.
+Mốc schema 09/11/2026. Có 57 collection nghiệp vụ; năm loại phiếu nhập dùng chung `goods_receipts`. Không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật.
 
-[Từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/WMSD_Data_Dictionary.md) · [Rà trường từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md) · [Phiếu duyệt](docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md)
+[Từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md) · [Rà trường từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md) · [Phiếu duyệt](docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md)
 
 ## Registry và các file cùng tác động
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 60 collection schemas (`*.model.js`) and 97 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 57 collection schemas (`*.model.js`); `GoodsReceipt` có năm discriminator cùng collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
-[Hợp đồng API hiện hành](docs/08_api/NATIVE_MODEL_RUNTIME.md). Các bản v8/Atlas trước đây là bằng chứng triển khai có ngày; lượt đồng bộ này không ghi lên Atlas hay đổi dữ liệu ứng dụng.
+[Hợp đồng API hiện hành](docs/08_api/GOODS_RECEIPTS.md). Các bản v8/Atlas trước đây là bằng chứng triển khai có ngày; lượt đồng bộ này không ghi lên Atlas.
 
 ## Toàn bộ collection
 
@@ -47,12 +47,11 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 | `purchase_orders` | Đơn mua theo một RR, một nhà cung cấp và một kho; lưu giá mua, tổng tiền và lịch giao. | [purchase-order.model.js](../src/models/purchase-order.model.js) |
 | `goods_arrivals` | Mỗi lần hàng mua thực đến; giữ lịch sử kể cả khi từ chối toàn bộ, chưa tự tăng tồn sở hữu. | [goods-arrival.model.js](../src/models/goods-arrival.model.js) |
 | `goods_inspections` | Kết quả kiểm nhận theo từng phần hàng đến, chất lượng và quyết định sở hữu/giữ hộ/từ chối. | [goods-inspection.model.js](../src/models/goods-inspection.model.js) |
-| `purchase_receipts` | Phiếu nhận sở hữu hàng mua theo PO và kiểm nhận; có giao dịch tồn khi xác nhận. | [purchase-receipt.model.js](../src/models/purchase-receipt.model.js) |
+| `goods_receipts` | Phiếu nhập PURCHASE, CUSTOMER_RETURN, FAILED_DELIVERY, TRANSFER, OTHER; `documentKind` chọn header và ràng buộc dòng, ghi tồn theo luồng nguồn. | [goods-receipt.model.js](../src/models/goods-receipt.model.js) |
 | `transfer_orders` | TO dùng chung cho chuyển ô, lấy hàng và xếp hàng; ghi nguồn/đích và xác nhận trọn lệnh một lần. | [transfer-order.model.js](../src/models/transfer-order.model.js) |
 | `warehouse_transfer_requests` | TR chuyển giữa hai kho: lượng đề nghị/duyệt và tiến độ; một TR có nhiều phiếu xuất. | [warehouse-transfer-request.model.js](../src/models/warehouse-transfer-request.model.js) |
 | `internal_transfer_requirements` | Yêu cầu lấy/xếp hàng theo phiếu xuất hoặc nhận, là căn cứ tự sinh TO. | [internal-transfer-requirement.model.js](../src/models/internal-transfer-requirement.model.js) |
 | `transfer_dispatches` | Phiếu xuất điều chuyển từng đợt theo TR; chứa bàn giao và lượng thực xuất sang đang chuyển. | [transfer-dispatch.model.js](../src/models/transfer-dispatch.model.js) |
-| `transfer_receipts` | Phiếu nhận một phần hoặc toàn bộ hàng của phiếu xuất; tách hàng đạt và hàng lỗi tại kho đích. | [transfer-receipt.model.js](../src/models/transfer-receipt.model.js) |
 | `sales_orders` | Đơn bán có khách hàng, giá và quy đổi trên từng dòng; lưu tham chiếu đơn nguồn. | [sales-order.model.js](../src/models/sales-order.model.js) |
 | `warehouse_issue_requests` | Yêu cầu xuất do Sales chia từ đơn bán; mới lập chưa giữ hoặc trừ tồn. | [warehouse-issue-request.model.js](../src/models/warehouse-issue-request.model.js) |
 | `delivery_orders` | Lệnh giao một đợt từ một kho theo WIR; có lịch, người nhận, địa chỉ và lượng cam kết. | [delivery-order.model.js](../src/models/delivery-order.model.js) |
@@ -62,10 +61,8 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 | `stocktakes` | Đợt kiểm kê theo kho/phạm vi, lịch, người đếm, mốc kích hoạt và chốt. | [stocktake.model.js](../src/models/stocktake.model.js) |
 | `stock_adjustments` | Phiếu điều chỉnh số lượng theo phần thiếu/thừa được duyệt khi chốt kiểm kê. | [stock-adjustment.model.js](../src/models/stock-adjustment.model.js) |
 | `failed_deliveries` | Phần hàng đã xuất nhưng khách không nhận, gồm lý do, lượng và người đang giữ. | [failed-delivery.model.js](../src/models/failed-delivery.model.js) |
-| `failed_delivery_receipts` | Phiếu nhận thực tế hàng giao thất bại quay về kho; không cộng hàng còn trên xe. | [failed-delivery-receipt.model.js](../src/models/failed-delivery-receipt.model.js) |
 | `stock_quality_changes` | Phiếu chuyển lượng giữa trạng thái chất lượng; tổng lượng và vị trí không tự thay đổi. | [stock-quality-change.model.js](../src/models/stock-quality-change.model.js) |
 | `customer_returns` | Yêu cầu trả sau khi khách đã nhận; có kết quả kiểm và quyết định theo từng phần. | [customer-return.model.js](../src/models/customer-return.model.js) |
-| `customer_return_receipts` | Nhập sở hữu lượng được chấp nhận trả; có thể chuyển chủ hàng từ giữ hộ mà không cộng vật lý lần nữa. | [customer-return-receipt.model.js](../src/models/customer-return-receipt.model.js) |
 | `supplier_returns` | Đề nghị trả NCC và thỏa thuận được Accountant xác minh theo dòng. | [supplier-return.model.js](../src/models/supplier-return.model.js) |
 | `supplier_return_issues` | Phiếu thực xuất trả phần thuộc cửa hàng theo lượng đã thống nhất với NCC. | [supplier-return-issue.model.js](../src/models/supplier-return-issue.model.js) |
 | `stock_discrepancies` | Hồ sơ thiếu/thừa/sai/hỏng và chứng từ giải quyết; không tự xóa lượng chưa rõ. | [stock-discrepancy.model.js](../src/models/stock-discrepancy.model.js) |
@@ -91,7 +88,7 @@ Tìm collection, ref, model name và các trường liên quan bằng `rg` trong
 
 See [current return API and compatibility rules](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). SupplierReturn item details now distinguish an honest PROPOSED request from VERIFIED agreement facts, bind sourceBalanceId and optionally an evidenced defectHoldId. Embedded dispositions preserve targetQuality; defect headers preserve sourceKind. ExternalReference and its embedded items carry verified historical customer/warehouse/evidence, lot/conversion and prior returns without synthetic POD. CustodyRelease also holds supplier acknowledgements when supplier-owned goods are returned. Holds, plans, inspections, movements and claims retain their existing parents and IDs. These return changes added no collections or nested schema files. The 59-collection baseline preceded the local UOM and replenishment changes described below. Missing historical warehouse/source facts are not invented; no database migration or rollout was executed.
 
-Schema hiện hành sau quyết định Iteration 1: [Data Dictionary 60 collections](docs/03_thiet_ke/DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md), [quan hệ thay đổi](docs/03_thiet_ke/DB_Current_2026-11-06_60/Iteration1_Model_Relationships.mmd). Các enum/default trong snapshot cũ được thay bằng contract ngày 06/11.
+Mốc Iteration 1 ngày 06/11: [Data Dictionary 60 collections](docs/03_thiet_ke/DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md), [quan hệ thay đổi](docs/03_thiet_ke/DB_Current_2026-11-06_60/Iteration1_Model_Relationships.mmd). Phiếu nhập đã được gộp trong schema 09/11 ở đầu bản đồ.
 
 ## Nguồn bổ sung native — 07/11/2026
 

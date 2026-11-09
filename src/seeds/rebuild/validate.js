@@ -120,7 +120,7 @@ export async function validateReviewedDemo(data,models) {
     }
     for(const dispatch of dispatches) {
       for(const line of dispatch.items) {
-        const receipts=data.transfer_receipts.filter(row=>same(row.header.dispatchId,dispatch._id));
+        const receipts=data.goods_receipts.filter(row=>row.documentKind==='TRANSFER'&&same(row.header.dispatchId,dispatch._id));
         const received=receipts.flatMap(row=>row.items).filter(row=>same(row.details.dispatchLineId,line._id));
         ensure(sum(received,'qtyBase').lte(String(line.qtyBase)),'receipt exceeds dispatch');
         for(const receipt of receipts) ensure(!same(receipt.header.receivedBy,dispatch.header.dispatchedBy),'dispatcher cannot receive');

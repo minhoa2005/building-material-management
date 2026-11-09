@@ -6,9 +6,11 @@ Nguồn quyết định: người dùng yêu cầu đồng bộ toàn project, x
 
 ## Lưu trữ và bảo vệ thao tác
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 60 collection schemas (`*.model.js`) and 96 nested schemas (`*.schema.js`) directly under `src/models`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. No legacy profile or migration-model registration remains. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 57 collection schemas (`*.model.js`) and five GoodsReceipt kinds in one collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 API trả decimal dưới dạng chuỗi; ObjectId thành chuỗi. Chứng từ có _id/id, documentNo, documentKind, workflowStatus, version, header, items và sources. items có _id ổn định, productId, lotId khi có, enteredQty, enteredUnit, baseUnitsPerUnit, qtyBase, baseUnitSnapshot. Sources dùng subjectCollection, documentId, itemId, linkedQty, relationCode. Không gửi conversionId hoặc dòng BusinessDocument cũ.
+
+Các mapper cũ cho product, lot, supplier và replenishment không thuộc runtime hiện hành. DTO được tạo bởi các service native; tài liệu function-guide ngày 05/11 chỉ là ảnh chụp lịch sử. Các tiện ích `scopedWarehouseIds`, `isPastCalendarDate`, `multiplyBaseQuantity` và `sha256Text` không còn được sử dụng và đã được gỡ khỏi mã hiện hành.
 
 Lệnh ghi chứng từ kiểm quyền hiện tại, kho, trạng thái, nguồn và expectedVersion trong transaction. creationKey/operationKey được gắn actor và hash nội dung; thử lại dùng nguyên key lẫn payload. AuditLog, OperationRecord và BusinessEvent PENDING ghi cùng giao dịch. Lệnh ghi tồn cập nhật balance, packagingPortions, StockTransaction.movements, nguồn và hạn mức nguyên tử; kiểm khóa kiểm kê và sức chứa. Catalogue sửa bằng expectedUpdatedAt.
 
@@ -26,13 +28,13 @@ RR lưu header/items/submissions; duyệt tạo ApprovalHistory độc lập ng�
 
 POST /purchase-orders/:id/inspections tạo GoodsArrival và GoodsInspection cùng giao dịch; payload có expectedPoVersion, creationKey, arrivedAt, deliveredBy, deliveryReference, lines. Dòng dùng poLineId, lotId, enteredQty, qualityCode, ownershipDecision ACCEPT/CUSTODY/REJECT, packagingCondition SEALED/OPENED/TORN/UNKNOWN và handlingNote nếu có. PUT /goods-inspections/:id dùng expectedVersion/operationKey cùng nội dung. Confirm dùng expectedPoVersion và destinations[{inspectionItemId,locationId}].
 
-Confirm kiểm nhận tạo PurchaseReceipt/CustodyReceipt nháp, chưa ghi tồn. POST /purchase-receipts/:id/post nhận expectedVersion, expectedPoVersion, operationKey và packaging nếu cần. Nhập sở hữu kiểm chất lượng/nguồn/hạn mức rồi mới tăng tồn STORE. Hàng giữ hộ dùng /custody-receipts/:id/post với handedOverBy, destinations[{lineId,locationId}], ghi tồn SUPPLIER, không tăng lượng PO nhận sở hữu.
+Confirm kiểm nhận tạo GoodsReceipt `PURCHASE`/CustodyReceipt nháp, chưa ghi tồn. POST /goods-receipts/purchase/:id/post nhận expectedVersion, expectedPoVersion, operationKey và packaging nếu cần. Nhập sở hữu kiểm chất lượng/nguồn/hạn mức rồi mới tăng tồn STORE. Hàng giữ hộ dùng /custody-receipts/:id/post với handedOverBy, destinations[{lineId,locationId}], ghi tồn SUPPLIER, không tăng lượng PO nhận sở hữu. [Hợp đồng năm loại phiếu](GOODS_RECEIPTS.md).
 
 packaging là [{lineId,portions:[{packagingState,quantityBase,measuredVolumeMm3,...}]}]. Hàng không nguyên thùng phải có khai báo quy cách thực đo; lượng thùng nguyên có thể lấy quy cách cố định của lô. Tổng portions phải bằng lượng nhập. Không được tự coi hàng mở/lẻ là thùng nguyên.
 
 GET receipt/custody bổ sung inspectionResult trên từng item để hiển thị chất lượng và tình trạng bao bì từ kiểm nhận; đây là dữ liệu đọc, không thêm field lưu trên item. GET inspection bổ sung arrival, receipts, custodyReceipts. FE chuyển các DTO này thành dòng bảng hiển thị, không ghi trở lại dạng cũ.
 
-Putaway tạo TransferOrder và xác nhận từng phần; lượng đã xếp lấy từ ledger. Hủy chỉ hủy phần chưa thực hiện. Warehouse đảo nhập trực tiếp qua /purchase-receipts/:id/reverse, tạo StockReversal POSTED và bút toán ngược một lần, khôi phục hạn mức PO; không yêu cầu duyệt độc lập. GR từ giữ hộ đảo STORE về SUPPLIER gốc. Trường duyệt chỉ giữ cho lịch sử. Không đảo khi đã có nghiệp vụ phụ thuộc. Bằng chứng là Attachment riêng tư, kiểm nội dung JPEG/PNG/PDF, quyền tải và hạn dùng.
+Putaway tạo TransferOrder và xác nhận từng phần; lượng đã xếp lấy từ ledger. Hủy chỉ hủy phần chưa thực hiện. Warehouse đảo nhập mua trực tiếp qua /goods-receipts/purchase/:id/reverse, tạo StockReversal POSTED và bút toán ngược một lần, khôi phục hạn mức PO; không yêu cầu duyệt độc lập. GR từ giữ hộ đảo STORE về SUPPLIER gốc. `OTHER` có Bỏ ghi trực tiếp theo điều kiện. Không đảo khi đã có nghiệp vụ phụ thuộc. Bằng chứng là Attachment riêng tư, kiểm nội dung JPEG/PNG/PDF, quyền tải và hạn dùng.
 
 ## Chuyển kho và bán
 

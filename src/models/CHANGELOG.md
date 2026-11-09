@@ -144,3 +144,6 @@ approved quantity after closure. Existing records remain valid. No production da
 ## 07/11/2026 — Nguồn và kiểm soát đồng thời RR
 
 Theo kế hoạch người dùng duyệt: thêm STOCK_THRESHOLD, nested ReplenishmentSource, canonicalSourceKey/xác nhận nhu cầu độc lập và snapshot evaluation trên submission. SO thêm replenishmentPlanningVersion mặc định 0. Không tăng collection (60); nested schemas 97. Lock có unique kho/sản phẩm hiện hữu được dùng trong transaction; không migrate/xóa dữ liệu từ schema. Hợp đồng tại ../../git_doc/docs/08_api/REPLENISHMENT_COVERAGE.md.
+## 09/11/2026 — GoodsReceipt chung cho năm loại phiếu
+
+Thay bốn collection phiếu nhập bằng `goods_receipts`, đăng ký GoodsReceipt và năm discriminator `documentKind`. Giữ trường chung, header riêng, 19 cấu trúc dòng và hai lịch sử giao thất bại; index mã phiếu theo loại. `OTHER` có trường duyệt/hash phiên bản và liên kết phiếu thay thế. Seed dựng sạch gộp bốn mảng sau khi xử lý fixture lịch sử; không có migration DB cũ. Xem [từ điển hiện hành](../../git_doc/docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md).

@@ -1,3 +1,9 @@
+## 08/11/2026 — Dọn tiện ích không sử dụng
+
+- Theo yêu cầu người dùng, gỡ `scopedWarehouseIds`, `isPastCalendarDate`, `multiplyBaseQuantity` và `sha256Text` sau khi kiểm tra mã, test và script không có điểm gọi. Bốn mapper product, lot, supplier và replenishment cũ đã không còn trong checkout sau merge. Giữ nguyên toàn bộ mã upload.
+- Không thay đổi API, model hay dữ liệu; không cần migration. Cập nhật [hợp đồng runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md); function-guide cũ giữ làm bằng chứng lịch sử.
+- Kiểm tra: `npm run docs:check` đạt; `npm test` có 79 đạt, 58 bỏ qua và 3 lỗi: hai test cũ import file không có trong checkout, một test CLI timeout khi chạy toàn bộ. Chạy lại riêng `test/local-mongo-config.test.js`: 2/2 đạt. Chưa kiểm thử API với DB thật trong lượt này.
+
 ## 07/11/2026 — Sửa danh mục khi tạo sản phẩm
 
 - Form tạo sản phẩm lấy danh mục đang hoạt động từ API tùy chọn, bắt buộc chọn và gửi ObjectId tương ứng. Đơn vị gốc gửi mã UOM. Giữ nguyên API, model và dữ liệu. [Hợp đồng Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md).
@@ -825,3 +831,9 @@ Các script kiểm tra, bản chụp trước sửa, parser tải về và ảnh
 - Documented additive task-source fields and the Location planning guard in `src/models/CHANGELOG.md`, including future cross-module guard obligations and replica-set tests.
 
 Kiểm chứng đợt native 06/11: [báo cáo](docs/08_api/ITERATION1_NATIVE_VERIFICATION.md), 75 pass/9 skip/0 fail cho bộ test hiện hành. Hai test legacy untracked không import được module đã bị main xóa, được giữ nguyên. Không ghi Atlas, commit/push hoặc merge commit.
+## 09/11/2026 — Gộp GoodsReceipt trên BE
+
+- Theo kế hoạch được duyệt, thay bốn model/collection phiếu nhập bằng `GoodsReceipt`/`goods_receipts` và năm `documentKind`; giữ ID, nguồn, chứng cứ, Decimal128, quy cách, header, trường riêng và lịch sử nhúng. `CustodyReceipt` giữ riêng. Seed sạch chuyển fixture cũ sang collection chung, giữ liên kết.
+- API đọc tách theo loại ở `/api/goods-receipts`; lệnh nhận vẫn ở luồng nguồn. Quyền giao thất bại tách khỏi khách trả. `OTHER` có nháp, chứng cứ, Owner duyệt phiên bản, Warehouse ghi sổ/Bỏ ghi và phiếu thay thế. Gỡ `/api/purchase-receipts` và hai lệnh duyệt/post đảo cũ không còn dùng; giữ API chứng cứ, kiểm nhận, giữ hộ và putaway.
+- Cập nhật [Model Map](MODEL_MAP.md), [Data Dictionary](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md), [API](docs/08_api/GOODS_RECEIPTS.md), [seed](docs/09_phat_trien/SEED_CUA_HANG_GACH.md), quyền seed và Model Changelog. Chưa đổi FE trong lượt này; người dùng sẽ tự seed sau reset DB test đúng phạm vi.
+- Kiểm tra: `npm test` đạt 81 pass/59 skip/0 fail; HTTP MongoDB riêng cho năm loại và hai nhánh thay thế `OTHER` đạt; kiểm thử tích hợp mua 9 pass và khách trả/giao thất bại 17 pass; `npm run docs:check` đạt 57 collection.

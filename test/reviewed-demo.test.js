@@ -13,8 +13,8 @@ const clone=()=>mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.string
 
 test('complete reviewed demo validates all schemas, links, balances and approved scenarios',async()=>{
   const result=await validateReviewedDemo(data,models);
-  assert.equal(result.collections,60);
-  assert.equal(result.records,653);
+  assert.equal(result.collections,57);
+  assert.equal(result.records,661);
   assert.equal(data.roles.filter(row=>!row.isSystemRole).length,1);
   assert.equal(data.sales_invoices[0].items.length,2);
   assert.notEqual(+data.sales_invoices[0].items[0].issuedAt,+data.sales_invoices[0].items[1].issuedAt);
@@ -84,7 +84,7 @@ test('dispatches cannot exceed the approved TR line quantity',async()=>{
   await assert.rejects(validateReviewedDemo(sample,models),/approved quantity exceeded/);
 });
 test('destination receiver cannot be the source dispatcher',async()=>{
-  const sample=clone();sample.transfer_receipts[0].header.receivedBy=sample.transfer_dispatches[0].header.dispatchedBy;
+  const sample=clone();sample.goods_receipts.find(row=>row.documentKind==='TRANSFER').header.receivedBy=sample.transfer_dispatches[0].header.dispatchedBy;
   await assert.rejects(validateReviewedDemo(sample,models),/dispatcher cannot receive/);
 });
 test('invoice keeps 100 issued units while billing only 98 accepted units',async()=>{
