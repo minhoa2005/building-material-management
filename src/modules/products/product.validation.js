@@ -24,5 +24,36 @@ export const createProductSchema = schema(z.object({ sku: text(60).transform(nor
 export const updateProductSchema = schema(z.object({ expectedUpdatedAt: timestamp, ...fields }).strict());
 export const changeProductStatusSchema = schema(z.object({ expectedUpdatedAt: timestamp, isActive: z.boolean(), reason: text(2000) }).strict());
 export const listPoliciesSchema = schema();
-export const configurePolicySchema = schema(z.object({ expectedUpdatedAt: timestamp,
-  minimumQty: decimalStringSchema(), targetQty: decimalStringSchema() }).strict(), empty, z.object({ id: oid, warehouseId: oid }).strict());
+export const configurePolicySchema = schema(
+  z.object({
+    expectedUpdatedAt: timestamp.optional(),
+    expectedVersion: z.number().int().optional(),
+    minimumQty: decimalStringSchema().optional(),
+    targetQty: decimalStringSchema().optional(),
+    minimumQtyBase: decimalStringSchema().optional(),
+    targetQtyBase: decimalStringSchema().optional(),
+  }).strip().refine(b => b.minimumQty != null || b.minimumQtyBase != null, {
+    message: 'Cần nhập số lượng tồn tối thiểu',
+  }),
+  empty,
+  z.object({ id: oid, warehouseId: oid }).strict(),
+);
+export const listConversionsSchema = schema(
+  empty,
+  z.object({
+    page: pager(1).optional(),
+    limit: pager(50, 100).optional(),
+    uomId: oid.optional(),
+  }).strip(),
+);
+export const createConversionSchema = schema(
+  z.object({
+    productId: oid.optional(),
+    expectedProductVersion: z.number().int().optional(),
+    expectedUpdatedAt: z.string().optional(),
+    uomId: oid,
+    basePerUnit: decimalStringSchema({ positive: true }),
+    validFrom: z.string().min(1),
+    verificationReference: text(500),
+  }).strip(),
+);
