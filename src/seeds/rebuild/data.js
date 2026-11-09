@@ -11,6 +11,7 @@ import { splitCompletedSale, addOperationalExamples, addHandoverExamples } from 
 import { buildTileShopScenario } from './tile-shop.js';
 import { consolidateData } from '../../models/consolidation.js';
 import { addTileCategories } from './categories.js';
+import { planConversionBackfill } from '../../migrations/conversions.js';
 
 export const SEED_VERSION = 'wmsd-tile-shop-20261109-v10';
 export const hash = value => createHash('sha256').update(value).digest('hex');
@@ -213,5 +214,16 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
     }
   };
   for (const rows of Object.values(result)) rows.forEach(rewrite);
+  const conversionPlan = planConversionBackfill({
+    products: result.products, batches: result.product_batches, uoms: result.uoms,
+  });
+  const cartonIds = new Set(conversionPlan.cartonUomIds.map(String));
+  for (const uom of result.uoms) uom.isCarton = cartonIds.has(String(uom._id));
+  result.conversions = conversionPlan.candidates.map(row => ({
+    ...row,
+    _id: fixtureId(`conversion:${row.productId}:${row.productBatchId}:${row.uomId}`),
+    basePerUnit: mongoose.Types.Decimal128.fromString(row.basePerUnit),
+    createdAt: demoDate(1), updatedAt: demoDate(1),
+  }));
   return result;
 }

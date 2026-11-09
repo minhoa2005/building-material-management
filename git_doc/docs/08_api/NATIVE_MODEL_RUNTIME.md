@@ -1,4 +1,4 @@
-> Quyết định mới 06/11/2026: [Iteration 1 native](ITERATION1_NATIVE_2026-11-06.md) thay quy tắc UOM, NCC, giữ hộ và đảo nhập ở các phần lịch sử bên dưới. Danh mục UOM được khôi phục; không có bảng conversion. Warehouse tự đảo nhận mua; Accountant quyết định xử lý giữ hộ.
+> Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](CONVERSIONS.md). [Iteration 1 native](ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
 
 # Hợp đồng runtime theo model mới — 06/11/2026
 
@@ -6,7 +6,7 @@ Nguồn quyết định: người dùng yêu cầu đồng bộ toàn project, x
 
 ## Lưu trữ và bảo vệ thao tác
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 57 collection schemas (`*.model.js`) and five GoodsReceipt kinds in one collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 58 collection schemas (`*.model.js`) and five GoodsReceipt kinds in one collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 API trả decimal dưới dạng chuỗi; ObjectId thành chuỗi. Chứng từ có _id/id, documentNo, documentKind, workflowStatus, version, header, items và sources. items có _id ổn định, productId, lotId khi có, enteredQty, enteredUnit, baseUnitsPerUnit, qtyBase, baseUnitSnapshot. Sources dùng subjectCollection, documentId, itemId, linkedQty, relationCode. Không gửi conversionId hoặc dòng BusinessDocument cũ.
 
@@ -20,7 +20,7 @@ User có một roleId và warehouseIds; email/phone/fullName được lưu trự
 
 Middleware nạp role và permission hiện hành từ DB cho mỗi request. Route khai báo mã quyền thao tác, ví dụ `GET /api/roles` dùng `access_control:read` mặc định của Admin. Service kiểm thêm kho, người lập, nguồn và trạng thái theo nghiệp vụ. Thiếu quyền thao tác trả `ERR-CORE-403-001`; các endpoint có kiểm kho trực tiếp trả `ERR-CORE-403-002` khi ngoài phân công.
 
-Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits, lengthMm/widthMm/heightMm và stockThresholds nhúng. Lô dùng productId, manufacturerLot, identificationStatus VERIFIED/UNKNOWN, piecesPerCarton, cartonLengthMm/cartonWidthMm/cartonHeightMm. Không tone/calibre hay bảng quy đổi. Uom là danh mục mã/tên/trạng thái do Owner quản lý; Product.baseUnit giữ mã được kiểm bởi service. Supplier dùng contactName, taxCode, notes và status ACTIVE/SUSPENDED/TERMINATED; tạo mới ACTIVE. Tồn lô dùng quantityBase/qualityStatus; biến động dùng quantityBase.
+Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits, lengthMm/widthMm/heightMm, stockThresholds nhúng và imageUrls (mảng URL String có thứ tự, mặc định rỗng). `imageUrls[0]` là ảnh đại diện. POST `/api/products` nhận trường này tùy chọn; PUT `/api/products/:id` giữ ảnh hiện tại nếu bỏ trường, thay toàn bộ mảng nếu gửi và xóa hết khi gửi `[]`. BE chỉ nhận URL HTTPS tuyệt đối có hostname, không chứa thông tin đăng nhập; tối đa 5 URL, tối đa 2.048 ký tự/URL, không trùng sau khi trim. List/detail luôn trả mảng, gồm `[]` với bản ghi cũ. Quyền tạo/sửa giữ nguyên `product:create`/`product:update`; cập nhật dùng `expectedUpdatedAt` và ghi audit. Lô dùng productId, manufacturerLot, identificationStatus VERIFIED/UNKNOWN, piecesPerCarton, cartonLengthMm/cartonWidthMm/cartonHeightMm. Uom holds its immutable code, name, status and carton marker. Product.baseUnit stores the code. See [Conversion](CONVERSIONS.md) for effective factors and snapshots. Supplier dùng contactName, taxCode, notes và status ACTIVE/SUSPENDED/TERMINATED; tạo mới ACTIVE. Tồn lô dùng quantityBase/qualityStatus; biến động dùng quantityBase.
 
 ## Mua và nhập
 

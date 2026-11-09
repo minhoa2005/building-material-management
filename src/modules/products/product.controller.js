@@ -12,7 +12,11 @@ export const options = catchAsync(async (req, res) => {
 });
 
 export const detail = catchAsync(async (req, res) => {
-  const data = await service.getProduct(req.user, req.validated.params.id);
+  const data = await service.getProduct(
+    req.user,
+    req.validated.params.id,
+    req.validated.query,
+  );
   formatApiResponse(res, { data });
 });
 

@@ -1,14 +1,16 @@
-import { Product, ProductBatch, Uom } from '../../models/runtime.js';
+import { Product, ProductBatch } from '../../models/runtime.js';
+import { resolveConversion } from './conversions.js';
 import { exact } from '../../models/model-utils.js';
 import { validationError } from './ApiError.js';
 import { newId } from './document-command.js';
 import { lockLotIdentity } from './lotIdentity.js';
 
-export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', previous } = {}) {
+export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', previous, includeLotLabel = false, allowInactiveUom = false } = {}) {
   const product = await Product.findOne({ _id: input.productId, isActive: true }).session(session);
   if (!product) throw validationError('Sản phẩm không tồn tại hoặc đã ngừng sử dụng');
   const enteredUnit = input.enteredUnit;
-  if (!(previous && String(previous.productId)===String(input.productId) && previous.enteredUnit===enteredUnit && String(previous.lotId??'')===String(input.lotId??'')) && !await Uom.exists({code:enteredUnit,isActive:true}).session(session)) throw validationError('Đơn vị không hoạt động');
+  const reuseSnapshot = previous && String(previous.productId) === String(product._id) &&
+    previous.enteredUnit === enteredUnit && String(previous.lotId ?? '') === String(input.lotId ?? '');
   let factor;
   let packagingSnapshot;
   let batch;
@@ -19,18 +21,17 @@ export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', 
     packagingSnapshot = { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
       outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm };
   }
-  if (previous && String(previous.productId) === String(product._id) && previous.enteredUnit === enteredUnit && String(previous.lotId??'') === String(input.lotId??'')) {
+  if (reuseSnapshot) {
     factor = exact(previous.baseUnitsPerUnit);
     packagingSnapshot = previous.packagingSnapshot;
-  } else if (enteredUnit === product.baseUnit) factor = exact('1');
-  else if (['BOX','Thùng'].includes(enteredUnit) && batch) factor = exact(String(batch.piecesPerCarton));
-  else if (['M2','m²'].includes(enteredUnit) && ['PIECE','Viên'].includes(product.baseUnit)) factor = exact('1000000').div(exact(product.lengthMm).mul(String(product.widthMm)));
-  else throw validationError('Đơn vị cần có quy đổi xác minh theo sản phẩm hoặc lô');
-  if (factor.decimalPlaces() > 12) throw validationError('Quy đổi không biểu diễn chính xác; nhập số viên hoặc thùng');
+  } else {
+    factor = await resolveConversion(product, batch, enteredUnit, session, { allowInactiveUom });
+  }
   const quantity = exact(input.enteredQty).mul(factor);
   if (!quantity.gt(0) || quantity.decimalPlaces() > 6 || quantity.gte('100000000000000') || (product.wholeBaseUnits && !quantity.isInteger())) throw validationError('Số lượng phải quy đổi chính xác sang đơn vị gốc');
   return { _id: previous?._id ?? newId(), lineNo, lineKind, productId: product._id, lotId: batch?._id,
-    enteredUnit, baseUnitSnapshot: previous?.baseUnitSnapshot ?? product.baseUnit,
+    enteredUnit, baseUnitSnapshot: reuseSnapshot ? previous.baseUnitSnapshot : product.baseUnit,
     baseUnitsPerUnit: factor.toFixed(), enteredQty: input.enteredQty, qtyBase: quantity.toFixed(),
-    productNameSnapshot: previous?.productNameSnapshot ?? product.name, packagingSnapshot };
+    productNameSnapshot: reuseSnapshot ? previous.productNameSnapshot : product.name,
+    ...(includeLotLabel && { lotLabelSnapshot: batch?.manufacturerLot }), packagingSnapshot };
 }
