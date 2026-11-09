@@ -1,11 +1,16 @@
 # Kiểm tra tự động trên GitHub Actions
 
+<<<<<<< HEAD
 FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflows/ci.yml` ở thư mục gốc của mình. Workflow chạy trên Ubuntu với Node.js 26 khi mở hoặc cập nhật pull request vào `main` và khi push vào `main`. BE ghim runner ở `ubuntu-24.04` để MongoDB 8.0 không gặp kernel Linux mới mà phiên bản này từ chối khởi động; khi bước khởi tạo MongoDB lỗi, workflow in trạng thái container và log MongoDB. Có thể chạy thủ công từ tab Actions sau khi workflow có mặt trên nhánh mặc định.
+=======
+FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflows/ci.yml` ở thư mục gốc của mình. Workflow chạy trên Ubuntu với Node.js 26 khi mở hoặc cập nhật pull request vào `main` và khi push vào `main`. Có thể chạy thủ công từ tab Actions sau khi workflow có mặt trên nhánh mặc định.
 
-| Repo | Cài thư viện | Kiểm tra |
-| --- | --- | --- |
-| BE | `npm ci --no-audit` theo `package-lock.json` | `npm run docs:check`, `npm run test:coverage`, và `diff-cover` với ngưỡng 80% trên các dòng `src/**` thay đổi |
-| FE | pnpm 12.15.0 và `pnpm install --frozen-lockfile` theo `pnpm-lock.yaml` | `pnpm build` (gồm kiểm tra TypeScript), `pnpm test --maxWorkers=2 --testTimeout=60000`, `pnpm lint` |
+> > > > > > > e0f6eeae03c9b9a8dd9b2fa79948328ac195888a
+
+| Repo | Cài thư viện                                                           | Kiểm tra                                                                                                      |
+| ---- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| BE   | `npm ci --no-audit` theo `package-lock.json`                           | `npm run docs:check`, `npm run test:coverage`, và `diff-cover` với ngưỡng 80% trên các dòng `src/**` thay đổi |
+| FE   | pnpm 12.15.0 và `pnpm install --frozen-lockfile` theo `pnpm-lock.yaml` | `pnpm build` (gồm kiểm tra TypeScript), `pnpm test --maxWorkers=2 --testTimeout=60000`, `pnpm lint`           |
 
 Chạy các lệnh trong thư mục gốc của repo tương ứng để tái hiện một lỗi CI. Job BE khởi tạo MongoDB 8.0 dạng replica set một node tên `rs0`, rồi bật `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` khi chạy `npm run test:coverage`. Hai nhóm integration test tạo database riêng có tiền tố `wmsd_*_test_*` và tự xóa database sau khi chạy; chúng không kết nối database ứng dụng. Khi chạy local, cần có MongoDB loopback đã khởi tạo replica set `rs0` và đặt hai biến môi trường trên. Các test cần cấu hình database cục bộ riêng hoặc dịch vụ lưu bằng chứng vẫn được bật riêng theo hướng dẫn tương ứng. Workflow không cần secret hoặc kết nối database ứng dụng.
 
