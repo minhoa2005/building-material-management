@@ -28,7 +28,7 @@ export const updateRolePermissions = async (roleCode, permissionCodes = []) => {
   // Ensure permissions exist in database
   const permissionDocs = await Promise.all(
     permissionCodes.map(async (code) => {
-      const p = await Permission.findOne({ code, isActive:true });
+      const p = await Permission.findOne({ code, isActive: { $ne: false } });
       if (!p) {
         throw new ApiError(400, `Quyền không thuộc danh mục: ${code}`);
       }
@@ -37,6 +37,16 @@ export const updateRolePermissions = async (roleCode, permissionCodes = []) => {
   );
 
   role.permissionIds = permissionDocs.map((p) => p._id);
+  if (!role.name) {
+    const defaultNames = {
+      ADMIN: 'Quản trị viên',
+      OWNER: 'Chủ cửa hàng',
+      SALES: 'Nhân viên Bán hàng',
+      WAREHOUSE: 'Thủ kho & Điều phối',
+      ACCOUNTANT: 'Kế toán công nợ',
+    };
+    role.name = defaultNames[role.code] || role.code;
+  }
   await role.save();
 
   return {
@@ -48,8 +58,8 @@ export const updateRolePermissions = async (roleCode, permissionCodes = []) => {
 };
 
 export async function createRole(input){
- const codes=[...new Set(input.permissionCodes)];const permissions=await Permission.find({code:{$in:codes},isActive:true});if(permissions.length!==codes.length)throw new ApiError(400,'Chỉ chọn quyền đang hoạt động trong danh mục');
+ const codes=[...new Set(input.permissionCodes)];const permissions=await Permission.find({code:{$in:codes},isActive:{$ne:false}});if(permissions.length!==codes.length)throw new ApiError(400,'Chỉ chọn quyền đang hoạt động trong danh mục');
  const role=await Role.create({code:input.code,name:input.name,description:input.description,isSystemRole:false,permissionIds:permissions.map(p=>p._id)});return {id:String(role._id),code:role.code,name:role.name,permissions:codes};
 }
-export async function listPermissions(){return (await Permission.find({isActive:true}).select('code name description').lean()).map(p=>({id:String(p._id),code:p.code,name:p.name,description:p.description}));}
+export async function listPermissions(){return (await Permission.find({isActive:{$ne:false}}).select('code name description').lean()).map(p=>({id:String(p._id),code:p.code,name:p.name,description:p.description}));}
 
