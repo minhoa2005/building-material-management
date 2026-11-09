@@ -1,6 +1,8 @@
 # Kiểm tra tự động trên GitHub Actions
 
-FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflows/ci.yml` ở thư mục gốc của mình. Workflow chạy trên Ubuntu với Node.js 26 khi mở hoặc cập nhật pull request vào `main` và khi push vào `main`. BE ghim runner ở `ubuntu-24.04` để MongoDB 8.0 không gặp kernel Linux mới mà phiên bản này từ chối khởi động; khi bước khởi tạo MongoDB lỗi, workflow in trạng thái container và log MongoDB. Có thể chạy thủ công từ tab Actions sau khi workflow có mặt trên nhánh mặc định.
+FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflows/ci.yml` ở thư mục gốc của mình. Workflow chạy trên Ubuntu với Node.js 26 khi mở hoặc cập nhật pull request vào `main` và khi push vào `main`. Có thể chạy thủ công từ tab Actions sau khi workflow có mặt trên nhánh mặc định.
+
+Job BE tạm dùng runner `ubuntu-22.04` vì MongoDB 8.0 từ chối khởi động trên kernel của runner `ubuntu-24.04` trong lần chạy đã ghi nhận. Khi bước khởi tạo lỗi, workflow in trạng thái container và log MongoDB. Xem [log lần chạy lỗi](https://github.com/minhoa2005/building-material-management/actions/runs/42635769959/job/129223389790) và [hướng dẫn tạm thời của GitHub Actions](https://github.com/actions/runner-images/issues/15005).
 
 | Repo | Cài thư viện                                                           | Kiểm tra                                                                                                      |
 | ---- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |

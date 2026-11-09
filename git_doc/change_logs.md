@@ -1,3 +1,9 @@
+## 09/11/2026 — Đổi runner CI BE để khởi động MongoDB 8.0
+
+- Log `mongod` của [lần chạy 42635769959](https://github.com/minhoa2005/building-material-management/actions/runs/42635769959/job/129223389790) xác nhận MongoDB từ chối kernel trên runner `ubuntu-24.04`. Đổi `.github/workflows/ci.yml` sang `ubuntu-22.04` theo [hướng dẫn của GitHub Actions](https://github.com/actions/runner-images/issues/15005).
+- CI tiếp tục dùng MongoDB 8.0 replica set `rs0` cho integration test. Cập nhật [hướng dẫn GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Không cần di chuyển dữ liệu.
+- `npm run docs:check` và `git diff --check` đạt. Cần chạy workflow từ bản sửa trên GitHub Actions để xác nhận replica set khởi động và test chạy đến hết.
+
 ## 09/11/2026 — Ổn định MongoDB 8.0 trên CI BE
 
 - Ghim workflow BE trên `ubuntu-24.04` do MongoDB 8.0 từ chối khởi động trên một số kernel Linux mới; thêm bước in trạng thái và log container khi khởi tạo thất bại. Nguồn tương thích kernel: [MongoDB 8.0 production notes](https://www.mongodb.com/docs/v8.0/administration/production-notes/).
