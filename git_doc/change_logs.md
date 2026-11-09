@@ -1,3 +1,9 @@
+## 09/11/2026 — Chạy integration test BE và diff coverage trong CI
+
+- Cấu hình workflow khởi chạy MongoDB 8.0 replica set một node `rs0`, bật `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1`, đồng thời tăng timeout cho coverage suite. Các integration test dùng database `wmsd_*_test_*` riêng; không dùng database ứng dụng.
+- Bổ sung kiểm thử lọc danh sách lô, chi tiết tồn theo lô và lịch sử movement. Sửa fixture receipt FAILED_DELIVERY để khai báo đúng `documentKind`, giúp test demand reopening chạy đúng discriminator.
+- Kiểm tra local: `npm run test:coverage` đạt 131/163, 32 test vẫn skip do các cổng/dịch vụ riêng; tổng coverage source là 84.03%. `diff-cover` so với `origin/main` đạt 82% (ngưỡng 80%). `npm run docs:check` đạt. Workflow chưa được chạy trên GitHub Actions.
+
 ## 09/11/2026 — Bộ quy tắc quản trị và coverage gate
 
 - Tạo/chốt bộ tài liệu quản trị trong `be/docs/` và bản tương ứng trong `fe/docs/`; `release-checklist.md` tiếp tục ở trạng thái chờ quyết định. RTM dùng danh sách UC ACTIVE từ Report 3; mỗi repository tự quản lý test evidence và AI log.

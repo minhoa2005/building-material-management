@@ -148,7 +148,7 @@ test('only posted effective failed-delivery receipts reopen demand and valid rev
   await m.StockTransaction.collection.insertOne({requestKey:String(id()),_id:issueTx,sourceId:issueId,sourceType:'sales_goods_issues',movements:[{sourceLineId:issueLine,quantityBase:d('18')}]});
   let [evaluation]=await evaluate([sourceLine(so)]);assert.equal(evaluation.suggestedQtyBase,'2');
   const receiptId=id(), receiptLine=id(), returnTx=id();
-  await m.FailedDeliveryReceipt.collection.insertOne({_id:receiptId,workflowStatus:'DRAFT',stockTransactionId:returnTx,header:{warehouseId:warehouse._id},items:[],demandReopenings:[{receiptLineId:receiptLine,salesOrderLineId:so.items[0]._id,reopenedQtyBase:d('4')}]});
+  await m.FailedDeliveryReceipt.collection.insertOne({_id:receiptId,documentKind:'FAILED_DELIVERY',workflowStatus:'DRAFT',stockTransactionId:returnTx,header:{warehouseId:warehouse._id},items:[],demandReopenings:[{receiptLineId:receiptLine,salesOrderLineId:so.items[0]._id,reopenedQtyBase:d('4')}]});
   [evaluation]=await evaluate([sourceLine(so)]);assert.equal(evaluation.suggestedQtyBase,'2');
   await m.FailedDeliveryReceipt.collection.updateOne({_id:receiptId},{$set:{workflowStatus:'POSTED'}});
   await m.StockTransaction.collection.insertOne({requestKey:String(id()),_id:returnTx,sourceId:receiptId,sourceType:'failed_delivery_receipts',movements:[{sourceLineId:receiptLine,quantityBase:d('4')}]});

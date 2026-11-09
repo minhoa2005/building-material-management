@@ -18,7 +18,7 @@ Use synthetic fixtures only. Isolate integration data from shared or production 
 
 ## Current repository test setup
 
-- **BE:** CI runs `npm run docs:check` and Node tests. Database integration tests may require a MongoDB replica set and use isolated test databases where their module guidance specifies.
+- **BE:** CI runs `npm run docs:check` and `npm run test:coverage` against a disposable MongoDB 8.0 single-node replica set (`rs0`). It enables `RUN_NATIVE_API_TESTS=1` and `RUN_GOODS_RECEIPT_TESTS=1`; these tests use isolated `wmsd_*_test_*` databases and never use the application database. Tests that require separate local database settings or live evidence storage remain gated separately.
 - **FE:** CI runs `pnpm build` and Vitest tests. Tests use Vitest, React Testing Library, and MSW. ESLint remains advisory.
 - **Cross-repository:** For API/permission changes, verify the BE contract and FE consumer in their respective repositories; keep the two RTM evidence records separate.
 

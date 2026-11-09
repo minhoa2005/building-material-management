@@ -9,7 +9,7 @@ import * as receiving from '../src/modules/po-receiving/po-receiving.service.js'
 import * as putaway from '../src/modules/po-receiving/purchase-putaway.service.js';
 import * as correction from '../src/modules/po-receiving/purchase-correction.service.js';
 import * as productService from '../src/modules/products/product.service.js';
-import { createLot, updateLot } from '../src/modules/lots/lot.service.js';
+import { createLot, getLot, getLotMovements, listLots, updateLot } from '../src/modules/lots/lot.service.js';
 import { backfillConversions } from '../src/migrations/conversions.js';
 import { makeItem } from '../src/shared/utils/document-items.js';
 import { transaction } from '../src/shared/utils/persistence.js';
@@ -103,6 +103,25 @@ run('conversion versions use the right scope and preserve document snapshots', a
  await assert.rejects(make('PACK'), /ngừng hoạt động/);
  assert.equal((await make('PACK', undefined, original)).qtyBase, original.qtyBase);
  await assert.rejects(make('M2'), /Thiếu quy đổi/);
+});
+
+run('lot list, detail and movement queries apply filters and expose stock history', async () => {
+ const location=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:key(),locationType:'STORAGE',isPickable:true,usableLengthMm:'5000',usableWidthMm:'5000'});
+ const point=await m.StockHoldingPoint.create({type:'LOCATION',locationId:location._id});
+ const balance=await m.InventoryBalance.create({holdingPointId:point._id,batchId:batch._id,qualityStatus:'GOOD',ownerType:'STORE',quantityBase:'2',version:0,packagingPortions:[{packagingState:'LOOSE',quantityBase:'2',createdBy:owner._id}]});
+ const listed=await listLots(owner,{productId:String(product._id),identificationStatus:'VERIFIED',manufacturerLot:'b1',warehouseId:String(warehouse._id),page:1,limit:10});
+ assert.equal(listed.total,1);
+ assert.equal(String(listed.items[0]._id),String(batch._id));
+ const detail=await getLot(owner,String(batch._id));
+ assert.equal(detail.balances.length,1);
+ assert.equal(detail.balances[0].id,String(balance._id));
+
+ const transactionId=new mongoose.Types.ObjectId();
+ await m.StockTransaction.create({_id:transactionId,sourceType:'test',sourceId:new mongoose.Types.ObjectId(),operation:'TEST',eventKey:key(),requestKey:key(),requestHash:'a'.repeat(64),performedBy:owner._id,occurredAt:new Date(),recordedAt:new Date(),movements:[{_id:new mongoose.Types.ObjectId(),transactionId,lineNo:1,sourceLineId:new mongoose.Types.ObjectId(),toBalanceId:balance._id,quantityBase:'2',toBefore:'0',toAfter:'2'}]});
+ const movements=await getLotMovements(owner,String(batch._id),{page:1,limit:10});
+ assert.equal(movements.total,1);
+ assert.equal(movements.items[0].toBalanceId,String(balance._id));
+ assert.equal(movements.items[0].fromBalanceId,null);
 });
 
 run('planned PO conversion and actual lot conversion remain separate through receipt', async () => {

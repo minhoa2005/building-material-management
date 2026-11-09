@@ -4,9 +4,9 @@ FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflo
 
 | Repo | Cài thư viện | Kiểm tra |
 | --- | --- | --- |
-| BE | `npm ci --no-audit` theo `package-lock.json` | `npm run docs:check`, `node --test --test-concurrency=2 test/*.test.js` (cùng bộ test với `npm test`) |
+| BE | `npm ci --no-audit` theo `package-lock.json` | `npm run docs:check`, `npm run test:coverage`, và `diff-cover` với ngưỡng 80% trên các dòng `src/**` thay đổi |
 | FE | pnpm 12.15.0 và `pnpm install --frozen-lockfile` theo `pnpm-lock.yaml` | `pnpm build` (gồm kiểm tra TypeScript), `pnpm test --maxWorkers=2 --testTimeout=60000`, `pnpm lint` |
 
-Chạy các lệnh trong thư mục gốc của repo tương ứng để tái hiện một lỗi CI. Các bộ test BE yêu cầu MongoDB hoặc dịch vụ lưu bằng chứng chạy theo hướng dẫn riêng và được bỏ qua theo mặc định. Workflow CI không cần secret hay kết nối cơ sở dữ liệu ứng dụng.
+Chạy các lệnh trong thư mục gốc của repo tương ứng để tái hiện một lỗi CI. Job BE khởi tạo MongoDB 8.0 dạng replica set một node tên `rs0`, rồi bật `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` khi chạy `npm run test:coverage`. Hai nhóm integration test tạo database riêng có tiền tố `wmsd_*_test_*` và tự xóa database sau khi chạy; chúng không kết nối database ứng dụng. Khi chạy local, cần có MongoDB loopback đã khởi tạo replica set `rs0` và đặt hai biến môi trường trên. Các test cần cấu hình database cục bộ riêng hoặc dịch vụ lưu bằng chứng vẫn được bật riêng theo hướng dẫn tương ứng. Workflow không cần secret hoặc kết nối database ứng dụng.
 
 Lint FE hiện có lỗi tồn đọng. Bước lint vẫn ghi kết quả vào log Actions và chạy ở chế độ tham khảo. Build và test FE quyết định trạng thái CI.
