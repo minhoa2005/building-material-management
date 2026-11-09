@@ -13,12 +13,18 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
+
+      - name: Start MongoDB replica set
+        uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # 1.12.1
+        with:
+          mongodb-version: '8.0'
+          mongodb-replica-set: rs0
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -37,6 +43,9 @@ jobs:
 
       - name: Run backend tests
         run: npm run test:coverage
+        env:
+          RUN_NATIVE_API_TESTS: '1'
+          RUN_GOODS_RECEIPT_TESTS: '1'
 
       - name: Install diff-cover
         if: ${{ github.event_name == 'pull_request' }}
