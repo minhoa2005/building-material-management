@@ -1,5 +1,7 @@
 import { catchAsync } from "../../shared/utils/catchAsync.js";
 import { formatApiResponse } from "../../shared/utils/ApiResponse.js";
+import { validationError } from "../../shared/utils/ApiError.js";
+import { uploadImageBuffer } from "../upload/upload.service.js";
 import * as service from "./product.service.js";
 
 export const list = catchAsync(async (req, res) => {
@@ -17,7 +19,25 @@ export const detail = catchAsync(async (req, res) => {
 });
 
 export const create = catchAsync(async (req, res) => {
-  const data = await service.createProduct(req.user, req.validated.body);
+  let uploadedUrls = [];
+  if (Array.isArray(req.files) && req.files.length > 0) {
+    uploadedUrls = await Promise.all(
+      req.files.map((file) =>
+        uploadImageBuffer(file.buffer).then((uploadRes) => uploadRes.url)
+      )
+    );
+  }
+  const existingUrls = Array.isArray(req.validated.body.imageUrls)
+    ? req.validated.body.imageUrls
+    : [];
+  if (existingUrls.length + uploadedUrls.length > 5) {
+    throw validationError("Tổng số ảnh sản phẩm không được vượt quá 5 ảnh");
+  }
+  const input = {
+    ...req.validated.body,
+    imageUrls: [...existingUrls, ...uploadedUrls],
+  };
+  const data = await service.createProduct(req.user, input);
   formatApiResponse(res, {
     statusCode: 201,
     message: "Tạo sản phẩm thành công",

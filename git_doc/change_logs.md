@@ -1,3 +1,67 @@
+## 09/11/2026 — Đổi runner CI BE để khởi động MongoDB 8.0
+
+- Log `mongod` của [lần chạy 42635769959](https://github.com/minhoa2005/building-material-management/actions/runs/42635769959/job/129223389790) xác nhận MongoDB từ chối kernel trên runner `ubuntu-24.04`. Đổi `.github/workflows/ci.yml` sang `ubuntu-22.04` theo [hướng dẫn của GitHub Actions](https://github.com/actions/runner-images/issues/15005).
+- CI tiếp tục dùng MongoDB 8.0 replica set `rs0` cho integration test. Cập nhật [hướng dẫn GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Không cần di chuyển dữ liệu.
+- `npm run docs:check` và `git diff --check` đạt. Cần chạy workflow từ bản sửa trên GitHub Actions để xác nhận replica set khởi động và test chạy đến hết.
+
+## 09/11/2026 — Ổn định MongoDB 8.0 trên CI BE
+
+- Ghim workflow BE trên `ubuntu-24.04` do MongoDB 8.0 từ chối khởi động trên một số kernel Linux mới; thêm bước in trạng thái và log container khi khởi tạo thất bại. Nguồn tương thích kernel: [MongoDB 8.0 production notes](https://www.mongodb.com/docs/v8.0/administration/production-notes/).
+- Cập nhật [hướng dẫn GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Không ảnh hưởng dữ liệu.
+- Kiểm tra `npm run docs:check`; chưa chạy workflow trên GitHub Actions trong lượt này.
+
+## 09/11/2026 — Khôi phục cấu hình MongoDB CI sau merge
+
+- Merge commit `d7d09a6` đã đưa lại `ubuntu-latest` và làm mất bước log container; lần chạy CI mới vẫn gặp lỗi khởi động MongoDB. Khôi phục runner `ubuntu-24.04` và bước chẩn đoán log trong `.github/workflows/ci.yml`.
+- Xóa dấu conflict còn sót trong [hướng dẫn GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Không ảnh hưởng dữ liệu.
+- `npm run docs:check` được chạy lại sau chỉnh sửa; workflow GitHub Actions cần chạy lại để xác nhận nguyên nhân qua log `mongod`.
+
+## 09/11/2026 — Chạy integration test BE và diff coverage trong CI
+
+- Cấu hình workflow khởi chạy MongoDB 8.0 replica set một node `rs0`, bật `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1`, đồng thời tăng timeout cho coverage suite. Các integration test dùng database `wmsd_*_test_*` riêng; không dùng database ứng dụng.
+- Bổ sung kiểm thử lọc danh sách lô, chi tiết tồn theo lô và lịch sử movement. Sửa fixture receipt FAILED_DELIVERY để khai báo đúng `documentKind`, giúp test demand reopening chạy đúng discriminator.
+- Kiểm tra local: `npm run test:coverage` đạt 131/163, 32 test vẫn skip do các cổng/dịch vụ riêng; tổng coverage source là 84.03%. `diff-cover` so với `origin/main` đạt 82% (ngưỡng 80%). `npm run docs:check` đạt. Workflow chưa được chạy trên GitHub Actions.
+
+## 09/11/2026 — Bộ quy tắc quản trị và coverage gate
+
+- Tạo/chốt bộ tài liệu quản trị trong `be/docs/` và bản tương ứng trong `fe/docs/`; `release-checklist.md` tiếp tục ở trạng thái chờ quyết định. RTM dùng danh sách UC ACTIVE từ Report 3; mỗi repository tự quản lý test evidence và AI log.
+- Thêm c8 9.1.0 và lệnh coverage LCOV cho BE; thêm Vitest V8 coverage cho FE. CI của hai repo checkout đầy đủ lịch sử, tạo LCOV và chạy `diff-cover==10.6.0` trên source mới/sửa trong PR với ngưỡng 80%. Bỏ qua docs, tests, config, scripts và lockfiles; thêm `coverage/` vào `.gitignore`. Không thay đổi GitHub branch protection.
+- Kiểm tra BE: `npm run test:coverage` đạt 96, bỏ qua 62; coverage tổng toàn source 66.58% (gate chỉ tính dòng source thay đổi trong PR). FE: build đạt, test coverage tập trung đạt 7; lượt chạy toàn bộ trước đó có 8 lỗi trong hai test file vốn đã có thay đổi. Chạy `diff-cover` cục bộ chưa được vì Python chưa cài; CI cài Python và công cụ đã pin. Cảnh báo npm audit hiện có 5 mục (3 moderate, 2 high), trong đó không còn cảnh báo c8/test-exclude; chưa chạy `npm audit fix`.
+
+## 09/11/2026 — CI trên GitHub Actions cho FE và BE
+
+- Theo yêu cầu người dùng, hoàn thiện workflow BE và thêm workflow FE trong `.github/workflows/ci.yml` của từng repo. Kiểm tra tự chạy khi push lên `main` hoặc cập nhật pull request vào `main`, và hỗ trợ chạy thủ công. Xem [hướng dẫn CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md).
+- BE chạy kiểm tra tài liệu và test mặc định. FE chạy build, test và báo cáo lint ở chế độ tham khảo vì có 47 lỗi lint hiện hữu. Các kiểm tra chạy với lockfile của từng repo, không cần truy cập dữ liệu ứng dụng.
+- Đã kiểm tra hai workflow bằng `actionlint`. Build FE và `npm run docs:check` đạt. FE đạt 396/396 ca test. Bộ test mặc định BE có 96 ca đạt và 62 ca bỏ qua. Workflow chưa chạy trên runner GitHub.
+
+## 09/11/2026 — Bỏ query batchId khỏi chi tiết sản phẩm
+
+- Theo yêu cầu người dùng, `GET /api/products/:id` chỉ dùng ID sản phẩm trên đường dẫn. API tự chọn lô đã xác minh mới nhất hoặc trả cấu hình mặc định. Gửi query `batchId` trả 400. Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) và kiểm thử tích hợp.
+- Kiểm tra tích hợp BE trên MongoDB loopback đạt 12/12. `npm run docs:check` đạt.
+
+## 09/11/2026 — Tự chọn lô mới nhất khi xem sản phẩm
+
+- Theo yêu cầu người dùng, khi bỏ `batchId`, `getProduct` ưu tiên hệ số hiện hành của lô `VERIFIED` được tạo gần nhất. Dùng cấu hình cấp sản phẩm nếu chưa có lô phù hợp hoặc lô được chọn chưa có hệ số hiện hành. Query chọn lô cụ thể và `batchId=null` vẫn chọn phạm vi trực tiếp.
+- Trang chi tiết ưu tiên bảng quy đổi hiện hành và giữ tab lịch sử riêng. Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) và context FE. Thay đổi chỉ đọc, không cần migration.
+- Kiểm tra tích hợp BE trên MongoDB loopback đạt 12/12, gồm ca tự chọn lô và ca trả cấu hình mặc định. Bộ test sản phẩm FE đạt 25/25. `npm run docs:check` đạt.
+
+## 09/11/2026 — Chi tiết sản phẩm lấy Conversion theo phạm vi lô
+
+- Bổ sung `batchId` tùy chọn cho GET `/api/products/:id`. Không có lô trả hệ số mặc định; có lô trả hệ số thuộc đúng lô, chỉ bản hiệu lực mới nhất trên mỗi UOM hoạt động. Batch thuộc sản phẩm và phải VERIFIED.
+- Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md). Kiểm tra tích hợp xác nhận hệ số mặc định 6, hệ số lô 8, bỏ tương lai/UOM ngừng hoạt động và kiểm tra quyền, batch ID sai hoặc không hợp lệ.
+
+## 09/11/2026 — Conversion theo sản phẩm và lô
+
+- Thêm collection `conversions`, unique index theo phạm vi và phiên bản, cờ `uoms.isCarton` và API cấu hình có lịch sử. Thay tra cứu hardcode bằng resolver. PO giữ hệ số dự kiến, kiểm nhận dùng hệ số lô thực và đối chiếu cam kết theo đơn vị gốc.
+- Bổ sung backfill có dry-run, seed và kiểm thử. Cập nhật Model Map, Data Dictionary, ERD và [hợp đồng API](docs/08_api/CONVERSIONS.md). Backfill áp dụng trên DB kiểm thử MongoDB loopback cô lập, gồm kiểm tra chạy lại. Chưa áp dụng cho DB ứng dụng.
+- Kiểm tra: `npm test` đạt 96, bỏ qua 62 theo cấu hình mặc định. Native API integration đạt 12/12 trên replica set local, gồm HTTP 403/409 và kiểm nhận hệ số 6 → 8. `npm run docs:check` đạt với 58 collection.
+
+## 09/11/2026 — Lưu URL ảnh trên Product
+
+- Thêm `imageUrls` mặc định `[]` vào Product. API tạo nhận trường tùy chọn; API sửa giữ ảnh khi bỏ trường, thay danh sách khi gửi mảng và ghi audit/version theo luồng cập nhật catalogue.
+- Cập nhật Model Map, Data Dictionary hiện hành, ERD và hợp đồng runtime Product. Không đổi quyền, không thêm collection/index, không migration/backfill. Upload file và UI nằm ngoài phạm vi.
+- Kiểm tra: 18/18 test Product đạt; kiểm thử tích hợp API Product 1/1 đạt trên MongoDB replica set loopback cô lập; `npm run docs:check` đạt với 57 collection và 674 liên kết. Chưa chạy toàn bộ native API integration suite.
+
 ## 08/11/2026 — Dọn tiện ích không sử dụng
 
 - Theo yêu cầu người dùng, gỡ `scopedWarehouseIds`, `isPastCalendarDate`, `multiplyBaseQuantity` và `sha256Text` sau khi kiểm tra mã, test và script không có điểm gọi. Bốn mapper product, lot, supplier và replenishment cũ đã không còn trong checkout sau merge. Giữ nguyên toàn bộ mã upload.
@@ -831,6 +895,7 @@ Các script kiểm tra, bản chụp trước sửa, parser tải về và ảnh
 - Documented additive task-source fields and the Location planning guard in `src/models/CHANGELOG.md`, including future cross-module guard obligations and replica-set tests.
 
 Kiểm chứng đợt native 06/11: [báo cáo](docs/08_api/ITERATION1_NATIVE_VERIFICATION.md), 75 pass/9 skip/0 fail cho bộ test hiện hành. Hai test legacy untracked không import được module đã bị main xóa, được giữ nguyên. Không ghi Atlas, commit/push hoặc merge commit.
+
 ## 09/11/2026 — Gộp GoodsReceipt trên BE
 
 - Theo kế hoạch được duyệt, thay bốn model/collection phiếu nhập bằng `GoodsReceipt`/`goods_receipts` và năm `documentKind`; giữ ID, nguồn, chứng cứ, Decimal128, quy cách, header, trường riêng và lịch sử nhúng. `CustodyReceipt` giữ riêng. Seed sạch chuyển fixture cũ sang collection chung, giữ liên kết.

@@ -1,12 +1,12 @@
 # Bản đồ model WMSD
 
-Mốc schema 09/11/2026. Có 57 collection nghiệp vụ; năm loại phiếu nhập dùng chung `goods_receipts`. Không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật.
+Mốc schema 09/11/2026. Có 58 collection nghiệp vụ, gồm `conversions` theo sản phẩm và lô. Năm loại phiếu nhập dùng chung `goods_receipts`. Không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật.
 
 [Từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md) · [Rà trường từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md) · [Phiếu duyệt](docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md)
 
 ## Registry và các file cùng tác động
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 57 collection schemas (`*.model.js`); `GoodsReceipt` có năm discriminator cùng collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 58 collection schemas (`*.model.js`); `GoodsReceipt` có năm discriminator cùng collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 [Hợp đồng API hiện hành](docs/08_api/GOODS_RECEIPTS.md). Các bản v8/Atlas trước đây là bằng chứng triển khai có ngày; lượt đồng bộ này không ghi lên Atlas.
 
@@ -20,8 +20,9 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 | `warehouses` | Kho vật lý, thông tin nhận diện và kích thước sử dụng được. | [warehouse.model.js](../src/models/warehouse.model.js) |
 | `warehouse_locations` | Ô/vị trí thuộc một kho, loại ô và kích thước phục vụ kiểm sức chứa. | [warehouse-location.model.js](../src/models/warehouse-location.model.js) |
 | `categories` | Nhóm phân loại sản phẩm: 5 nhóm đã duyệt, mỗi sản phẩm thuộc một category. | [category.model.js](../src/models/category.model.js) |
-| `uoms` | Danh mục đơn vị; mã bất biến, baseUnit tham chiếu mã qua service; không lưu hệ số. | [uom.model.js](../src/models/uom.model.js) |
-| `products` | Hãng + SKU + màu; categoryId thuộc một nhóm; dài/rộng/cao từng viên (mm), đơn vị gốc lưu trực tiếp. | [product.model.js](../src/models/product.model.js) |
+| `uoms` | Danh mục đơn vị. Mã bất biến và `isCarton` đánh dấu đơn vị thùng. `Product.baseUnit` tham chiếu mã qua service. | [uom.model.js](../src/models/uom.model.js) |
+| `conversions` | Hệ số Decimal128 có phiên bản theo sản phẩm, lô tùy chọn và UOM. Dòng chứng từ giữ hệ số tại thời điểm lập. | [conversion.model.js](../src/models/conversion.model.js) |
+| `products` | Hãng + SKU + màu; categoryId thuộc một nhóm; dài/rộng/cao từng viên (mm), đơn vị gốc lưu trực tiếp; imageUrls lưu tối đa 5 URL HTTPS theo thứ tự. | [product.model.js](../src/models/product.model.js) |
 | `customers` | Khách hàng gồm mã WMSD, tên và điện thoại; không lưu địa chỉ giao mặc định. | [customer.model.js](../src/models/customer.model.js) |
 | `suppliers` | Nhà cung cấp và thông tin liên hệ; theo dõi trạng thái chờ/kích hoạt/ngừng. | [supplier.model.js](../src/models/supplier.model.js) |
 | `stock_holding_points` | Điểm theo dõi tồn: một ô kho hoặc phần hàng đang chuyển theo dòng xuất. | [stock-holding-point.model.js](../src/models/stock-holding-point.model.js) |

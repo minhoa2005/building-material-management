@@ -15,6 +15,7 @@ export function createProductSchema() {
       surface: optionalText(100),
       origin: optionalText(100),
       description: optionalText(2000),
+      imageUrls: { type: [String], default: [] },
       baseUnit: text(60),
       wholeBaseUnits: { type: Boolean, required: true, default: true },
       lengthMm: decimal({ positive: true, scale: 3 }),

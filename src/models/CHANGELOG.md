@@ -1,3 +1,11 @@
+## 09/11/2026 — Conversion theo sản phẩm và lô
+
+Thêm `conversions` với hệ số Decimal128, phạm vi sản phẩm hoặc lô, phiên bản và ngày hiệu lực. Thêm `uoms.isCarton` để đồng bộ hệ số từ quy cách lô. Registry có 58 collection. Dòng chứng từ giữ snapshot, kiểm nhận ghi hệ số lô thực. Xem [hợp đồng](../../git_doc/docs/08_api/CONVERSIONS.md) và [backfill](../../git_doc/docs/09_phat_trien/CONVERSION_BACKFILL.md).
+
+## 09/11/2026 — URL ảnh theo thứ tự trên Product
+
+Thêm `products.imageUrls` kiểu mảng String, mặc định `[]`, để lưu tối đa 5 URL ảnh theo thứ tự; không thêm collection/index hoặc migration. API Product kiểm cú pháp HTTPS, giới hạn 2.048 ký tự mỗi URL và loại URL trùng sau trim. Client cũ tạo sản phẩm không gửi trường vẫn nhận mảng rỗng; bản ghi cũ thiếu trường được DTO chuẩn hóa thành `[]`. Hợp đồng sửa chỉ đổi ảnh khi request gửi `imageUrls`, giữ nguyên khi bỏ trường và ghi audit khi có thay đổi. Cập nhật Model Map, Data Dictionary hiện hành, ERD và API contract. Kiểm tra 18 test Product và một test tích hợp API Product qua MongoDB local được ghi trong `git_doc/change_logs.md`.
+
 ## 2026-11-07 — Native return workflow contracts
 
 Supplier-return details add PROPOSED/VERIFIED phase, sourceBalanceId and optional defectHoldId; actual agreement facts remain required for VERIFIED records. Defect report headers retain sourceKind; disposition details retain targetQuality. ExternalReference adds optional customer/warehouse/evidence/status/note; embedded items add historical lot/conversion/prior returns. CustodyRelease embeds the existing supplier acknowledgement schema for actual supplier-owned handbacks. These additions introduced no collections or nested schema files. The return workflow branch had 59 collections and 96 nested schema files. No bulk data rewrite or Atlas index creation. Current dictionary/schema and SQL-style diagram regenerated from the registry; runtime and compatibility rules are in ../../git_doc/docs/08_api/RETURN_WORKFLOWS_NATIVE.md. Verification is recorded in the PR evidence.

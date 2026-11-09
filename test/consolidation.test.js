@@ -23,7 +23,7 @@ test('all merged record types retain IDs, fields, quantities and history', () =>
   const sorted=rows=>[...rows].sort((a,b)=>String(a._id).localeCompare(String(b._id)));
   for (const old of Object.keys(embeddedTables)) assert.deepEqual(sorted(expanded[old]),sorted(source[old].map(row=>expectedRecord(old,row))),old);
   for (const old of removedCollections) { assert.ok(!models.has(old)); assert.ok(!Object.hasOwn(data,old)); }
-  assert.equal(models.size,57);
+  assert.equal(models.size,58);
 });
 test('model serialization preserves every embedded history field and reference', async () => {
   const saved=Object.fromEntries([...models].map(([name,Model])=>[name,current[name].map(row=>new Model(row).toObject())]));

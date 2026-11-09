@@ -13,8 +13,10 @@ const clone=()=>mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.string
 
 test('complete reviewed demo validates all schemas, links, balances and approved scenarios',async()=>{
   const result=await validateReviewedDemo(data,models);
-  assert.equal(result.collections,57);
-  assert.equal(result.records,661);
+  assert.equal(result.collections,58);
+  assert.equal(result.records,661 + data.conversions.length);
+  assert.ok(data.conversions.some(row => row.productBatchId && data.uoms.some(unit =>
+    String(unit._id) === String(row.uomId) && unit.isCarton)));
   assert.equal(data.roles.filter(row=>!row.isSystemRole).length,1);
   assert.equal(data.sales_invoices[0].items.length,2);
   assert.notEqual(+data.sales_invoices[0].items[0].issuedAt,+data.sales_invoices[0].items[1].issuedAt);
