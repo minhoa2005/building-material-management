@@ -1,8 +1,26 @@
 # Từ điển GoodsReceipt hiện hành — 09/11/2026
 
-Registry hiện hành có 57 collection. Các collection ngoài phiếu nhập giữ định nghĩa ở [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`. Bộ seed dựng sạch, không di chuyển bản ghi DB cũ.
+Registry hiện hành có 58 collection, gồm `conversions`. Các định nghĩa chưa được thay thế tại đây giữ theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`.
 
-[ERD 57 collection](WMSD_ERD_Current.drawio) được sinh từ registry hiện hành; GoodsReceipt nằm trong nhóm nhận hàng và liên kết các luồng nguồn qua `sources`.
+[ERD 58 collection](WMSD_ERD_Current.drawio) được sinh từ registry hiện hành. GoodsReceipt nằm trong nhóm nhận hàng và liên kết các luồng nguồn qua `sources`.
+
+## Conversion và Uom
+
+| Trường | Kiểu và ý nghĩa |
+| --- | --- |
+| `productId` | ObjectId bắt buộc tham chiếu Product. |
+| `productBatchId` | ObjectId tham chiếu ProductBatch. Mặc định null cho hệ số cấp sản phẩm. |
+| `uomId` | ObjectId bắt buộc tham chiếu Uom của đơn vị nhập. |
+| `basePerUnit` | Decimal128 dương, precision 24, scale 12. Một đơn vị nhập bằng số này nhân một đơn vị gốc. |
+| `version`, `validFrom` | Số nguyên từ 1 và ngày giờ bắt đầu hiệu lực. |
+| `verificationReference`, `createdBy` | Căn cứ bắt buộc tối đa 500 ký tự và ObjectId User, nullable cho bản ghi suy ra từ dữ liệu nền. |
+| `createdAt`, `updatedAt` | Thời gian Mongoose ghi bản cấu hình. |
+
+Hai unique index dùng tiền tố `(productId, productBatchId, uomId)` và lần lượt kết thúc bằng `validFrom`, `version`. Một sản phẩm, lô hoặc UOM có thể có nhiều conversion. Service kiểm quan hệ lô với sản phẩm, hiệu lực và trạng thái UOM. `Uom.isCarton` là Boolean mặc định false. Việc thêm conversion không ghi tồn. Xem [hợp đồng quy đổi](../../08_api/CONVERSIONS.md) và [backfill](../../09_phat_trien/CONVERSION_BACKFILL.md).
+
+## Trường Product bổ sung trong registry hiện hành
+
+Product giữ các trường theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md) và bổ sung `imageUrls` kiểu mảng String, mặc định rỗng. Mảng lưu URL ảnh theo thứ tự; phần tử đầu là ảnh đại diện. API kiểm tối đa 5 URL HTTPS hợp lệ, mỗi URL tối đa 2.048 ký tự và không trùng sau khi trim. Đây là giới hạn của hợp đồng API; model không thêm collection hoặc index.
 
 ## `goods_receipts` / `GoodsReceipt`
 

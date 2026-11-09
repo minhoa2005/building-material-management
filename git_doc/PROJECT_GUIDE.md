@@ -1,4 +1,4 @@
-> Quyết định mới 06/11/2026: [Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md) thay quy tắc UOM, NCC, giữ hộ và đảo nhập ở các phần lịch sử bên dưới. Danh mục UOM được khôi phục; không có bảng conversion. Warehouse tự đảo nhận mua; Accountant quyết định xử lý giữ hộ.
+> Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](docs/08_api/CONVERSIONS.md). [Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
 
 # WMSD — Hướng dẫn chung khi phát triển
 
@@ -6,7 +6,7 @@ Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều k
 
 ## 1. Phân biệt thiết kế và runtime
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 57 collection schemas (`*.model.js`); five GoodsReceipt kinds share `goods_receipts`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 58 collection schemas (`*.model.js`); five GoodsReceipt kinds share `goods_receipts`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 [Hợp đồng runtime mới](docs/08_api/NATIVE_MODEL_RUNTIME.md) phân biệt API đã chuyển và phạm vi kiểm chứng. Việc có schema cho một nghiệp vụ không có nghĩa mọi màn hình demo đã thành chức năng vận hành.
 
@@ -28,7 +28,7 @@ Code thực tế chứng minh hiện trạng triển khai, không tự thay quy�
 |---|---|---|
 | Tài khoản/quyền | Một user có một role, có thể phụ trách nhiều kho. Tên role kho là Warehouse Staff. Admin được tạo role và tick quyền có sẵn, role mới thực hiện theo quyền. Kiểm thêm kho, người tạo, trạng thái và tách người duyệt khi luồng yêu cầu. | [A01–A03](docs/03_thiet_ke/DB_Rebuild_Review/02_Duyet_tai_khoan_va_phan_quyen.md) |
 | SKU và lô | Nhận diện sản phẩm bằng hãng + SKU hãng + màu; khác màu là productId khác. Sản phẩm có lengthMm/widthMm/heightMm của từng viên. Lô theo productId + manufacturerLot; không có calibre/tone. Số viên/thùng cố định theo lô, kích thước ngoài thùng ghi thực tế, không suy từ thể tích viên. | [B04/B05 hiện hành](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md) |
-| Đơn vị/thùng | Giữ danh mục Uom với mã/tên/trạng thái theo quyết định 06/11; không khôi phục UOMVersion/conversion. Đơn vị gốc trên sản phẩm tham chiếu mã UOM, quy đổi và quy cách snapshot trên từng dòng. Một thùng vật lý chỉ một sản phẩm, một lô. Gộp các thùng cùng sản phẩm/lô/quy cách trên dòng. Khác thông tin phải tách dòng. | [Quy đổi](docs/03_thiet_ke/DB_Rebuild_Review/14_Bo_UOM_va_luu_quy_doi_tren_dong.md), [nhận thùng](docs/03_thiet_ke/DB_Rebuild_Review/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md) |
+| Đơn vị/thùng | Uom giữ mã, tên, trạng thái và dấu hiệu đơn vị thùng. Conversion giữ hệ số theo sản phẩm, lô tùy chọn và ngày hiệu lực. Chứng từ lưu snapshot hệ số và quy cách. Một thùng vật lý chỉ chứa một sản phẩm, một lô. Gộp thùng cùng sản phẩm, lô và quy cách trên một dòng. | [Quy đổi](docs/08_api/CONVERSIONS.md), [nhận thùng](docs/03_thiet_ke/DB_Rebuild_Review/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md) |
 | Kho và sức chứa | Ô giữ chiều dài/rộng; chiều cao dùng chung từ kho. Không quản lý chồng. packagingPortions[] giữ thùng nguyên/hàng lẻ và thể tích thực đo. BE kiểm cạnh thùng vừa ô và tổng thể tích. Chưa có tọa độ xếp kiện nên lượng thùng còn xếp được chỉ là ước tính; 3D triển khai sau. | [B01/B02](docs/03_thiet_ke/DB_Rebuild_Review/05_Duyet_kho_vi_tri_don_vi_tinh.md), [quy cách và kiểm sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md) |
 | Khách/NCC/bàn giao | Khách và nhà cung cấp có danh mục riêng. Không quản lý đội xe; mỗi lần bàn giao ghi biển số xe trực tiếp nếu có phương tiện. | [B08A](docs/03_thiet_ke/DB_Rebuild_Review/08A_Khach_hang.md), [B08B](docs/03_thiet_ke/DB_Rebuild_Review/08B_Nha_cung_cap.md), [bàn giao H11](docs/03_thiet_ke/DB_Rebuild_Review/17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md) |
 | RR và PO | Một RR tối đa một PO, một PO thuộc một RR, một NCC, một kho. PO nhiều lần nhận. Accountant lập và cùng Owner xem giá mua/tổng tiền. | [H01/H02](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md) |

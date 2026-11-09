@@ -1,3 +1,20 @@
+## 09/11/2026 — Chi tiết sản phẩm lấy Conversion theo phạm vi lô
+
+- Bổ sung `batchId` tùy chọn cho GET `/api/products/:id`. Không có lô trả hệ số mặc định; có lô trả hệ số thuộc đúng lô, chỉ bản hiệu lực mới nhất trên mỗi UOM hoạt động. Batch thuộc sản phẩm và phải VERIFIED.
+- Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md). Kiểm tra tích hợp xác nhận hệ số mặc định 6, hệ số lô 8, bỏ tương lai/UOM ngừng hoạt động và kiểm tra quyền, batch ID sai hoặc không hợp lệ.
+
+## 09/11/2026 — Conversion theo sản phẩm và lô
+
+- Thêm collection `conversions`, unique index theo phạm vi và phiên bản, cờ `uoms.isCarton` và API cấu hình có lịch sử. Thay tra cứu hardcode bằng resolver. PO giữ hệ số dự kiến, kiểm nhận dùng hệ số lô thực và đối chiếu cam kết theo đơn vị gốc.
+- Bổ sung backfill có dry-run, seed và kiểm thử. Cập nhật Model Map, Data Dictionary, ERD và [hợp đồng API](docs/08_api/CONVERSIONS.md). Backfill áp dụng trên DB kiểm thử MongoDB loopback cô lập, gồm kiểm tra chạy lại. Chưa áp dụng cho DB ứng dụng.
+- Kiểm tra: `npm test` đạt 96, bỏ qua 62 theo cấu hình mặc định. Native API integration đạt 12/12 trên replica set local, gồm HTTP 403/409 và kiểm nhận hệ số 6 → 8. `npm run docs:check` đạt với 58 collection.
+
+## 09/11/2026 — Lưu URL ảnh trên Product
+
+- Thêm `imageUrls` mặc định `[]` vào Product. API tạo nhận trường tùy chọn; API sửa giữ ảnh khi bỏ trường, thay danh sách khi gửi mảng và ghi audit/version theo luồng cập nhật catalogue.
+- Cập nhật Model Map, Data Dictionary hiện hành, ERD và hợp đồng runtime Product. Không đổi quyền, không thêm collection/index, không migration/backfill. Upload file và UI nằm ngoài phạm vi.
+- Kiểm tra: 18/18 test Product đạt; kiểm thử tích hợp API Product 1/1 đạt trên MongoDB replica set loopback cô lập; `npm run docs:check` đạt với 57 collection và 674 liên kết. Chưa chạy toàn bộ native API integration suite.
+
 ## 08/11/2026 — Dọn tiện ích không sử dụng
 
 - Theo yêu cầu người dùng, gỡ `scopedWarehouseIds`, `isPastCalendarDate`, `multiplyBaseQuantity` và `sha256Text` sau khi kiểm tra mã, test và script không có điểm gọi. Bốn mapper product, lot, supplier và replenishment cũ đã không còn trong checkout sau merge. Giữ nguyên toàn bộ mã upload.

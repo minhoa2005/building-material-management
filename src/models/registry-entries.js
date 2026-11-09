@@ -56,8 +56,10 @@ import { createOpeningStockSchema } from "./opening-stock.model.js";
 import { createSalesInvoiceSchema } from "./sales-invoice.model.js";
 
 import { createUomSchema } from './uom.model.js';
+import { createConversionSchema } from './conversion.model.js';
 export function modelSchemaEntries() {
   return [{name:"Uom",collection:"uoms",schema:createUomSchema()},
+    { name: 'Conversion', collection: 'conversions', schema: createConversionSchema() },
     { name: "Category", collection: "categories", schema: createCategorySchema() },
     { name: "User", collection: "users", schema: createUserSchema() },
     { name: "Role", collection: "roles", schema: createRoleSchema() },
