@@ -26,7 +26,7 @@ for(const [resource,[,permission]] of Object.entries(resources)){
 for(const [resource,permission,schema,fn,file] of [
  ['defects','defect:create',v.defectCreateSchema,service.createDefect,true],
  ['customer-returns','customer_return:create',v.customerCreateSchema,service.createCustomerReturn,false],
- ['failed-deliveries','customer_return:inspect',v.failedCreateSchema,service.createFailedDelivery,true],
+ ['failed-deliveries','failed_delivery:inspect',v.failedCreateSchema,service.createFailedDelivery,true],
  ['supplier-returns','supplier_return:create',v.supplierCreateSchema,service.createSupplierReturn,false],
 ])router.post(`/${resource}`,authenticate,checkPermission(permission),...(file?[uploadSingleImage,multipart]:[]),validate(schema),send(async req=>{
  if(file&&!req.file)throw validationError('Cáº§n áº£nh chá»©ng cá»©');const stored=file?await read.storeFile(req.file):undefined;
@@ -41,7 +41,7 @@ for(const [path,permission,schema,fn] of [
  ['customer-returns/:id/exception-decision','customer_return:approve_exception',v.decisionSchema,(u,id,b)=>service.decideCustomerReturn(u,id,b,true)],
  ['customer-returns/:id/receipt','customer_return:post',v.receiptSchema,service.receiveCustomerReturn],
  ['customer-returns/:id/handback','customer_return:post',v.dispatchSchema,(u,id,b)=>service.receiveCustomerReturn(u,id,b,true)],
- ['failed-deliveries/:id/inspect','customer_return:inspect',v.failedInspectionSchema,service.inspectFailedDelivery],['failed-deliveries/:id/receipt','customer_return:post',v.receiptSchema,service.receiveFailedDelivery],
+ ['failed-deliveries/:id/inspect','failed_delivery:inspect',v.failedInspectionSchema,service.inspectFailedDelivery],['failed-deliveries/:id/receipt','failed_delivery:post',v.receiptSchema,service.receiveFailedDelivery],
  ['supplier-returns/:id/agreement','supplier_return:record_agreement',v.agreementSchema,service.supplierAgreement],['supplier-returns/:id/dispatch','supplier_return:dispatch',v.dispatchSchema,service.dispatchSupplierReturn],
  ['supplier-returns/:id/acknowledgement','supplier_return:record_agreement',v.ackSchema,service.acknowledgeSupplierReturn],['supplier-returns/:id/close','supplier_return:close',v.closeSchema,service.closeSupplierReturn],
 ])router.post(`/${path}`,authenticate,checkPermission(permission),validate(schema),send(req=>fn(req.user,req.params.id,req.body)));

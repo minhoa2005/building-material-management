@@ -37,10 +37,6 @@ export function calendarDateRange(from, to) {
   return Object.keys(range).length ? range : null;
 }
 
-export function isPastCalendarDate(value, now = new Date()) {
-  return value < saigonDateOnly(now);
-}
-
 export function decimalStringSchema({
   scale = 6,
   precision = 20,
@@ -87,19 +83,6 @@ export function decimalStringSchema({
     .transform((value) => new ExactDecimal(value).toString());
 }
 
-export function multiplyBaseQuantity(enteredQty, factor) {
-  const quantity = new ExactDecimal(enteredQty).mul(new ExactDecimal(factor));
-  return {
-    value: quantity,
-    string: quantity.toString(),
-    valid:
-      quantity.isFinite() &&
-      quantity.gt(0) &&
-      quantity.decimalPlaces() <= 6 &&
-      quantity.abs().lt(new ExactDecimal(10).pow(14)),
-  };
-}
-
 export function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -139,10 +122,6 @@ export function sha256Json(value) {
   return createHash("sha256")
     .update(JSON.stringify(stableJson(value)))
     .digest("hex");
-}
-
-export function sha256Text(value) {
-  return createHash("sha256").update(value).digest("hex");
 }
 
 export const TRIGGER_TYPE = "MANUAL_OTHER";

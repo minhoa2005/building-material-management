@@ -1,5 +1,6 @@
 import { modelSchemaEntries } from './registry-entries.js';
 import { configureReferences } from './references.js';
+import { createGoodsReceiptVariants } from './goods-receipt.model.js';
 
 const registries = new WeakMap();
 
@@ -14,6 +15,13 @@ export function registerModels(connection) {
     schema.set('autoCreate', false);
     schema.set('autoIndex', false);
     models.set(collection, connection.model(name, schema, collection));
+  }
+  const goodsReceipt = models.get('goods_receipts');
+  for (const [name, kind, schema] of createGoodsReceiptVariants()) {
+    configureReferences(schema);
+    schema.set('autoCreate', false);
+    schema.set('autoIndex', false);
+    goodsReceipt.discriminator(name, schema, { value: kind });
   }
   registries.set(connection, models);
   return models;

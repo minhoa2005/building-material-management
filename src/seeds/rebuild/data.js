@@ -12,7 +12,7 @@ import { buildTileShopScenario } from './tile-shop.js';
 import { consolidateData } from '../../models/consolidation.js';
 import { addTileCategories } from './categories.js';
 
-export const SEED_VERSION = 'wmsd-tile-shop-20261106-v9';
+export const SEED_VERSION = 'wmsd-tile-shop-20261109-v10';
 export const hash = value => createHash('sha256').update(value).digest('hex');
 export const fixtureId = key => new mongoose.Types.ObjectId(hash(SEED_VERSION + ':' + key).slice(0,24));
 export const demoDate = (day, hour = 8) => new Date(Date.UTC(2026,9,day,hour));
@@ -166,5 +166,52 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
   categorized.uoms=[...codes].map(code=>({_id:fixtureId('uom:'+code),code,name:code,isActive:true,createdAt:demoDate(1),updatedAt:demoDate(1)}));
   for(const supplier of categorized.suppliers){if(supplier.status!=='ACTIVE')supplier.status='SUSPENDED';}
 
-  return consolidate ? consolidateData(categorized) : categorized;
+  if (!consolidate) return categorized;
+  const result = consolidateData(categorized);
+  const kinds = { purchase_receipts: 'PURCHASE', customer_return_receipts: 'CUSTOMER_RETURN',
+    failed_delivery_receipts: 'FAILED_DELIVERY', transfer_receipts: 'TRANSFER' };
+  result.goods_receipts = [];
+  for (const [collection, kind] of Object.entries(kinds)) {
+    for (const receipt of result[collection] ?? []) {
+      receipt.documentKind = kind;
+      result.goods_receipts.push(receipt);
+    }
+    delete result[collection];
+  }
+  // Historical demo receipts predate the source-specific header fields. Resolve
+  // their existing document chain rather than creating replacement IDs.
+  const byId = collection => new Map((result[collection] ?? []).map(row => [String(row._id), row]));
+  const inspections = byId('goods_inspections');
+  const arrivals = byId('goods_arrivals');
+  const custody = byId('custody_receipts');
+  for (const receipt of result.goods_receipts) {
+    const inspection = inspections.get(String(receipt.sources?.[0]?.documentId));
+    const source = inspection?.sources?.[0];
+    if (receipt.documentKind === 'PURCHASE') {
+      const arrival = arrivals.get(String(source?.documentId));
+      receipt.header.arrivalId = arrival?._id;
+      receipt.header.purchaseOrderId = arrival?.sources?.[0]?.documentId;
+      receipt.header.supplierId = arrival?.header?.supplierId;
+      receipt.header.receivedAt = receipt.postedAt;
+    } else if (receipt.documentKind === 'CUSTOMER_RETURN') {
+      const custodyReceipt = custody.get(String(source?.documentId));
+      receipt.header.returnId = custodyReceipt?.sources?.[0]?.documentId;
+      receipt.header.receivedAt = receipt.postedAt;
+    } else if (receipt.documentKind === 'FAILED_DELIVERY') {
+      receipt.header.failedDeliveryId = source?.documentId;
+      receipt.header.receivedAt = receipt.postedAt;
+      receipt.header.receivedBy = receipt.postedBy;
+    }
+  }
+  const oldCollections = new Set(Object.keys(kinds));
+  const rewrite = value => {
+    if (!value || typeof value !== 'object' || value._bsontype || value instanceof Date) return;
+    for (const [key, child] of Object.entries(value)) {
+      if (['subjectCollection', 'documentType', 'sourceType', 'ownerDocumentType', 'subjectType', 'entityType'].includes(key) && oldCollections.has(child)) value[key] = 'goods_receipts';
+      else if (Array.isArray(child)) child.forEach(rewrite);
+      else rewrite(child);
+    }
+  };
+  for (const rows of Object.values(result)) rows.forEach(rewrite);
+  return result;
 }

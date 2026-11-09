@@ -73,8 +73,6 @@ purchaseDocumentRouter.get('/:id/evidence/:evidenceId/download', validate(schema
 
 export const reversalRouter=Router();reversalRouter.use(authenticate);
 reversalRouter.get('/:id',validate(schema()),handle((u,v)=>correction.getReversal(u,v.params.id)));
-reversalRouter.post('/:id/review',validate(schema(z.object({...commandBody,decision:z.enum(['APPROVE','REJECT']),reason}).strict())),handle((u,v)=>correction.reviewReversal(u,v.params.id,v.body)));
-reversalRouter.post('/:id/post',validate(schema(z.object({...commandBody,expectedPoVersion:ver}).strict())),handle((u,v)=>correction.postReversal(u,v.params.id,v.body)));
 export const custodyRouter=Router();custodyRouter.use(authenticate);
 custodyRouter.get('/:id',validate(schema()),handle((u,v)=>reads.getDocument(u,v.params.id,'CUSTODY_RECEIPT')));
 custodyRouter.post('/:id/post',validate(schema(z.object({...commandBody,handedOverBy:z.string().trim().min(1).max(160),destinations:z.array(z.object({lineId:oid,locationId:oid}).strict()).min(1).max(100),packaging}).strict())),handle((u,v)=>service.postCustodyReceipt(u,v.params.id,v.body)));

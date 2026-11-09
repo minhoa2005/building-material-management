@@ -9,6 +9,7 @@ import { estimateCartonCapacity, assertBatchPackaging } from '../src/models/capa
 const copy = value => mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.stringify(value));
 const source = await buildReviewedDemo({consolidate:false});
 const data = consolidateData(copy(source));
+const current = await buildReviewedDemo();
 const models = registerReviewedModels(mongoose.createConnection());
 const expectedRecord=(old,row)=>{
   const result=copy(row);
@@ -22,10 +23,10 @@ test('all merged record types retain IDs, fields, quantities and history', () =>
   const sorted=rows=>[...rows].sort((a,b)=>String(a._id).localeCompare(String(b._id)));
   for (const old of Object.keys(embeddedTables)) assert.deepEqual(sorted(expanded[old]),sorted(source[old].map(row=>expectedRecord(old,row))),old);
   for (const old of removedCollections) { assert.ok(!models.has(old)); assert.ok(!Object.hasOwn(data,old)); }
-  assert.equal(models.size,60);
+  assert.equal(models.size,57);
 });
 test('model serialization preserves every embedded history field and reference', async () => {
-  const saved=Object.fromEntries([...models].map(([name,Model])=>[name,data[name].map(row=>new Model(row).toObject())]));
+  const saved=Object.fromEntries([...models].map(([name,Model])=>[name,current[name].map(row=>new Model(row).toObject())]));
   await validateReviewedDemo(saved,models);
   const expanded=expandEmbedded(saved);
   for (const old of Object.keys(embeddedTables)) {
@@ -51,7 +52,7 @@ test('orphan history stops consolidation instead of dropping data',()=>{
   assert.throws(()=>consolidateData(broken),/Cannot unambiguously embed/);
 });
 test('missing carton quantity is detected after removing stacks',async()=>{
-  const broken=copy(data);broken.inventory_balances.find(b=>b.packagingPortions.length).packagingPortions=[];
+  const broken=copy(current);broken.inventory_balances.find(b=>b.packagingPortions.length).packagingPortions=[];
   await assert.rejects(validateReviewedDemo(broken,models),/Packaging quantity/);
 });
 test('duplicate warehouse threshold on the same product is rejected',async()=>{

@@ -8,7 +8,7 @@ import { balanceAt, sourceContext, guardLocations, locationAt, beginStock, split
 export { m, exact, ApiError, validationError, notFoundError, versionConflict, requirePermission, requireWarehouseAccess, canAccessWarehouse, hasPermission, command, newId, same, saveVersion, checkVersion, hash, transaction, serialize, balanceAt, sourceContext, guardLocations, locationAt, beginStock, splitPortions, remainingReservation, pendingTaskQuantity, heldQuantity, verifyCapacity, receiveStock };
 export const resources = {
  'defects': [m.DefectReport,'defect:read'], 'customer-returns': [m.CustomerReturn,'customer_return:read'],
- 'failed-deliveries': [m.FailedDelivery,'customer_return:read'], 'supplier-returns': [m.SupplierReturn,'supplier_return:read'],
+ 'failed-deliveries': [m.FailedDelivery,'failed_delivery:read'], 'supplier-returns': [m.SupplierReturn,'supplier_return:read'],
 };
 export const sum = (rows, field = 'qtyBase') => rows.reduce((n,row) => n.plus(String(row[field] ?? '0')), exact('0'));
 export const source = (doc,item,relationCode='SOURCE',qty) => ({ subjectCollection: doc.constructor.collection.name, documentId:doc._id, ...(item && {itemId:item._id}), relationCode, ...(qty && {linkedQty:String(qty)}) });

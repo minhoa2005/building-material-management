@@ -21,6 +21,7 @@ import { registerModels } from '../models/registry.js';
 import { PERMISSION_CATALOGUE, ROLE_PERMISSIONS, ROLE } from './data/permissions.data.js';
 import { SEED_ACCOUNTS, SEED_WAREHOUSES } from './data/accounts.data.js';
 import { buildReviewedDemo, fixtureId, demoDate } from './rebuild/data.js';
+import { enrichGoodsReceiptsSeedData } from './data/goods-receipts.data.js';
 
 /**
  * Kiểm tra xem cơ sở dữ liệu đã có dữ liệu hay chưa.
@@ -78,6 +79,9 @@ export async function buildCompleteSeedData(connection = mongoose.connection) {
       existingUsernames.add(acc.username);
     }
   }
+
+  // Bổ sung và chuẩn hóa dữ liệu mẫu GoodsReceipt cho toàn bộ 5 loại chứng từ (kể cả OTHER)
+  enrichGoodsReceiptsSeedData(data);
 
   // Khởi tạo các Mongoose documents và xác thực schema cho từng collection
   const groups = [...modelMap].map(([name, Model]) => ({

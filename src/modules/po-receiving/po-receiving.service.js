@@ -90,7 +90,7 @@ export function confirmInspection(user,id,input){
       receipt.items.push(copyItem(item,item.qtyBase,{lineNo:i+1,lineKind:'STANDARD',purchaseOrderItemId:poItem._id,arrivalItemId:source._id,inspectionId:inspection._id,inspectionResultId:item._id,destinationLocationId:destination.locationId,sources:[sourceLink(inspection,item,item.qtyBase)]}));
     }
     const refs=[];
-    if(receipt){receipt.sources=[sourceLink(po),sourceLink(inspection)];await receipt.save({session});refs.push({documentType:'purchase_receipts',documentId:receipt._id,revision:1});}
+    if(receipt){receipt.sources=[sourceLink(po),sourceLink(inspection)];await receipt.save({session});refs.push({documentType:'goods_receipts',documentId:receipt._id,revision:1});}
     // Custody is retained as its own document, never added to store-owned stock.
     const held=inspection.items.filter(row=>row.details.ownershipDecision==='CUSTODY');
     if(held.length){

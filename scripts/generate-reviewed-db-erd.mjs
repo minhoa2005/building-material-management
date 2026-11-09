@@ -6,16 +6,16 @@ import { registerReviewedModels, newCollections } from '../src/models/index.js';
 import { removedCollections, embeddedTables } from '../src/models/consolidation.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const output = resolve(root, 'git_doc/docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio');
+const output = resolve(root, 'git_doc/docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_ERD_Current.drawio');
 
 const groups = [
   ['A · Access', '#DDEBFF', ['users', 'roles', 'permissions']],
-  ['B · Warehouse & catalogue', '#E0F6ED', ['warehouses', 'warehouse_locations', 'customers', 'categories', 'products', 'product_batches', 'stock_thresholds', 'suppliers', 'storage_stacks', 'storage_stack_items']],
+  ['B · Warehouse & catalogue', '#E0F6ED', ['warehouses', 'warehouse_locations', 'customers', 'categories', 'uoms', 'products', 'product_batches', 'stock_thresholds', 'suppliers', 'storage_stacks', 'storage_stack_items']],
   ['C · Inventory & controls', '#FFF2CC', ['stock_holding_points', 'inventory_balances', 'stock_transactions', 'stock_movements', 'stock_reservations', 'supply_allocations', 'stock_holds', 'replenishment_locks', 'return_source_locks']],
-  ['D · Purchasing & receiving', '#FCE4D6', ['replenishment_requests', 'purchase_orders', 'goods_arrivals', 'goods_inspections', 'purchase_receipts']],
-  ['E · Inter-warehouse transfer', '#EADCF8', ['warehouse_transfer_requests', 'transfer_dispatches', 'transfer_receipts', 'internal_transfer_requirements', 'transfer_orders']],
+  ['D · Purchasing & receiving', '#FCE4D6', ['replenishment_requests', 'purchase_orders', 'goods_arrivals', 'goods_inspections', 'goods_receipts']],
+  ['E · Inter-warehouse transfer', '#EADCF8', ['warehouse_transfer_requests', 'transfer_dispatches', 'internal_transfer_requirements', 'transfer_orders']],
   ['F · Sales, delivery & invoice', '#DDEBF7', ['sales_orders', 'warehouse_issue_requests', 'delivery_orders', 'sales_goods_issues', 'delivery_confirmations', 'sales_invoices', 'external_payment_confirmations']],
-  ['G · Customer return & custody', '#F4E1F1', ['failed_deliveries', 'failed_delivery_receipts', 'delivery_demand_reopenings', 'delivery_commitment_transfers', 'sales_order_cancellations', 'customer_returns', 'return_inspections', 'customer_return_receipts', 'return_quantity_claims', 'custody_receipts', 'custody_releases']],
+  ['G · Customer return & custody', '#F4E1F1', ['failed_deliveries', 'delivery_demand_reopenings', 'delivery_commitment_transfers', 'sales_order_cancellations', 'customer_returns', 'return_inspections', 'return_quantity_claims', 'custody_receipts', 'custody_releases']],
   ['H · Defect & supplier return', '#FDE9D9', ['defect_reports', 'defect_resolution_plans', 'stock_scrap_records', 'stock_quality_changes', 'stock_discrepancies', 'supplier_returns', 'supplier_return_issues', 'supplier_acknowledgements']],
   ['I · Stocktake, opening & reversal', '#E2F0D9', ['stocktakes', 'stocktake_snapshots', 'stocktake_counts', 'stocktake_location_locks', 'stocktake_resolution_plans', 'stock_adjustments', 'opening_stocks', 'stock_reversals']],
   ['J · Evidence, audit & events', '#E7E6E6', ['approval_history', 'attachments', 'notifications', 'audit_logs', 'system_events', 'operation_records', 'external_references', 'external_reference_lines']],
@@ -52,7 +52,8 @@ function schemaFields(schema, prefix = '', fields = [], relations = []) {
     const full = prefix ? `${prefix}.${name}` : name;
     const targetModel = refOf(path);
     const embeddedTarget = path.options?.embeddedTarget || path.$embeddedSchemaType?.options?.embeddedTarget;
-    const target = targetModel ? modelToCollection.get(targetModel) : embeddedTables[embeddedTarget]?.[0];
+    const parent = embeddedTables[embeddedTarget]?.[0];
+    const target = targetModel ? modelToCollection.get(targetModel) : parent === 'failed_delivery_receipts' ? 'goods_receipts' : parent;
     const many = path?.instance === 'Array' || Boolean(path?.$embeddedSchemaType);
     fields.push({ name: full, type: typeOf(path), required: Boolean(path?.options?.required), target, many });
     if (target) relations.push({ field: full, target, many });

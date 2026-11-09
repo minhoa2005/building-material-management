@@ -12,7 +12,7 @@ let users,warehouse,location,balance,receipt,batch,supplier,customer,receiving,c
 const input=()=>({idempotencyKey:key(),note:'Actual test facts'});
 async function attachment(doc,user){return m.Attachment.create({...stored,ownerDocumentType:doc.constructor.collection.name,ownerDocumentId:doc._id,purpose:'RETURN_EVIDENCE',uploadedBy:user._id,uploadedAt:new Date(),accessCategory:'BUSINESS',status:'ATTACHED'});}
 test.before(async()=>{
- if(!enabled)return;await mongoose.connect(`mongodb://127.0.0.1:27028/returns_test_${id()}?replicaSet=wmsd_model_tests`,{serverSelectionTimeoutMS:10000});
+ if(!enabled)return;await mongoose.connect(`mongodb://127.0.0.1:27017/returns_test_${id()}?replicaSet=rs0`,{serverSelectionTimeoutMS:10000});
  const data=await buildReviewedDemo();for(const [name,Model]of m.models){await Model.createCollection();if(data[name]?.length)await Model.collection.insertMany(data[name]);await Model.createIndexes();}
  users={};for(const code of ['OWNER','WAREHOUSE','SALES','ACCOUNTANT']){const role=await m.Role.findOne({code});const u=await m.User.findOne({roleId:role._id});u.warehouseIds=(await m.Warehouse.find()).map(w=>w._id);await u.save();users[code]=await m.User.findById(u._id).populate({path:'roleId',populate:{path:'permissionIds'}});}
  warehouse=await m.Warehouse.findOne({code:'WH01'});if(!warehouse)warehouse=await m.Warehouse.findOne();

@@ -30,12 +30,11 @@ import { createReplenishmentRequestSchema } from "./replenishment-request.model.
 import { createPurchaseOrderSchema } from "./purchase-order.model.js";
 import { createGoodsArrivalSchema } from "./goods-arrival.model.js";
 import { createGoodsInspectionSchema } from "./goods-inspection.model.js";
-import { createPurchaseReceiptSchema } from "./purchase-receipt.model.js";
+import { createGoodsReceiptSchema } from './goods-receipt.model.js';
 import { createTransferOrderSchema } from "./transfer-order.model.js";
 import { createWarehouseTransferRequestSchema } from "./warehouse-transfer-request.model.js";
 import { createInternalTransferRequirementSchema } from "./internal-transfer-requirement.model.js";
 import { createTransferDispatchSchema } from "./transfer-dispatch.model.js";
-import { createTransferReceiptSchema } from "./transfer-receipt.model.js";
 import { createSalesOrderSchema } from "./sales-order.model.js";
 import { createWarehouseIssueRequestSchema } from "./warehouse-issue-request.model.js";
 import { createDeliveryOrderSchema } from "./delivery-order.model.js";
@@ -45,10 +44,8 @@ import { createStockScrapRecordSchema } from "./stock-scrap-record.model.js";
 import { createStocktakeSchema } from "./stocktake.model.js";
 import { createStockAdjustmentSchema } from "./stock-adjustment.model.js";
 import { createFailedDeliverySchema } from "./failed-delivery.model.js";
-import { createFailedDeliveryReceiptSchema } from "./failed-delivery-receipt.model.js";
 import { createStockQualityChangeSchema } from "./stock-quality-change.model.js";
 import { createCustomerReturnSchema } from "./customer-return.model.js";
-import { createCustomerReturnReceiptSchema } from "./customer-return-receipt.model.js";
 import { createSupplierReturnSchema } from "./supplier-return.model.js";
 import { createSupplierReturnIssueSchema } from "./supplier-return-issue.model.js";
 import { createStockDiscrepancySchema } from "./stock-discrepancy.model.js";
@@ -206,9 +203,9 @@ export function modelSchemaEntries() {
       schema: createGoodsInspectionSchema(),
     },
     {
-      name: "PurchaseReceipt",
-      collection: "purchase_receipts",
-      schema: createPurchaseReceiptSchema(),
+      name: "GoodsReceipt",
+      collection: "goods_receipts",
+      schema: createGoodsReceiptSchema(),
     },
     {
       name: "TransferOrder",
@@ -229,11 +226,6 @@ export function modelSchemaEntries() {
       name: "TransferDispatch",
       collection: "transfer_dispatches",
       schema: createTransferDispatchSchema(),
-    },
-    {
-      name: "TransferReceipt",
-      collection: "transfer_receipts",
-      schema: createTransferReceiptSchema(),
     },
     {
       name: "SalesOrder",
@@ -281,11 +273,6 @@ export function modelSchemaEntries() {
       schema: createFailedDeliverySchema(),
     },
     {
-      name: "FailedDeliveryReceipt",
-      collection: "failed_delivery_receipts",
-      schema: createFailedDeliveryReceiptSchema(),
-    },
-    {
       name: "StockQualityChange",
       collection: "stock_quality_changes",
       schema: createStockQualityChangeSchema(),
@@ -294,11 +281,6 @@ export function modelSchemaEntries() {
       name: "CustomerReturn",
       collection: "customer_returns",
       schema: createCustomerReturnSchema(),
-    },
-    {
-      name: "CustomerReturnReceipt",
-      collection: "customer_return_receipts",
-      schema: createCustomerReturnReceiptSchema(),
     },
     {
       name: "SupplierReturn",

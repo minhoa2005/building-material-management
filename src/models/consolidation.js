@@ -72,10 +72,11 @@ export function consolidateSchemas(entries) {
 export function expandEmbedded(data) {
   const result = { ...data };
   for (const [old, [parent, field]] of Object.entries(embeddedTables)) {
-    result[old] = data[old] || data[parent].flatMap(row => row[field] || []);
+    const parents = data[parent] ?? (parent === 'failed_delivery_receipts' ? data.goods_receipts?.filter(row => row.documentKind === 'FAILED_DELIVERY') : undefined) ?? [];
+    result[old] = data[old] || parents.flatMap(row => row[field] || []);
     if (!data[old] && ['stock_thresholds','external_reference_lines'].includes(old)) {
       const key = old === 'stock_thresholds' ? 'productId' : 'referenceId';
-      result[old] = data[parent].flatMap(owner => (owner[field] || []).map(row => ({...row,[key]:owner._id})));
+      result[old] = parents.flatMap(owner => (owner[field] || []).map(row => ({...row,[key]:owner._id})));
     }
   }
   return result;

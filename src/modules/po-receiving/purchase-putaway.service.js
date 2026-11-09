@@ -11,14 +11,14 @@ import { findPurchase, newDocument, replayPurchase } from './purchase-core.js';
 export async function placementQuantities(receipt, session) {
   const posting = await StockTransaction.findById(receipt.stockTransactionId).session(session);
   const reversal = posting && await StockTransaction.exists({ reversedTransactionId: posting._id }).session(session);
-  const tasks = await TransferOrder.find({ 'sources.subjectCollection': 'purchase_receipts', 'sources.documentId': receipt._id }).session(session);
+  const tasks = await TransferOrder.find({ 'sources.subjectCollection': 'goods_receipts', 'sources.documentId': receipt._id }).session(session);
   const transactions = await StockTransaction.find({ sourceType: 'transfer_orders', sourceId: { $in: tasks.map(t=>t._id) } }).session(session);
   return receipt.items.map(item=>{
     const movements = posting?.movements.filter(m=>same(m.sourceLineId,item._id)) || [];
     const received = reversal ? exact('0') : movements.reduce((n,m)=>n.plus(String(m.quantityBase)),exact('0'));
     let placed=exact('0'),claimed=exact('0');
     for(const task of tasks) for(const row of task.items) {
-      if(!row.sources.some(s=>s.subjectCollection==='purchase_receipts'&&same(s.itemId,item._id)))continue;
+      if(!row.sources.some(s=>s.subjectCollection==='goods_receipts'&&same(s.itemId,item._id)))continue;
       const done=transactions.filter(t=>same(t.sourceId,task._id)).flatMap(t=>t.movements).filter(m=>same(m.sourceLineId,row._id)).reduce((n,m)=>n.plus(String(m.quantityBase)),exact('0'));
       placed=placed.plus(done);
       if(['OPEN','PARTIAL'].includes(task.workflowStatus))claimed=claimed.plus(exact(row.qtyBase).minus(done));
@@ -29,7 +29,7 @@ export async function placementQuantities(receipt, session) {
   });
 }
 async function receipt(id,user,session){const d=await findPurchase(id,user,session,{kind:'GR_PURCHASE',readOnly:true});if(d.workflowStatus!=='POSTED')throw validationError('Phiếu nhập chưa ghi tồn');return d;}
-async function task(id,user,session){const d=await findPurchase(id,user,session,{kind:'TO',readOnly:true});if(d.header.taskKind!=='PUTAWAY'||!d.sources.some(s=>s.subjectCollection==='purchase_receipts'))throw notFoundError();return d;}
+async function task(id,user,session){const d=await findPurchase(id,user,session,{kind:'TO',readOnly:true});if(d.header.taskKind!=='PUTAWAY'||!d.sources.some(s=>s.subjectCollection==='goods_receipts'))throw notFoundError();return d;}
 async function actual(task,session){const tx=await StockTransaction.find({sourceType:'transfer_orders',sourceId:task._id}).session(session);return new Map(task.items.map(i=>[String(i._id),tx.flatMap(t=>t.movements).filter(m=>same(m.sourceLineId,i._id)).reduce((n,m)=>n.plus(String(m.quantityBase)),exact('0'))]));}
 async function source(gr,item,balanceId,toLocationId,session){
   const ctx=await sourceContext(balanceId,session);
@@ -40,7 +40,7 @@ export async function putawayContext(user,id){
   requirePermission(user,'putaway_task:read');const gr=await receipt(id,user);const quantities=await placementQuantities(gr);
   const balances=await InventoryBalance.find({_id:{$in:quantities.map(q=>q.sourceBalanceId).filter(Boolean)}}).lean();
   return serialize({receiptId:id,receiptVersion:gr.version,locations:await WarehouseLocation.find({warehouseId:gr.header.warehouseId,locationType:'STORAGE',isActive:true}).lean(),
-    tasks:await TransferOrder.find({'sources.subjectCollection':'purchase_receipts','sources.documentId':gr._id}).lean(),
+    tasks:await TransferOrder.find({'sources.subjectCollection':'goods_receipts','sources.documentId':gr._id}).lean(),
     items:gr.items.map(i=>({...dto(i),...quantities.find(q=>same(q.lineId,i._id)),sourceBalanceVersion:balances.find(b=>same(b._id,quantities.find(q=>same(q.lineId,i._id))?.sourceBalanceId))?.version}))});
 }
 export function createPutaway(user,id,input){return command(user,'CREATE_PURCHASE_PUTAWAY','putaway_task:create',id,input,replayPurchase,async(session,actor)=>{
@@ -58,16 +58,16 @@ export function createPutaway(user,id,input){return command(user,'CREATE_PURCHAS
   }
   await guardLocations(items.flatMap(i=>[i.details.fromLocationId,i.details.toLocationId]),session);
   const document=newDocument(TransferOrder,'TO',actor,{warehouseId:gr.header.warehouseId,taskKind:'PUTAWAY',assignedTo:actor._id},items,'OPEN');
-  document.sources=[{subjectCollection:'purchase_receipts',documentId:gr._id,relationCode:'PURCHASE_PUTAWAY'}];await document.save({session});await saveVersion(gr,gr.version,session);return {document};
+  document.sources=[{subjectCollection:'goods_receipts',documentId:gr._id,relationCode:'PURCHASE_PUTAWAY'}];await document.save({session});await saveVersion(gr,gr.version,session);return {document};
 });}
 export async function getPutaway(user,id){requirePermission(user,'putaway_task:read');const d=await task(id,user),done=await actual(d);return {...dto(d),items:d.items.map(i=>({...dto(i),actualQtyBase:done.get(String(i._id)).toFixed(),remainingQtyBase:exact(i.qtyBase).minus(done.get(String(i._id))).toFixed()}))};}
 export function confirmPutaway(user,id,input){return command(user,'CONFIRM_PURCHASE_PUTAWAY','putaway_task:confirm',id,input,replayPurchase,async(session,actor)=>{
   const d=await task(id,actor,session);await findPurchase(id,actor,session,{kind:'TO'});checkVersion(d,input.expectedVersion);if(!['OPEN','PARTIAL'].includes(d.workflowStatus))throw validationError('Lệnh không còn mở');
-  const gr=await receipt(d.sources.find(s=>s.subjectCollection==='purchase_receipts').documentId,actor,session);const done=await actual(d,session),seen=new Set();
+  const gr=await receipt(d.sources.find(s=>s.subjectCollection==='goods_receipts').documentId,actor,session);const done=await actual(d,session),seen=new Set();
   const locations=[],selected=[];
   for(const row of input.lines){const i=d.items.id(row.taskLineId);if(!i||seen.has(row.taskLineId))throw validationError('Dòng không hợp lệ hoặc trùng');seen.add(row.taskLineId);
     const qty=exact(row.actualQtyBase);if(!qty.gt(0)||qty.gt(exact(i.qtyBase).minus(done.get(String(i._id)))))throw validationError('Lượng cất vượt phần còn lại');
-    const ref=i.sources.find(s=>s.subjectCollection==='purchase_receipts');const sourceItem=gr.items.id(ref?.itemId);if(!sourceItem)throw validationError('Thiếu nguồn nhập');
+    const ref=i.sources.find(s=>s.subjectCollection==='goods_receipts');const sourceItem=gr.items.id(ref?.itemId);if(!sourceItem)throw validationError('Thiếu nguồn nhập');
     await source(gr,sourceItem,i.details.sourceBalanceId,i.details.toLocationId,session);selected.push({i,qty});locations.push(i.details.fromLocationId,i.details.toLocationId);
   }
   await guardLocations(locations,session);const posting=beginStock(d,actor,'PURCHASE_PUTAWAY',input);
