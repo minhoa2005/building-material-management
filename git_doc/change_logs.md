@@ -1,3 +1,8 @@
+## 09/11/2026 — Bộ quy tắc quản trị và coverage gate
+
+- Tạo/chốt bộ tài liệu quản trị trong `be/docs/` và bản tương ứng trong `fe/docs/`; `release-checklist.md` tiếp tục ở trạng thái chờ quyết định. RTM dùng danh sách UC ACTIVE từ Report 3; mỗi repository tự quản lý test evidence và AI log.
+- Thêm c8 9.1.0 và lệnh coverage LCOV cho BE; thêm Vitest V8 coverage cho FE. CI của hai repo checkout đầy đủ lịch sử, tạo LCOV và chạy `diff-cover==10.6.0` trên source mới/sửa trong PR với ngưỡng 80%. Bỏ qua docs, tests, config, scripts và lockfiles; thêm `coverage/` vào `.gitignore`. Không thay đổi GitHub branch protection.
+- Kiểm tra BE: `npm run test:coverage` đạt 96, bỏ qua 62; coverage tổng toàn source 66.58% (gate chỉ tính dòng source thay đổi trong PR). FE: build đạt, test coverage tập trung đạt 7; lượt chạy toàn bộ trước đó có 8 lỗi trong hai test file vốn đã có thay đổi. Chạy `diff-cover` cục bộ chưa được vì Python chưa cài; CI cài Python và công cụ đã pin. Cảnh báo npm audit hiện có 5 mục (3 moderate, 2 high), trong đó không còn cảnh báo c8/test-exclude; chưa chạy `npm audit fix`.
 ## 09/11/2026 — CI trên GitHub Actions cho FE và BE
 
 - Theo yêu cầu người dùng, hoàn thiện workflow BE và thêm workflow FE trong `.github/workflows/ci.yml` của từng repo. Kiểm tra tự chạy khi push lên `main` hoặc cập nhật pull request vào `main`, và hỗ trợ chạy thủ công. Xem [hướng dẫn CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md).
