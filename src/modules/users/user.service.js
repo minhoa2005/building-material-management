@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { User, Role, Warehouse } from '../../models/runtime.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 import { escapeRegex } from '../../shared/utils/domain.js';
-import { userRoleDto } from '../../shared/utils/userRole.js';
+import { userRoleDto, rolePermissions } from '../../shared/utils/userRole.js';
 
 export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', status = 'all' }) => {
   const query = {};
@@ -60,7 +60,7 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
 };
 
 export const getUserById = async (id) => {
-  const user = await User.findById(id).populate('roleId').lean();
+  const user = await User.findById(id).populate({ path: 'roleId', populate: { path: 'permissionIds' } }).lean();
   if (!user) {
     throw new ApiError(404, 'Không tìm thấy người dùng');
   }
@@ -71,6 +71,7 @@ export const getUserById = async (id) => {
     fullName: user.fullName,
     phone: user.phone, email:user.email, warehouseIds:(user.warehouseIds||[]).map(String),
     ...userRoleDto(user),
+    permissions: rolePermissions(user),
     status: user.isActive ? 'active' : 'inactive',
     createdAt: user.createdAt,
     lastLogin: user.updatedAt,
