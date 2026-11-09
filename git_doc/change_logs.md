@@ -4,6 +4,12 @@
 - Cập nhật [hướng dẫn GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Không ảnh hưởng dữ liệu.
 - Kiểm tra `npm run docs:check`; chưa chạy workflow trên GitHub Actions trong lượt này.
 
+## 09/11/2026 — Khôi phục cấu hình MongoDB CI sau merge
+
+- Merge commit `d7d09a6` đã đưa lại `ubuntu-latest` và làm mất bước log container; lần chạy CI mới vẫn gặp lỗi khởi động MongoDB. Khôi phục runner `ubuntu-24.04` và bước chẩn đoán log trong `.github/workflows/ci.yml`.
+- Xóa dấu conflict còn sót trong [hướng dẫn GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Không ảnh hưởng dữ liệu.
+- `npm run docs:check` được chạy lại sau chỉnh sửa; workflow GitHub Actions cần chạy lại để xác nhận nguyên nhân qua log `mongod`.
+
 ## 09/11/2026 — Chạy integration test BE và diff coverage trong CI
 
 - Cấu hình workflow khởi chạy MongoDB 8.0 replica set một node `rs0`, bật `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1`, đồng thời tăng timeout cho coverage suite. Các integration test dùng database `wmsd_*_test_*` riêng; không dùng database ứng dụng.

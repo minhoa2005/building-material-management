@@ -1,11 +1,6 @@
 # Kiểm tra tự động trên GitHub Actions
 
-<<<<<<< HEAD
 FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflows/ci.yml` ở thư mục gốc của mình. Workflow chạy trên Ubuntu với Node.js 26 khi mở hoặc cập nhật pull request vào `main` và khi push vào `main`. BE ghim runner ở `ubuntu-24.04` để MongoDB 8.0 không gặp kernel Linux mới mà phiên bản này từ chối khởi động; khi bước khởi tạo MongoDB lỗi, workflow in trạng thái container và log MongoDB. Có thể chạy thủ công từ tab Actions sau khi workflow có mặt trên nhánh mặc định.
-=======
-FE và BE là hai repo độc lập. Mỗi repo đọc workflow `.github/workflows/ci.yml` ở thư mục gốc của mình. Workflow chạy trên Ubuntu với Node.js 26 khi mở hoặc cập nhật pull request vào `main` và khi push vào `main`. Có thể chạy thủ công từ tab Actions sau khi workflow có mặt trên nhánh mặc định.
-
-> > > > > > > e0f6eeae03c9b9a8dd9b2fa79948328ac195888a
 
 | Repo | Cài thư viện                                                           | Kiểm tra                                                                                                      |
 | ---- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
