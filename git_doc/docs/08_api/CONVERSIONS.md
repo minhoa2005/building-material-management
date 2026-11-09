@@ -2,7 +2,12 @@
 
 Quyết định ngày 09/11/2026 bổ sung model `Conversion`. Cấu hình cấp sản phẩm dùng cho số lượng dự kiến khi chưa chọn lô. Nếu đã chọn lô, dùng hệ số có hiệu lực của lô trước. Đơn vị thường có thể dùng cấu hình cấp sản phẩm nếu lô chưa có cấu hình. Đơn vị thùng yêu cầu cấu hình của lô khi đã chọn lô.
 
-`GET /api/products/:id` cũng trả `currentConversions` theo một phạm vi đơn nhất. Không có `batchId` hoặc có `batchId=null` sẽ trả hệ số cấp sản phẩm với `productBatchId: null`. `?batchId=<id>` trả hệ số chỉ của đúng lô. API xác nhận lô thuộc sản phẩm và đã VERIFIED. Batch ID sai định dạng hoặc lô chưa VERIFIED trả 400; lô không tồn tại hoặc thuộc sản phẩm khác trả 404. Mỗi UOM đang hoạt động có tối đa một hệ số, chọn bản có `validFrom` mới nhất nhưng không ở tương lai. Không kế thừa hệ số sản phẩm sang kết quả chi tiết lô. Nếu phạm vi không có hệ số hiện hành, trả mảng rỗng.
+`GET /api/products/:id` trả `currentConversions` theo một phạm vi đơn nhất. Endpoint không nhận query parameters. Gửi `batchId` trả 400.
+
+- API chọn lô `VERIFIED` được tạo gần nhất theo `createdAt` giảm dần và dùng `_id` giảm dần khi trùng thời điểm. Nếu sản phẩm chưa có lô đã xác minh hoặc lô được chọn chưa có hệ số hiệu lực cho UOM đang hoạt động, API trả cấu hình mặc định cấp sản phẩm với `productBatchId: null`.
+- Trong phạm vi được trả về, mỗi UOM đang hoạt động có tối đa một hệ số theo `validFrom` mới nhất đã đến hiệu lực. Mỗi kết quả thuộc cùng một phạm vi. Nếu phạm vi cuối cùng chưa có hệ số hiện hành, API trả mảng rỗng.
+
+Trang chi tiết sản phẩm mặc định mở tab **Quy cách đóng gói & Quy đổi**, hiển thị hệ số hiện hành từ `currentConversions`. Tab **Lịch sử quy đổi** đọc danh sách phiên bản từ endpoint riêng bên dưới.
 
 - `GET /api/products/:id/conversions` cần `product:read`. Query hỗ trợ `page`, `limit`, `uomId`, `productBatchId`. Dùng `productBatchId=null` để lọc riêng cấp sản phẩm. `isCurrent` xác định phiên bản hiệu lực mới nhất trong từng bộ khóa.
 - `POST /api/products/:id/conversions` cần `product:update`. Body gồm `uomId`, `basePerUnit` dạng chuỗi decimal, `validFrom` dạng ISO có múi giờ hoặc ngày YYYY-MM-DD theo UTC, `verificationReference` và `productBatchId` tùy chọn. Tạo phiên bản mới phải có mốc lớn hơn mốc mới nhất, kể cả phiên bản tương lai. Xung đột trả 409. `POST /api/products` tiếp tục nhận mảng `conversions` cấp sản phẩm.
