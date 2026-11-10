@@ -123,6 +123,120 @@ test('HTTP permission scope and read-only workflow selectors', { skip: !enabled,
     await api('/roles', users.ADMIN);
   });
 
+  await t.test('RR source options validate type, scope sources and page after filtering', async () => {
+    const path = '/replenishments/options/sources';
+    const salesPath = path + '?type=saleorders';
+    const stocktakePath = path + '?type=stocktakes';
+    const createdAt = new Date('2026-01-01');
+    const [firstOrder, secondOrder, unrelatedOrder, foreignOrder] = Array.from({ length: 4 }, id);
+    const order = (_id, actor, workflowStatus, items) => ({
+      _id, documentNo: 'SO-' + _id, version: 3, createdAt, workflowStatus,
+      documentKind: 'SALES_ORDER', createdBy: actor._id, items,
+    });
+    const line = { _id: id(), productId, lineNo: 1, productNameSnapshot: 'Gạch', unitSellingPrice: '999' };
+    const otherLine = { _id: id(), productId: otherProduct, lineNo: 2 };
+    await m.SalesOrder.collection.updateMany(
+      { _id: { $in: [orderA, orderB] } }, { $set: { workflowStatus: 'COMPLETED' } },
+    );
+    await m.SalesOrder.collection.insertMany([
+      order(firstOrder, users.SALES, 'OPEN', [line]),
+      order(secondOrder, users.SALES, 'OPEN', [line, otherLine]),
+      order(unrelatedOrder, users.SALES, 'OPEN', [otherLine]),
+      order(foreignOrder, secondSales, 'OPEN', [line]),
+      ...['CANCELLED', 'REJECTED', 'COMPLETED'].map(status => order(id(), users.SALES, status, [line])),
+    ]);
+
+    const [snapshotOnly, combined, foreignStocktake] = Array.from({ length: 3 }, id);
+    const stocktake = (_id, warehouseId, workflowStatus, completedAt, items = []) => ({
+      _id, documentNo: 'ST-' + _id, version: 2, documentKind: 'STOCKTAKE',
+      createdAt, workflowStatus, header: { warehouseId, completedAt }, items,
+    });
+    await m.Stocktake.collection.insertMany([
+      stocktake(snapshotOnly, warehouse, 'CLOSED', createdAt),
+      stocktake(combined, warehouse, 'COMPLETED', createdAt, [line, line, otherLine]),
+      stocktake(foreignStocktake, otherWarehouse, 'COMPLETED', createdAt, [line]),
+      stocktake(id(), warehouse, 'COMPLETED', null, [line]),
+      stocktake(id(), warehouse, 'OPEN', createdAt, [line]),
+    ]);
+    await m.StocktakeSnapshot.collection.insertMany([
+      { stocktakeId: snapshotOnly, batchId: lotId },
+      { stocktakeId: combined, batchId: lotId },
+      { stocktakeId: combined, batchId: lotId },
+    ]);
+    await m.Product.collection.updateOne({ _id: productId }, { $set: { name: 'Gạch danh mục' } });
+
+    await api(salesPath, null, { status: 401 });
+    await api(path, users.SALES, { status: 400 });
+    await api(path + '?type=sales_orders', users.SALES, { status: 400 });
+    await api(salesPath + '&limit=101', users.SALES, { status: 400 });
+    await api(stocktakePath, users.SALES, { status: 403 });
+    await api(stocktakePath + `&warehouseId=${otherWarehouse}`, users.WAREHOUSE, { status: 403 });
+    await api(salesPath, users.ACCOUNTANT, { status: 403 });
+
+    const salesFilter = salesPath + `&productId=${productId}&limit=1`;
+    const first = await api(salesFilter, users.SALES);
+    assert.deepEqual(first, {
+      items: [{
+        id: String(secondOrder), documentNo: 'SO-' + secondOrder, version: 3,
+        documentType: 'sales_orders', items: [{ id: String(line._id), productId: String(productId), label: 'Gạch' }],
+      }],
+      total: 2, page: 1, limit: 1,
+    });
+    assert.equal((await api(salesFilter + '&page=2', users.SALES)).items[0].id, String(firstOrder));
+    assert.equal((await api(salesPath, secondSales)).items[0].id, String(foreignOrder));
+    assert.deepEqual(await api(salesPath + `&productId=${id()}`, users.SALES),
+      { items: [], total: 0, page: 1, limit: 20 });
+    const rrCreatePermission = permissionId('replenishment_request:create');
+    await m.Role.collection.updateOne({ _id: users.ACCOUNTANT.roleId }, {
+      $addToSet: { permissionIds: rrCreatePermission },
+    });
+    try {
+      assert.equal((await api(salesPath, users.ACCOUNTANT)).total, 4);
+    } finally {
+      await m.Role.collection.updateOne({ _id: users.ACCOUNTANT.roleId }, {
+        $pull: { permissionIds: rrCreatePermission },
+      });
+    }
+
+    const counts = await api(stocktakePath, users.WAREHOUSE);
+    assert.deepEqual(counts.items.map(item => item.id), [String(combined), String(snapshotOnly)]);
+    assert.deepEqual(counts.items[0].items, [
+      { productId: String(productId), label: 'Gạch' },
+      { productId: String(otherProduct), label: 'Dòng 2' },
+    ]);
+    const stocktakeFilter = stocktakePath + `&warehouseId=${warehouse}&productId=${productId}&limit=1`;
+    const filtered = await api(stocktakeFilter + '&page=2', users.WAREHOUSE);
+    assert.deepEqual(filtered, {
+      items: [{
+        id: String(snapshotOnly), documentNo: 'ST-' + snapshotOnly, version: 2,
+        documentType: 'stocktakes', warehouseId: String(warehouse),
+        items: [{ productId: String(productId), label: 'Gạch danh mục' }],
+      }],
+      total: 2, page: 2, limit: 1,
+    });
+    const byOtherProduct = await api(stocktakePath + `&productId=${otherProduct}`, users.WAREHOUSE);
+    assert.equal(byOtherProduct.total, 1);
+    assert.deepEqual(byOtherProduct.items[0].items, [{ productId: String(otherProduct), label: 'Dòng 2' }]);
+    assert.deepEqual(await api(stocktakePath + `&productId=${id()}`, users.WAREHOUSE),
+      { items: [], total: 0, page: 1, limit: 20 });
+
+    const editPath = salesPath + `&requestId=${requestId}`;
+    await api(editPath, users.SALES);
+    await api(editPath, secondSales, { status: 404 });
+    await m.ReplenishmentRequest.collection.updateOne({ _id: requestId }, { $set: { workflowStatus: 'SUBMITTED' } });
+    try {
+      await api(editPath, users.SALES, { status: 400 });
+    } finally {
+      await m.ReplenishmentRequest.collection.updateOne({ _id: requestId }, { $set: { workflowStatus: 'DRAFT' } });
+    }
+    const linkedPO = await m.PurchaseOrder.collection.insertOne({ replenishmentRequestId: requestId });
+    try {
+      await api(editPath, users.SALES, { status: 400 });
+    } finally {
+      await m.PurchaseOrder.collection.deleteOne({ _id: linkedPO.insertedId });
+    }
+  });
+
   await t.test('RR lot options use RR permission and enforce creator and warehouse scope', async () => {
     const path = `/replenishments/options/lots?productId=${productId}&warehouseId=${warehouse}`;
     const first = await api(path + '&limit=1', users.SALES);
@@ -137,6 +251,8 @@ test('HTTP permission scope and read-only workflow selectors', { skip: !enabled,
       $pull: { permissionIds: permissionId('replenishment_request:create') },
     });
     await api('/replenishments/options?mode=CREATE', users.SALES, { status: 403 });
+    await api('/replenishments/options/sources?type=saleorders', users.SALES, { status: 403 });
+    await api(`/replenishments/options/sources?type=saleorders&requestId=${requestId}`, users.SALES);
     await api(`/replenishments/options?mode=CREATE&requestId=${requestId}`, users.SALES);
     await api(`/replenishments/options?mode=CREATE&requestId=${requestId}`, secondSales, { status: 404 });
     await api(path + `&requestId=${requestId}`, users.SALES);

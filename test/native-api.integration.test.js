@@ -53,9 +53,12 @@ run('conversion versions use the right scope and preserve document snapshots', a
  const custom = await m.Uom.create({ code: 'PACK', name: 'Pack' });
  const pid = String(product._id);
  const lotId = String(batch._id);
+ const baseOnly = await rr.getReplenishmentOptions(worker, 'CREATE');
+ assert.deepEqual(baseOnly.products.find(row => row.id === pid).units.map(row => row.code), ['PIECE']);
  const payload = { uomId: String(box._id), basePerUnit: '6', validFrom: '2020-01-01', verificationReference: 'Supplier' };
  await productService.createConversion(owner, pid, payload);
- await productService.createConversion(owner, pid, { ...payload, basePerUnit: '9', validFrom: '2099-01-01' });
+ const withoutRef = await productService.createConversion(owner, pid, { uomId: String(box._id), basePerUnit: '9', validFrom: '2099-01-01' });
+ assert.equal(withoutRef.verificationReference, 'Cập nhật quy cách thủ công');
  await productService.createConversion(owner, pid, {
    uomId: String(custom._id), basePerUnit: '3', validFrom: '2020-01-01', verificationReference: 'Supplier pack',
  });
@@ -76,6 +79,15 @@ run('conversion versions use the right scope and preserve document snapshots', a
  assert.equal(batchDetail.currentConversions.length, 1);
  assert.equal(batchDetail.currentConversions[0].basePerUnit, '8');
  assert.equal(batchDetail.currentConversions[0].productBatchId, String(batchEight._id));
+ for (const mode of ['CREATE', 'FILTER']) {
+   const options = await rr.getReplenishmentOptions(worker, mode);
+   const option = options.products.find(row => row.id === pid);
+   assert.deepEqual(Object.fromEntries(option.units.map(row => [row.code, row.basePerUnit])), {
+     PIECE: '1', BOX: '6', PACK: '3',
+   });
+   assert.equal(option.units.find(row => row.code === 'BOX').name, 'Thùng');
+   assert.deepEqual(options.sources, []);
+ }
  const records = await productService.listConversions(owner, pid, { uomId: String(box._id), productBatchId: 'null', limit: 1 });
  assert.equal(records.total, 2);
  assert.equal(records.items[0].isCurrent, false);
@@ -99,6 +111,8 @@ run('conversion versions use the right scope and preserve document snapshots', a
  assert.equal(writes.find(row => row.status === 'rejected').reason.statusCode, 409);
  const original = await make('PACK');
  await m.Uom.updateOne({ _id: custom._id }, { $set: { isActive: false } });
+ const activeOptions = await rr.getReplenishmentOptions(worker, 'CREATE');
+ assert.deepEqual(activeOptions.products.find(row => row.id === pid).units.map(row => row.code), ['PIECE', 'BOX']);
  assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit), ['6']);
  await assert.rejects(make('PACK'), /ngừng hoạt động/);
  assert.equal((await make('PACK', undefined, original)).qtyBase, original.qtyBase);
@@ -314,11 +328,12 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  assert.equal((await api('GET','/suppliers/names',worker)).status,403);assert.equal((await api('GET','/suppliers/names',accountant)).status,200);
  const category=await m.Category.findOne();const body={sku:key(),name:'New',manufacturerCode:'TEST',categoryId:String(category._id),baseUnit:'PIECE',wholeBaseUnits:true,lengthMm:'600.125',widthMm:'600',heightMm:'10',color:'White',surface:'Matte',origin:'VN',description:'Description'};
  const box = await m.Uom.findOne({code:'BOX'});
- const initialConversion = {uomId:String(box._id),basePerUnit:'6',validFrom:'2020-01-01',verificationReference:'Supplier'};
- const productResult=await api('POST','/products',owner,{...body,conversions:[initialConversion]});assert.equal(productResult.status,201);assert.equal(productResult.body.data.nominalSize,'600.125x600');
+ const initialConversion = {uomId:String(box._id),basePerUnit:'6',validFrom:'2020-01-01'};
+ const productResult=await api('POST','/products',owner,{...body,conversions:[{...initialConversion,verificationReference:null}]});assert.equal(productResult.status,201);assert.equal(productResult.body.data.nominalSize,'600.125x600');
  const productId=productResult.body.data.id;
  assert.equal(await m.ProductBatch.countDocuments({productId}),0);
  assert.equal(productResult.body.data.conversions[0].basePerUnit,'6');
+ assert.equal(productResult.body.data.conversions[0].verificationReference,'Khai báo khi tạo sản phẩm');
  const conversionPath='/products/'+productId+'/conversions';
  const detailPath='/products/'+productId;
  assert.equal((await api('GET',detailPath+'?batchId=null',owner)).status,400);
@@ -330,7 +345,7 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  const workerDetail = await api('GET',detailPath,worker);
  assert.equal(workerDetail.status,200);
  assert.equal(workerDetail.body.data.currentConversions[0].basePerUnit,'6');
- await m.ProductBatch.create({
+ const verifiedBatch = await m.ProductBatch.create({
    productId, manufacturerLot: key(), identificationStatus: 'VERIFIED',
    piecesPerCarton: 8, cartonLengthMm: '600', cartonWidthMm: '600', cartonHeightMm: '10',
  });
@@ -344,9 +359,25 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  assert.deepEqual((await api('GET','/products/'+noConversionProduct.body.data.id,owner)).body.data.currentConversions,[]);
  assert.equal((await api('POST',conversionPath,worker,initialConversion)).status,403);
  assert.equal((await api('POST',conversionPath,owner,initialConversion)).status,409);
- assert.equal((await api('POST',conversionPath,owner,{...initialConversion,validFrom:'2099-01-01',basePerUnit:'8'})).status,201);
+ const futureConversion = {...initialConversion,basePerUnit:'8',validFrom:'2099-01-01'};
+ assert.equal((await api('POST',conversionPath,owner,{...futureConversion,verificationReference:'a'.repeat(501)})).status,400);
+ const references = [undefined, '', '   ', null, '  Công văn số 99/TB-NM  '];
+ for (const [index, reference] of references.entries()) {
+   const created = await api('POST', conversionPath, owner, {
+     ...futureConversion, validFrom: `2099-01-0${index + 1}`, verificationReference: reference,
+   });
+   assert.equal(created.status, 201);
+   const expected = reference?.trim() || 'Cập nhật quy cách thủ công';
+   assert.equal(created.body.data.verificationReference, expected);
+   assert.equal((await m.Conversion.findById(created.body.data.id)).verificationReference, expected);
+ }
+ const lotConversion = await api('POST', conversionPath, owner, {
+   ...initialConversion, productBatchId: String(verifiedBatch._id), basePerUnit:'8',
+ });
+ assert.equal(lotConversion.status, 201);
+ assert.equal(lotConversion.body.data.verificationReference, 'Quy cách gắn theo lô');
  const history=await api('GET',conversionPath+'?limit=1&productBatchId=null',owner);
- assert.equal(history.status,200);assert.equal(history.body.data.total,2);assert.equal(history.body.data.items[0].isCurrent,false);
+ assert.equal(history.status,200);assert.equal(history.body.data.total,6);assert.equal(history.body.data.items[0].isCurrent,false);
  assert.equal((await api('POST','/products',owner,{...body,sku:key(),baseUnit:'CUSTOM'})).status,400);
  const sup=await api('POST','/suppliers',accountant,{code:key(),name:'NCC',contactName:'Contact',taxCode:'TAX',notes:'Note'});assert.equal(sup.status,201);assert.equal(sup.body.data.status,'ACTIVE');
  assert.equal((await api('PATCH','/suppliers/'+sup.body.data.id+'/status',owner,{expectedUpdatedAt:sup.body.data.updatedAt,status:'SUSPENDED',reason:'Pause'})).status,200);

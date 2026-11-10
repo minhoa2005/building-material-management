@@ -1,3 +1,7 @@
+## 10/11/2026 — Lý do từng dòng yêu cầu bổ sung
+
+`reasonNote` là tùy chọn trong chi tiết dòng và snapshot gửi duyệt. Các lý do đã lưu được giữ nguyên khi cập nhật cùng ID dòng và bỏ trường này. Không cần migration. Kiểm tra lưu nháp, cập nhật và tạo snapshot qua HTTP trên MongoDB local.
+
 ## 09/11/2026 — Conversion theo sản phẩm và lô
 
 Thêm `conversions` với hệ số Decimal128, phạm vi sản phẩm hoặc lô, phiên bản và ngày hiệu lực. Thêm `uoms.isCarton` để đồng bộ hệ số từ quy cách lô. Registry có 58 collection. Dòng chứng từ giữ snapshot, kiểm nhận ghi hệ số lô thực. Xem [hợp đồng](../../git_doc/docs/08_api/CONVERSIONS.md) và [backfill](../../git_doc/docs/09_phat_trien/CONVERSION_BACKFILL.md).

@@ -14,6 +14,7 @@ const fields = {
 const timestamp = z.string().datetime({ offset: true });
 const conversionDate = z.union([timestamp, calendarDateString]);
 const conversionFactor = decimalStringSchema({ positive: true, scale: 12, precision: 24 });
+const verificationReference = z.string().trim().max(500).nullish().transform(value => value || undefined);
 const params = z.object({ id: oid }).strict();
 const schema = (body = empty, query = empty, routeParams = params) => z.object({ body, query, params: routeParams });
 const pager = (fallback, max = Number.MAX_SAFE_INTEGER) => z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().min(1).max(max)).default(fallback);
@@ -34,7 +35,7 @@ const conversionItemSchema = z.object({
   uomId: oid,
   basePerUnit: conversionFactor,
   validFrom: conversionDate.optional(),
-  verificationReference: text(500).optional(),
+  verificationReference,
 }).strict();
 
 const stockThresholdItemSchema = z.object({
@@ -113,6 +114,6 @@ export const createConversionSchema = schema(
     productBatchId: oid.nullable().optional(),
     basePerUnit: conversionFactor,
     validFrom: conversionDate,
-    verificationReference: text(500),
+    verificationReference,
   }).strip(),
 );

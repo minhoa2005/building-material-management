@@ -74,7 +74,7 @@ Một bản ghi là một yêu cầu bổ sung cho **một kho nhận**, có m�
 | `enteredUnit`, `baseUnitSnapshot`, `baseUnitsPerUnit`, `packagingSnapshot` | Dữ liệu nhúng trực tiếp trên dòng | Đơn vị nhập, đơn vị gốc, hệ số thực dùng và quy cách kiện khi có; nhập bằng đơn vị gốc dùng hệ số 1. Không tham chiếu B03/B06 |
 | `requestedQty`, `requestedQtyBase` | Decimal128 > 0 | Lượng đề nghị ở đơn vị nhập và đơn vị gốc; phần mềm kiểm hai giá trị khớp |
 | `approvedQtyBase` | Decimal128 ≥ 0 hoặc null trước quyết định | Lượng Owner chấp thuận, không vượt lượng đề nghị; có thể duyệt ít hơn và ghi lý do |
-| `sourceType`, `sourceRef` | SALES_DEMAND, STOCK_THRESHOLD, STOCKTAKE, DEFECT hoặc OTHER; tham chiếu nguồn khi có | Truy về dòng SO, thiết lập ngưỡng và phiên bản, kiểm kê/hồ sơ lỗi; OTHER cần lý do. Loại nguồn và tham chiếu phải khớp |
+| `sourceType`, `sourceRef` | SALES_DEMAND, STOCK_THRESHOLD, STOCKTAKE, DEFECT hoặc OTHER; tham chiếu nguồn khi có | Truy về dòng SO, thiết lập ngưỡng và phiên bản, kiểm kê/hồ sơ lỗi. Loại nguồn và tham chiếu phải khớp. Theo quyết định 10/11/2026, lý do từng dòng là tùy chọn. Nhu cầu thủ công có cảnh báo trùng vẫn cần giải trình độc lập. |
 | `requiredBatchId`, `requiredTone`, `requiredCalibre` | Tham chiếu B05 hoặc chuỗi, khi nhu cầu có yêu cầu | Giữ điều kiện tương thích từ nguồn, không tự thay lô/tông/cỡ để coi là đã đáp ứng |
 | `neededBy`, `note` | Ngày giờ/chuỗi, tùy chọn | Hạn riêng của dòng, nếu trống dùng hạn đầu phiếu; ghi chú nhu cầu |
 | `coverageSnapshot` | Số liệu có thời điểm và tham chiếu nguồn | Lượng còn nghĩa vụ, đã giữ, nguồn dự kiến đúng hạn và thiếu tại lúc gửi. Chỉ là căn cứ lịch sử; khi duyệt/lập PO phải tính lại |

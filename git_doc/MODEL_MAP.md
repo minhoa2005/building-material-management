@@ -44,7 +44,7 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 | `return_source_locks` | Phối hợp xử lý đồng thời theo nguồn trả; hạn mức thực tế ở return_quantity_claims. | [return-source-lock.model.js](../src/models/return-source-lock.model.js) |
 | `external_references` | Hồ sơ chứng từ nguồn bên ngoài. D07 còn chờ chốt người/quy trình xác minh; không tích hợp MISA. | [external-reference.model.js](../src/models/external-reference.model.js) |
 | `product_batches` | Lô theo productId + manufacturerLot; số viên/thùng cố định và kích thước ngoài thùng (mm). Không có calibre/tone. | [product-batch.model.js](../src/models/product-batch.model.js) |
-| `replenishment_requests` | Yêu cầu bổ sung cho một kho; các dòng lưu lượng đề nghị, lượng duyệt và căn cứ nhu cầu. | [replenishment-request.model.js](../src/models/replenishment-request.model.js) |
+| `replenishment_requests` | Yêu cầu bổ sung cho một kho. Các dòng lưu lượng đề nghị và lượng duyệt. `reasonNote` tùy chọn trên dòng hiện tại và snapshot gửi duyệt. | [replenishment-request.model.js](../src/models/replenishment-request.model.js) |
 | `purchase_orders` | Đơn mua theo một RR, một nhà cung cấp và một kho; lưu giá mua, tổng tiền và lịch giao. | [purchase-order.model.js](../src/models/purchase-order.model.js) |
 | `goods_arrivals` | Mỗi lần hàng mua thực đến; giữ lịch sử kể cả khi từ chối toàn bộ, chưa tự tăng tồn sở hữu. | [goods-arrival.model.js](../src/models/goods-arrival.model.js) |
 | `goods_inspections` | Kết quả kiểm nhận theo từng phần hàng đến, chất lượng và quyết định sở hữu/giữ hộ/từ chối. | [goods-inspection.model.js](../src/models/goods-inspection.model.js) |

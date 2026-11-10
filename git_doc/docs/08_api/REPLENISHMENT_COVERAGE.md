@@ -7,7 +7,7 @@ domain: Replenishment
 tags: [replenishment, concurrency, coverage]
 depends_on: [DOC-API-NATIVE-RUNTIME]
 author: Codex
-last_updated: 2026-11-07
+last_updated: 2026-11-10
 ---
 
 # Yêu cầu bổ sung theo nguồn
@@ -18,15 +18,29 @@ Quyết định triển khai: người dùng yêu cầu thực hiện toàn bộ
 
 `GET /api/replenishments/options/lots?productId=<id>&warehouseId=<id>&page=1&limit=20` lấy quy cách thùng cho form RR. Mặc định page 1, limit 20, tối đa 100. Khi tạo, quyền là `replenishment_request:create`. Thêm `requestId=<id>` khi sửa, dùng `replenishment_request:update` và kiểm người lập, kho hiện tại, trạng thái còn sửa được và chưa có PO. Kho nhận phải đang hoạt động và nằm trong phạm vi của người dùng. Response `data: { items: [{ id, manufacturerLot, piecesPerCarton }], total, page, limit }` chỉ gồm lô VERIFIED của sản phẩm đang hoạt động, sắp theo mã lô. Đây là thông tin quy đổi trên danh mục sản phẩm, không chứa lượng tồn hoặc vị trí. FE dùng API này cho danh sách chọn lô, tải khi đã chọn kho và sản phẩm, tải thêm trang khi cuộn.
 
-`GET /api/replenishments/options?mode=CREATE&requestId=<id>` tải kho, sản phẩm và nguồn cho form sửa. `requestId` chuyển phép kiểm sang quyền `replenishment_request:update`, cùng điều kiện sửa RR như tùy chọn lô. Form tạo tiếp tục dùng `mode=CREATE` với quyền tạo. Đánh giá RR đã lưu cần quyền đọc RR.
+`GET /api/replenishments/options?mode=CREATE|FILTER` trả `data: { warehouses, products, sources: [] }`. Mỗi sản phẩm đang hoạt động có thêm `units: [{ id, code, name, basePerUnit }]`. Danh sách gồm đơn vị gốc đang hoạt động với hệ số `"1"` và phiên bản quy đổi cấp sản phẩm đang hiệu lực mới nhất của mỗi đơn vị đang hoạt động. `basePerUnit` là chuỗi thập phân. Quy đổi cấp lô được tra riêng theo lô đã chọn. Endpoint giữ mảng `sources` rỗng để tương thích với frontend và bỏ truy vấn danh sách chứng từ nguồn.
+
+Khi sửa, thêm `requestId=<id>` để kiểm quyền `replenishment_request:update` và điều kiện sửa RR như tùy chọn lô. Form tạo dùng `mode=CREATE` với quyền tạo. `mode=FILTER` dùng quyền đọc. Đánh giá RR đã lưu cần quyền đọc RR.
+
+### Danh sách chứng từ nguồn
+
+`GET /api/replenishments/options/sources?type=stocktakes` lấy phiên kiểm kê. Dùng `type=saleorders` để lấy đơn bán. Tham số `type` là bắt buộc. `page` mặc định 1, `limit` mặc định 20 và tối đa 100. `productId` lọc chứng từ và dòng trả về theo sản phẩm. `warehouseId` chỉ áp dụng cho kiểm kê và phải thuộc phạm vi người dùng. Kết quả được lọc trước khi phân trang, sắp theo `createdAt` rồi `_id` giảm dần.
+
+- Khi tạo, API yêu cầu `replenishment_request:create`. Khi có `requestId`, API yêu cầu `replenishment_request:update` và kiểm điều kiện sửa giống tùy chọn lô. Cả hai trường hợp cần quyền đọc loại nguồn tương ứng.
+- Đơn bán yêu cầu `sales_order:read`. Owner và Accountant xem theo phạm vi rộng, các vai trò khác chỉ thấy đơn do mình lập. API loại đơn `CANCELLED`, `REJECTED` và `COMPLETED`.
+- Kiểm kê yêu cầu `stocktake:read`. API chỉ lấy phiên `COMPLETED` hoặc `CLOSED` có mốc `completedAt` trong phạm vi kho. Mỗi sản phẩm xuất hiện một lần trong mỗi phiên, kể cả khi có mặt ở cả dòng kiểm kê và snapshot theo lô.
+
+Response trả `data: { items, total, page, limit }`. Mỗi chứng từ có `id`, `documentNo`, `documentType`, `version` và `items`. Đơn bán trả `documentType: "sales_orders"` với dòng `{ id, productId, label }`. Kiểm kê trả `documentType: "stocktakes"`, thêm `warehouseId` và có dòng `{ productId, label }`. Tìm kiếm hợp lệ không có kết quả trả HTTP 200 với `items: []`. Chứng từ được kiểm tra lại khi đánh giá và lưu RR. Form chưa gọi endpoint này.
 
 `POST /api/replenishments/evaluate` chỉ đọc trong snapshot transaction. Body gồm `warehouseId`, `neededOn` (YYYY-MM-DD), `lines[]` và `requestId` nếu đánh giá phiếu đang sửa. Dòng có `productId` và `source`. Form chưa lưu không tạo RR/khóa/cam kết.
 
-Nguồn `MANUAL_OTHER` không có chứng từ giả. `SALES_SHORTAGE` dùng `documentType: sales_orders | warehouse_issue_requests`, `documentId`, `itemId`, `version`; WIR chuẩn hóa về SO/dòng gốc. `STOCK_THRESHOLD` dùng sản phẩm/kho hiện hành. `STOCKTAKE_LOW_STOCK` dùng `documentType: stocktakes`, `documentId`, `version`, tham chiếu kiểm kê đã chốt và dùng chung định danh dự trữ kho/sản phẩm. Nguồn không xác định được không được coi là lượng 0. Response source có thêm định danh SO chuẩn hóa do server ghi; khi gửi lại chỉ gửi trường source input trong hợp đồng, không gửi các trường suy ra. `GET /replenishments/options?mode=CREATE` trả thêm nguồn SO/WIR/kiểm kê theo quyền, kể cả sản phẩm lấy từ snapshot kiểm kê. Ngày cần luôn là ngày lịch Asia/Saigon, không cắt trực tiếp ngày UTC để nhập form.
+Nguồn `MANUAL_OTHER` không có chứng từ giả. `SALES_SHORTAGE` dùng `documentType: sales_orders | warehouse_issue_requests`, `documentId`, `itemId`, `version`; WIR chuẩn hóa về SO/dòng gốc. `STOCK_THRESHOLD` dùng sản phẩm/kho hiện hành. `STOCKTAKE_LOW_STOCK` dùng `documentType: stocktakes`, `documentId`, `version`, tham chiếu kiểm kê đã chốt và dùng chung định danh dự trữ kho/sản phẩm. Nguồn không xác định được không được coi là lượng 0. Response source có thêm định danh SO chuẩn hóa do server ghi; khi gửi lại chỉ gửi trường source input trong hợp đồng, không gửi các trường suy ra. Ngày cần luôn là ngày lịch Asia/Saigon, không cắt trực tiếp ngày UTC để nhập form.
 
 Response `data` là mảng đánh giá theo dòng: `lineNo`, `canonicalKey`, `source`, `evaluationKey`, `evaluatedAt`, các lượng `availableQtyBase`, `reservedForDemandQtyBase`, `remainingDemandQtyBase`, `incomingCoverageQtyBase`, `pendingRequestCoverageQtyBase`, `suggestedQtyBase`, ngưỡng minimum/target và `relatedRequests` theo quyền. Mọi lượng là decimal string.
 
 Create/update dùng `enteredUnit`, `enteredQty`, `lotId` khi chọn đơn vị thùng; không nhận `conversionId`. Dòng mang `source`, `evaluationKey`, `quantityAdjustmentReason`; nhu cầu thủ công đã được cảnh báo cần `independentNeedConfirmed: true` và `independentNeedReason`. Server tự tính quy đổi/snapshot, không nhận số liệu tồn từ browser.
+
+`POST /api/replenishments` với `SAVE_DRAFT` hoặc `SUBMIT` và `PUT /api/replenishments/:id` chấp nhận dòng thiếu `reasonNote`. Nếu gửi, giá trị phải là chuỗi từ 1 đến 2.000 ký tự sau khi cắt khoảng trắng. Khi sửa dòng có cùng ID, bỏ trường này sẽ giữ lý do đã lưu. Snapshot gửi duyệt ghi lý do nếu có. `triggerReason` cấp phiếu vẫn bắt buộc. `reasonNote` độc lập với `independentNeedReason` khi có cảnh báo trùng và `quantityAdjustmentReason` khi điều chỉnh lượng đề xuất theo quy tắc coverage. Form FE hiện vẫn yêu cầu lý do từng dòng.
 
 Submit/review và PO create/update/confirm/amend hỗ trợ `evaluations: [{lineId,evaluationKey}]` để xác nhận lại đánh giá. RR lifecycle còn hỗ trợ giải trình độc lập/điều chỉnh lượng trong từng xác nhận. Thiếu token hiện hành, phần thiếu không đủ hoặc thiếu xác nhận thủ công trả HTTP 409 `ERR-RR-409-004`, `details.requiresReview`, `latestEvaluations`, `invalidLines` khi có. Không lưu một phần; frontend giữ input để người dùng xem và gửi lại. Thay nội dung đã gửi cần key mới sau khi đã xác định kết quả lần trước; retry kết quả chưa rõ giữ nguyên key/payload.
 

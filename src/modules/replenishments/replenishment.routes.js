@@ -18,6 +18,11 @@ router.get(
   controller.lotOptions,
 );
 router.get(
+  "/options/sources",
+  validate(validation.replenishmentSourceOptionsSchema),
+  controller.sourceOptions,
+);
+router.get(
   "/options",
   validate(validation.replenishmentOptionsSchema),
   controller.options,

@@ -148,7 +148,7 @@ const createLineSchema = z
     productId: objectIdSchema,
     enteredUnit: z.string().trim().min(1).max(60), lotId: objectIdSchema.optional(),
     enteredQty: lineQty,
-    reasonNote,
+    reasonNote: reasonNote.optional(),
     source: sourceSchema.optional(),
     ...assessmentFields,
   })
@@ -173,7 +173,7 @@ const updateLineSchema = z
     productId: objectIdSchema,
     enteredUnit: z.string().trim().min(1).max(60), lotId: objectIdSchema.optional(),
     enteredQty: lineQty,
-    reasonNote,
+    reasonNote: reasonNote.optional(),
     source: sourceSchema.optional(),
     ...assessmentFields,
   })
@@ -239,6 +239,19 @@ export const replenishmentOptionsSchema = z.object({
     mode: z.enum(["CREATE", "FILTER"]),
     requestId: objectIdSchema.optional(),
   }).strict().refine(query => !query.requestId || query.mode === "CREATE"),
+});
+
+export const replenishmentSourceOptionsSchema = z.object({
+  params: emptyQuery,
+  body: emptyQuery,
+  query: z.object({
+    type: z.enum(["stocktakes", "saleorders"]),
+    productId: objectIdSchema.optional(),
+    warehouseId: objectIdSchema.optional(),
+    requestId: objectIdSchema.optional(),
+    page: positiveInteger(1),
+    limit: positiveInteger(20, 100),
+  }).strict().refine(({ page, limit }) => Number.isSafeInteger((page - 1) * limit)),
 });
 
 export const evaluateReplenishmentSchema = z.object({

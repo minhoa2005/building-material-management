@@ -1,3 +1,27 @@
+## 10/11/2026 — API tra cứu chứng từ nguồn cho RR
+
+- Theo kế hoạch người dùng duyệt, module replenishments thêm `GET /api/replenishments/options/sources` cho đơn bán và phiên kiểm kê. API phân trang sau khi lọc theo phạm vi người dùng, trạng thái nguồn và bộ lọc sản phẩm hoặc kho. Kiểm kê hợp nhất sản phẩm từ dòng và snapshot.
+- Cập nhật [hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md#danh-sách-chứng-từ-nguồn). API chỉ đọc, không cần migration. Form chưa gọi endpoint mới.
+- Kiểm thử HTTP trên MongoDB replica set local xác nhận bộ lọc, phân trang, quyền theo loại nguồn, phạm vi dữ liệu, snapshot và điều kiện sửa RR.
+
+## 10/11/2026 — Đơn vị theo sản phẩm trong tùy chọn RR
+
+- Theo yêu cầu người dùng, `getReplenishmentOptions` trả đơn vị gốc và quy đổi cấp sản phẩm đang hiệu lực trong `products[].units`. Bỏ truy vấn chứng từ nguồn và giữ `sources: []` trong response. Quyền tạo, đọc và sửa tiếp tục được kiểm theo chế độ và `requestId`.
+- Cập nhật [hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md). Không cần migration. Form hiện chưa dùng `units` để dựng danh sách chọn đơn vị.
+- Integration test trên MongoDB local kiểm tra đơn vị gốc, quy đổi theo sản phẩm, loại quy đổi theo lô và theo lịch tương lai, đơn vị ngừng hoạt động và phạm vi quyền của API.
+
+## 10/11/2026 — Lý do từng dòng yêu cầu bổ sung tùy chọn trên BE
+
+- Theo yêu cầu người dùng ngày 10/11/2026, API tạo và cập nhật RR cho phép bỏ `reasonNote` trong từng dòng. Chi tiết dòng và snapshot chấp nhận thiếu trường. Lý do đã lưu được giữ khi sửa cùng ID dòng và bỏ trường. Không cần migration.
+- Cập nhật [hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md), quy trình VI/EN, bản đồ model và từ điển dữ liệu. Lý do cấp phiếu và giải trình theo coverage vẫn bắt buộc. Form FE vẫn yêu cầu lý do từng dòng.
+- Hai bộ test RR integration trên MongoDB replica set local cô lập đạt 14/14. Bao gồm tạo nháp, cập nhật, gửi duyệt trực tiếp và từ nháp, giữ lý do cũ và từ chối khi thiếu giải trình bắt buộc.
+
+## 09/11/2026 — Căn cứ xác minh quy đổi tùy chọn trên API
+
+- Theo kế hoạch backend được yêu cầu ngày 09/11/2026, bỏ yêu cầu nhập `verificationReference` khi thêm phiên bản quy đổi. Áp dụng cùng quy tắc chuẩn hóa cho mảng `conversions` lúc tạo sản phẩm. Validation ở `product.validation.js`, giá trị mặc định theo phạm vi quy đổi ở `conversions.js`.
+- Cập nhật [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) cho các bên gọi API. Model vẫn yêu cầu giá trị khi lưu. Không cần migration. Form frontend hiện vẫn yêu cầu người dùng nhập căn cứ.
+- Kiểm thử HTTP trong `native-api.integration.test.js` xác nhận mã 201, nội dung phản hồi và lưu DB cho phiên bản cập nhật, đồng thời kiểm tra giá trị mặc định khi tạo sản phẩm và quy đổi gắn lô. Suite backend chạy với `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` trên MongoDB local đạt 131, bỏ qua 32.
+
 ## 09/11/2026 — Đổi runner CI BE để khởi động MongoDB 8.0
 
 - Log `mongod` của [lần chạy 42635769959](https://github.com/minhoa2005/building-material-management/actions/runs/42635769959/job/129223389790) xác nhận MongoDB từ chối kernel trên runner `ubuntu-24.04`. Đổi `.github/workflows/ci.yml` sang `ubuntu-22.04` theo [hướng dẫn của GitHub Actions](https://github.com/actions/runner-images/issues/15005).
