@@ -28,7 +28,7 @@ export function createReplenishmentSubmissionLineSchema() {
       qtyBase: decimal({ positive: true }),
       triggerType: code(REPLENISHMENT_TRIGGER_TYPES),
       evaluation: { type: createReplenishmentDetailsSchema(), required: false },
-      reasonNote: text(2000),
+      reasonNote: text(2000, { required: false }),
       baseUnitSnapshot: text(60),
       enteredUnit: text(60),
       baseUnitsPerUnit: decimal({ positive: true, precision: 24, scale: 12 }),

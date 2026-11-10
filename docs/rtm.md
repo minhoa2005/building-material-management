@@ -21,9 +21,9 @@ This BE matrix records BE implementation and test evidence only. The other repos
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | UC-01 | View replenishment request list | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-02 | View replenishment request details | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-03 | Create Replenishment Draft | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-04 | Update Replenishment Draft or Returned Request | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-05 | Submit Replenishment Request | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-03 | Create Replenishment Draft | FE-01 | ACTIVE | Implemented | Partial | [RR guard integration tests](../test/replenishment-guards.integration.test.js) | HTTP 201 when `reasonNote` is omitted. The API rejects a blank or oversized supplied note and a missing request-level reason. Evidence covers the [line-note change](../git_doc/docs/08_api/REPLENISHMENT_COVERAGE.md). `getReplenishmentOptions` includes `imageUrls` projection for frontend thumbnail rendering. |
+| UC-04 | Update Replenishment Draft or Returned Request | FE-01 | ACTIVE | Implemented | Partial | [RR guard integration tests](../test/replenishment-guards.integration.test.js) | HTTP 200 when a draft update omits `reasonNote`. A stored note survives omission on the same line ID. The optional-note scenario was tested on a draft. |
+| UC-05 | Submit Replenishment Request | FE-01 | ACTIVE | Implemented | Partial | [RR guard integration tests](../test/replenishment-guards.integration.test.js) | Direct submission and submission from a draft succeed without line notes. Database assertions confirm that the snapshot omits an absent note and keeps an existing note. Evidence covers the line-note change. |
 | UC-06 | Approve or reject replenishment request | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-07 | View purchase order list | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-08 | View purchase order details | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
@@ -37,10 +37,10 @@ This BE matrix records BE implementation and test evidence only. The other repos
 | UC-16 | Create goods receipt from purchase order | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-17 | View product list | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-18 | View product details | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-19 | Create Product | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-19 | Create Product | FE-02 | ACTIVE | TBD | Partial | [native-api.integration.test.js](../test/native-api.integration.test.js) | `POST /api/products` returns 201 and `Khai báo khi tạo sản phẩm` for an initial conversion with a null reference. Evidence here covers initial conversion only. |
 | UC-20 | Update Product Information | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-21 | Change Product Status | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-22 | Define Packaging Conversion Version | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-22 | Define Packaging Conversion Version | FE-02 | ACTIVE | Implemented | Passed | [product-conversion-validation.test.js](../test/product-conversion-validation.test.js), [native-api.integration.test.js](../test/native-api.integration.test.js) | HTTP 201 and DB assertions cover omitted, empty, whitespace-only, null, and custom references on updates. HTTP tests also cover the lot default, the 500-character limit, and version conflict. [API contract and default rules](../git_doc/docs/08_api/CONVERSIONS.md). |
 | UC-23 | Configure Warehouse Stock Policy | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-24 | View lot list | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-25 | View lot details | FE-02 | ACTIVE | TBD | TBD | TBD | TBD |

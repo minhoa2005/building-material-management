@@ -2,6 +2,7 @@ import { catchAsync } from "../../shared/utils/catchAsync.js";
 import { formatApiResponse } from "../../shared/utils/ApiResponse.js";
 import * as service from "./replenishment.service.js";
 import * as commands from "./replenishment.commands.js";
+import { getReplenishmentSourceOptions } from "./replenishment.sources.js";
 
 export const evaluate = catchAsync(async (req, res) => {
   const data = await commands.evaluateReplenishment(req.user, req.validated.body);
@@ -36,6 +37,11 @@ export const options = catchAsync(async (req, res) => {
 
 export const lotOptions = catchAsync(async (req, res) => {
   const data = await commands.getReplenishmentLotOptions(req.user, req.validated.query);
+  formatApiResponse(res, { data });
+});
+
+export const sourceOptions = catchAsync(async (req, res) => {
+  const data = await getReplenishmentSourceOptions(req.user, req.validated.query);
   formatApiResponse(res, { data });
 });
 

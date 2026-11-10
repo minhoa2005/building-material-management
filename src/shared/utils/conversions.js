@@ -94,9 +94,12 @@ export async function configureConversion(product, input, user, session) {
 
   const scope = { productId: product._id, productBatchId: input.productBatchId ?? null, uomId: uom._id };
   const latest = await Conversion.findOne(scope).sort({ version: -1 }).session(session);
+  const defaultReference = scope.productBatchId
+    ? 'Quy cách gắn theo lô'
+    : (latest ? 'Cập nhật quy cách thủ công' : 'Khai báo khi tạo sản phẩm');
   const row = await appendConversion(scope, {
     basePerUnit: factor.toFixed(), validFrom,
-    verificationReference: input.verificationReference ?? 'Khai báo khi tạo sản phẩm',
+    verificationReference: input.verificationReference?.trim() || defaultReference,
   }, latest, user, session);
   return conversionDto(row, uom, user, row.validFrom <= new Date());
 }

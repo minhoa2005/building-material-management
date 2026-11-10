@@ -22,6 +22,10 @@ Hai unique index dùng tiền tố `(productId, productBatchId, uomId)` và lầ
 
 Product giữ các trường theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md) và bổ sung `imageUrls` kiểu mảng String, mặc định rỗng. Mảng lưu URL ảnh theo thứ tự; phần tử đầu là ảnh đại diện. API kiểm tối đa 5 URL HTTPS hợp lệ, mỗi URL tối đa 2.048 ký tự và không trùng sau khi trim. Đây là giới hạn của hợp đồng API; model không thêm collection hoặc index.
 
+## Lý do từng dòng của `ReplenishmentRequest`
+
+`items[].details.reasonNote`, `submissions[].lines[].reasonNote` và `submissions[].lines[].evaluation.reasonNote` là chuỗi tùy chọn, cắt khoảng trắng, tối đa 2.000 ký tự và không có giá trị mặc định. Snapshot giữ lý do tại thời điểm gửi nếu có. Bản ghi hiện có giữ nguyên, không cần migration. Xem [hợp đồng RR](../../08_api/REPLENISHMENT_COVERAGE.md) để biết validation khi gọi API.
+
 ## `goods_receipts` / `GoodsReceipt`
 
 Mỗi bản ghi là một phiếu nhập có `_id` ObjectId bất biến, `documentNo` string tối đa 50 ký tự, `documentKind` thuộc `PURCHASE | CUSTOMER_RETURN | FAILED_DELIVERY | TRANSFER | OTHER`, `workflowStatus`, `version` nguyên dương, `createdBy`, `occurredAt`, `note`, `externalReferenceIds`, `sources[]`, `updatedBy`, `evidenceIds[]`, `cancelledBy`, `cancelledAt`, `cancelReason`, `stockTransactionId`, `postedBy`, `postedAt`, và `createdAt/updatedAt`. `custodyDecisionId` chỉ hợp lệ cho `PURCHASE`. Mã phiếu duy nhất theo `{documentKind, documentNo}`; có index theo trạng thái, nguồn, dòng, kho và ngày tạo.

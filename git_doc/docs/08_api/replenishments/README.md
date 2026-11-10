@@ -1,6 +1,6 @@
 # Replenishment request backend — UC-01–UC-06
 
-> Phạm vi tài liệu này là API hoặc kết quả kiểm tra của runtime trước khi chuyển DB. Quy tắc thiết kế mới và trạng thái chuyển đổi được nêu trong [PROJECT_GUIDE](../../../PROJECT_GUIDE.md). Khi port module, cập nhật contract tại đây và ghi rõ profile đã kiểm.
+> Nội dung dưới đây mô tả runtime trước khi chuyển DB. Dùng [hợp đồng RR hiện hành](../REPLENISHMENT_COVERAGE.md) cho API native, bao gồm quy tắc `reasonNote` tùy chọn từ 10/11/2026. Xem thêm [PROJECT_GUIDE](../../../PROJECT_GUIDE.md).
 
 This module reads and writes `BusinessDocument` / `DocumentLine` REPLENISHMENT
 discriminators. It never changes stock, reservations, allocations, posting batches,

@@ -43,7 +43,7 @@ export function createReplenishmentDetailsSchema() {
       minimumQtySnapshot: decimal({ required: false }),
       targetQtySnapshot: decimal({ required: false }),
       suggestedQty: decimal({ positive: true, required: false }),
-      reasonNote: text(2000),
+      reasonNote: text(2000, { required: false }),
       quantityAdjustmentReason: text(2000, { required: false }),
     },
     embeddedOptions,

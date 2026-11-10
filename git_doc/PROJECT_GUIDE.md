@@ -93,3 +93,5 @@ The user confirmed Accountant verification with uploaded evidence for historical
 ## Bổ sung 07/11/2026 — RR coverage
 
 [Hợp đồng chống trùng](docs/08_api/REPLENISHMENT_COVERAGE.md): RR đã lưu chiếm lượng theo nguồn; SO/WIR dùng cùng nghĩa vụ gốc, ngưỡng/kiểm kê cùng nhu cầu dự trữ. Nhu cầu thủ công tương tự cần cảnh báo và giải trình độc lập. Ghi chứng từ và đổi ngưỡng tham gia cùng khóa đồng thời.
+
+Theo quyết định ngày 10/11/2026, API tạo và sửa RR cho phép bỏ lý do từng dòng. Lý do chung của phiếu và các giải trình do quy tắc coverage yêu cầu vẫn bắt buộc.
