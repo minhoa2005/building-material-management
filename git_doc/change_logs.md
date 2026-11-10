@@ -1,3 +1,9 @@
+## 11/11/2026 — Tự động hóa kiểm thử và demo quy trình trả hàng (trungph)
+
+- Bổ sung kịch bản kiểm thử tự động hóa end-to-end `scripts/demo-return-workflows.mjs` chạy qua toàn bộ 6 quy trình trả hàng của trungph (BF02 báo cáo phế phẩm, BF07 trả hàng khách, trả hàng giao không thành công, BF08 trả nhà cung cấp, truy vết lô đa cấp qua 58 collection và chứng từ ngoài/lịch sử).
+- Thêm lệnh `npm run demo:returns` vào `package.json`. Kịch bản thực thi trực tiếp trên in-memory dataset 58 schema đã chuẩn hóa và tự động kiểm tra kết nối cơ sở dữ liệu trực tiếp khi có biến môi trường.
+- Bảo toàn định dạng hợp đồng API trả hàng, kiểm soát phiên bản và tính lũy kế trong [hợp đồng return workflows](docs/08_api/RETURN_WORKFLOWS_NATIVE.md).
+
 ## 10/11/2026 — API tra cứu chứng từ nguồn cho RR
 
 - Theo kế hoạch người dùng duyệt, module replenishments thêm `GET /api/replenishments/options/sources` cho đơn bán và phiên kiểm kê. API phân trang sau khi lọc theo phạm vi người dùng, trạng thái nguồn và bộ lọc sản phẩm hoặc kho. Kiểm kê hợp nhất sản phẩm từ dòng và snapshot.

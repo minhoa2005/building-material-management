@@ -26,6 +26,7 @@
     "docs:check": "node scripts/check-docs.mjs",
     "db:deploy": "node scripts/deploy-reviewed-db.mjs",
     "db:categories": "node scripts/add-product-categories.mjs",
+    "demo:returns": "node scripts/demo-return-workflows.mjs",
     "test:returns": "node scripts/test-return-workflows.mjs"
   },
   "dependencies": {
