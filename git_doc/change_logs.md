@@ -97,6 +97,10 @@
 - Form tạo sản phẩm lấy danh mục đang hoạt động từ API tùy chọn, bắt buộc chọn và gửi ObjectId tương ứng. Đơn vị gốc gửi mã UOM. Giữ nguyên API, model và dữ liệu. [Hợp đồng Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md).
 - Sáu test form đạt, gồm kiểm giá trị danh mục, mã UOM, yêu cầu chọn danh mục và hiển thị lỗi `body.categoryId` tại ô phân loại. Kiểm thử form dùng fixture API.
 
+## 2026-11-07 — Presentation startup: public authentication route
+
+Moved the native workflow router after public health/auth mounts so its authentication middleware no longer intercepts login. Reproduced the blocked login, verified local seeded role logins and workflow options, and added a regression for public health/login validation with protected workflow options. Presentation runs against a separate local replica-set demo database; no Atlas connection or data change.
+
 ## 2026-11-07 — Tutor feedback: request terminology and source entry
 
 Updated frontend CR/SR creation, list and detail wording to use business-specific requests instead of generic hồ sơ; defects remain reports and failed deliveries are recordings. Replaced record-selection modals with searchable dropdowns backed by scoped paginated lookup APIs. CR/SR/FD creation uses one entry area and a table of added lines; incomplete drafts cannot be silently omitted. No backend contract or database changes.
