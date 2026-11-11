@@ -1,3 +1,5 @@
+Cập nhật 11/11: thêm test/document-number.test.js. Bật RUN_HIEUDT_TESTS=1 để kiểm lấy mã cuối +1, tạo đồng thời, rollback và tách tháng trên DB tạm hieudt_numbers_<ObjectId> tại replica set test. Mã cũ không bị đánh lại. Collection kỹ thuật document_sequences cần được tạo trước transaction đầu tiên.
+
 # Kiểm thử local ba iteration HieuDT — 10/11/2026
 
 Đọc [phạm vi và hợp đồng](../08_api/HIEUDT_ITERATIONS_NATIVE.md) trước khi chuẩn bị dữ liệu. Không dùng DB nhóm làm nơi chạy fixture.

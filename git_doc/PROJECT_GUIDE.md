@@ -8,7 +8,7 @@ Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều k
 
 ## 1. Phân biệt thiết kế và runtime
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 58 collection schemas (`*.model.js`); five GoodsReceipt kinds share `goods_receipts`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 59 collection schemas (`*.model.js`); five GoodsReceipt kinds share `goods_receipts`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 [Hợp đồng runtime mới](docs/08_api/NATIVE_MODEL_RUNTIME.md) phân biệt API đã chuyển và phạm vi kiểm chứng. Việc có schema cho một nghiệp vụ không có nghĩa mọi màn hình demo đã thành chức năng vận hành.
 
@@ -89,7 +89,7 @@ Các API đang gắn router dùng registry mới. Ba kiểm thử tích hợp tr
 
 ## 8. Mốc triển khai DB ngày 06/11/2026
 
-Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd_demo_tile_shop_v7`: 58 collection/633 bản ghi. Giữ nguyên v6 để truy vết, không ghi đè dữ liệu đã có. Việc tải DB không đồng nghĩa các API đã port; kết nối ứng dụng chưa đổi. [Quy trình và kết quả](docs/09_phat_trien/ATLAS_DEPLOYMENT.md).
+Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd_demo_tile_shop_v7`: 59 collection/633 bản ghi. Giữ nguyên v6 để truy vết, không ghi đè dữ liệu đã có. Việc tải DB không đồng nghĩa các API đã port; kết nối ứng dụng chưa đổi. [Quy trình và kết quả](docs/09_phat_trien/ATLAS_DEPLOYMENT.md).
 
 ## 9. Category v8 và kiểm thư mục
 

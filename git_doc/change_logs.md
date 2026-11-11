@@ -1,3 +1,5 @@
+11/11/2026: người dùng yêu cầu mã phiếu tự động và lưu thêm nhãn tiếng Việt, giữ mã kỹ thuật, giới hạn luồng HieuDT. Thêm DocumentSequence, cấp số transaction từ mã cuối +1, metadata tiếng Việt và cập nhật schema/seed rỗng/tài liệu. Đã fetch và merge main trực tiếp: BE 495b946, FE c91ef76, already up to date, giữ toàn bộ code đang sửa. Không ghi DB nhóm. Kiểm chứng cuối: allocator MongoDB 2/2; HieuDT 11/11; native 15/15 (bao gồm BF03/BF04); suite mặc định 106 pass/77 skip/0 fail; docs:check 59 collections/696 links. Lượt đầu lỗi biểu thức PCRE khi tìm mã đã được sửa và các test bị ảnh hưởng chạy lại đạt. Không commit/push.
+
 ## 11/11/2026 — Rà soát và chuẩn bị push HieuDT theo yêu cầu
 
 - Người dùng yêu cầu kiểm tra đủ code ba iteration HieuDT rồi push đúng nhánh. Fetch/gộp main BE 495b946 và FE c91ef76; giữ stash trước gộp, không force-push hoặc sửa nhánh main. Tích hợp Conversion và các thay đổi mới main; giữ luồng tài khoản dùng quyền/kho thật và BF03/BF04 trong phần đang sửa.

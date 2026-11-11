@@ -1,12 +1,12 @@
 # Bản đồ model WMSD
 
-Mốc schema 09/11/2026. Có 58 collection nghiệp vụ, gồm `conversions` theo sản phẩm và lô. Năm loại phiếu nhập dùng chung `goods_receipts`. Không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật.
+Mốc schema 09/11/2026. Có 58 collection nghiệp vụ và 1 collection kỹ thuật document_sequences (tổng 59), gồm `conversions` theo sản phẩm và lô. Năm loại phiếu nhập dùng chung `goods_receipts`. Không quản lý danh mục đội xe. Biển số xe được ghi trực tiếp trên lần bàn giao. Không có collection marker kỹ thuật.
 
 [Từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md) · [Rà trường từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/38_Ra_soat_truong_58_bang.md) · [Phiếu duyệt](docs/03_thiet_ke/DB_Rebuild_Review/01_Danh_muc_duyet.md)
 
 ## Registry và các file cùng tác động
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 58 collection schemas (`*.model.js`); `GoodsReceipt` có năm discriminator cùng collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 59 collection schemas (`*.model.js`); `GoodsReceipt` có năm discriminator cùng collection. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 [Hợp đồng API hiện hành](docs/08_api/GOODS_RECEIPTS.md). Các bản v8/Atlas trước đây là bằng chứng triển khai có ngày; lượt đồng bộ này không ghi lên Atlas.
 
@@ -20,6 +20,7 @@ nguồn/requirement trùng; không tự xóa bản ghi hoặc dựng lại DB.
 
 | Collection | Một bản ghi dùng để làm gì | Nơi bắt đầu đọc trong src/models |
 |---|---|---|
+| `document_sequences` | Bộ đếm nguyên tử loại phiếu/đơn vị/tháng cho HieuDT; _id tiền tố, soCuoi, tenLoaiPhieu, maDonVi, ky, timestamps. | [document-sequence.model.js](../src/models/document-sequence.model.js) |
 | `users` | Tài khoản nhân viên: một vai trò, nhiều kho được phân công; mật khẩu được băm. | [user.model.js](../src/models/user.model.js) |
 | `roles` | Vai trò có sẵn hoặc do Administrator tạo; giữ danh sách quyền được chọn. | [role.model.js](../src/models/role.model.js) |
 | `permissions` | Danh mục quyền thao tác có sẵn, phân nhóm theo chức năng. | [permission.model.js](../src/models/permission.model.js) |
@@ -87,7 +88,7 @@ Tìm collection, ref, model name và các trường liên quan bằng `rg` trong
 
 [Quyết định gộp 10 bảng](docs/03_thiet_ke/DB_Rebuild_Review/36_Gop_10_bang.md). Số dư tồn chứa packagingPortions[] thay chồng hàng. Registry migration chỉ dùng đọc dữ liệu lịch sử.
 
-[Gộp tiếp 5 bảng](docs/03_thiet_ke/DB_Rebuild_Review/37_Gop_them_5_bang.md): hiện còn 58 collection.
+[Gộp tiếp 5 bảng](docs/03_thiet_ke/DB_Rebuild_Review/37_Gop_them_5_bang.md): hiện còn 59 collection.
 
 Đã bỏ ba builder không còn importer: reviewed-events.js, reviewed-support.js, reviewed-workflows.js. [Category v8 và kiểm thư mục](docs/03_thiet_ke/DB_Rebuild_Review/40_Category_va_don_model.md).
 
