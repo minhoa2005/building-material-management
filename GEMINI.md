@@ -43,3 +43,7 @@ Check branch/status/diff before editing and preserve other contributors' changes
 Use localhost first for the rebuilt DB. Remote writes require an explicit rollout instruction. Do not publish secrets, .env, raw production data or private evidence. Use targeted tests and local transaction tests appropriate to the change, distinguish model/seed checks from migrated API/FE runtime proof. Record blockers and tests not run.
 
 Do not automatically commit or push. Follow an explicit user request for those actions. On completion give the concrete outcome, relevant documentation, validation and remaining work; suggest a push when appropriate.
+
+## Quy tắc định danh chứng từ — 12/11/2026
+
+Mọi chứng từ mới phải dùng hợp đồng định danh tại git_doc/docs/08_api/DOCUMENT_IDENTITIES.md: _id bằng mã phiếu dạng [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự], cấp trong transaction, không dùng hoặc khôi phục document_sequences, không đổi _id sau khi lưu. Tham chiếu chứng từ mới dùng DocumentIdentity và vẫn đọc ObjectId lịch sử; catalogue và dòng nhúng dùng ObjectId. Khi thêm loại chứng từ, cập nhật document-number.js, schema/ref, API validation, MODEL_MAP/Data Dictionary, test cạnh tranh và changelog trước khi bàn giao.

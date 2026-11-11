@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { decimalStringSchema } from '../../shared/utils/domain.js';
@@ -21,7 +22,7 @@ router.post('/:id/amendments', validate(schema(action({ reason, evidenceIds, exp
 router.post('/:id/supplier-confirmations', validate(schema(action({ reason, evidenceIds,
   lines: z.array(z.object({ poLineId: oid, qtyBase: qty, expectedOn: z.string().datetime({ offset: true }) }).strict()).min(1).max(100) }))), handle((u,v) => c.supplierConfirmation(u,v.params.id,v.body)));
 router.post('/:id/close-requests', validate(schema(action({ reason, evidenceIds, lines: closeLines }))), handle((u,v) => c.requestClose(u,v.params.id,v.body)));
-router.post('/:id/close-approvals', validate(schema(action({ reason, evidenceIds, requestId: oid }))), handle((u,v) => c.approveClose(u,v.params.id,v.body)));
+router.post('/:id/close-approvals', validate(schema(action({ reason, evidenceIds, requestId: documentIdentifier }))), handle((u,v) => c.approveClose(u,v.params.id,v.body)));
 router.post('/:id/close-executions', validate(schema(action({ reason, approvalId: oid }))), handle((u,v) => c.executeClose(u,v.params.id,v.body)));
 export default router;
 

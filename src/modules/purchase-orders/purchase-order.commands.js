@@ -50,7 +50,7 @@ export function createPurchaseOrder(user,input){
   return command(user,'CREATE_PURCHASE_ORDER','purchase_order:create',null,input,replayPurchase,async(session,actor)=>{
     const prepared=await draftItems(actor,input,session);
     await assessPurchaseSource(prepared.request,prepared.items,actor,input,session);
-    const po=newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
+    const po=await newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
       supplierSnapshot:{code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone}},prepared.items);
     po.replenishmentRequestId=prepared.request._id;po.totalAmount=prepared.total;po.currency=input.currency;po.sources=[sourceLink(prepared.request)];
     await po.save({session});return{document:po};

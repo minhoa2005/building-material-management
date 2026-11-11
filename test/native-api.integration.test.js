@@ -24,7 +24,14 @@ test.before(async()=>{
  // A new isolated test database each run. Never use the application's URI.
  const isolated=process.env.RUN_HIEUDT_TESTS==='1';
  await mongoose.connect(`mongodb://127.0.0.1:${isolated?27018:27017}/wmsd_api_test_${key()}?replicaSet=${isolated?'hieudt-test':'rs0'}`,{serverSelectionTimeoutMS:5000});
- for(const Model of m.models.values()){await Model.createCollection();await Model.createIndexes();}
+ // Collection/index initialization is independent; keep all constraints while
+ // batching each model's indexes into one server command.
+ const allModels=[...m.models.values()];
+ for(let start=0;start<allModels.length;start+=4)await Promise.all(allModels.slice(start,start+4).map(async Model=>{
+  await Model.createCollection();
+  const indexes=Model.schema.indexes().map(([key,options])=>({key,...options}));
+  if(indexes.length)await Model.collection.createIndexes(indexes);
+ }));
  await m.Uom.create([{code:'PIECE',name:'Viên'},{code:'BOX',name:'Thùng'},{code:'M2',name:'Mét vuông'}]);
  const permissions=await m.Permission.insertMany(PERMISSION_CATALOGUE.map(p=>({code:p.code,description:p.description,name:p.code})));
  const roles=[];for(const code of ['OWNER','WAREHOUSE','ACCOUNTANT'])roles.push(await m.Role.create({code,name:code,permissionIds:permissions.filter(p=>ROLE_PERMISSIONS[code].includes(p.code)).map(p=>p._id)}));
@@ -269,6 +276,7 @@ run('BF03 confirms one complete relocation only and an idempotent retry posts on
  const balance=await m.InventoryBalance.findOne({holdingPointId:point._id,batchId:batch._id});
  const options=await relocations.locationMovementOptions(worker,String(warehouse._id));
  assert.ok(options.balances.some(row=>String(row._id)===String(balance._id)));
+ for(const enteredQty of ['0.5','1']) await assert.rejects(relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'Reject fractional or broken carton',lines:[{sourceBalanceId:String(balance._id),sourceBalanceVersion:balance.version,toLocationId:String(overflow._id),enteredUnit:'PIECE',enteredQty}]}),/nguyên|Không tự/);
  const created=await relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'BF03 full confirmation',lines:[{sourceBalanceId:String(balance._id),sourceBalanceVersion:balance.version,toLocationId:String(overflow._id),enteredUnit:'PIECE',enteredQty:'4'}]});
  const otherRaw=await m.User.create({username:'other-warehouse',fullName:'Other warehouse',passwordHash:'unused',roleId:worker.roleId._id,warehouseIds:[warehouse._id]});
  const other=await m.User.findById(otherRaw._id).populate({path:'roleId',populate:{path:'permissionIds'}});
@@ -330,8 +338,8 @@ run('native transfer dispatch, independent receipt and putaway reconcile all mov
  await transfers.confirmTask(actor,reversePick.id,{idempotencyKey:key(),expectedVersion:1,recipientName:'Return carrier'});
  const reverseShipped=await m.TransferDispatch.findById(reverseDispatch.id);
  const damagedReceipt=await transfers.receiveTransfer(worker,reverseDispatch.id,{idempotencyKey:key(),expectedVersion:reverseShipped.version,lines:[{dispatchLineId:String(reverseShipped.items[0]._id),locationId:String(quarantine._id),qtyBase:'4',qualityCode:'DAMAGED',damageReason:'Damaged in test'}]});
- const damagedPutaway=await transfers.createRequirement(worker,damagedReceipt.id,{idempotencyKey:key(),expectedVersion:1,destinations:[]});
- assert.equal((await m.TransferOrder.findById(damagedPutaway.id)).workflowStatus,'CONFIRMED');
+ await assert.rejects(transfers.createRequirement(worker,damagedReceipt.id,{idempotencyKey:key(),expectedVersion:1,destinations:[]}),/không cần lệnh xếp hàng/);
+ assert.equal(await m.InternalTransferRequirement.countDocuments({'header.sourceDocumentId':damagedReceipt.id}),0);
  const requestToClose=await m.WarehouseTransferRequest.findById(reverseRequest.id);
  await transfers.closeRequest(worker,reverseRequest.id,{idempotencyKey:key(),expectedVersion:requestToClose.version});
  assert.equal((await m.WarehouseTransferRequest.findById(reverseRequest.id)).workflowStatus,'COMPLETED');

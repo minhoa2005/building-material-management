@@ -9,7 +9,7 @@ import {
   decimal,
   date,
 } from "./model-utils.js";
-import { objectId, id, opt, version, quantity } from "./schema-helpers.js";
+import { documentId, objectId, id, opt, version, quantity } from "./schema-helpers.js";
 
 import { createDocumentSourceSchema } from "./document-source.schema.js";
 import { createDocumentItemSchema } from "./document-item.schema.js";
@@ -57,7 +57,7 @@ export function createPurchaseOrderSchema() {
   attachDocumentItems(schema, item);
   addDocumentIndexesAndRules(schema);
   schema.add({
-    replenishmentRequestId: { type: objectId, required: true },
+    replenishmentRequestId: documentId(),
     totalAmount: decimal(),
     currency: text(3),
   });
@@ -66,7 +66,7 @@ export function createPurchaseOrderSchema() {
     {
       unique: true,
       partialFilterExpression: {
-        replenishmentRequestId: { $type: "objectId" },
+        replenishmentRequestId: { $type: ["objectId", "string"] },
       },
     },
   );

@@ -50,7 +50,7 @@ export function createTransferOrderSchema() {
   // An ITR generates one BF04 execution order. RELOCATE orders have no requirementId.
   schema.index(
     { "header.requirementId": 1 },
-    { unique: true, partialFilterExpression: { "header.requirementId": { $type: "objectId" } } },
+    { unique: true, partialFilterExpression: { "header.requirementId": { $type: ["objectId","string"] } } },
   );
 
   return schema;

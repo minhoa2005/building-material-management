@@ -6,12 +6,12 @@ import { splitPortions } from '../src/shared/utils/stock.js';
 const id = '123456789012345678901234';
 const body = () => ({
   idempotencyKey: 'move-1', warehouseId: id, reason: 'Reorganize storage',
-  lines: [{ sourceBalanceId: id, sourceBalanceVersion: 0, toLocationId: id, enteredUnit:'PIECE', enteredQty: '2.500000' }],
+  lines: [{ sourceBalanceId: id, sourceBalanceVersion: 0, toLocationId: id, enteredUnit:'PIECE', enteredQty: '4' }],
 });
 
-test('UC-36 validates decimal strings and rejects client-controlled business fields', () => {
-  assert.equal(createBody.parse(body()).lines[0].enteredQty, '2.5');
-  for (const quantity of [1.5, '0', '-1', '1e3', 'Infinity', '0.0000001', '100000000000000']) {
+test('UC-36 validates integer quantity strings and rejects client-controlled business fields', () => {
+  assert.equal(createBody.parse(body()).lines[0].enteredQty, '4');
+  for (const quantity of [1.5, '2.5', '4.0', '0', '-1', '1e3', 'Infinity', '0.0000001', '100000000000000']) {
     const input = body(); input.lines[0].enteredQty = quantity;
     assert.equal(createBody.safeParse(input).success, false);
   }

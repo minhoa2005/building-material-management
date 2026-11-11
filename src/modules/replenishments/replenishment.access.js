@@ -1,3 +1,4 @@
+import { databaseId } from '../../models/document-identity.js';
 import mongoose from "mongoose";
 import { ApiError } from "../../shared/utils/ApiError.js";
 import { currentRole, rolePermissions } from "../../shared/utils/userRole.js";
@@ -8,7 +9,7 @@ export const idString = (value) => {
   const text = String(value._id ?? value);
   return /^[a-f\d]{24}$/i.test(text) ? text.toLowerCase() : text;
 };
-export const objectId = (value) => new mongoose.Types.ObjectId(idString(value));
+export const objectId = (value) => databaseId(idString(value));
 export const sameId = (left, right) =>
   left != null && right != null && idString(left) === idString(right);
 

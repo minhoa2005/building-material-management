@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { registerReviewedModels } from '../src/models/index.js';
 const connection=mongoose.createConnection();
 const models=registerReviewedModels(connection);
-const directory=new URL('../git_doc/docs/03_thiet_ke/DB_Current_2026-11-06_59_v8/',import.meta.url);
+const directory=new URL('../git_doc/docs/03_thiet_ke/DB_Current_2026-11-12_58/',import.meta.url);
 const modelDirectory=new URL('../src/models/',import.meta.url);
 const sourceFiles=new Map();
 for(const file of await readdir(modelDirectory)) {
@@ -13,7 +13,7 @@ for(const file of await readdir(modelDirectory)) {
   if(collection)sourceFiles.set(collection,file);
 }
 await mkdir(directory,{recursive:true});
-let md='# Từ điển dữ liệu hiện hành — 07/11/2026\n\n'+models.size+' collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. Native return workflow additions and compatibility are documented in [RETURN_WORKFLOWS_NATIVE](../../08_api/RETURN_WORKFLOWS_NATIVE.md). The directory name retains its baseline date.\n\n';
+let md='# Từ điển dữ liệu hiện hành — 12/11/2026\n\n'+models.size+' collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. Native return workflow additions and compatibility are documented in [RETURN_WORKFLOWS_NATIVE](../../08_api/RETURN_WORKFLOWS_NATIVE.md). DocumentIdentity = String mã phiếu mới hoặc ObjectId lịch sử; xem [quy tắc ID](../../08_api/DOCUMENT_IDENTITIES.md).\n\n';
 const snapshot=[];
 for(const [name,Model] of models){
   const fields=[];

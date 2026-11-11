@@ -1,3 +1,4 @@
+import * as difference from './transfer-differences.js';
 import { Router } from 'express';
 import { authenticate } from '../../middlewares/auth.js';
 import { catchAsync } from '../../shared/utils/catchAsync.js';
@@ -15,10 +16,14 @@ const handle = (schema, action, hasId = true) => catchAsync(async (req, res) => 
   formatApiResponse(res, { data: result });
 });
 router.post('/', handle(validation.createRequestBody, service.createRequest, false));
+router.put('/:id', handle(validation.updateRequestBody, service.updateRequest));
 router.post('/:id/review', handle(validation.reviewBody, service.reviewRequest));
 router.post('/:id/outbound-deliveries', handle(validation.dispatchBody, service.createDispatch));
 router.post('/documents/:id/internal-requirements', handle(validation.requirementBody, service.createRequirement));
 router.post('/tasks/:id/confirm', handle(validation.commandBody, service.confirmTask));
+router.post('/dispatches/:id/cancel', handle(validation.cancelDispatchBody, service.cancelDraftDispatch));
 router.post('/dispatches/:id/receipts', handle(validation.receiptBody, service.receiveTransfer));
+router.post('/dispatches/:id/differences', handle(difference.proposalBody, difference.proposeDifference));
+router.post('/differences/:id/review', handle(difference.reviewBody, difference.reviewDifference));
 router.post('/:id/close', handle(validation.commandBody, service.closeRequest));
 export default router;

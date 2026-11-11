@@ -1,3 +1,7 @@
+## Khôi phục tài khoản chọn sẵn FE — 11/11/2026
+
+Đã bổ sung 5 tài khoản admin@ceratile.vn, owner@ceratile.vn, sales@ceratile.vn, warehouse@ceratile.vn, accountant@ceratile.vn vào wmsd_database theo yêu cầu trực tiếp. Mật khẩu theo preset FE/SEED_ACCOUNTS, lưu bcrypt hash. Giữ 15 tài khoản nhân viên hiện hữu; dùng role và phạm vi kho từ admin/chucuahang/banhang01/thukho01/ketoan01. Thủ kho email được giao K-GACH-01 và K-GACH-02. Không tạo kho WH01/WH02 giả hoặc ghi đè role permissions. Đã kiểm 5/5 đăng nhập HTTP 200 qua Vite. Công cụ migrate-seed-passwords chỉ cập nhật mật khẩu tài khoản có sẵn; không tự tạo tài khoản thiếu và không hỗ trợ ghi remote. Khôi phục này là thao tác thêm có kiểm tra riêng, không chạy seed toàn bộ.
+
 # Đồng bộ mật khẩu tài khoản seed local
 
 Ngày 07/11/2026: `scripts/migrate-seed-passwords.mjs` đọc `SEED_ACCOUNTS` trong `src/seeds/data/accounts.data.js` và tìm chính xác theo username trong collection `users`. Mật khẩu khác được băm bcrypt cost 10 trước khi cập nhật `passwordHash`; user không có trong seed và các trường khác không bị sửa. User seed chưa tồn tại được báo `missing`, không tạo mới. Nếu username bị trùng, script dừng trước khi ghi. Mật khẩu đã khớp được giữ nguyên; có thể chạy lại. Không in mật khẩu hoặc hash.

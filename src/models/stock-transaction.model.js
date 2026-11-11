@@ -1,3 +1,4 @@
+import { DocumentIdentity } from "./document-identity.js";
 import { Schema, options, text, ref, date, appendOnly } from "./model-utils.js";
 import { objectId, embedRecordArray } from "./schema-helpers.js";
 
@@ -8,7 +9,7 @@ export function createStockTransactionSchema() {
   const transactions = new Schema(
     {
       sourceType: text(80),
-      sourceId: { type: objectId, required: true },
+      sourceId: { type: DocumentIdentity, required: true },
       operation: text(40),
       eventKey: text(100),
       requestKey: text(120, { unique: true }),

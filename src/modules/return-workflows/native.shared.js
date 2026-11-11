@@ -1,3 +1,4 @@
+import { newBusinessDocument } from '../../shared/utils/document-number.js';
 import * as m from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { ApiError, validationError, notFoundError, versionConflict } from '../../shared/utils/ApiError.js';
@@ -13,9 +14,7 @@ export const resources = {
 export const sum = (rows, field = 'qtyBase') => rows.reduce((n,row) => n.plus(String(row[field] ?? '0')), exact('0'));
 export const source = (doc,item,relationCode='SOURCE',qty) => ({ subjectCollection: doc.constructor.collection.name, documentId:doc._id, ...(item && {itemId:item._id}), relationCode, ...(qty && {linkedQty:String(qty)}) });
 export const ref = (doc,item) => ({ documentType:doc.constructor.collection.name, documentId:doc._id, ...(item && {itemId:item._id}), revision:doc.version });
-export function envelope(Model,user,header,items=[],status='OPEN',note) {
- const id=newId();return new Model({_id:id,documentNo:`${Model.modelName}-${id}`,workflowStatus:status,version:1,createdBy:user._id,occurredAt:new Date(),header,items,note});
-}
+export function envelope(Model,user,header,items=[],status='OPEN',note) {return newBusinessDocument(Model,user,header,items,status,note);}
 export function copy(sourceItem,quantity,lineNo=1,extra={}) {
  const amount=exact(quantity),factor=exact(sourceItem.baseUnitsPerUnit),entered=amount.div(factor);
  if(!amount.gt(0)||!entered.mul(factor).eq(amount)||entered.decimalPlaces()>6) throw validationError('Lượng không biểu diễn chính xác theo quy đổi lịch sử');

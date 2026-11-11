@@ -53,7 +53,7 @@ export function createInternalTransferRequirementSchema() {
   // The partial index keeps unrelated historical documents valid.
   schema.index(
     { "header.sourceDocumentId": 1 },
-    { unique: true, partialFilterExpression: { "header.sourceDocumentId": { $type: "objectId" } } },
+    { unique: true, partialFilterExpression: { "header.sourceDocumentId": { $type: ["objectId","string"] } } },
   );
 
   return schema;

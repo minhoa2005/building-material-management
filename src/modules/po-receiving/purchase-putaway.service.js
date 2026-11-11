@@ -57,7 +57,7 @@ export function createPutaway(user,id,input){return command(user,'CREATE_PURCHAS
       details:{fromLocationId:ctx.location._id,toLocationId:row.toLocationId,sourceBalanceId:ctx.balance._id,sourceBalanceVersion:ctx.balance.version,qualityCode:ctx.balance.qualityStatus,ownerType:ctx.balance.ownerType,ownerId:ctx.balance.ownerId}}));
   }
   await guardLocations(items.flatMap(i=>[i.details.fromLocationId,i.details.toLocationId]),session);
-  const document=newDocument(TransferOrder,'TO',actor,{warehouseId:gr.header.warehouseId,taskKind:'PUTAWAY',assignedTo:actor._id},items,'OPEN');
+  const document=await newDocument(TransferOrder,'TO',actor,{warehouseId:gr.header.warehouseId,taskKind:'PUTAWAY',assignedTo:actor._id},items,'OPEN');
   document.sources=[{subjectCollection:'goods_receipts',documentId:gr._id,relationCode:'PURCHASE_PUTAWAY'}];await document.save({session});await saveVersion(gr,gr.version,session);return {document};
 });}
 export async function getPutaway(user,id){requirePermission(user,'putaway_task:read');const d=await task(id,user),done=await actual(d);return {...dto(d),items:d.items.map(i=>({...dto(i),actualQtyBase:done.get(String(i._id)).toFixed(),remainingQtyBase:exact(i.qtyBase).minus(done.get(String(i._id))).toFixed()}))};}

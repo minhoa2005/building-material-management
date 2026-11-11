@@ -1,10 +1,11 @@
+import { newBusinessDocument } from '../../shared/utils/document-number.js';
 import { PurchaseOrder, GoodsArrival, GoodsInspection, PurchaseReceipt, TransferOrder, CustodyReceipt, CustodyRelease, OtherGoodsReceipt, Attachment } from '../../models/runtime.js';
 import { requirePermission, requireWarehouseAccess } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { notFoundError, validationError } from '../../shared/utils/ApiError.js';
 import { newId, same } from '../../shared/utils/document-command.js';
 export const purchaseModels={PO:PurchaseOrder,ARRIVAL:GoodsArrival,INSPECTION:GoodsInspection,GR_PURCHASE:PurchaseReceipt,OTHER:OtherGoodsReceipt,TO:TransferOrder,CUSTODY_RECEIPT:CustodyReceipt,CUSTODY_RELEASE:CustodyRelease};
-export const newDocument=(Model,prefix,user,header,items=[],status='DRAFT')=>new Model({documentNo:prefix+'-'+newId(),workflowStatus:status,version:1,createdBy:user._id,header,items});
+export const newDocument=(Model,prefix,user,header,items=[],status='DRAFT')=>newBusinessDocument(Model,user,header,items,status);
 export async function findPurchase(id,user,session,{kind,readOnly=false}={}){
   let document;
   const candidates=kind?[purchaseModels[kind]]:Object.values(purchaseModels);

@@ -15,7 +15,7 @@ function compareFields(expected, schema, prefix = '') {
     }
     const path = schema.path(field);
     assert.ok(path, `${prefix}${field} is missing`);
-    assert.equal(path.instance, old.type, `${prefix}${field} type`);
+    assert.equal(path.instance, path.instance==='DocumentIdentity'&&old.type==='ObjectId'?'DocumentIdentity':old.type, `${prefix}${field} type`);
     if (old.schema && path.schema) compareFields(old.schema, path.schema, `${prefix}${field}.`);
   }
 }
