@@ -45,7 +45,7 @@ export async function orderSource(user,id,session,{ replay = false } = {}) {
   }
   return order;
 }
-async function effectiveQuantities(documents,session) {
+export async function effectiveQuantities(documents,session) {
   const roots=await StockTransaction.find({sourceId:{$in:documents.map(row=>row._id)},reversedTransactionId:{$exists:false}}).session(session).lean();
   const all=[...roots];let frontier=roots;
   while(frontier.length){
@@ -85,9 +85,11 @@ async function outbound(user,id,session){
     return {...dto(item),grossIssuedQtyBase:gross.toFixed(),returnedFailedDeliveryQtyBase:back.toFixed(),netIssuedQtyBase:gross.minus(back).toFixed(),deliveredQtyBase:accepted.toFixed()};
   });
   const reservations=await StockReservation.find({'executionRef.itemId':{$in:[...ids,...issueIds]}}).session(session).lean();
+  const fifo=await StockTransaction.aggregate([{ $unwind: '$movements' },{$match:{'movements.toBalanceId':{$in:reservations.map(r=>r.balanceId)}}},{$group:{_id:'$movements.toBalanceId',firstReceivedAt:{$min:'$occurredAt'}}}]).session(session);
+  reservations.sort((a,b)=>(+(fifo.find(r=>same(r._id,a.balanceId))?.firstReceivedAt || 8640000000000000))-(+(fifo.find(r=>same(r._id,b.balanceId))?.firstReceivedAt || 8640000000000000)));
   const tasks=await TransferOrder.find({'items.sources.itemId':{$in:[...ids,...issueIds]},'header.warehouseId':document.header.warehouseId}).session(session).lean();
   const result={...dto(document),items,salesOrder:{id:String(order._id),documentNo:order.documentNo},issueRequest:{id:String(request._id),documentNo:request.documentNo},
-    goodsIssues:issues.map(dto),failedDeliveryReceipts:returns.map(dto),reservations:reservations.map(dto),tasks:tasks.map(dto)};
+    deliveryConfirmations: confirmations.map(c=>({...dto(c),items:c.items.filter(i=>issueIds.some(id=>same(id,i.details.salesIssueLineId))).map(dto)})).filter(c=>c.items.length),goodsIssues:issues.map(dto),failedDeliveryReceipts:returns.map(dto),reservations:reservations.map(r=>({...dto(r),firstReceivedAt:fifo.find(f=>same(f._id,r.balanceId))?.firstReceivedAt?.toISOString() || null})),tasks:tasks.map(dto)};
   return scopedSalesDto(user, result);
 }
 export async function getOutboundDelivery(user,id){requirePermission(user,'outbound_delivery:read');return transaction(session=>outbound(user,id,session));}
@@ -110,7 +112,13 @@ export async function getSalesOrder(user,id){
     const scoped = !hasNamedSalesScope(user);
     const requests=await WarehouseIssueRequest.find({'header.salesOrderId':id,...(scoped && assignedRequests(user))}).session(session).lean();
     const deliveries=await DeliveryOrder.find({'header.issueRequestId':{$in:requests.map(row=>row._id)},...(scoped&&{'header.warehouseId':{$in:user.warehouseIds||[]}})}).session(session).lean();
-    const result={...dto(order),issueRequests:requests.map(dto),outboundDeliveries:deliveries.map(dto)};
+    const deliveryIds=deliveries.map(d=>d._id);
+    const issues=await SalesGoodsIssue.find({'header.deliveryOrderId':{$in:deliveryIds}}).session(session);
+    const issueIds=issues.flatMap(d=>d.items.map(i=>i._id));
+    const returns=await FailedDeliveryReceipt.find({'items.details.salesIssueLineId':{$in:issueIds}}).session(session);
+    const tasks=await TransferOrder.find({'sources.subjectCollection':'sales_goods_issues','sources.documentId':{$in:issues.map(i=>i._id)}}).session(session);
+    const confirmations=(order.deliveryConfirmations||[]).map(c=>({...dto(c),items:c.items.filter(i=>issueIds.some(id=>same(id,i.details.salesIssueLineId))).map(dto)})).filter(c=>c.items.length);
+    const result={...dto(order),issueRequests:requests.map(dto),outboundDeliveries:deliveries.map(dto),goodsIssues:issues.map(dto),failedDeliveryReceipts:returns.map(dto),tasks:tasks.map(dto),deliveryConfirmations:confirmations};
     if(scoped){
       const allowed=new Set(requests.flatMap(row=>row.items.map(item=>String(item.details.salesOrderLineId))));
       result.items=result.items.filter(item=>allowed.has(String(item._id)));
@@ -119,7 +127,13 @@ export async function getSalesOrder(user,id){
     }
     const source=await ExternalReference.findById(order.header.externalReferenceId).session(session).lean();
     const evidence=await Attachment.find({ownerDocumentType:'sales_orders',ownerDocumentId:id,status:'ATTACHED'}).select('_id mediaType originalName uploadedAt').session(session).lean();
-    return {...result,source:source?dto(source):null,evidence:evidence.map(dto)};
+    const receipts=await FailedDeliveryReceipt.find({workflowStatus:'POSTED','demandReopenings.salesOrderLineId':{$in:order.items.map(i=>i._id)}}).session(session);
+    const reopenedSources=receipts.flatMap(receipt=>(receipt.demandReopenings||[]).filter(r=>order.items.id(r.salesOrderLineId)).map(row=>{
+      const cancelled=(order.cancellations||[]).filter(c=>same(c.reopeningReceiptLineId,row.receiptLineId)).reduce((n,c)=>n.plus(String(c.cancelledQtyBase)),exact('0'));
+      const reused=(receipt.commitmentTransfers||[]).filter(c=>same(c.reopeningReceiptLineId,row.receiptLineId)).reduce((n,c)=>n.plus(String(c.quantityBase)),exact('0'));
+      return {...dto(row),receiptDocumentNo:receipt.documentNo,availableQtyBase:exact(row.reopenedQtyBase).minus(cancelled).minus(reused).toFixed()};
+    }));
+    return {...result,source:source?dto(source):null,evidence:evidence.map(dto),reopenedSources};
   });
 }
 export async function getSalesEvidence(user,id,evidenceId){
@@ -130,4 +144,3 @@ export async function getSalesEvidence(user,id,evidenceId){
   const expiresAt=Math.floor(Date.now()/1000)+60;
   return {url:cloudinary.utils.private_download_url(evidence.storageKey,evidence.mediaType.split('/')[1],{resource_type:'image',type:'authenticated',expires_at:expiresAt}),expiresAt:new Date(expiresAt*1000).toISOString()};
 }
-

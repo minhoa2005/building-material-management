@@ -1,3 +1,5 @@
+> 10/11/2026: [Hợp đồng 18 UC HieuDT](docs/08_api/HIEUDT_ITERATIONS_NATIVE.md) là nguồn hiện hành cho SO/WIR/OD/picking, chốt kiểm kê và báo cáo; [kiểm thử local](docs/09_phat_trien/HIEUDT_LOCAL_TESTS.md). Chốt kiểm kê kiểm phê duyệt đúng nội dung, count mới nhất, thực hiện/bằng chứng trước khi ghi tồn và mở khóa nguyên tử.
+
 > Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](docs/08_api/CONVERSIONS.md). [Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
 
 # WMSD — Hướng dẫn chung khi phát triển
@@ -6,7 +8,7 @@ Mốc tổng hợp 05/11/2026. Phạm vi cửa hàng gạch ốp lát, nhiều k
 
 ## 1. Phân biệt thiết kế và runtime
 
-The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 58 collection schemas (`*.model.js`); five GoodsReceipt kinds share `goods_receipts`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
+The runtime uses one registry: `src/models/index.js` exports `registerModels(connection)`; `runtime.js` supplies API models. There are 59 collection schemas (`*.model.js`); five GoodsReceipt kinds share `goods_receipts`. Nested schemas do not create collections. `registerReviewedModels` is a compatibility alias. Pure historical transforms and synthetic fixtures under `src/migrations/rebuild` and `src/seeds/rebuild` remain for regression checks.
 
 [Hợp đồng runtime mới](docs/08_api/NATIVE_MODEL_RUNTIME.md) phân biệt API đã chuyển và phạm vi kiểm chứng. Việc có schema cho một nghiệp vụ không có nghĩa mọi màn hình demo đã thành chức năng vận hành.
 
@@ -68,6 +70,13 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 
 ## 6. Kiểm chứng và giới hạn hiện tại
 
+Mốc BF03/BF04 07/11: đã kiểm 5/5 native integration trên localhost replica test,
+gồm full BF03/replay, BF04/custom role và ca nhận toàn hàng hỏng. BF04 options
+trả danh mục kho đích nhưng chỉ trả tồn/vị trí kho được phân công; một nguồn chỉ
+sinh một ITR, mỗi ITR một TO. Chi tiết tại [BF03](docs/08_api/location-movements/README.md)
+và [BF04](docs/08_api/transfers/BF04_API.md). FE build và 3 test presentation BF03
+đạt; chưa kiểm toàn luồng qua trình duyệt.
+
 Các API đang gắn router dùng registry mới. Ba kiểm thử tích hợp trên MongoDB replica set thử riêng đã qua: RR–PO–kiểm–nhập–xếp từng phần, đảo nhập với người duyệt độc lập, và chuyển kho đủ các bước. FE đã build nhưng toàn bộ kiểm thử giao diện còn lỗi do hợp đồng/kỳ vọng cũ; chưa xác nhận toàn project hoàn tất. D07/D08 vẫn chờ xác minh. Không tự ghi dữ liệu remote.
 
 ## 7. Quy trình làm việc của nhóm
@@ -80,7 +89,7 @@ Các API đang gắn router dùng registry mới. Ba kiểm thử tích hợp tr
 
 ## 8. Mốc triển khai DB ngày 06/11/2026
 
-Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd_demo_tile_shop_v7`: 58 collection/633 bản ghi. Giữ nguyên v6 để truy vết, không ghi đè dữ liệu đã có. Việc tải DB không đồng nghĩa các API đã port; kết nối ứng dụng chưa đổi. [Quy trình và kết quả](docs/09_phat_trien/ATLAS_DEPLOYMENT.md).
+Atlas `wmsd_database` đã nhận dữ liệu chỉ còn gạch từ local `wmsd_demo_tile_shop_v7`: 59 collection/633 bản ghi. Giữ nguyên v6 để truy vết, không ghi đè dữ liệu đã có. Việc tải DB không đồng nghĩa các API đã port; kết nối ứng dụng chưa đổi. [Quy trình và kết quả](docs/09_phat_trien/ATLAS_DEPLOYMENT.md).
 
 ## 9. Category v8 và kiểm thư mục
 

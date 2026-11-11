@@ -1,6 +1,6 @@
-# FE-06 Iteration 1 — sales creation and reads
+# Sales native — creation, reads and execution
 
-> Phạm vi tài liệu này là API hoặc kết quả kiểm tra của runtime trước khi chuyển DB. Quy tắc thiết kế mới và trạng thái chuyển đổi được nêu trong [PROJECT_GUIDE](../../../PROJECT_GUIDE.md). Khi port module, cập nhật contract tại đây và ghi rõ profile đã kiểm.
+> Cập nhật 10/11/2026 cho runtime native. [Hợp đồng ba iteration HieuDT](../HIEUDT_ITERATIONS_NATIVE.md) mô tả sửa/hủy phần dư, WIR/OD, picking, quyền, kiểm kê và báo cáo. Các test pack trước chuyển DB chỉ là lịch sử.
 
 Implemented routes (authenticated):
 
@@ -23,17 +23,18 @@ POST /api/sales-orders accepts `idempotencyKey`, `customerId`, ISO `neededOn`,
 `deliveryAddress`, `evidenceReceipt`, `source`, `lines`.
 Source contains `sourceSystem` (MISA/PAPER), `referenceNo`, optional ISO
 `referenceDate` and real `sourceVersion`. Each line contains `sourceLineKey`,
-`productId`, `conversionId`, positive decimal-string `quantity` and optional
-`requiredTone`/`requiredCalibre`. Source recording does not fabricate Accountant
+`productId`, optional `lotId`, `enteredUnit`, decimal-string `unitSellingPrice`
+and positive decimal-string `quantity`. `currencyCode` is required on the body.
+Conversion uses the current product/batch resolver from [CONVERSIONS](../CONVERSIONS.md), with factor 1 for the base unit;
+no conversionId, tone or calibre is accepted. Source recording does not fabricate Accountant
 verification. Source/SO/lines/evidence/audit/operation/outbox commit atomically.
 Duplicate sources return 409; identical actor/key/payload retries return the
-existing SO. No stock or reservation changes occur. SALES_ORDER_SAVED carries
-document version; the shortage consumer is not implemented, so the response
-reports evaluation PENDING. The opt-in Cloudinary smoke test verifies private
+existing SO. No stock or reservation changes occur. The native command receipt returns id,
+version, workflowStatus, operationId, resultRefs and replayed; it does not return
+a fabricated shortage evaluation result. The opt-in Cloudinary smoke test verifies private
 upload, signed download, denied unsigned access and cleanup of its synthetic image.
 
-Update/cancel, WIR/OD creation, picking,
-posting, POD and payment confirmations are separate commands, not performed by GET.
+Update/cancel, WIR/OD creation and picking have native command routes in the linked HieuDT contract. They are never performed by GET. GI posting, POD and payment remain separate use cases.
 
 ## Scope and input
 
@@ -52,8 +53,8 @@ parameters return 400. List totals are computed after access filtering.
 
 Standard `{success,message,data}` envelope. List data contains
 `{items,total,page,limit}`. Decimal quantities are strings; IDs are strings.
-Document metadata contains `id`, `documentNo`, `documentKind`, `status`,
-`version`, `createdAt`. Stored workflow status is not recalculated by GET.
+Document metadata contains `id`, `documentNo`, `documentKind`, `workflowStatus`,
+`version`, `createdAt`. The runtime field is `workflowStatus` (not `status`). Stored workflow status is not recalculated by GET.
 
 SO detail contains source reference metadata, line conversion snapshots,
 WIR/OD history, cancellations, failed-delivery reopenings and payment
@@ -79,17 +80,4 @@ are not repaired or silently overwritten by read APIs.
 
 ## Tests
 
-`node --test test/sales-validation.test.js` validates query/ID parsing.
-Set `MONGODB_TEST_URI` to a local test replica set and run
-`node --test test/sales-iteration1.integration.test.js` for authenticated HTTP,
-role/warehouse/source scope, FD/replacement progress, reversal and read-only checks.
-The integration test creates a randomly named database and removes only that
-database; it never uses the URI's existing database as its test target.
-
-`sales-create.integration.test.js` covers authenticated upload and creation over
-HTTP, concurrent idempotent replay, wrong roles/actors, evidence retrieval scope,
-rollback, duplicate source, decimal/whole-unit guards and stale conversion.
-Cloudinary is mocked only in the HTTP suite. For live storage verification run
-`LIVE_SALES_EVIDENCE_TEST=true node --import dotenv/config --test test/sales-evidence.live.test.js`.
-See [the Thunder Client pack](../test_packs/fe06-iteration1/README.md) for
-importable requests, synthetic IDs and the isolated demo server.
+Current native verification is `test/hieudt-iterations.integration.test.js`, including service transactions and authenticated HTTP. Run using the [isolated local test guide](../../09_phat_trien/HIEUDT_LOCAL_TESTS.md). `sales-validation.test.js` covers strict input parsing. The old `sales-iteration1.integration.test.js`, `sales-create.integration.test.js` and FE-06 test pack predate the native migration and are not current runtime proof. Live Cloudinary smoke verification remains opt-in via `LIVE_SALES_EVIDENCE_TEST=true`; it was not run in this task.

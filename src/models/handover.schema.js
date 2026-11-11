@@ -13,7 +13,7 @@ import {
 export function createHandoverSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["HANDOVER"], { default: "HANDOVER" }),
       workflowStatus: text(40),
       version: integer(1),

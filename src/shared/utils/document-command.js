@@ -82,7 +82,7 @@ export async function command(user, code, permission, targetId, input, authorize
       requirePermission(actor, permission);
       const prior = await OperationRecord.findOne({ operationKey });
       if (prior) return replay(prior, actor);
-      if (error.code === 11000 && error.message?.includes('warehouseId_1_productId_1') && attempt < 3) continue;
+      if (error.code === 11000 && (error.message?.includes('warehouseId_1_productId_1') || error.message?.includes('document_sequences')) && attempt < 3) continue;
     }
     throw error;
   }

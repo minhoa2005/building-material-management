@@ -1,3 +1,5 @@
+> Mới 10/11/2026: [18 UC HieuDT — API và màn hình](docs/08_api/HIEUDT_ITERATIONS_NATIVE.md), [chạy test local](docs/09_phat_trien/HIEUDT_LOCAL_TESTS.md).
+
 # WMSD — Tài liệu chung của nhóm
 
 Cập nhật ngày 06/11/2026. Đây là điểm bắt đầu khi phát triển backend và chuyển sang DB mới.

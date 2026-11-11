@@ -22,7 +22,7 @@ import {
 export function createInternalTransferRequirementSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["INTERNAL_TRANSFER_REQUIREMENT"], {
         default: "INTERNAL_TRANSFER_REQUIREMENT",
       }),
@@ -49,6 +49,12 @@ export function createInternalTransferRequirementSchema() {
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   attachDocumentItems(schema, item);
   addDocumentIndexesAndRules(schema);
+  // BF04 creates at most one internal requirement from each dispatch or receipt.
+  // The partial index keeps unrelated historical documents valid.
+  schema.index(
+    { "header.sourceDocumentId": 1 },
+    { unique: true, partialFilterExpression: { "header.sourceDocumentId": { $type: "objectId" } } },
+  );
 
   return schema;
 }

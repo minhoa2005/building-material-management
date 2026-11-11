@@ -1,3 +1,5 @@
+11/11/2026: theo yêu cầu người dùng thêm document_sequences và metadata tiếng Việt tùy chọn của phiếu HieuDT; documentNo tăng max cuối+1 theo loại/đơn vị/tháng, transaction an toàn; giới hạn mã 160 ký tự. Registry 59 collection, gồm 58 nghiệp vụ và 1 bộ đếm kỹ thuật. Phiếu cũ giữ mã và ID. Xem hợp đồng HIEUDT_ITERATIONS_NATIVE.
+
 ## 10/11/2026 — Lý do từng dòng yêu cầu bổ sung
 
 `reasonNote` là tùy chọn trong chi tiết dòng và snapshot gửi duyệt. Các lý do đã lưu được giữ nguyên khi cập nhật cùng ID dòng và bỏ trường này. Không cần migration. Kiểm tra lưu nháp, cập nhật và tạo snapshot qua HTTP trên MongoDB local.
@@ -17,6 +19,15 @@ Supplier-return details add PROPOSED/VERIFIED phase, sourceBalanceId and optiona
 # 06/11/2026 — Iteration 1 native theo kế hoạch được duyệt
 
 Thêm Uom, metadata sản phẩm/NCC, xử lý giữ hộ trọn vòng đời và Warehouse tự đảo nhập. Registry 60 collections; giữ items/source/snapshot native. Quyết định mới trong git_doc/docs/08_api/ITERATION1_NATIVE_2026-11-06.md. Có migration dry-run chỉ test DB local; không chạy Atlas, không commit/push. Kết quả kiểm thử ghi trong tài liệu bàn giao cùng đợt.
+
+## 2026-11-07 — BF03/BF04 API consistency
+
+Added partial unique indexes on ITR sourceDocumentId and TO requirementId to
+enforce the existing one-source/one-requirement/one-task flow. No fields or
+collections changed. Existing databases need a duplicate audit before index
+deployment; only isolated local test databases were indexed in this task.
+Stock movement retains original embedded packaging timestamps and IDs when
+removing a preceding portion. Native integration: 5/5 passed.
 
 ## 2026-11-06 — Flat native runtime
 

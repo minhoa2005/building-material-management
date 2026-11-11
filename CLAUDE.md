@@ -17,7 +17,7 @@ The latest explicit user decision overrides older project documents. Approved DB
 
 - Each current collection schema lives in its own `src/models/<name>.model.js`; each nested schema lives in its own `src/models/<name>.schema.js`. Keep one schema per file. Do not restore aggregate reviewed builders.
 
-- `src/models/index.js` registers the current 58-collection model set through `registerModels(connection)`. `runtime.js` exports these models for API services; `registerReviewedModels` is a compatibility alias for the same registry.
+- `src/models/index.js` registers the current 59-collection model set through `registerModels(connection)`. `runtime.js` exports these models for API services; `registerReviewedModels` is a compatibility alias for the same registry.
 - The legacy, rebuild and embedded model directories were removed by explicit user approval on 2026-11-06. Do not restore them or generic BusinessDocument/DocumentLine persistence. Read the current native API contract in `git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md`.
 - Use Warehouse Staff terminology. Users have one role and multiple assigned warehouses. Admin may create roles and select existing permissions. Enforce permission plus warehouse, record, state, version and identity constraints.
 - Each carton contains one product from one batch. Store base units on products and historical conversion/packaging on embedded document items. Product.baseUnit stores a Uom code. The 09/11 decision adds Conversion for versioned factors by product and optional batch. Keep historical factors and packaging on the document item.
