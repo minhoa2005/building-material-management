@@ -1,3 +1,4 @@
+import { nextDocumentFields } from '../../shared/utils/document-number.js';
 import * as m from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { command, checkVersion, saveVersion, same, newId, hash } from '../../shared/utils/document-command.js';
@@ -138,7 +139,7 @@ export function closeStocktake(user, id, input) {
                     continue;
                 }
                 if (!adjustment)
-                    adjustment = new m.StockAdjustment({ documentNo: 'ADJ-' + newId(), workflowStatus: 'POSTED', version: 1, createdBy: actor._id, postedBy: actor._id, postedAt: new Date(), stockTransactionId: posting._id, header: { stocktakeId: document._id, resolutionPlanId: plan._id, warehouseId: document.header.warehouseId }, items: [] });
+                    adjustment = new m.StockAdjustment({ ...await nextDocumentFields(m.StockAdjustment, 'ADJ', document.header.warehouseId, session), workflowStatus: 'POSTED', version: 1, createdBy: actor._id, postedBy: actor._id, postedAt: new Date(), stockTransactionId: posting._id, header: { stocktakeId: document._id, resolutionPlanId: plan._id, warehouseId: document.header.warehouseId }, items: [] });
                 const balance = await m.InventoryBalance.findById(ctx.balance._id).session(session), before = exact(balance.quantityBase), delta = exact(d.deltaQty);
                 if (delta.gt(0)) {
                     await receiveStock(balance, item, input.packaging?.find(p => same(p.lineId, item._id))?.portions, posting, actor, session);
@@ -170,6 +171,7 @@ export function closeStocktake(user, id, input) {
                 throw validationError('Tồn sau chốt thấp hơn lượng đã giữ');
         }
         const closureId = posting?.movements.length ? posting._id : operationId;
+        document.tenLoaiPhieu = 'Đợt kiểm kê';
         document.workflowStatus = 'COMPLETED';
         document.header.completedAt = new Date();
         document.header.closedBy = actor._id;
