@@ -1,3 +1,4 @@
+import { nextDocumentFields } from '../../shared/utils/document-number.js';
 import * as m from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { command, checkVersion, saveVersion, same, newId, hash } from '../../shared/utils/document-command.js';
@@ -139,7 +140,7 @@ export function createIssueRequest(user, id, input) {
         if (!await m.Warehouse.exists({ _id: input.warehouseId, isActive: true }).session(session))
             throw validationError('Kho không hoạt động');
         const used = await committed(order, session);
-        const request = new m.WarehouseIssueRequest({ documentNo: 'WIR-' + newId(), workflowStatus: 'OPEN', version: 1, createdBy: actor._id, header: { salesOrderId: order._id, salesOrderVersion: order.version, requestedWarehouseId: input.warehouseId, neededOn: input.neededOn, deliveryAddressSnapshot: order.header.deliveryAddressSnapshot, requestedBy: actor._id, requestedAt: new Date() }, items: [] });
+        const request = new m.WarehouseIssueRequest({ ...await nextDocumentFields(m.WarehouseIssueRequest, 'WIR', input.warehouseId, session), workflowStatus: 'OPEN', version: 1, createdBy: actor._id, header: { salesOrderId: order._id, salesOrderVersion: order.version, requestedWarehouseId: input.warehouseId, neededOn: input.neededOn, deliveryAddressSnapshot: order.header.deliveryAddressSnapshot, requestedBy: actor._id, requestedAt: new Date() }, items: [] });
         for (const row of input.lines) {
             const item = order.items.id(row.lineId);
             if (!item || exact(row.qtyBase).plus(used(item)).gt(String(item.qtyBase)))
@@ -182,7 +183,7 @@ export function createDelivery(user, input) {
         const existing = await m.DeliveryOrder.find({ 'header.issueRequestId': request._id, workflowStatus: { $ne: 'CANCELLED' } }).session(session);
         const oldReturns = await m.FailedDeliveryReceipt.find({ 'demandReopenings.issueRequestLineId': { $in: request.items.map(i => i._id) }, workflowStatus: 'POSTED' }).session(session);
         const oldReuses = oldReturns.flatMap(r => r.commitmentTransfers || []);
-        const delivery = new m.DeliveryOrder({ documentNo: 'OD-' + newId(), workflowStatus: 'RELEASED', version: 1, createdBy: actor._id, header: { warehouseId: input.warehouseId, issueRequestId: request._id, plannedOn: input.plannedOn, recipientName: input.recipientName, recipientPhone: input.recipientPhone, deliveryAddress: input.deliveryAddress, releasedBy: actor._id, releasedAt: new Date() }, items: [] });
+        const delivery = new m.DeliveryOrder({ ...await nextDocumentFields(m.DeliveryOrder, 'OD', input.warehouseId, session), workflowStatus: 'RELEASED', version: 1, createdBy: actor._id, header: { warehouseId: input.warehouseId, issueRequestId: request._id, plannedOn: input.plannedOn, recipientName: input.recipientName, recipientPhone: input.recipientPhone, deliveryAddress: input.deliveryAddress, releasedBy: actor._id, releasedAt: new Date() }, items: [] });
         const quantities = new Map();
         for (const row of input.lines) {
             positive(row.qtyBase);
@@ -238,8 +239,8 @@ export function createPicking(user, id, input) {
         checkVersion(delivery, input.expectedVersion);
         open(delivery);
         unique(input.lines, 'reservationId');
-        const issue = new m.SalesGoodsIssue({ documentNo: 'GI-' + newId(), workflowStatus: 'DRAFT', version: 1, createdBy: actor._id, header: { warehouseId: delivery.header.warehouseId, deliveryOrderId: delivery._id }, items: [] });
-        const task = new m.TransferOrder({ documentNo: 'PICK-' + newId(), workflowStatus: 'OPEN', version: 1, createdBy: actor._id, header: { warehouseId: delivery.header.warehouseId, taskKind: 'PICK', assignedTo: actor._id }, sources: [sourceLink(issue)], items: [] });
+        const issue = new m.SalesGoodsIssue({ ...await nextDocumentFields(m.SalesGoodsIssue, 'GI', delivery.header.warehouseId, session), workflowStatus: 'DRAFT', version: 1, createdBy: actor._id, header: { warehouseId: delivery.header.warehouseId, deliveryOrderId: delivery._id }, items: [] });
+        const task = new m.TransferOrder({ ...await nextDocumentFields(m.TransferOrder, 'PICK', delivery.header.warehouseId, session), workflowStatus: 'OPEN', version: 1, createdBy: actor._id, header: { warehouseId: delivery.header.warehouseId, taskKind: 'PICK', assignedTo: actor._id }, sources: [sourceLink(issue)], items: [] });
         for (const row of input.lines) {
             positive(row.qtyBase);
             const reservation = await m.StockReservation.findById(row.reservationId).session(session);
