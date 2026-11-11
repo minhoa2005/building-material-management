@@ -18,7 +18,7 @@ PurchaseReceipt và CustodyRelease có custodyDecisionId → ApprovalHistory. GR
 - NCC dùng contactName/status/taxCode/notes, expectedUpdatedAt. names yêu cầu supplier:read và chỉ trả ACTIVE.
 - `GET /api/purchase-orders/supplier-options` dùng `purchase_order:read` để lấy bộ lọc NCC cho danh sách PO. Query `warehouseId` là tùy chọn và dùng cùng scope với danh sách PO. Response `data: [{ id, code, name }]` lấy từ snapshot trên PO, gộp theo ID NCC và lấy snapshot mới nhất trong phạm vi. Kết quả gồm NCC lịch sử có snapshot đầy đủ. Form tạo/sửa PO tiếp tục dùng danh sách NCC đang hoạt động từ API danh mục.
 - RR → PO là một–một, unique index bảo vệ cả hai lệnh đồng thời. PO có giá, currency và tổng decimal; Owner/Accountant xem giá, các vai trò khác bị redaction. Confirm kiểm lại quyết định duyệt, lượng, sản phẩm và NCC.
-- Quyết định 11/11/2026 cho phép sửa PO ở trạng thái nháp. Sau khi phát hành, xử lý phần chưa nhận qua quy trình đóng. Xem [hợp đồng PO hiện hành](NATIVE_MODEL_RUNTIME.md#mua-và-nhập).
+- Quyết định 11/11/2026 cho phép sửa nội dung PO ở trạng thái nháp. Khi `OPEN` hoặc `PARTIAL`, Accountant có thể đổi ngày dự kiến chung cho phần chưa nhận. Khi ngừng chờ phần đó, dùng quy trình đóng. Xem [hợp đồng PO hiện hành](NATIVE_MODEL_RUNTIME.md#mua-và-nhập).
 - Kiểm nhận ACCEPT chỉ GOOD; confirm tạo GR/CustodyReceipt DRAFT, không ghi tồn. Post GR trực tiếp ghi STORE/GOOD tại RECEIVING. Post custody ghi SUPPLIER vào CUSTODY/QUARANTINE; REJECT không ghi tồn. Lượng giữ hộ không tính đã nhập sở hữu PO.
 
 ### Giữ hộ

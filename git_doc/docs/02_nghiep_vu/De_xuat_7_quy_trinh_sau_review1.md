@@ -263,7 +263,7 @@ Các UC mới UC-103 trở đi là **mã đề xuất**, chưa có trong Report 
 | UC-01–02: View replenishment | Sửa quyền xem | Sales/Warehouse xem đề nghị của mình và nhu cầu được giao; Owner/Accountant xem theo trách nhiệm. |
 | UC-03: Create replenishment request | Sửa primary actor và trigger | Sales/Warehouse tạo từ thiếu xuất, mức tối thiểu, kết quả kiểm kê. Accountant bỏ quyền tự tạo nhu cầu, có thể ghi chú đối chiếu. Chưa duyệt không tạo PO. |
 | UC-04: Approve/reject replenishment | Giữ, siết điều kiện | Owner duyệt đúng phiên bản, userId khác người đề xuất. Có trả về sửa và hủy phần chưa thực hiện. |
-| UC-05–07: PO | Lập, phát hành, theo dõi và đóng | Accountant chốt với NCC trước khi lập PO từ RR đã duyệt. Chỉ sửa PO nháp. PO đã phát hành dùng quy trình đóng nếu ngừng nhận phần còn lại. |
+| UC-05–07: PO | Lập, phát hành, theo dõi và đóng | Accountant chốt với NCC trước khi lập PO từ RR đã duyệt. Sửa nội dung PO nháp. Với PO `OPEN`/`PARTIAL`, Accountant có thể đổi ngày dự kiến chung. Dùng quy trình đóng nếu ngừng nhận phần còn lại. |
 | UC-08–10: Receipt list/detail/create | Giữ, mở rộng dữ liệu đợt nhận | Mỗi lần giao có receipt riêng, tham chiếu PO/dòng, lượng thực nhận và nguồn vận chuyển. |
 | UC-11–13: Product/packaging | Giữ, bổ sung mức tồn tối thiểu có kiểm soát | Lưu hệ số thùng/viên/m² và phiên bản. Mức tối thiểu do Owner cấu hình hữu hạn, không phải trình biên tập policy tổng quát. |
 | UC-14–16: Lot | Giữ | Không sửa lot/tone/calibre đã có giao dịch để hợp thức hóa thiếu hàng. Đính chính cần lịch sử và chứng cứ; quyền quản lý master không tự cấp quyền đổi chất lượng tồn. |
@@ -418,7 +418,7 @@ Không gộp chất lượng, vị trí, quyền sở hữu và tình trạng gi
 | BR-05 | Người đề xuất và người duyệt khác userId cho cùng quyết định; nhiều role không vượt ràng buộc này. | GB-01, GB-NEW-01, UC-04/41/66/71/92/106 |
 | BR-06 | Receipt/issue/return/adjustment chỉ post một lần, nguyên tử cùng ledger và balance. Không âm tồn khả dụng; retry trả lại kết quả cũ. | DR-09/10/13, GB-09/10/13 |
 | BR-07 | Nhận hàng phân tách thực giao, nhận vào tồn, giữ hộ, từ chối; chưa kiểm hoặc chưa sẵn sàng vị trí thì không khả dụng. | DR-04, GB-04, UC-26/33/73 |
-| BR-08 | PO nhận nhiều đợt và chỉ sửa nội dung khi còn nháp. Đóng phần chưa nhận cần lý do và quyết định duyệt. | DR-03, GB-05, UC-07/10/26 |
+| BR-08 | PO nhận nhiều lần qua chứng từ thực tế. Sửa nội dung khi còn nháp và đổi ngày dự kiến chung có lý do khi `OPEN`/`PARTIAL`. Đóng phần chưa nhận cần lý do và quyết định duyệt. | DR-03, GB-05, UC-07/10/26 |
 | BR-09 | Chuyển vị trí cùng kho không đổi tổng, lot, chất lượng; không cần Owner duyệt. Bảo toàn liên kết giữ hàng. | DR-06, GB-06, UC-36/37 |
 | BR-10 | TR liên kho đã duyệt đủ để thực hiện; phải có hai phiếu và mốc dispatch/receipt riêng. | DR-07, GB-07, UC-41/43/104 |
 | BR-11 | Mọi lượng đã xuất điều chuyển = đã nhận hợp lệ + đang chuyển/chưa giải quyết + lượng đã có kết quả xử lý khác có chứng từ. Không đóng nếu thiếu kết quả. Giữ liên kết phân bổ cho nhu cầu nguồn khi chuyển qua in-transit và kho đích. | UC-43/44/104 |

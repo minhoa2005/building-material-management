@@ -87,6 +87,22 @@ export function confirmPurchaseOrder(user,id,input){
     return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion};
   });
 }
+export function rescheduleExpectedOn(user, id, input) {
+  return command(user, 'RESCHEDULE_PO_EXPECTED_ON', 'purchase_order:update', id, input, replayPurchase, async (session, actor) => {
+    const po = await findPurchase(id, actor, session, { kind: 'PO' });
+    checkVersion(po, input.expectedVersion);
+    if (!['OPEN', 'PARTIAL'].includes(po.workflowStatus)) throw validationError('PO không còn mở');
+
+    const before = po.header.expectedOn?.toISOString() ?? null;
+    po.header.expectedOn = input.expectedOn;
+    return {
+      document: await saveVersion(po, input.expectedVersion, session),
+      versionBefore: input.expectedVersion,
+      reason: input.reason,
+      auditChanges: [{ field: 'header.expectedOn', before, after: po.header.expectedOn.toISOString() }],
+    };
+  });
+}
 async function validateClose(po,lines,session){
   const quantities=await purchaseOrderQuantities(po,session),seen=new Set();
   for(const row of lines){

@@ -44,9 +44,9 @@ Product giữ các trường theo [từ điển trước lần gộp](../DB_Curr
 
 Theo quyết định user, 2026-11-11, PO lưu nội dung đặt hàng sau khi kế toán đã chốt với NCC. Các định nghĩa `header.supplierConfirmation` và `items[].supplierConfirmedQtyBase`, `supplierConfirmedBy`, `supplierConfirmedAt` trong từ điển trước đây đã hết hiệu lực. PO chỉ sửa nội dung ở `DRAFT`. Sau phát hành, lượng được phép ngừng nhận được ghi ở `items[].cancelledRemainderQtyBase` kèm `cancellationDecisionId`.
 
-`items[].deliverySchedule` là mảng nhúng, mỗi mốc có `quantityBase` Decimal128 và `expectedAt` Date bắt buộc, `supplierReference` là mã tham chiếu lịch giao tùy chọn (tối đa 160 ký tự). Lịch đã lưu vẫn dùng trong đánh giá bổ sung và trong DTO nhận mua. Phiếu nhập mua giữ `items[].supplierScheduleId`. API tạo và sửa nháp chỉ nhận ngày dự kiến chung `header.expectedOn`. Lịch giao mẫu được tạo bởi seed.
+`header.expectedOn` là `Date` tùy chọn, dùng chung cho lượng chưa nhận. API nhận ngày này khi tạo hoặc sửa nháp. Với `OPEN`/`PARTIAL`, lệnh đổi ngày kiểm quyền, kho và phiên bản, rồi ghi lý do cùng giá trị trước/sau vào AuditLog. `items[].deliverySchedule` đã bị loại khỏi schema. Quan hệ nhận nhiều lần lấy từ `GoodsArrival.header.purchaseOrderId`, `GoodsInspection.header.arrivalId` và `GoodsReceipt.header.purchaseOrderId`.
 
-PO cũ có thể còn trường xác nhận trong MongoDB. Schema loại các trường đó khi chuyển PO sang dữ liệu trả API hoặc ghi phiên bản mới. Dữ liệu demo theo schema mới được tạo bằng seed trên DB demo trống. Xem [hợp đồng PO](../../08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập) và [hướng dẫn seed](../../09_phat_trien/DB_REBUILD.md).
+PO cũ có thể còn dữ liệu xác nhận hoặc lịch giao trong MongoDB. DTO bỏ các trường đó và RR chỉ đọc ngày ở đầu PO. Ghi phiên bản thay mảng `items` bằng dữ liệu đã lọc. Dữ liệu demo theo schema mới được tạo bằng seed trên DB demo trống. Xem [hợp đồng PO](../../08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập) và [hướng dẫn seed](../../09_phat_trien/DB_REBUILD.md).
 
 ## `goods_receipts` / `GoodsReceipt`
 
@@ -65,6 +65,8 @@ Các `items.details` theo `lineKind` giữ toàn bộ 19 discriminator cũ. `FAI
 | `OTHER` | `warehouseId`, `reason`, `originalReceiptId` nếu thay thế | Warehouse lập và gửi duyệt, Owner duyệt phiên bản, Warehouse ghi sổ hoặc Bỏ ghi. |
 
 Trường nguồn tùy loại được Mongoose header discriminator và service kiểm. Các đường link `sources.subjectCollection`, `Attachment.ownerDocumentType`, `StockTransaction.sourceType`, `ApprovalHistory.subjectType` trỏ tới `goods_receipts`. `CustodyReceipt` vẫn là collection riêng. Các trường `approvedStockHash`, `approvedVersion`, `approvalDecisionId` chỉ dùng cho `OTHER` để chặn ghi tồn khi nội dung đã duyệt thay đổi.
+
+`supplierScheduleId` là trường tùy chọn phục vụ tương thích với phiếu nhập mua cũ. Luồng nhận hàng và lịch sử nhận dùng `purchaseOrderItemId` để liên kết dòng PO.
 
 ## Sửa sai và dữ liệu mẫu
 

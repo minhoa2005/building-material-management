@@ -9,15 +9,15 @@ Bộ mẫu mới mang seedVersion wmsd-tile-shop-20261106-v9, 59 collection/642 
 - npm run db:local:start rồi npm run db:local:status: chuẩn bị/kiểm MongoDB local.
 - npm run db:local:seed: ghi dữ liệu tổng hợp vào đích local của công cụ, chỉ chạy sau khi xem đích.
 - npm run db:local:verify: xác minh dữ liệu.
-- RUN_NATIVE_API_TESTS=1 node --test test/native-api.integration.test.js: kiểm giao dịch trên replica set localhost:27028; mỗi lượt tạo DB wmsd_api_test_* riêng. Trong PowerShell đặt biến môi trường trước câu lệnh Node.
+- RUN_NATIVE_API_TESTS=1 node --test test/native-api.integration.test.js: kiểm giao dịch trên replica set `rs0` tại `127.0.0.1:27017`; mỗi lượt tạo DB wmsd_api_test_* riêng. Trong PowerShell đặt biến môi trường trước câu lệnh Node.
 - npm run docs:check: kiểm tài liệu.
 
 Seed khi khởi động API chỉ chạy khi SEED_ON_STARTUP được bật. Đổi URI không chuyển đổi dữ liệu legacy. Không có công cụ tự động chuyển toàn bộ DB legacy trong bản này; các transform còn giữ chỉ phục vụ fixture/regression. Cần một đợt triển khai dữ liệu có phê duyệt riêng trước dùng dữ liệu thật.
 
 ## Seed PO theo quyết định 11/11/2026
 
-Để có bộ PO mẫu theo schema mới, seed lại vào DB demo trống. Bộ seed hiện hành bỏ trường xác nhận NCC ở đầu phiếu và dòng ngay khi dựng PO từ fixture lịch sử. PO mẫu vẫn có lịch giao. Khi DB đích đã có dữ liệu, lệnh seed chỉ kiểm tra và trả `ALREADY_SEEDED`.
+Bộ seed hiện hành dùng `header.expectedOn` trên PO mẫu `PO-202610-001` và bỏ lịch giao từng dòng. Để tạo bộ mẫu mới, chạy `npm run db:local:seed` rồi `npm run db:local:verify` trên DB demo trống. Đích mặc định là `wmsd_demo_tile_shop_v9` trên `localhost:27017`, replica set `rs0`. DB đã có seed không bị ghi đè và có thể báo khác fingerprint khi bộ mẫu đổi.
 
-Đã chạy `npm run db:local:seed` rồi `npm run db:local:verify` trên `localhost:27017`, replica set `rs0`, DB `wmsd_demo_tile_shop_v9`. Seed version `wmsd-tile-shop-20261109-v10` tạo 58 collection và 742 bản ghi. Kiểm trực tiếp `PO-202610-001` xác nhận có một mốc lịch giao và các trường xác nhận NCC đã được loại khỏi bản ghi.
+Bằng chứng trước khi bỏ lịch giao. Đã chạy `npm run db:local:seed` rồi `npm run db:local:verify` trên `localhost:27017`, replica set `rs0`, DB `wmsd_demo_tile_shop_v9`. Seed version `wmsd-tile-shop-20261109-v10` tạo 58 collection và 742 bản ghi. Kiểm trực tiếp `PO-202610-001` xác nhận có một mốc lịch giao và các trường xác nhận NCC đã được loại khỏi bản ghi.
 
 [Hợp đồng runtime](../08_api/NATIVE_MODEL_RUNTIME.md) · [Bản đồ model](../../MODEL_MAP.md).

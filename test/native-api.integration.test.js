@@ -393,7 +393,7 @@ import jwt from 'jsonwebtoken';
 import app from '../src/app.js';
 import { getPurchaseOrder, listPurchaseOrders } from '../src/modules/purchase-orders/purchase-order.service.js';
 
-run('HTTP PO commands allow draft edits, then use the close workflow after issuance', async () => {
+run('HTTP PO lifecycle supports draft edits, expected-date changes, receiving history and closure', async () => {
  const requestBody = {
    creationKey: key(), action: 'SUBMIT', warehouseId: String(warehouse._id), neededOn: '2026-12-01',
    triggerReason: 'PO draft lifecycle test',
@@ -427,6 +427,11 @@ run('HTTP PO commands allow draft edits, then use the close workflow after issua
    assert.equal(created.body.data.workflowStatus, 'DRAFT');
    const { id, version } = created.body.data;
    const path = '/' + id;
+   const expectedOnPath = path + '/expected-on';
+   const reschedule = expectedVersion => ({
+     ...input(), expectedVersion, expectedOn: '2026-12-03T09:00:00+07:00', reason: 'Supplier changed the delivery date',
+   });
+   assert.equal((await api('POST', expectedOnPath, reschedule(version))).status, 400);
    const detail = await api('GET', path);
    const poLineId = detail.body.data.items[0]._id;
    const edit = expectedVersion => ({
@@ -458,15 +463,75 @@ run('HTTP PO commands allow draft edits, then use the close workflow after issua
    } });
    const summary = await api('GET', path + '/receiving-summary');
    assert.equal(summary.status, 200);
-   assert.deepEqual(summary.body.data.schedules, [{ quantityBase: '4', expectedAt: expectedOn, supplierReference: 'LEGACY-SCHEDULE', lineId: poLineId }]);
+   assert.deepEqual(summary.body.data.documents, []);
+   assert.ok(!Object.hasOwn(summary.body.data, 'schedules'));
    assert.equal(summary.body.data.quantities[0].orderedQtyBase, '4');
+   assert.ok(!Object.hasOwn(summary.body.data.quantities[0].snapshot, 'deliverySchedule'));
    const legacyDetail = (await api('GET', path)).body.data;
    assert.ok(legacyDetail.header.issuedAt);
    assert.equal(legacyDetail.version, issuedVersion);
    assert.ok(!Object.hasOwn(legacyDetail.header, 'supplierConfirmation'));
-   for (const field of ['supplierConfirmedQtyBase', 'supplierConfirmedBy', 'supplierConfirmedAt']) {
+   const retiredFields = ['supplierConfirmedQtyBase', 'supplierConfirmedBy', 'supplierConfirmedAt', 'deliverySchedule'];
+   for (const field of retiredFields) {
      assert.ok(!Object.hasOwn(legacyDetail.items[0], field));
    }
+
+   const change = reschedule(issuedVersion);
+   assert.equal((await api('POST', expectedOnPath, change, worker)).status, 403);
+   assert.equal((await api('POST', expectedOnPath, { ...change, expectedOn: '2026-12-03' })).status, 400);
+   const rescheduled = await api('POST', expectedOnPath, change);
+   assert.equal(rescheduled.status, 200, rescheduled.body.message);
+   assert.equal(rescheduled.body.data.workflowStatus, 'OPEN');
+   assert.equal(rescheduled.body.data.version, issuedVersion + 1);
+   const newExpectedOn = '2026-12-03T02:00:00.000Z';
+   assert.equal((await api('GET', path)).body.data.header.expectedOn, newExpectedOn);
+   const replayed = await api('POST', expectedOnPath, change);
+   assert.equal(replayed.body.data.replayed, true);
+   assert.equal(replayed.body.data.version, rescheduled.body.data.version);
+   assert.equal((await api('POST', expectedOnPath, reschedule(issuedVersion))).status, 409);
+   const audits = await m.AuditLog.find({ subjectId: id, action: 'RESCHEDULE_PO_EXPECTED_ON' }).lean();
+   assert.equal(audits.length, 1);
+   assert.equal(audits[0].reason, change.reason);
+   assert.equal(audits[0].versionBefore, issuedVersion);
+   assert.equal(audits[0].versionAfter, issuedVersion + 1);
+   assert.deepEqual(audits[0].changes.map(({ field, before, after }) => ({ field, before, after })), [
+     { field: 'header.expectedOn', before: expectedOn, after: newExpectedOn },
+   ]);
+
+   const inspection = await receiving.createInspection(worker, id, {
+     creationKey: key(), expectedPoVersion: rescheduled.body.data.version, arrivedAt: new Date().toISOString(),
+     lines: [{ poLineId, lotId: String(batch._id), enteredQty: '2', qualityCode: 'GOOD', ownershipDecision: 'ACCEPT', packagingCondition: 'OPENED' }],
+   });
+   const inspectionDoc = await m.GoodsInspection.findById(inspection.id);
+   const confirmed = await receiving.confirmInspection(worker, inspection.id, {
+     ...input(), expectedVersion: inspection.version, expectedPoVersion: rescheduled.body.data.version,
+     destinations: [{ inspectionItemId: String(inspectionDoc.items[0]._id), locationId: String(receivingLocation._id) }],
+   });
+   const receiptId = confirmed.resultRefs.find(ref => ref.documentType === 'goods_receipts').documentId;
+   const beforePosting = await m.PurchaseOrder.findById(id);
+   const draftReceipt = await m.PurchaseReceipt.findById(receiptId);
+   await receiving.postReceipt(worker, receiptId, {
+     ...input(), expectedVersion: draftReceipt.version, expectedPoVersion: beforePosting.version,
+     packaging: [{ lineId: String(draftReceipt.items[0]._id), portions: [{ packagingState: 'OPEN', quantityBase: '2', measuredVolumeMm3: '7688000' }] }],
+   });
+   const partial = await m.PurchaseOrder.findById(id);
+   const rescheduledPartial = await api('POST', expectedOnPath, {
+     ...reschedule(partial.version), expectedOn: '2026-12-04T02:00:00.000Z',
+   });
+   assert.equal(rescheduledPartial.status, 200, rescheduledPartial.body.message);
+   assert.equal(rescheduledPartial.body.data.workflowStatus, 'PARTIAL');
+
+   const receivedSummary = await api('GET', path + '/receiving-summary', undefined, worker);
+   assert.equal(receivedSummary.status, 200);
+   const { documents, quantities } = receivedSummary.body.data;
+   assert.equal(quantities[0].receivedQtyBase, '2');
+   assert.equal(quantities[0].outstandingQtyBase, '2');
+   assert.ok(!Object.hasOwn(quantities[0].snapshot, 'unitPurchasePrice'));
+   assert.deepEqual(documents.map(({ kind, id, workflowStatus, lines }) => ({ kind, id, workflowStatus, lines })), [
+     { kind: 'GR_PURCHASE', id: receiptId, workflowStatus: 'POSTED', lines: [{ poLineId, qtyBase: '2' }] },
+     { kind: 'INSPECTION', id: inspection.id, workflowStatus: 'CONFIRMED', lines: [{ poLineId, qtyBase: '2' }] },
+   ]);
+   assert.ok(documents.every(row => row.documentNo && row.createdAt));
 
    const evidence = await m.Attachment.create({
      ownerDocumentType: 'purchase_orders', ownerDocumentId: id, purpose: 'TEST', originalName: 'test.png',
@@ -475,7 +540,7 @@ run('HTTP PO commands allow draft edits, then use the close workflow after issua
    });
    const closeBody = { reason: 'Stop receiving remaining items', evidenceIds: [String(evidence._id)] };
    const close = await api('POST', path + '/close-requests', {
-     ...closeBody, ...input(), expectedVersion: issuedVersion, lines: [{ poLineId, qtyBase: '4' }],
+     ...closeBody, ...input(), expectedVersion: rescheduledPartial.body.data.version, lines: [{ poLineId, qtyBase: '2' }],
    });
    assert.equal(close.status, 200, close.body.message);
    const audit = await m.AuditLog.findOne({ subjectId: id, action: 'REQUEST_PO_CLOSE' });
@@ -488,15 +553,15 @@ run('HTTP PO commands allow draft edits, then use the close workflow after issua
    });
    assert.equal(closed.status, 200, closed.body.message);
    assert.equal(closed.body.data.workflowStatus, 'CLOSED');
-   assert.deepEqual((await api('GET', path + '/receiving-summary')).body.data.schedules, summary.body.data.schedules);
+   assert.equal((await api('POST', expectedOnPath, reschedule(closed.body.data.version))).status, 400);
+   assert.deepEqual((await api('GET', path + '/receiving-summary')).body.data.documents, documents);
 
-   // A versioned write must drop the retired confirmation paths from the stored legacy record.
+   // Versioned writes replace the items array without retired fields.
    const stored = await m.PurchaseOrder.collection.findOne({ _id: new mongoose.Types.ObjectId(id) });
    assert.ok(!Object.hasOwn(stored.header, 'supplierConfirmation'));
-   for (const field of ['supplierConfirmedQtyBase', 'supplierConfirmedBy', 'supplierConfirmedAt']) {
+   for (const field of retiredFields) {
      assert.ok(!Object.hasOwn(stored.items[0], field), field + ' should be removed after a versioned write');
    }
-   assert.equal(stored.items[0].deliverySchedule[0].supplierReference, 'LEGACY-SCHEDULE');
  } finally {
    await new Promise(resolve => server.close(resolve));
  }

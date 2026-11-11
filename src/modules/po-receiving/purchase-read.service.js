@@ -50,10 +50,51 @@ export async function listDocuments(user,kind,query){
   const Model=purchaseModels[kind];const [documents,total]=await Promise.all([Model.find(filter).sort({createdAt:-1,_id:-1}).skip((query.page-1)*query.limit).limit(query.limit),Model.countDocuments(filter)]);
   return {items:await Promise.all(documents.map(d=>enriched(user,d))),total,page:query.page,limit:query.limit};
 }
-export async function receivingSummary(user,id){
-  const po=await getPurchaseOrder(user,id);const arrivals=await GoodsArrival.find({'header.purchaseOrderId':id}).select('_id');const inspections=await GoodsInspection.find({'header.arrivalId':{$in:arrivals.map(a=>a._id)}});const receipts=await PurchaseReceipt.find({'header.purchaseOrderId':id});
-  const placements=(await Promise.all(receipts.filter(r=>r.workflowStatus==='POSTED').map(r=>placementQuantities(r)))).flat().filter(q=>exact(q.unplacedQtyBase).gt(0));
-  return {purchaseOrder:{id:po.id,documentNo:po.documentNo,workflowStatus:po.workflowStatus,version:po.version},poVersion:po.version,computedAt:new Date().toISOString(),quantities:po.quantities.map(q=>({...q,snapshot:po.items.find(i=>same(i._id,q.lineId))})),schedules:po.items.flatMap(i=>(i.deliverySchedule||[]).map(s=>({...s,lineId:i._id}))),tripCount:arrivals.length,openWork:{draftInspections:inspections.filter(d=>d.workflowStatus==='DRAFT').length,draftReceipts:receipts.filter(d=>d.workflowStatus==='DRAFT').length,unplacedReceiptLines:placements.length,unplacedQtyBase:placements.reduce((n,q)=>n.plus(q.unplacedQtyBase),exact('0')).toFixed()}};
+function receivingDocument(kind, document, poLineId) {
+  return serialize({
+    kind,
+    id: document._id,
+    documentNo: document.documentNo,
+    workflowStatus: document.workflowStatus,
+    occurredAt: document.occurredAt,
+    createdAt: document.createdAt,
+    lines: document.items.map(item => ({ poLineId: poLineId(item) ?? null, qtyBase: item.qtyBase })),
+  });
+}
+export async function receivingSummary(user, id) {
+  const po = await getPurchaseOrder(user, id);
+  const arrivals = await GoodsArrival.find({ 'header.purchaseOrderId': id }).select('items._id items.purchaseOrderItemId');
+  const [inspections, receipts] = await Promise.all([
+    GoodsInspection.find({ 'header.arrivalId': { $in: arrivals.map(a => a._id) } }),
+    PurchaseReceipt.find({ 'header.purchaseOrderId': id }),
+  ]);
+  const arrivalsById = new Map(arrivals.map(arrival => [String(arrival._id), arrival]));
+  const documents = [
+    ...inspections.map(inspection => {
+      const arrival = arrivalsById.get(String(inspection.header.arrivalId));
+      return receivingDocument('INSPECTION', inspection, item =>
+        arrival?.items.id(item.details?.inspectedSourceLineId)?.purchaseOrderItemId);
+    }),
+    ...receipts.map(receipt => receivingDocument('GR_PURCHASE', receipt, item => item.purchaseOrderItemId)),
+  ].sort((a, b) => (b.occurredAt ?? b.createdAt ?? '').localeCompare(a.occurredAt ?? a.createdAt ?? '')
+    || b.id.localeCompare(a.id));
+  const placements = (await Promise.all(receipts.filter(r => r.workflowStatus === 'POSTED').map(r => placementQuantities(r))))
+    .flat().filter(q => exact(q.unplacedQtyBase).gt(0));
+  const summary = {
+    purchaseOrder: { id: po.id, documentNo: po.documentNo, workflowStatus: po.workflowStatus, version: po.version },
+    poVersion: po.version,
+    computedAt: new Date().toISOString(),
+    quantities: po.quantities.map(q => ({ ...q, snapshot: po.items.find(i => same(i._id, q.lineId)) })),
+    documents,
+    tripCount: arrivals.length,
+    openWork: {
+      draftInspections: inspections.filter(d => d.workflowStatus === 'DRAFT').length,
+      draftReceipts: receipts.filter(d => d.workflowStatus === 'DRAFT').length,
+      unplacedReceiptLines: placements.length,
+      unplacedQtyBase: placements.reduce((n, q) => n.plus(q.unplacedQtyBase), exact('0')).toFixed(),
+    },
+  };
+  return financial(user) ? summary : redactPrices(summary);
 }
 export async function receivingTrips(user,id,query){await findPurchase(id,user,null,{kind:'PO',readOnly:true});return listDocuments(user,'INSPECTION',{...query,purchaseOrderId:id});}
 export async function receivingQueue(user,query){

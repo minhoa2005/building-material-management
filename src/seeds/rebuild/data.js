@@ -111,7 +111,6 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
       row.unitPurchasePrice=decimalValue('35000');
       row.lineAmount=decimalValue(exact(row.enteredQty).mul('35000'));
       row.requestItemId=row.sources.find(link => link.subjectCollection==='replenishment_requests')?.itemId;
-      row.deliverySchedule=[{quantityBase:row.qtyBase,expectedAt:po.header.expectedOn}];
     }
     po.totalAmount=decimalValue(po.items.reduce((sum,row)=>sum.plus(String(row.lineAmount)),exact(0)));
   }

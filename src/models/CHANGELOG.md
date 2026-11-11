@@ -1,3 +1,7 @@
+## 11/11/2026 — Bỏ lịch giao từng dòng PO
+
+Theo quyết định người dùng, `purchase-order.model.js` bỏ `items[].deliverySchedule` và xóa `purchase-order-delivery-schedule.schema.js`. Seed PO dùng ngày dự kiến chung `header.expectedOn` cho phần chưa nhận. Không thêm collection hay index. BSON chưa ghi lại có thể còn dữ liệu lịch cũ. DTO lọc trường cũ, còn `saveVersion` loại trường khi thay mảng `items`. Không cần migration. Đã kiểm tương thích bản ghi cũ qua HTTP và kiểm PO mẫu từ bộ dựng seed. [Nhật ký thay đổi](../../git_doc/change_logs.md).
+
 ## 11/11/2026 — Đảo phiếu nhập giữ PO đã đóng
 
 Không đổi model. Logic đảo phiếu giữ `CLOSED` cho PO đã đóng; DTO PO thêm trường dẫn xuất `hasOpenReceivingWork`. Chi tiết ở `git_doc/change_logs.md`.

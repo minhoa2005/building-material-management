@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import * as m from '../src/models/runtime.js';
 import { evaluateLines } from '../src/modules/replenishments/replenishment.evaluation.js';
+import { rescheduleExpectedOn } from '../src/modules/purchase-orders/purchase-order.commands.js';
 import { PERMISSION_CATALOGUE } from '../src/seeds/data/permissions.data.js';
 
 const enabled = process.env.RUN_NATIVE_API_TESTS === '1';
@@ -138,18 +139,54 @@ test('late supply is excluded, missing arrival dates fail closed, and PO self-ex
   assert.equal(evaluation.suggestedQtyBase, '20');
 });
 
-test('PO delivery schedules still count only quantities due by the need date', { skip: !enabled }, async () => {
+async function partialPurchase(expectedOn) {
   const so = await order();
   const rr = await request('20', `SO:${so._id}:${so.items[0]._id}`);
-  const po = await purchase(rr, '20', 'OPEN', '2026-12-02');
-  po.items[0].deliverySchedule = [
-    { quantityBase: '8', expectedAt: new Date('2026-11-30'), supplierReference: 'SCHEDULE-1' },
-    { quantityBase: '12', expectedAt: new Date('2026-12-02') },
-  ];
+  const po = await purchase(rr, '20', 'PARTIAL', expectedOn);
+  po.items[0].cancelledRemainderQtyBase = '2';
   await po.save();
+  await m.PurchaseReceipt.create({
+    documentNo: 'GR-' + id(), workflowStatus: 'POSTED', version: 1, createdBy: user._id,
+    header: { warehouseId: warehouse._id, purchaseOrderId: po._id },
+    items: [item('8', { purchaseOrderItemId: po.items[0]._id })],
+  });
+  await stock('8');
+  return { so, po };
+}
 
+test('partially received PO counts only its outstanding quantity on expectedOn', { skip: !enabled }, async () => {
+  const { so } = await partialPurchase(date);
   const [evaluation] = await evaluate([sourceLine(so)]);
-  assert.equal(evaluation.incomingCoverageQtyBase, '8');
+  assert.equal(evaluation.onHandCoverageQtyBase, '8');
+  assert.equal(evaluation.incomingCoverageQtyBase, '10');
+  assert.equal(evaluation.suggestedQtyBase, '2');
+});
+
+test('late expectedOn excludes the PO remainder even when a legacy schedule was due on time', { skip: !enabled }, async () => {
+  const { so, po } = await partialPurchase('2026-12-02');
+  await m.PurchaseOrder.collection.updateOne({ _id: po._id }, { $set: {
+    'items.0.deliverySchedule': [{ quantityBase: po.items[0].qtyBase, expectedAt: new Date(date) }],
+  } });
+  const [evaluation] = await evaluate([sourceLine(so)]);
+  assert.equal(evaluation.incomingCoverageQtyBase, '0');
+  assert.equal(evaluation.suggestedQtyBase, '12');
+});
+
+test('rescheduling expectedOn moves the PO remainder in and out of coverage', { skip: !enabled }, async () => {
+  const { so, po } = await partialPurchase('2026-12-02');
+  let [evaluation] = await evaluate([sourceLine(so)]);
+  assert.equal(evaluation.incomingCoverageQtyBase, '0');
+  const reschedule = (version, expectedOn) => rescheduleExpectedOn(user, String(po._id), {
+    operationKey: String(id()), expectedVersion: version, expectedOn, reason: 'Supplier moved the delivery',
+  });
+  const earlier = await reschedule(po.version, '2026-11-30T00:00:00.000Z');
+  assert.equal(earlier.workflowStatus, 'PARTIAL');
+  [evaluation] = await evaluate([sourceLine(so)]);
+  assert.equal(evaluation.incomingCoverageQtyBase, '10');
+  assert.equal(evaluation.suggestedQtyBase, '2');
+  await reschedule(earlier.version, '2026-12-05T00:00:00.000Z');
+  [evaluation] = await evaluate([sourceLine(so)]);
+  assert.equal(evaluation.incomingCoverageQtyBase, '0');
   assert.equal(evaluation.suggestedQtyBase, '12');
 });
 

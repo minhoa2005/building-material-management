@@ -1,3 +1,11 @@
+## 11/11/2026 — Bỏ lịch giao PO và theo dõi chứng từ nhận hàng
+
+- Theo plan được người dùng xác nhận, `PurchaseOrder` và seed bỏ lịch giao từng dòng. `replenishment.evaluation.js` dùng `header.expectedOn` cho lượng còn phải nhận sau khi trừ nhập đã ghi sổ và lượng hủy. Chuyển lượng hủy `Decimal128` sang số thập phân chính xác trước khi trừ.
+- `purchase-order.commands` thêm lệnh đổi ngày dự kiến cho `OPEN`/`PARTIAL` với `purchase_order:update`, phạm vi kho, phiên bản, lý do và audit `RESCHEDULE_PO_EXPECTED_ON`. `purchase-read.service.js` trả phiếu kiểm và phiếu nhập trong `receiving-summary.documents`, giữ số lượng và tiến độ theo PO.
+- Cập nhật [hợp đồng PO](docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập), [hợp đồng đánh giá RR](docs/08_api/REPLENISHMENT_COVERAGE.md), [từ điển](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md), ERD, BF01, phiếu duyệt H02 và [hướng dẫn seed](docs/09_phat_trien/DB_REBUILD.md). BSON cũ có thể giữ lịch đến lần ghi phiên bản tiếp theo. Không chạy migration hoặc seed lại DB demo. FE chưa nối hợp đồng mới.
+- Chạy ba suite `native-api`, `replenishment-evaluation` và `replenishment-guards` với `RUN_NATIVE_API_TESTS=1` trên MongoDB local `rs0` tại `127.0.0.1:27017`, đạt 35/35, gồm ca mới kiểm đổi `expectedOn` đưa phần còn thiếu của PO vào hoặc ra khỏi coverage RR. Kiểm trực tiếp bộ dựng seed trong bộ nhớ xác nhận `PO-202610-001` có `expectedOn` và các dòng không còn lịch giao.
+- `npm test` với `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` đạt 150 ca, 44 ca skip, 0 lỗi. `npm run docs:check` và `git diff --check` đạt.
+
 ## 11/11/2026 — Đảo phiếu nhập giữ PO đã đóng và cờ đang nhận hàng
 
 - Theo quyết định user, 2026-11-11, đảo phiếu nhập của PO `CLOSED` giữ nguyên `CLOSED`; PO `OPEN`, `PARTIAL`, `COMPLETED` vẫn tính lại `PARTIAL`/`OPEN`. Sửa `purchase-correction.service.js`.

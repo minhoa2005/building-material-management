@@ -116,7 +116,7 @@ Một PO được Accountant lập từ **một RR đã duyệt**, cho **một n
 | `replenishmentRequestId`, `approvedRequestRevision` | ObjectId → H01; số bản đã duyệt | Chứng minh căn cứ được mua |
 | `supplierId`, `supplierSnapshot` | ObjectId → B08B; mã/tên/liên hệ lúc đặt | Nhà cung cấp và thông tin lịch sử trên PO |
 | `warehouseId` | ObjectId → B01 | Kho nhận của PO, khớp RR |
-| `orderDate`, `expectedDeliveryAt` | Ngày giờ | Ngày đặt và ngày dự kiến mặc định cho lượng chưa nhận; lịch riêng của dòng được ưu tiên |
+| `orderDate`, `expectedOn` | Ngày giờ | Ngày đặt và ngày dự kiến chung cho lượng chưa nhận |
 | `status` | DRAFT, OPEN, PARTIALLY_RECEIVED, COMPLETED, CLOSED_SHORT, CANCELLED | Nháp; đang đặt; đã nhận một phần; nhận đủ; đóng phần thiếu được phép; hủy khi chưa có phần thực hiện |
 | `currency` | VND trong phương án v0.1 | Đơn vị tiền của PO; chưa đề xuất đa tiền tệ |
 | `totalAmount` | Decimal128 ≥ 0, phần mềm tính | Tổng giá trị theo lượng đặt của phiên bản PO hiện tại; không phải giá trị thực nhận hoặc số tiền đã thanh toán |
@@ -124,7 +124,7 @@ Một PO được Accountant lập từ **một RR đã duyệt**, cho **một n
 | `createdBy`, `updatedBy` | ObjectId → A01 | Người lập và người cập nhật |
 | `issuedAt`, `closedAt` | Ngày giờ hoặc null | Mốc ghi nhận đã đặt và kết thúc; không mặc nhiên là đã gửi email hoặc đã trả tiền |
 | `closureDecisionRef`, `closureReason` | Quyết định D05 và lý do, khi đóng thiếu/hủy cần quyết định | Căn cứ xử lý phần không tiếp tục nhận |
-| `revision`, `version`, `createdAt`, `updatedAt` | Bản nội dung, phiên bản cập nhật và ngày giờ | Giữ phiên bản giá/lượng/lịch và chống sửa đè |
+| `revision`, `version`, `createdAt`, `updatedAt` | Bản nội dung, phiên bản cập nhật và ngày giờ | Giữ phiên bản giá/lượng/ngày dự kiến và chống sửa đè |
 | `creationKey` | Chuỗi duy nhất theo người tạo | Chặn tạo lặp khi gửi lại; khóa duy nhất RR vẫn kiểm đồng thời |
 
 ### Dòng đơn mua — items[]
@@ -139,12 +139,11 @@ Một PO được Accountant lập từ **một RR đã duyệt**, cho **một n
 | `unitPurchasePrice` | Decimal128 ≥ 0 | Giá mua đã chốt cho **một đơn vị đặt** của dòng, chẳng hạn một thùng; không tự hiểu là giá một viên |
 | `lineAmount` | Decimal128 ≥ 0, phần mềm tính | `orderedQty × unitPurchasePrice`. Tính thập phân chính xác, không nhân theo đơn vị gốc nếu giá nhập theo thùng |
 | `requiredBatchId`, `requiredTone`, `requiredCalibre` | Theo yêu cầu được duyệt, khi có | Điều kiện hàng nhà cung cấp cần đáp ứng; lô thực nhập xác định tại kiểm nhận |
-| `deliverySchedule[]` | Lượng đơn vị gốc, ngày dự kiến và mã tham chiếu lịch giao (`supplierReference`, tùy chọn) | Mỗi dòng có thể có nhiều mốc đã lưu. Đánh giá bổ sung chỉ tính mốc đủ điều kiện đúng hạn. Hiện lịch có trong dữ liệu cũ và seed, API nháp chưa nhận lịch giao theo dòng. |
 | `cancelledRemainderQtyBase`, `cancellationDecisionRef` | Decimal128 ≥ 0 và quyết định liên quan | Phần chưa nhận được phép ngừng chờ; không nhập số lượng đã hủy thành hàng nhận |
 
 ### Giá mua và quyền xem đã chốt
 
-Theo câu trả lời mới, giá mua và tổng tiền chỉ hiển thị cho **Accountant/Store Owner**. Warehouse Staff chỉ nhận mã PO, NCC, kho, sản phẩm, đơn vị, số lượng, lịch giao và dữ liệu phục vụ kiểm nhận. Sales Staff xem nguồn/tiến độ nhu cầu được phép, không xem giá mua. Administrator không tự có quyền xem giá vì là người quản lý tài khoản. Không tự suy rộng quyền giá sang role tùy chỉnh từ quyền xem PO chung; nếu cần mở rộng sẽ trình riêng theo quyết định mới, không thêm lại giới hạn vai trò chung đã bỏ ở A03.
+Theo câu trả lời mới, giá mua và tổng tiền chỉ hiển thị cho **Accountant/Store Owner**. Warehouse Staff chỉ nhận mã PO, NCC, kho, sản phẩm, đơn vị, số lượng, ngày dự kiến và dữ liệu phục vụ kiểm nhận. Sales Staff xem nguồn/tiến độ nhu cầu được phép, không xem giá mua. Administrator không tự có quyền xem giá vì là người quản lý tài khoản. Không tự suy rộng quyền giá sang role tùy chỉnh từ quyền xem PO chung; nếu cần mở rộng sẽ trình riêng theo quyết định mới, không thêm lại giới hạn vai trò chung đã bỏ ở A03.
 
 Bộ lọc quyền áp dụng cả chi tiết, danh sách, xuất file, thông báo, lịch sử, lỗi API và chứng từ đính kèm. Bản chứng từ có giá phải có quyền riêng; nếu Warehouse Staff cần nhận hàng thì cung cấp phần thông tin không có giá. Không chỉ ẩn cột ở giao diện trong khi API vẫn trả giá.
 
@@ -154,15 +153,15 @@ Bộ lọc quyền áp dụng cả chi tiết, danh sách, xuất file, thông b
 
 1. Accountant tạo DRAFT từ bản RR APPROVED còn hiệu lực, chọn một NCC ACTIVE và kho đúng RR. Một dòng RR có thể được chia thành các dòng PO theo quy cách khi cần, nhưng tổng lượng gốc của mọi dòng tham chiếu nó không vượt lượng được duyệt. Quy cách khi nhận có thể khác quy cách đặt, phải đối chiếu bằng đơn vị gốc.
 2. Accountant phát hành nháp sang OPEN và ghi thời điểm phát hành. Việc lập hoặc phát hành PO không tạo tồn và không tự lập phiếu nhập.
-3. Mỗi lần hàng đến ghi phiếu nhận theo đúng dòng PO. Tiến độ phải phân biệt lượng mang đến, lượng chấp nhận sở hữu, lượng chờ/giữ hộ và từ chối. Lượng đã nhận lấy từ chứng từ đã ghi hợp lệ, không nhập tay ở PO. Quan hệ phiếu nhận với mốc lịch NCC phải xác định được trước khi dùng lịch để tính C06 đúng hạn; chi tiết nhận hàng H03–H05 được trình riêng.
+3. Mỗi lần hàng đến ghi phiếu nhận theo đúng dòng PO. Tiến độ phải phân biệt lượng mang đến, lượng chấp nhận sở hữu, lượng chờ/giữ hộ và từ chối. Lượng đã nhận lấy từ chứng từ đã ghi hợp lệ, không nhập tay ở PO. C06 dùng ngày dự kiến chung của PO để xét đúng hạn cho phần chưa nhận. Chi tiết nhận hàng H03–H05 được trình riêng.
 4. `còn phải nhận = lượng đặt − lượng đã chấp nhận theo phiếu nhập hợp lệ − phần chưa nhận được duyệt hủy`. Các lượng quy về đơn vị gốc, không âm. Hàng thừa/sai không tự cộng vào lượng đã hoàn thành PO. Hàng đã nhận rồi trả NCC giữ lịch sử nhập gốc; việc NCC giao bù phải có nguồn liên kết và trần nhận riêng được duyệt ở luồng trả, không tự mở lại trần vô hạn.
-5. Sửa nội dung khi còn DRAFT, trong phạm vi RR đã duyệt. Sau phát hành, nếu ngừng chờ một phần hàng, Accountant đề nghị, người có thẩm quyền duyệt độc lập, rồi Accountant thực hiện đóng lượng chưa nhận đủ điều kiện. Lượng đặt, giá mua và chứng từ nhập đã ghi được giữ để đối chiếu.
+5. Sửa nội dung khi còn DRAFT, trong phạm vi RR đã duyệt. Khi PO `OPEN` hoặc `PARTIAL`, Accountant có thể đổi ngày dự kiến chung và phải ghi lý do. Sau phát hành, nếu ngừng chờ một phần hàng, Accountant đề nghị, người có thẩm quyền duyệt độc lập, rồi Accountant thực hiện đóng lượng chưa nhận đủ điều kiện. Lượng đặt, giá mua và chứng từ nhập đã ghi được giữ để đối chiếu.
 6. Nhận đủ các dòng hợp lệ và xử lý xong các chênh lệch thuộc PO thì COMPLETED. Nếu không nhận phần còn lại, Store Owner cho phép đóng thiếu có lý do rồi CLOSED_SHORT; PO đã nhận một phần không đổi thành CANCELLED để xóa lịch sử. Hủy khi chưa có phần thực hiện cũng phải có căn cứ và giải phóng/đánh giá lại các nguồn C06 liên quan. Thông báo/số liệu đặt lại chỉ là đề xuất, không tự mua thay.
 
-**Bảo toàn dữ liệu.** Dòng hàng có ID ổn định. Nội dung đã phát hành, lịch giao đã lưu và quyết định đóng phần chưa nhận được giữ để đối chiếu. API hiện hành ghi lượng hủy và quyết định đóng riêng với lượng đặt.
+**Bảo toàn dữ liệu.** Dòng hàng có ID ổn định. Nội dung đã phát hành, lần đổi ngày dự kiến, chứng từ nhận hàng và quyết định đóng phần chưa nhận được giữ để đối chiếu. API hiện hành ghi lượng hủy và quyết định đóng riêng với lượng đặt.
 
 ## Ví dụ liên kết
 
-RR-001 được duyệt 20 thùng G60, hệ số 4 viên/thùng, cho kho A. Accountant lập PO-001 từ RR-001 cho NCC-01: đặt 20 thùng, giá mua 120.000 đồng/thùng, tổng 2.400.000 đồng. Nhận đợt đầu 8 thùng hợp lệ, tương đương 32 viên; còn phải nhận 12 thùng hoặc 48 viên. Đợt thứ hai có phiếu nhập, ngày nhận và kết quả kiểm riêng. Warehouse Staff thấy các lượng và lịch, không thấy 120.000 hoặc 2.400.000 đồng. Số liệu chỉ minh họa, không phải giá thị trường.
+RR-001 được duyệt 20 thùng G60, hệ số 4 viên/thùng, cho kho A. Accountant lập PO-001 từ RR-001 cho NCC-01: đặt 20 thùng, giá mua 120.000 đồng/thùng, tổng 2.400.000 đồng. Nhận đợt đầu 8 thùng hợp lệ, tương đương 32 viên; còn phải nhận 12 thùng hoặc 48 viên. Đợt thứ hai có phiếu nhập, ngày nhận và kết quả kiểm riêng. Warehouse Staff thấy số lượng, ngày dự kiến và các phiếu nhận. Giá mua chỉ hiển thị cho Accountant và Store Owner. Số liệu chỉ minh họa, không phải giá thị trường.
 
-H02 v0.1 đã duyệt đầu phiếu, dòng nhúng, quan hệ mỗi PO đúng một RR/NCC/kho, nhận nhiều đợt, giá mua và lịch giao. Quyết định ngày 11/11/2026 cập nhật quy tắc lập, sửa và đóng PO như trên. H01 v0.1 đã duyệt đầu phiếu, dòng nhúng, nguồn nhu cầu, bản duyệt và quyền sau giải thích. Các bảng nhập/kiểm nhận, lịch sử và trả hàng giữ kết quả duyệt theo phiếu riêng.
+H02 v0.1 đã duyệt đầu phiếu, dòng nhúng, quan hệ mỗi PO đúng một RR/NCC/kho, nhận nhiều đợt, giá mua và lịch giao. Quyết định ngày 11/11/2026 bỏ lịch giao từng dòng và cập nhật quy tắc lập, sửa, đổi ngày dự kiến và đóng PO như trên. H01 v0.1 đã duyệt đầu phiếu, dòng nhúng, nguồn nhu cầu, bản duyệt và quyền sau giải thích. Các bảng nhập/kiểm nhận, lịch sử và trả hàng giữ kết quả duyệt theo phiếu riêng.

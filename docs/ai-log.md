@@ -35,6 +35,17 @@ Validation performed / not performed:
 
 ## Log entries
 
+### 2026-11-11 — Remove PO delivery schedules and track receiving documents (UC-08, UC-10, UC-12, UC-13, UC-117)
+
+- **Work item** — Replace line-level delivery schedules with one expected date for the unreceived PO quantity.
+- **Tool and model** — Codex (GPT-6 family).
+- **Prompt summary** — Implement the backend plan to remove `deliverySchedule`, let Accountant change `expectedOn` on an open or partially received PO, and show inspection and receipt history.
+- **Result used** — Removed the embedded schedule schema and seed field. RR evaluates the unreceived quantity using `header.expectedOn` after deducting posted receipts and cancelled quantity. `POST /api/purchase-orders/:id/expected-on` checks permission, warehouse, status and version, then records the reason and before/after dates in `AuditLog`. `receiving-summary.documents` lists inspections and purchase receipts by date and preserves quantity reporting and price access rules.
+- **Intervention** — Adopted.
+- **Human changes** — The user supplied the business decision and BE-only plan and requested the AI log and RTM updates.
+- **Files affected** — `src/models/purchase-order.model.js`, the removed `purchase-order-delivery-schedule.schema.js`, `src/modules/purchase-orders/purchase-order.commands*.js`, `src/modules/po-receiving/purchase-read.service.js`, `src/modules/replenishments/replenishment.evaluation.js`, `src/seeds/rebuild/data.js`, the [PO API contract](../git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập), model documentation, tests and [RTM](rtm.md).
+- **Validation** — The [native API](../test/native-api.integration.test.js), [RR evaluation](../test/replenishment-evaluation.integration.test.js) and [RR guard](../test/replenishment-guards.integration.test.js) suites passed 34/34 on local MongoDB `rs0`. With native API and goods receipt integration enabled, `npm test` passed 149 tests with 44 skipped and 0 failures. `npm run docs:check` and `git diff --check` passed. The seed fixture was checked in memory. FE wiring and browser verification are pending. No migration or demo database reseed was needed.
+
 ### 2026-11-11 — Draft-only PO editing and removal of supplier confirmation
 
 - **Work item** — Implement the user's backend PO plan. The Accountant agrees terms with the supplier before drafting the PO.
