@@ -3,7 +3,7 @@ import { PurchaseOrder, ReplenishmentRequest, Supplier, Warehouse, Product, Appr
 import { exact } from '../../models/model-utils.js';
 import { requireWarehouseAccess } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
-import { validationError, forbiddenError } from '../../shared/utils/ApiError.js';
+import { validationError } from '../../shared/utils/ApiError.js';
 import { command, checkVersion, saveVersion, same, hash, newId } from '../../shared/utils/document-command.js';
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
 import { findPurchase, replayPurchase, newDocument, evidenceFor } from '../po-receiving/purchase-core.js';
@@ -85,43 +85,6 @@ export function confirmPurchaseOrder(user,id,input){
     await assessPurchaseSource(rr,po.items,actor,input,session,po._id);
     po.workflowStatus='OPEN';po.header.issuedAt=new Date();
     return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion};
-  });
-}
-export function amendPurchaseOrder(user,id,input){
-  return command(user,'AMEND_PURCHASE_ORDER','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
-    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
-    if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở');
-    await evidenceFor(actor,po,input.evidenceIds,session,true);
-    const quantities=await purchaseOrderQuantities(po,session);
-    const rr=await ReplenishmentRequest.findById(po.replenishmentRequestId).session(session);
-    if(rr?.workflowStatus!=='APPROVED')throw validationError('RR không còn hiệu lực');
-    const changes=[];
-    for(const row of input.lines){
-      const item=po.items.id(row.poLineId),source=rr.items.id(row.rrLineId);
-      if(!item||!source||!same(item.requestItemId,source._id)||!same(rr.header.latestDecisionId,row.approvalId))throw validationError('Sai nguồn sửa PO');
-      const amount=exact(row.enteredQty).mul(String(item.baseUnitsPerUnit));
-      const committed=quantities.find(value=>value.lineId===String(item._id));
-      if(amount.gt(String(source.approvedQtyBase))||amount.lt(exact(committed.receivedQtyBase).plus(committed.openDraftCommitmentQtyBase).plus(committed.cancelledQtyBase)))throw validationError('Lượng sửa vượt duyệt hoặc thấp hơn lượng đã cam kết');
-      changes.push({field:'items.'+item._id+'.qtyBase',before:String(item.qtyBase),after:amount.toFixed()});
-      item.enteredQty=row.enteredQty;item.qtyBase=amount.toFixed();item.lineAmount=exact(item.unitPurchasePrice).mul(row.enteredQty).toFixed();
-    }
-    await assessPurchaseSource(rr,po.items,actor,input,session,po._id);
-    po.totalAmount=po.items.reduce((sum,row)=>sum.plus(String(row.lineAmount)),exact('0')).toFixed();if(input.expectedOn)po.header.expectedOn=input.expectedOn;
-    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,auditChanges:changes,reason:input.reason};
-  });
-}
-export function supplierConfirmation(user,id,input){
-  return command(user,'SUPPLIER_CONFIRMATION','purchase_order:update',id,input,replayPurchase,async(session,actor)=>{
-    const po=await findPurchase(id,actor,session,{kind:'PO'});checkVersion(po,input.expectedVersion);
-    if(!['OPEN','PARTIAL'].includes(po.workflowStatus))throw validationError('PO không còn mở');await evidenceFor(actor,po,input.evidenceIds,session,true);
-    const seen=new Set();
-    for(const row of input.lines){
-      const item=po.items.id(row.poLineId);if(!item||seen.has(row.poLineId)||exact(row.qtyBase).gt(exact(item.qtyBase).minus(String(item.cancelledRemainderQtyBase??'0'))))throw validationError('Lượng NCC xác nhận không hợp lệ');
-      seen.add(row.poLineId);item.supplierConfirmedQtyBase=row.qtyBase;item.supplierConfirmedBy=actor._id;item.supplierConfirmedAt=new Date();
-      item.deliverySchedule=[{quantityBase:row.qtyBase,expectedAt:new Date(row.expectedOn),supplierReference:input.reason.slice(0,160)}];
-    }
-    po.header.supplierConfirmation=input.reason.slice(0,1000);
-    return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion,reason:input.reason};
   });
 }
 async function validateClose(po,lines,session){

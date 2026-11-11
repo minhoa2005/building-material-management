@@ -47,9 +47,6 @@ export function createPurchaseOrderSchema() {
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   item.add({
     requestItemId: id(false),
-    supplierConfirmedQtyBase: quantity(),
-    supplierConfirmedBy: ref("User", false),
-    supplierConfirmedAt: date(false),
     cancelledRemainderQtyBase: quantity(),
     cancellationDecisionId: ref("ApprovalHistory", false),
     deliverySchedule: [createPurchaseOrderDeliveryScheduleSchema()],
@@ -70,6 +67,20 @@ export function createPurchaseOrderSchema() {
       },
     },
   );
+
+  // MongoDB documents saved under the old schema can still carry these paths.
+  // Omit them from DTOs and versioned writes while preserving the delivery schedule.
+  schema.set("toObject", {
+    transform(_document, purchaseOrder) {
+      if (purchaseOrder.header) delete purchaseOrder.header.supplierConfirmation;
+      for (const item of purchaseOrder.items ?? []) {
+        delete item.supplierConfirmedQtyBase;
+        delete item.supplierConfirmedBy;
+        delete item.supplierConfirmedAt;
+      }
+      return purchaseOrder;
+    },
+  });
 
   return schema;
 }

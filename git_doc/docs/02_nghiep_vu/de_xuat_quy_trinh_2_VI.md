@@ -44,7 +44,7 @@ Bản tiếng Anh: [de_xuat_quy_trinh_2_EN.md](de_xuat_quy_trinh_2_EN.md). Thi�
 | In-transit | Hàng đã xuất khỏi kho nguồn, chưa hoàn tất nhận/giải quyết tại kho đích. Đây là trạng thái vận chuyển, không phải chất lượng. |
 | Custody | Hàng giữ hộ khách/NCC, chưa thuộc tồn của cửa hàng. Theo dõi vật lý nhưng loại khỏi tồn sở hữu và khả dụng. |
 | Replenishment Request — RR | Đề nghị bổ sung hàng do Sales/Warehouse lập, Owner duyệt. Chưa làm tăng tồn. |
-| Purchase Order — PO | Đơn đặt mua do Accountant lập từ nhu cầu đã duyệt; theo dõi số đặt, NCC xác nhận và nhiều đợt nhận. |
+| Purchase Order — PO | Đơn đặt mua do Accountant lập từ nhu cầu đã duyệt sau khi chốt với NCC. Theo dõi lượng đặt và nhiều đợt nhận. |
 | Goods Receipt — GR | Phiếu nhập kho; tên tiếng Anh chuẩn dùng trong tài liệu là “Goods Receipt”, không dùng “Good Receipt”. Post GR ghi tăng lượng được cửa hàng nhận quản lý, đúng chất lượng và vị trí. |
 | Sales Order — SO | Đơn bán do Sales nhập lại từ MISA/giấy tờ, lưu nguồn và từng dòng hàng. Là gốc lập WIR và theo dõi Đã giao/Hoàn thành; không tính giá hoặc thực hiện thu tiền. |
 | Warehouse Issue Request — WIR | Yêu cầu xuất từ một SO đã lưu, liên kết cả thông tin chung và từng dòng hàng. Có thể chia thành nhiều đợt xuất theo kho. |
@@ -178,7 +178,7 @@ Sales Staff hoặc Warehouse Staff được chủ động mở Tạo yêu cầu 
 1. Sales ghi nhu cầu thiếu gắn SO line đã lưu, WIR chỉ là ngữ cảnh khi đã có; Warehouse Staff ghi nhu cầu dự trữ gắn cảnh báo/phiên kiểm kê đã chốt. Hệ thống hiển thị tồn khả dụng, hàng đã giữ, PO đang chờ, điều chuyển đang về và ngày cần hàng. Sales/Warehouse cũng có thể mở từ menu và nhập nhu cầu khác bằng MANUAL_OTHER với lý do chung của phiếu.
 2. Hệ thống kiểm tra nhu cầu đã được đáp ứng bởi nguồn khác chưa. Hàng dự kiến về chỉ được trừ vào nhu cầu nếu đúng hàng/lô tương thích, đúng hạn và chưa phân bổ cho nhu cầu khác.
 3. Người đề xuất gửi Replenishment Request. Store Owner duyệt/từ chối/trả về sửa với lý do. Chưa duyệt chưa tạo PO từ đề nghị này.
-4. Accountant lập PO, ghi nhận NCC xác nhận số lượng và lịch giao. Thay đổi vượt nội dung đã duyệt phải trình duyệt lại phần thay đổi; không sửa đè chứng từ đã thực hiện.
+4. Accountant chốt với NCC rồi lập PO từ RR đã duyệt. Accountant sửa nội dung khi PO còn nháp và phát hành để kho tiếp nhận. Sau phát hành, dùng quy trình đề nghị, duyệt và thực hiện đóng phần chưa nhận.
 5. Mỗi lần xe đến, Warehouse Staff lập hồ sơ tiếp nhận theo PO, đếm thực giao, kiểm mã hàng, thùng/viên, lot, tone, calibre, nứt vỡ và bao bì. Một PO có nhiều lần nhận. Theo câu 8, chủ/kế toán có thể cùng kiểm tra; ghi người tham gia trong biên bản/bằng chứng, không chuyển quyền post GR khỏi Warehouse Staff. Bao bì rách nhưng gạch nguyên không tự bị phân loại lỗi; thùng mở phải ghi lượng viên thực tế.
 6. Tách từng lượng: đạt và chấp nhận; đang kiểm/chưa thống nhất; lỗi; không nhận và giao trả ngay. Lập biên bản sai lệch cho thiếu/thừa/sai mã/sai lô.
 7. Lập phiếu nhập cho lượng cửa hàng chấp nhận quản lý như tồn của mình, với trạng thái và vị trí thực tế. Hàng giữ hộ/chờ NCC xử lý được theo dõi riêng, không làm tăng tồn bán được. Hàng lỗi thuộc tồn cửa hàng chuyển BF-02; hàng từ chối ngay không được cộng rồi trừ giả tạo.
@@ -199,7 +199,7 @@ Các mã A là luồng thay thế, E là ngoại lệ; số bước tham chiếu
 |---|---|---|---|---|
 | BF-01-A1 | Nhu cầu đã có nguồn đáp ứng | Sales/Warehouse đối chiếu allocation, PO và TD đúng hạn; chỉ gửi phần thiếu, không tạo RR trùng. | Không đổi tồn; trở về bước 1–2. | UC-03, UC-04, UC-05, UC-117, UC-118, UC-119 |
 | BF-01-A2 | Owner từ chối hoặc trả sửa | Lưu lý do; từ chối thì kết thúc đề nghị, trả sửa thì tăng phiên bản và gửi lại; Accountant không lập PO chưa duyệt. | Không đổi tồn; bước 3 hoặc kết thúc. | UC-06 |
-| BF-01-A3 | NCC chỉ giao một phần/hủy phần còn lại | Accountant ghi lịch/lượng xác nhận; phần thay đổi vượt duyệt trình lại, chốt thiếu cần Owner cho phép; bảo toàn GR đã post. | Nhận từng đợt ở bước 5; không nhận giả phần hủy. | UC-09, UC-10, UC-11, UC-12, UC-13, UC-37 |
+| BF-01-A3 | NCC chỉ giao một phần/hủy phần còn lại | Accountant đề nghị đóng phần chưa nhận, Owner duyệt và Accountant thực hiện. Giữ các GR đã ghi. | Nhận các đợt giao thực tế ở bước 5. | UC-09, UC-10, UC-11, UC-12, UC-13, UC-37 |
 | BF-01-E1 | Giao thừa, sai hàng/lô/màu | Warehouse tách lượng, ghi chênh lệch và custody nếu đang giữ; không tự thay thế hoặc vượt nguồn PO. Accountant phối hợp, Owner duyệt phần thay đổi cần thiết trước nhận. | Chỉ GR phần hợp lệ; phần khác chờ hoặc giao trả. | UC-37 |
 | BF-01-E2 | Không có lượng nào được nhận | Vẫn lưu arrival/inspection, bằng chứng và kết quả giữ hộ/giao trả; PO còn thiếu và hồ sơ sai lệch tiếp tục mở. | Không tạo GR lượng 0; không tăng tồn sở hữu. | UC-16, UC-37 |
 | BF-01-A4 | Bao bì rách/thùng mở; nhận hàng thay thế | Đếm viên thực tế, kiểm chất lượng riêng; hàng NCC thay thế là arrival/GR mới liên kết hồ sơ cũ, không sửa GR gốc. | Sau GR, put-away bước 8; không cộng lại ở put-away. | UC-37, UC-46 |
@@ -467,7 +467,7 @@ Catalogue hiện hành có 130 UC active. Mã hiện hành liên tục UC-01–U
 | UC-01–02: View replenishment | Sửa quyền xem | Sales/Warehouse xem đề nghị của mình và nhu cầu được giao; Owner/Accountant xem theo trách nhiệm. |
 | UC-03, UC-04, UC-05: Create replenishment request | Sửa primary actor và trigger | Sales/Warehouse tạo từ thiếu xuất, mức tối thiểu, kết quả kiểm kê. Accountant bỏ quyền tự tạo nhu cầu, có thể ghi chú đối chiếu. Chưa duyệt không tạo PO. Bổ sung nhánh mở từ menu, toàn bộ dòng MANUAL_OTHER với lý do chung của phiếu; không bắt buộc thiếu hàng/cảnh báo/kiểm kê. |
 | UC-06: Approve/reject replenishment | Giữ, siết điều kiện | Owner duyệt đúng phiên bản, userId khác người đề xuất. Có trả về sửa và hủy phần chưa thực hiện. |
-| UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13: PO | Giữ, sửa nguồn và ngoại lệ | Accountant lập từ đề nghị đã duyệt, ghi NCC xác nhận; PO thiếu một phần mở tiếp; thay đổi vượt duyệt phải duyệt lại. Không xử lý thanh toán. |
+| UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13: PO | Lập, phát hành, theo dõi và đóng | Accountant chốt với NCC trước khi lập PO từ RR đã duyệt. Chỉ sửa PO nháp. PO đã phát hành theo dõi các đợt nhận và dùng quy trình đóng nếu ngừng nhận phần còn lại. |
 | UC-14–16: Receipt list/detail/create | Giữ, mở rộng dữ liệu đợt nhận | Mỗi lần giao có receipt riêng, tham chiếu PO/dòng, lượng thực nhận và nguồn vận chuyển. |
 | UC-17, UC-18, UC-19, UC-20, UC-21, UC-22, UC-23: Product/packaging | Giữ, bổ sung mức tồn tối thiểu có kiểm soát | Lưu hệ số thùng/viên/m² và phiên bản. Mức tối thiểu do Owner cấu hình hữu hạn, không phải trình biên tập policy tổng quát. |
 | UC-24, UC-25, UC-26, UC-27: Lot | Giữ | Không sửa lot/tone/calibre đã có giao dịch để hợp thức hóa thiếu hàng. Đính chính cần lịch sử và chứng cứ; quyền quản lý master không tự cấp quyền đổi chất lượng tồn. |
@@ -532,7 +532,7 @@ V = xem theo phạm vi; T = tạo/ghi nhận nghiệp vụ; D = duyệt; X = th�
 | Xem tồn khả dụng theo phạm vi | V | V | V | V | — |
 | Tạo đề nghị bổ sung | V | T | T | V | — |
 | Duyệt bổ sung | D | — | — | — | — |
-| PO và xác nhận NCC | V | — | V (phần nhận) | T | — |
+| Lập và phát hành PO | V | — | V (phần nhận) | T | — |
 | Kiểm nhận, phiếu nhập, put-away | V | V (tiến độ liên quan) | X | V | — |
 | Chuyển vị trí cùng kho | V | — | X | — | — |
 | Xem/chọn gợi ý nguồn hàng | V | T | T | — | — |
@@ -722,7 +722,7 @@ flowchart TD
  DRAFT -->|Gửi duyệt sau| C
  C -->|Trả sửa| EDIT
  C -->|Từ chối| Z[Đóng đề nghị, không đổi tồn]
- C -->|Duyệt| D[Accountant tạo PO và ghi NCC xác nhận]
+ C -->|Duyệt| D[Accountant chốt với NCC rồi lập và phát hành PO]
  D --> E[Warehouse ghi tiếp nhận và kết quả kiểm từng đợt]
  E --> F{Phân loại từng lượng}
  F -->|Chấp nhận sở hữu| G[Post GR theo quality và nguồn]

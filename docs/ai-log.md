@@ -35,6 +35,37 @@ Validation performed / not performed:
 
 ## Log entries
 
+### 2026-11-11 — Draft-only PO editing and removal of supplier confirmation
+
+- **Work item** — Implement the user's backend PO plan. The Accountant agrees terms with the supplier before drafting the PO.
+- **Tool and model** — Codex.
+- **Result** — Removed both obsolete commands, updated PO schemas and seed, and added regression tests and documentation. The PO schema filters retired paths when serializing older records.
+- **Intervention** — Pending human review. The user supplied the business decision and implementation plan.
+- **Affected files** — `src/modules/purchase-orders/`, PO models, `src/seeds/rebuild/data.js`, native PO and replenishment evaluation tests, and current purchase documentation in `git_doc/`.
+- **Validation** — `npm test` with native and goods receipt integration enabled passed 141 tests with 32 skipped. Seeded and verified the local demo database. FE is scheduled for a separate pass.
+
+### 2026-11-11 — Purchase Order Warehouse Population, Draft Edit Line Sourcing, and Replenishment Approval Line Mapping (UC-06, UC-07, UC-08)
+
+- **Work item:** Enrich purchase order queries in `src/modules/purchase-orders/purchase-order.service.js`: populate `Warehouse` (`_id`, `code`, `name`) by `header.warehouseId` for `getPurchaseOrder` and batch-populate warehouses for `listPurchaseOrders` so receiving warehouse information is not blank; construct `draftEdit` for draft purchase orders (`po.workflowStatus === 'DRAFT'`) by resolving `ReplenishmentRequest` and `ApprovalHistory` to supply `rrLineId`, `approvalId`, and entered quantities for draft PO editing. In `src/modules/replenishments/replenishment.service.js`, add `lines` mapping (`lineId`, `approvedQtyBase`, `outcome`, `reason`) to `mappedApprovals` in `getReplenishment` to match client expectations and provide seamless approval line traceability.
+- **Tool/model:** Antigravity AI (Gemini 3.8 Flash High).
+- **Prompt summary:** Fix "Cannot read properties of undefined (reading 'slice')" after approving replenishment request; fix missing edit / open order buttons and blank receiving warehouse on purchase order detail page; update ai-log and rtm.
+- **Result used:** Updated `be/src/modules/purchase-orders/purchase-order.service.js` with `Warehouse` and `ReplenishmentRequest` population and `draftEdit` synthesis; updated `be/src/modules/replenishments/replenishment.service.js` with structured approval `lines`.
+- **Intervention:** Edited.
+- **Human changes:** Directed population of receiving warehouse and `draftEdit` structure for PO endpoints and structured approval lines for replenishment endpoints.
+- **Files affected:** `be/src/modules/purchase-orders/purchase-order.service.js`, `be/src/modules/replenishments/replenishment.service.js`, `be/docs/rtm.md`, `be/docs/ai-log.md`.
+- **Validation:** Ran backend test suites (`node --test be/test/consolidation.test.js`, `node --test be/test/native-api.integration.test.js`), 0 failures.
+
+### 2026-11-11 — Population of Warehouse, User, Product SKU, and Linked Source Documents in Replenishment APIs (UC-01, UC-02)
+
+- **Work item:** Enrich replenishment query APIs (`getReplenishment` and `listReplenishments` in `src/modules/replenishments/replenishment.service.js`) with complete relational context: populate `Warehouse` (`_id`, `code`, `name`) by `header.warehouseId`; populate `User` (`_id`, `fullName`) for `createdBy`, `header.submittedBy`, `approvals.requestedBy`, and `approvals.decidedBy`; populate `Product` (`_id`, `sku`, `name`, `isActive`, `imageUrls`) for all lines so `productSkuSnapshot` and product thumbnail are returned; and populate source documents (`SalesOrder`, `Stocktake`) for `details.source.documentId` so `documentNo`, `workflowStatus`, and `version` are attached to source references instead of returning raw ObjectIds.
+- **Tool/model:** Antigravity AI (Gemini 3.8 Flash High).
+- **Prompt summary:** Fix warehouse showing mongodb ID; fix creator showing system; fix product SKU showing N/A and source document snapshot displaying raw ID in replenishment detail; update ai-log and rtm.
+- **Result used:** Updated `src/modules/replenishments/replenishment.service.js` with batch `$in` population for warehouses, users, products, sales orders, and stocktakes.
+- **Intervention:** Edited.
+- **Human changes:** Directed population of warehouse and user full names, product SKU and image URLs, and source document numbers across detail and list endpoints.
+- **Files affected:** `be/src/modules/replenishments/replenishment.service.js`, `be/docs/rtm.md`, `be/docs/ai-log.md`.
+- **Validation:** Ran full backend test suite (`node --test test/*.test.js`), 103/103 tests passed.
+
 ### 2026-11-10 — Product imageUrls projection for replenishment request options (UC-03)
 
 - **Work item:** Add `imageUrls` to the Product query projection in `getReplenishmentOptions` (`src/modules/replenishments/replenishment.commands.js`) to support product thumbnail display in the frontend replenishment creation UI.

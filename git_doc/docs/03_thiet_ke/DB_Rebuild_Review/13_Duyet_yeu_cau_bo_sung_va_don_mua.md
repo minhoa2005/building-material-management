@@ -93,6 +93,8 @@ Một bản ghi là một yêu cầu bổ sung cho **một kho nhận**, có m�
 
 ## H02 · purchase_orders · Đơn mua hàng
 
+**Nguồn quyết định cập nhật H02 (user, 2026-11-11).** Kế toán chốt với NCC trước khi lập PO. Bỏ bước và dữ liệu xác nhận NCC trên PO. Chỉ sửa PO nháp. Sau phát hành, dùng quy trình đề nghị, duyệt và thực hiện đóng phần chưa nhận.
+
 ### Quan hệ và cách tổ chức đã duyệt
 
 Một PO được Accountant lập từ **một RR đã duyệt**, cho **một nhà cung cấp và một kho nhận**. Chiều ngược của quan hệ đã được duyệt cùng H02: không gộp nhiều RR vào một PO. Một RR vẫn tối đa một PO như đã chốt; PO bị hủy vẫn giữ liên kết lịch sử, không xóa để tạo PO khác cho cùng RR. Nếu cần đặt đơn khác sau hủy hoặc tách nhà cung cấp, lập RR mới có liên kết lý do và đối chiếu lượng còn thiếu.
@@ -118,7 +120,7 @@ Một PO được Accountant lập từ **một RR đã duyệt**, cho **một n
 | `status` | DRAFT, OPEN, PARTIALLY_RECEIVED, COMPLETED, CLOSED_SHORT, CANCELLED | Nháp; đang đặt; đã nhận một phần; nhận đủ; đóng phần thiếu được phép; hủy khi chưa có phần thực hiện |
 | `currency` | VND trong phương án v0.1 | Đơn vị tiền của PO; chưa đề xuất đa tiền tệ |
 | `totalAmount` | Decimal128 ≥ 0, phần mềm tính | Tổng giá trị theo lượng đặt của phiên bản PO hiện tại; không phải giá trị thực nhận hoặc số tiền đã thanh toán |
-| `supplierReference`, `note` | Chuỗi, tùy chọn | Mã xác nhận/ghi chú của nhà cung cấp và ghi chú nội bộ |
+| `note` | Chuỗi, tùy chọn | Ghi chú nội bộ |
 | `createdBy`, `updatedBy` | ObjectId → A01 | Người lập và người cập nhật |
 | `issuedAt`, `closedAt` | Ngày giờ hoặc null | Mốc ghi nhận đã đặt và kết thúc; không mặc nhiên là đã gửi email hoặc đã trả tiền |
 | `closureDecisionRef`, `closureReason` | Quyết định D05 và lý do, khi đóng thiếu/hủy cần quyết định | Căn cứ xử lý phần không tiếp tục nhận |
@@ -137,9 +139,7 @@ Một PO được Accountant lập từ **một RR đã duyệt**, cho **một n
 | `unitPurchasePrice` | Decimal128 ≥ 0 | Giá mua đã chốt cho **một đơn vị đặt** của dòng, chẳng hạn một thùng; không tự hiểu là giá một viên |
 | `lineAmount` | Decimal128 ≥ 0, phần mềm tính | `orderedQty × unitPurchasePrice`. Tính thập phân chính xác, không nhân theo đơn vị gốc nếu giá nhập theo thùng |
 | `requiredBatchId`, `requiredTone`, `requiredCalibre` | Theo yêu cầu được duyệt, khi có | Điều kiện hàng nhà cung cấp cần đáp ứng; lô thực nhập xác định tại kiểm nhận |
-| `supplierConfirmedQtyBase` | Decimal128 ≥ 0, mặc định 0 | Tổng lượng nhà cung cấp đã xác nhận đáp ứng, không vượt lượng đặt hợp lệ |
-| `deliverySchedule[]` | Các mốc xác nhận có ID, lượng đơn vị gốc và ngày dự kiến | Cho phép NCC hẹn nhiều đợt cho một dòng; tổng lượng lịch không vượt lượng xác nhận. Ngày chưa rõ không được coi là nguồn bù đúng hạn |
-| `supplierConfirmedBy`, `supplierConfirmedAt`, `confirmationEvidenceRefs` | Người ghi nhận, thời điểm và chứng cứ | Accountant ghi lại xác nhận thực tế của NCC; không cần tài khoản nhà cung cấp |
+| `deliverySchedule[]` | Lượng đơn vị gốc, ngày dự kiến và mã tham chiếu lịch giao (`supplierReference`, tùy chọn) | Mỗi dòng có thể có nhiều mốc đã lưu. Đánh giá bổ sung chỉ tính mốc đủ điều kiện đúng hạn. Hiện lịch có trong dữ liệu cũ và seed, API nháp chưa nhận lịch giao theo dòng. |
 | `cancelledRemainderQtyBase`, `cancellationDecisionRef` | Decimal128 ≥ 0 và quyết định liên quan | Phần chưa nhận được phép ngừng chờ; không nhập số lượng đã hủy thành hàng nhận |
 
 ### Giá mua và quyền xem đã chốt
@@ -153,16 +153,16 @@ Bộ lọc quyền áp dụng cả chi tiết, danh sách, xuất file, thông b
 ### Đặt, nhận, sửa và đóng PO
 
 1. Accountant tạo DRAFT từ bản RR APPROVED còn hiệu lực, chọn một NCC ACTIVE và kho đúng RR. Một dòng RR có thể được chia thành các dòng PO theo quy cách khi cần, nhưng tổng lượng gốc của mọi dòng tham chiếu nó không vượt lượng được duyệt. Quy cách khi nhận có thể khác quy cách đặt, phải đối chiếu bằng đơn vị gốc.
-2. Ghi nhận đã đặt chuyển OPEN. Accountant ghi xác nhận lượng/lịch của NCC. Việc xem, tạo PO, ghi lịch hoặc in/gửi chứng từ không tạo tồn và không tự lập phiếu nhập.
+2. Accountant phát hành nháp sang OPEN và ghi thời điểm phát hành. Việc lập hoặc phát hành PO không tạo tồn và không tự lập phiếu nhập.
 3. Mỗi lần hàng đến ghi phiếu nhận theo đúng dòng PO. Tiến độ phải phân biệt lượng mang đến, lượng chấp nhận sở hữu, lượng chờ/giữ hộ và từ chối. Lượng đã nhận lấy từ chứng từ đã ghi hợp lệ, không nhập tay ở PO. Quan hệ phiếu nhận với mốc lịch NCC phải xác định được trước khi dùng lịch để tính C06 đúng hạn; chi tiết nhận hàng H03–H05 được trình riêng.
 4. `còn phải nhận = lượng đặt − lượng đã chấp nhận theo phiếu nhập hợp lệ − phần chưa nhận được duyệt hủy`. Các lượng quy về đơn vị gốc, không âm. Hàng thừa/sai không tự cộng vào lượng đã hoàn thành PO. Hàng đã nhận rồi trả NCC giữ lịch sử nhập gốc; việc NCC giao bù phải có nguồn liên kết và trần nhận riêng được duyệt ở luồng trả, không tự mở lại trần vô hạn.
-5. Sửa DRAFT theo quyền lập PO. Sau khi đặt, chỉ sửa phần chưa thực hiện và giữ các bản lịch sử; không sửa chứng từ nhập đã ghi. Thay đổi vượt bản RR duyệt phải được duyệt lại trước khi có hiệu lực. Giá mua do Accountant ghi nhận, không tự thêm bước duyệt giá riêng vào flow hiện tại; thay đổi giá trên phần đã thực hiện phải qua đính chính có dấu vết, không ghi đè giá của phiếu cũ. Quy tắc đính chính chứng từ được trình ở nhóm lịch sử/sửa sai.
+5. Sửa nội dung khi còn DRAFT, trong phạm vi RR đã duyệt. Sau phát hành, nếu ngừng chờ một phần hàng, Accountant đề nghị, người có thẩm quyền duyệt độc lập, rồi Accountant thực hiện đóng lượng chưa nhận đủ điều kiện. Lượng đặt, giá mua và chứng từ nhập đã ghi được giữ để đối chiếu.
 6. Nhận đủ các dòng hợp lệ và xử lý xong các chênh lệch thuộc PO thì COMPLETED. Nếu không nhận phần còn lại, Store Owner cho phép đóng thiếu có lý do rồi CLOSED_SHORT; PO đã nhận một phần không đổi thành CANCELLED để xóa lịch sử. Hủy khi chưa có phần thực hiện cũng phải có căn cứ và giải phóng/đánh giá lại các nguồn C06 liên quan. Thông báo/số liệu đặt lại chỉ là đề xuất, không tự mua thay.
 
-**Bảo toàn dữ liệu.** Dòng hàng của mỗi phiếu có ID ổn định và giới hạn số dòng phù hợp ứng dụng; không nhúng lịch sử vô hạn vào `items[]`. Các bản nội dung đã gửi/đặt, quyết định duyệt, lịch xác nhận NCC và thay đổi giá cần được lưu bằng D05/G02 hoặc cấu trúc phiên bản được duyệt ở nhóm dùng chung. Tên/trường tham chiếu D05/G02 trong phiếu này nêu dữ liệu bắt buộc phải truy được, không có nghĩa các bảng đó đã được duyệt. Xóa nháp cũng không được xóa bản đã có liên kết/chứng từ lịch sử.
+**Bảo toàn dữ liệu.** Dòng hàng có ID ổn định. Nội dung đã phát hành, lịch giao đã lưu và quyết định đóng phần chưa nhận được giữ để đối chiếu. API hiện hành ghi lượng hủy và quyết định đóng riêng với lượng đặt.
 
 ## Ví dụ liên kết
 
 RR-001 được duyệt 20 thùng G60, hệ số 4 viên/thùng, cho kho A. Accountant lập PO-001 từ RR-001 cho NCC-01: đặt 20 thùng, giá mua 120.000 đồng/thùng, tổng 2.400.000 đồng. Nhận đợt đầu 8 thùng hợp lệ, tương đương 32 viên; còn phải nhận 12 thùng hoặc 48 viên. Đợt thứ hai có phiếu nhập, ngày nhận và kết quả kiểm riêng. Warehouse Staff thấy các lượng và lịch, không thấy 120.000 hoặc 2.400.000 đồng. Số liệu chỉ minh họa, không phải giá thị trường.
 
-**Kết quả:** H02 v0.1 đã duyệt đầu phiếu, các dòng nhúng, mỗi PO đúng một RR/NCC/kho, nhận nhiều đợt, giá mua và lịch NCC. H01 v0.1 đã duyệt đầu phiếu, dòng nhúng, nguồn nhu cầu, bản duyệt và quyền sau giải thích. Các bảng nhập/kiểm nhận, lịch sử và trả hàng giữ kết quả duyệt theo phiếu riêng. Đây là cập nhật hồ sơ thiết kế, chưa áp vào DB hoặc code.
+H02 v0.1 đã duyệt đầu phiếu, dòng nhúng, quan hệ mỗi PO đúng một RR/NCC/kho, nhận nhiều đợt, giá mua và lịch giao. Quyết định ngày 11/11/2026 cập nhật quy tắc lập, sửa và đóng PO như trên. H01 v0.1 đã duyệt đầu phiếu, dòng nhúng, nguồn nhu cầu, bản duyệt và quyền sau giải thích. Các bảng nhập/kiểm nhận, lịch sử và trả hàng giữ kết quả duyệt theo phiếu riêng.

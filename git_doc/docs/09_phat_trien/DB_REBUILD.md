@@ -14,4 +14,10 @@ Bộ mẫu mới mang seedVersion wmsd-tile-shop-20261106-v9, 59 collection/642 
 
 Seed khi khởi động API chỉ chạy khi SEED_ON_STARTUP được bật. Đổi URI không chuyển đổi dữ liệu legacy. Không có công cụ tự động chuyển toàn bộ DB legacy trong bản này; các transform còn giữ chỉ phục vụ fixture/regression. Cần một đợt triển khai dữ liệu có phê duyệt riêng trước dùng dữ liệu thật.
 
+## Seed PO theo quyết định 11/11/2026
+
+Để có bộ PO mẫu theo schema mới, seed lại vào DB demo trống. Bộ seed hiện hành bỏ trường xác nhận NCC ở đầu phiếu và dòng ngay khi dựng PO từ fixture lịch sử. PO mẫu vẫn có lịch giao. Khi DB đích đã có dữ liệu, lệnh seed chỉ kiểm tra và trả `ALREADY_SEEDED`.
+
+Đã chạy `npm run db:local:seed` rồi `npm run db:local:verify` trên `localhost:27017`, replica set `rs0`, DB `wmsd_demo_tile_shop_v9`. Seed version `wmsd-tile-shop-20261109-v10` tạo 58 collection và 742 bản ghi. Kiểm trực tiếp `PO-202610-001` xác nhận có một mốc lịch giao và các trường xác nhận NCC đã được loại khỏi bản ghi.
+
 [Hợp đồng runtime](../08_api/NATIVE_MODEL_RUNTIME.md) · [Bản đồ model](../../MODEL_MAP.md).

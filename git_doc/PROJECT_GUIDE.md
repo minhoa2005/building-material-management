@@ -42,7 +42,7 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 
 | Luồng | Chuỗi và mốc xác nhận |
 |---|---|
-| BF01 mua/nhập | RR → duyệt → PO → hàng đến → kiểm nhận → nhập sở hữu → xếp hàng. Hàng giữ hộ ghi chủ riêng. Nhận sở hữu hàng đã giữ hộ chuyển đúng chủ, không nhận vật lý lần hai. |
+| BF01 mua/nhập | RR → duyệt → kế toán chốt với NCC → lập và phát hành PO → hàng đến → kiểm nhận → nhập sở hữu → xếp hàng. Chỉ sửa PO nháp. Sau phát hành, dùng quy trình duyệt đóng phần chưa nhận. Hàng giữ hộ ghi chủ riêng. Nhận sở hữu hàng đã giữ hộ chuyển đúng chủ, không nhận vật lý lần hai. |
 | BF02 hàng lỗi | Phát hiện/chặn đúng lượng → đề xuất → duyệt cách xử lý → thực hiện. Chặn giữ nguyên tổng. Hủy thực tế mới giảm. Trả NCC đi BF08. |
 | BF03 chuyển ô | Create TO → Confirm TO. Người tạo sửa/hủy trước confirm và tự confirm. Mỗi TO xác nhận trọn lệnh một lần. Chuyển hai ô cùng kho giữ tổng, lô, chủ và liên kết giữ hàng. |
 | BF04 liên kho | TR → Owner duyệt/từ chối có lý do → phiếu xuất theo TR → yêu cầu lấy hàng sinh TO → confirm PICK đồng thời xuất đi → nhận tại kho đích → yêu cầu xếp hàng sinh TO → confirm PUTAWAY → đóng TR đủ điều kiện. |

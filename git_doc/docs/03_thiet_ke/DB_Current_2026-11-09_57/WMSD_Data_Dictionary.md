@@ -1,4 +1,4 @@
-# Từ điển GoodsReceipt hiện hành — 09/11/2026
+# Từ điển dữ liệu hiện hành — mốc 09/11/2026
 
 Registry hiện hành có 58 collection, gồm `conversions`. Các định nghĩa chưa được thay thế tại đây giữ theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`.
 
@@ -25,6 +25,14 @@ Product giữ các trường theo [từ điển trước lần gộp](../DB_Curr
 ## Lý do từng dòng của `ReplenishmentRequest`
 
 `items[].details.reasonNote`, `submissions[].lines[].reasonNote` và `submissions[].lines[].evaluation.reasonNote` là chuỗi tùy chọn, cắt khoảng trắng, tối đa 2.000 ký tự và không có giá trị mặc định. Snapshot giữ lý do tại thời điểm gửi nếu có. Bản ghi hiện có giữ nguyên, không cần migration. Xem [hợp đồng RR](../../08_api/REPLENISHMENT_COVERAGE.md) để biết validation khi gọi API.
+
+## `purchase_orders` / `PurchaseOrder`
+
+Theo quyết định user, 2026-11-11, PO lưu nội dung đặt hàng sau khi kế toán đã chốt với NCC. Các định nghĩa `header.supplierConfirmation` và `items[].supplierConfirmedQtyBase`, `supplierConfirmedBy`, `supplierConfirmedAt` trong từ điển trước đây đã hết hiệu lực. PO chỉ sửa nội dung ở `DRAFT`. Sau phát hành, lượng được phép ngừng nhận được ghi ở `items[].cancelledRemainderQtyBase` kèm `cancellationDecisionId`.
+
+`items[].deliverySchedule` là mảng nhúng, mỗi mốc có `quantityBase` Decimal128 và `expectedAt` Date bắt buộc, `supplierReference` là mã tham chiếu lịch giao tùy chọn (tối đa 160 ký tự). Lịch đã lưu vẫn dùng trong đánh giá bổ sung và trong DTO nhận mua. Phiếu nhập mua giữ `items[].supplierScheduleId`. API tạo và sửa nháp chỉ nhận ngày dự kiến chung `header.expectedOn`. Lịch giao mẫu được tạo bởi seed.
+
+PO cũ có thể còn trường xác nhận trong MongoDB. Schema loại các trường đó khi chuyển PO sang dữ liệu trả API hoặc ghi phiên bản mới. Dữ liệu demo theo schema mới được tạo bằng seed trên DB demo trống. Xem [hợp đồng PO](../../08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập) và [hướng dẫn seed](../../09_phat_trien/DB_REBUILD.md).
 
 ## `goods_receipts` / `GoodsReceipt`
 

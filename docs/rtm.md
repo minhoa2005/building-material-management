@@ -19,19 +19,19 @@ This BE matrix records BE implementation and test evidence only. The other repos
 
 | UC | Requirement | Feature | Requirement state | Implementation | Verification | BE test evidence | Gap / decision |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| UC-01 | View replenishment request list | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-02 | View replenishment request details | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-01 | View replenishment request list | FE-01 | ACTIVE | Implemented | Passed | [native-api.integration.test.js](../test/native-api.integration.test.js), [backend tests](../test/) | `GET /api/replenishments` returns paginated list filtered by warehouseId, createdBy, status, and date range. Enriched with populated Warehouse (code, name), User (fullName), and product lines (SKU, name, imageUrls). |
+| UC-02 | View replenishment request details | FE-01 | ACTIVE | Implemented | Passed | [native-api.integration.test.js](../test/native-api.integration.test.js), [backend tests](../test/) | `GET /api/replenishments/:id` returns complete request document DTO with populated Warehouse (code, name), User full names (createdBy, submittedBy, requestedBy, decidedBy), populated Product (sku, name, isActive, imageUrls) on items, and populated source documents (SalesOrder, Stocktake documentNo, status, version). |
 | UC-03 | Create Replenishment Draft | FE-01 | ACTIVE | Implemented | Partial | [RR guard integration tests](../test/replenishment-guards.integration.test.js) | HTTP 201 when `reasonNote` is omitted. The API rejects a blank or oversized supplied note and a missing request-level reason. Evidence covers the [line-note change](../git_doc/docs/08_api/REPLENISHMENT_COVERAGE.md). `getReplenishmentOptions` includes `imageUrls` projection for frontend thumbnail rendering. |
 | UC-04 | Update Replenishment Draft or Returned Request | FE-01 | ACTIVE | Implemented | Partial | [RR guard integration tests](../test/replenishment-guards.integration.test.js) | HTTP 200 when a draft update omits `reasonNote`. A stored note survives omission on the same line ID. The optional-note scenario was tested on a draft. |
 | UC-05 | Submit Replenishment Request | FE-01 | ACTIVE | Implemented | Partial | [RR guard integration tests](../test/replenishment-guards.integration.test.js) | Direct submission and submission from a draft succeed without line notes. Database assertions confirm that the snapshot omits an absent note and keeps an existing note. Evidence covers the line-note change. |
-| UC-06 | Approve or reject replenishment request | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-07 | View purchase order list | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-08 | View purchase order details | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-09 | Create Purchase Order | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-10 | Update Unreceived PO Remainder | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-11 | Record Supplier Order Confirmation | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-12 | Cancel Unreceived PO Remainder | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-13 | Close Purchase Order | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-06 | Approve or reject replenishment request | FE-01 | ACTIVE | Implemented | Passed | [replenishment-guards.integration.test.js](../test/replenishment-guards.integration.test.js), [backend tests](../test/) | `POST /api/replenishments/:id/review` records owner approval decision in `ApprovalHistory` with `itemDecisions` and quantity adjustments. `getReplenishment` returns structured `lines` (`lineId`, `approvedQtyBase`, `outcome`, `reason`) along with `itemDecisions` for complete client history traceability. |
+| UC-07 | View purchase order list | FE-01 | ACTIVE | Implemented | Passed | [purchase-core.js](../src/modules/po-receiving/purchase-core.js), [backend tests](../test/) | `GET /api/purchase-orders` returns paginated list with batch-populated `warehouse` (`id`, `code`, `name`), quantities, and role-based price redaction. |
+| UC-08 | View purchase order details | FE-01 | ACTIVE | Implemented | Passed | [native-api.integration.test.js](../test/native-api.integration.test.js), [backend tests](../test/) | `GET /api/purchase-orders/:id` returns complete PO detail enriched with populated `warehouse` (`id`, `code`, `name`), quantities, arrivals, receipts, audit history, and automatic `draftEdit` source lines for draft POs. |
+| UC-09 | Create Purchase Order | FE-01 | ACTIVE | Implemented | Partial | [PO HTTP integration](../test/native-api.integration.test.js) | Tested creation from an approved RR, draft editing and issuance to `OPEN`. |
+| UC-10 | Update Unreceived PO Remainder | FE-01 | ACTIVE | TBD | TBD | [PO HTTP integration](../test/native-api.integration.test.js) | Superseded by the user decision of 2026-11-11. The amendment route returns 404. PUT edits drafts only. See UC-12 for the close workflow. |
+| UC-11 | Record Supplier Order Confirmation | FE-01 | ACTIVE | TBD | TBD | [PO HTTP integration](../test/native-api.integration.test.js) | Superseded by the user decision of 2026-11-11. The confirmation route returns 404 and PO detail omits the legacy supplier confirmation fields. |
+| UC-12 | Cancel Unreceived PO Remainder | FE-01 | ACTIVE | Implemented | Partial | [PO HTTP integration](../test/native-api.integration.test.js) | Tested request, independent approval and execution for the full unreceived remainder. |
+| UC-13 | Close Purchase Order | FE-01 | ACTIVE | Implemented | Partial | [PO HTTP integration](../test/native-api.integration.test.js) | Tested transition to `CLOSED` after executing an approved close for the full unreceived remainder. |
 | UC-14 | View goods receipt list | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-15 | View goods receipt details | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-16 | Create goods receipt from purchase order | FE-01 | ACTIVE | TBD | TBD | TBD | TBD |

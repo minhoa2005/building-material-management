@@ -24,7 +24,22 @@ Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits
 
 ## Mua và nhập
 
-RR lưu header/items/submissions; duyệt tạo ApprovalHistory độc lập người lập, kiểm đầy đủ từng dòng và lượng nguyên nếu sản phẩm yêu cầu. Một RR tối đa một PO, thuộc một NCC/kho. PO giữ source và snapshot giá, trạng thái/version, lịch nhận trên dòng. Sửa/đóng PO kiểm lượng đã nhập và cam kết nháp.
+RR lưu header/items/submissions; duyệt tạo ApprovalHistory độc lập người lập, kiểm đầy đủ từng dòng và lượng nguyên nếu sản phẩm yêu cầu. Một RR tối đa một PO, thuộc một NCC/kho. PO giữ source và snapshot giá, trạng thái/version, lịch nhận trên dòng.
+
+Kế toán chốt với NCC trước khi lập PO (nguồn quyết định: user, 2026-11-11).
+
+| Lệnh PO | Hành vi |
+| --- | --- |
+| `POST /api/purchase-orders` | Tạo `DRAFT` từ RR đã duyệt, dùng `creationKey`. |
+| `PUT /api/purchase-orders/:id` | Sửa nội dung khi còn `DRAFT`, dùng `expectedVersion` và `operationKey`. Với version hiện tại của PO đã phát hành, trả 400 `Chỉ sửa trực tiếp PO nháp`. |
+| `POST /api/purchase-orders/:id/confirm` | Phát hành nháp sang `OPEN` và ghi `header.issuedAt`. |
+| `POST /api/purchase-orders/:id/close-requests`, `/close-approvals`, `/close-executions` | Đề nghị, duyệt độc lập và thực hiện đóng phần chưa nhận. Kiểm lượng đã nhập và cam kết nháp, lưu quyết định và lượng hủy riêng với lượng đặt. |
+
+Trạng thái PO: `DRAFT`, `OPEN`, `PARTIAL`, `COMPLETED` (nhận đủ), `CLOSED` (đã chốt thiếu và hủy phần còn lại). `PARTIAL` chỉ đặt khi có phiếu nhập `POSTED`. Đảo phiếu nhập tính lại `PARTIAL`/`OPEN` cho PO `OPEN`, `PARTIAL` hoặc `COMPLETED`, còn PO `CLOSED` giữ nguyên `CLOSED` (quyết định user, 2026-11-11). `GET /api/purchase-orders` và `GET /api/purchase-orders/:id` trả thêm `hasOpenReceivingWork`: `true` khi PO `OPEN`/`PARTIAL` còn phiếu nhập nháp hoặc kiểm nhận nháp, để FE hiện nhãn “Đang nhận hàng” mà không thêm trạng thái PO.
+
+`POST /api/purchase-orders/:id/supplier-confirmations` và `POST /api/purchase-orders/:id/amendments` đã được gỡ và trả 404. DTO PO bỏ thông tin xác nhận NCC trên đầu phiếu và dòng. Chi tiết FE hiện vẫn có cột “NCC xác nhận” với giá trị rỗng từ bộ ánh xạ phía FE.
+
+`deliverySchedule[]` vẫn đọc được trên dòng và qua `schedules` của `GET /api/purchase-orders/:id/receiving-summary`. `supplierReference` là mã tham chiếu lịch giao. Đánh giá RR dùng lịch đã lưu khi có, với `header.expectedOn` là ngày dự kiến cho lượng chưa có lịch riêng. API tạo/sửa nháp chỉ nhận `expectedOn`. Hiện chưa có API ghi `deliverySchedule`; bộ seed vẫn tạo lịch mẫu.
 
 POST /purchase-orders/:id/inspections tạo GoodsArrival và GoodsInspection cùng giao dịch; payload có expectedPoVersion, creationKey, arrivedAt, deliveredBy, deliveryReference, lines. Dòng dùng poLineId, lotId, enteredQty, qualityCode, ownershipDecision ACCEPT/CUSTODY/REJECT, packagingCondition SEALED/OPENED/TORN/UNKNOWN và handlingNote nếu có. PUT /goods-inspections/:id dùng expectedVersion/operationKey cùng nội dung. Confirm dùng expectedPoVersion và destinations[{inspectionItemId,locationId}].
 

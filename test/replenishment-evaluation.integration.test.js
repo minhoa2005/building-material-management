@@ -138,6 +138,21 @@ test('late supply is excluded, missing arrival dates fail closed, and PO self-ex
   assert.equal(evaluation.suggestedQtyBase, '20');
 });
 
+test('PO delivery schedules still count only quantities due by the need date', { skip: !enabled }, async () => {
+  const so = await order();
+  const rr = await request('20', `SO:${so._id}:${so.items[0]._id}`);
+  const po = await purchase(rr, '20', 'OPEN', '2026-12-02');
+  po.items[0].deliverySchedule = [
+    { quantityBase: '8', expectedAt: new Date('2026-11-30'), supplierReference: 'SCHEDULE-1' },
+    { quantityBase: '12', expectedAt: new Date('2026-12-02') },
+  ];
+  await po.save();
+
+  const [evaluation] = await evaluate([sourceLine(so)]);
+  assert.equal(evaluation.incomingCoverageQtyBase, '8');
+  assert.equal(evaluation.suggestedQtyBase, '12');
+});
+
 test('only posted effective failed-delivery receipts reopen demand and valid reversals release it once', { skip: !enabled }, async () => {
   const so = await order();
   const wirId=id(), wirLine=id(), deliveryId=id(), deliveryLine=id(), issueId=id(), issueLine=id(), issueTx=id();

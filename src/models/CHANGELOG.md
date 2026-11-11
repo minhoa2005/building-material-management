@@ -1,3 +1,13 @@
+## 11/11/2026 — Đảo phiếu nhập giữ PO đã đóng
+
+Không đổi model. Logic đảo phiếu giữ `CLOSED` cho PO đã đóng; DTO PO thêm trường dẫn xuất `hasOpenReceivingWork`. Chi tiết ở `git_doc/change_logs.md`.
+
+## 11/11/2026 — Bỏ dữ liệu xác nhận NCC khỏi PO
+
+`purchase-order.model.js` và `purchase-order-header.schema.js` bỏ `supplierConfirmedQtyBase`, `supplierConfirmedBy`, `supplierConfirmedAt` và `header.supplierConfirmation` theo quyết định user, 2026-11-11. Khi đọc và lưu phiên bản mới, schema PO lọc riêng các trường cũ. Bộ dựng seed loại các trường này và vẫn tạo `deliverySchedule` cho PO mẫu.
+
+PO cũ có thể còn các trường này trên MongoDB cho đến lần ghi tiếp theo. Để có dữ liệu demo mới, seed vào DB demo trống. Lượt này không có migration. API nháp chỉ nhận ngày dự kiến chung, chưa ghi lịch giao từng dòng. Đã kiểm thử PO cũ qua HTTP, đánh giá RR theo lịch giao và xác minh PO mẫu trên MongoDB local. Xem [nhật ký thay đổi](../../git_doc/change_logs.md).
+
 ## 10/11/2026 — Lý do từng dòng yêu cầu bổ sung
 
 `reasonNote` là tùy chọn trong chi tiết dòng và snapshot gửi duyệt. Các lý do đã lưu được giữ nguyên khi cập nhật cùng ID dòng và bỏ trường này. Không cần migration. Kiểm tra lưu nháp, cập nhật và tạo snapshot qua HTTP trên MongoDB local.

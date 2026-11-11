@@ -16,10 +16,6 @@ const router = Router(); router.use(authenticate);
 router.post('/', validate(schema(z.object({ ...form, creationKey: key }).strict(),z.object({}).strict())), handle((u,v) => c.createPurchaseOrder(u,v.body)));
 router.put('/:id', validate(schema(action(form))), handle((u,v) => c.updatePurchaseOrder(u,v.params.id,v.body)));
 router.post('/:id/confirm', validate(schema(action({}))), handle((u,v) => c.confirmPurchaseOrder(u,v.params.id,v.body)));
-router.post('/:id/amendments', validate(schema(action({ reason, evidenceIds, expectedOn: form.expectedOn,
-  lines: z.array(z.object({ poLineId: oid, rrLineId: oid, approvalId: oid, enteredQty: qty }).strict()).max(100) }))), handle((u,v) => c.amendPurchaseOrder(u,v.params.id,v.body)));
-router.post('/:id/supplier-confirmations', validate(schema(action({ reason, evidenceIds,
-  lines: z.array(z.object({ poLineId: oid, qtyBase: qty, expectedOn: z.string().datetime({ offset: true }) }).strict()).min(1).max(100) }))), handle((u,v) => c.supplierConfirmation(u,v.params.id,v.body)));
 router.post('/:id/close-requests', validate(schema(action({ reason, evidenceIds, lines: closeLines }))), handle((u,v) => c.requestClose(u,v.params.id,v.body)));
 router.post('/:id/close-approvals', validate(schema(action({ reason, evidenceIds, requestId: oid }))), handle((u,v) => c.approveClose(u,v.params.id,v.body)));
 router.post('/:id/close-executions', validate(schema(action({ reason, approvalId: oid }))), handle((u,v) => c.executeClose(u,v.params.id,v.body)));

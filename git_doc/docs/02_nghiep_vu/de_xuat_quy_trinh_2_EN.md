@@ -44,7 +44,7 @@ Vietnamese: [de_xuat_quy_trinh_2_VI.md](de_xuat_quy_trinh_2_VI.md). Data design:
 | In-transit | Dispatched from source but not fully received/resolved at destination. It is a transport state, not a quality grade. |
 | Custody | Customer/supplier-owned goods held by the store. Track physical responsibility but exclude from store-owned and available stock. |
 | Replenishment Request — RR | Sales/Warehouse proposal for additional stock, approved by Owner. Does not increase stock. |
-| Purchase Order — PO | Accountant's order against approved demand, tracking ordered/confirmed quantities and multiple receipts. |
+| Purchase Order — PO | Accountant's order against approved demand after agreeing terms with the supplier. Tracks ordered quantities and multiple receipts. |
 | Goods Receipt — GR | Warehouse receipt document; use “Goods Receipt”, not “Good Receipt”. Posting increases the quantity accepted into store ownership at its actual quality/location. |
 | Sales Order — SO | Sales manually copies a MISA/paper order with original source and line references. It anchors WIRs and delivery/completion tracking, without pricing or money collection. |
 | Warehouse Issue Request — WIR | Warehouse issue demand linked to a saved SO at header and line level, split into warehouse-specific releases where needed. |
@@ -177,7 +177,7 @@ Sales Staff or Warehouse Staff may also open Create replenishment request direct
 1. Sales records shortages linked directly to saved SO lines, with optional WIR context; Warehouse records reserve needs linked to committed count sources/alerts. Show available/reserved stock, open POs, incoming transfers and need date. Sales/Warehouse may instead open the form from the menu and enter other needs as MANUAL_OTHER with a reason at the request level.
 2. Check existing supply coverage. Planned inbound supply offsets demand only if compatible, timely and not already allocated.
 3. Submit RR. Owner approves, rejects or returns with reasons. No PO before approval.
-4. Accountant creates PO and records supplier quantity/schedule confirmation. Changes beyond approval require renewed approval; do not overwrite executed documents.
+4. Accountant agrees terms with the supplier, then drafts the PO from the approved RR. Edit the PO while it is a draft and issue it for receiving. After issuance, use the request, approval and execution workflow to close an unreceived remainder.
 5. For every delivery, Warehouse records PO-based arrival, actual quantity, product, BOX/PIECE, lot, tone, calibre, cracks and packaging. A PO may have multiple receipts. Q8 permits Owner/Accountant co-inspection recorded in evidence; GR posting stays with Warehouse. Torn packaging alone is not a tile defect; opened cartons require actual piece counts.
 6. Split quantities into accepted good, pending inspection/agreement, defective, or rejected/immediately returned. Record short/over/wrong-product/wrong-lot evidence.
 7. Receive only quantities accepted into store ownership at actual status/location. Custody/pending-supplier goods remain separate and unavailable. Owned defective goods enter BF-02; immediately rejected goods must not be fictitiously received then issued.
@@ -198,7 +198,7 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 |---|---|---|---|---|
 | BF-01-A1 | Demand already covered | Sales/Warehouse checks allocations, timely PO/TD supply; submit only the uncovered balance, no duplicate RR. | No stock change; return to steps 1–2. | UC-03, UC-04, UC-05, UC-117, UC-118, UC-119 |
 | BF-01-A2 | Owner rejects or requests revision | Retain reason; reject closes the proposal, revision creates a new version for review; Accountant cannot create an unapproved PO. | No stock change; step 3 or end. | UC-06 |
-| BF-01-A3 | Supplier partial fulfilment | Accountant records quantities/dates; changes beyond approval need renewed review; Owner authorizes short closure; preserve posted GRs. | Receive each delivery at step 5; no fictitious receipt for cancelled quantities. | UC-09, UC-10, UC-11, UC-12, UC-13, UC-37 |
+| BF-01-A3 | Supplier partial fulfilment | Accountant requests closure of the unreceived remainder, Owner approves and Accountant executes. Keep the posted GRs. | Receive actual deliveries at step 5. | UC-09, UC-10, UC-11, UC-12, UC-13, UC-37 |
 | BF-01-E1 | Over or wrong delivery | Warehouse separates quantities, records discrepancy/custody if held; no automatic substitution or excess PO receipt. Accountant coordinates; Owner authorizes required changes before acceptance. | GR only eligible quantities; remainder pending or handed back. | UC-37 |
 | BF-01-E2 | Zero accepted quantity | Retain arrival/inspection, evidence and custody/handback outcome; PO outstanding and discrepancy remain open. | No zero-quantity GR; no increase in owned stock. | UC-16, UC-37 |
 | BF-01-A4 | Torn/open boxes; replacements | Count actual pieces; inspect quality independently. Supplier replacement is a new linked arrival/GR; never rewrite the original GR. | After GR, put-away at step 8; no second receipt on placement. | UC-37, UC-46 |
@@ -466,7 +466,7 @@ Retain existing IDs for traceability; mark retired/new IDs explicitly rather tha
 | UC-01–02: View replenishment | Revise access | Sales/Warehouse sees own/assigned requests; Owner/Accountant sees responsibility-scoped demand. |
 | UC-03, UC-04, UC-05: Create replenishment request | Change primary actor/trigger | Sales/Warehouse creates from issue shortage, minimum level or count. Accountant does not originate operational demand, but may record reconciliation notes. No PO before approval. Direct menu creation permits all-MANUAL_OTHER lines with a request-level reason, without shortage/alert/count prerequisites. |
 | UC-06: Approve/reject replenishment | Retain with constraints | Owner approves exact version, with userId different from requester. Support revision and cancellation of unexecuted remainder. |
-| UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13: PO | Retain; revise sources/exceptions | Accountant uses approved demand and supplier confirmation. Partial PO stays open; excess changes require reapproval. No payments. |
+| UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13: PO | Draft, issue, track and close | Accountant agrees terms with the supplier before drafting from an approved RR. Edit the PO while it is a draft. After issuance, track receipts and use the close workflow when the remainder will not be received. |
 | UC-14–16: Receipt list/detail/create | Retain; expand delivery data | Each delivery has its own receipt, PO/line linkage, actual quantity and transport source. |
 | UC-17, UC-18, UC-19, UC-20, UC-21, UC-22, UC-23: Product/packaging | Retain; add controlled minimum | Version BOX/PIECE/m² factors. Owner configures finite thresholds, not a general policy editor. |
 | UC-24, UC-25, UC-26, UC-27: Lot | Retain | Do not rewrite transacted lot/tone/calibre to conceal shortages. Corrections need evidence/history; master-data rights do not grant quality-change rights. |
@@ -531,7 +531,7 @@ V = scoped view; T = create/record; D = approve; X = execute/confirm as defined 
 | View scoped availability | V | V | V | V | — |
 | Create replenishment | V | T | T | V | — |
 | Approve replenishment | D | — | — | — | — |
-| PO and supplier confirmation | V | — | V receipt scope | T | — |
+| Draft and issue PO | V | — | V receipt scope | T | — |
 | Inspect, receive, put away | V | V related progress | X | V | — |
 | Same-warehouse relocation | V | — | X | — | — |
 | View/select stock options | V only | T | T | — | — |
@@ -721,7 +721,7 @@ flowchart TD
  DRAFT -->|Submit later| C
  C -->|Revise| EDIT
  C -->|Reject| Z[Close RR without stock effect]
- C -->|Approve| D[Accountant creates PO and supplier confirmation]
+ C -->|Approve| D[Accountant agrees supplier terms then drafts and issues PO]
  D --> E[Warehouse records arrival and inspection per delivery]
  E --> F{Classify each quantity}
  F -->|Accept ownership| G[Post source-linked GR by quality]

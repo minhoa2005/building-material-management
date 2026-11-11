@@ -1,3 +1,27 @@
+## 11/11/2026 — Đảo phiếu nhập giữ PO đã đóng và cờ đang nhận hàng
+
+- Theo quyết định user, 2026-11-11, đảo phiếu nhập của PO `CLOSED` giữ nguyên `CLOSED`; PO `OPEN`, `PARTIAL`, `COMPLETED` vẫn tính lại `PARTIAL`/`OPEN`. Sửa `purchase-correction.service.js`.
+- Thêm `hasOpenReceivingWork` vào DTO danh sách và chi tiết PO ở `purchase-order.service.js` (hàm `openReceivingWorkIds`). Không thêm trạng thái PO. Ghi trong [hợp đồng PO](docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập).
+- Test mới trong `native-api.integration.test.js`: đảo phiếu với PO `COMPLETED`/`CLOSED`, và cờ `hasOpenReceivingWork` theo kiểm nhận nháp. Chạy `RUN_NATIVE_API_TESTS=1`: 16/16 đạt. FE chưa hiển thị nhãn và chưa thống nhất màu trạng thái `COMPLETED`/`CLOSED`.
+
+## 11/11/2026 — PO chỉ sửa khi còn nháp
+
+- Theo quyết định user, 2026-11-11, kế toán chốt với NCC trước khi lập PO. Gỡ hai lệnh `supplier-confirmations` và `amendments` trong module `purchase-orders`. Khi PO đã phát hành, ngừng chờ phần hàng chưa nhận qua quy trình đề nghị, duyệt và thực hiện đóng.
+- Bỏ dữ liệu xác nhận NCC khỏi hai schema PO và bộ dựng seed. Đọc và ghi phiên bản mới loại các trường cũ. Lịch giao đã lưu vẫn dùng cho nhận mua và đánh giá RR. API tạo/sửa nháp hiện chỉ nhận ngày dự kiến chung.
+- Cập nhật [phiếu duyệt H02](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md), [từ điển dữ liệu và ERD](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md), [hợp đồng PO](docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập) và quy trình BF01.
+- `npm test` trên replica set local với `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` đạt 141, bỏ qua 32. Test mới kiểm tra tạo/sửa/phát hành PO, hai route 404, từ chối sửa sau phát hành, đọc PO cũ, đóng phần chưa nhận và tính lượng đến đúng hạn theo lịch giao.
+- Đã seed và xác minh `wmsd_demo_tile_shop_v9`, gồm PO mẫu `PO-202610-001` có lịch giao. Dữ liệu demo cũ muốn dựng theo schema mới cần seed lại trên đích demo trống. Chưa có migration hoặc API nhập lịch theo dòng. Xem [hướng dẫn seed](docs/09_phat_trien/DB_REBUILD.md#seed-po-theo-quyết-định-11112026).
+
+## 11/11/2026 — Bổ sung liên kết kho, người dùng, SKU sản phẩm và chứng từ nguồn trong API RR
+
+- Theo yêu cầu kiểm tra và hoàn thiện hiển thị chi tiết chứng từ bổ sung hàng (`replenishment/:id`), cập nhật service `replenishment.service.js`:
+  - `getReplenishment`: Tra cứu và gắn thông tin đối tượng `Warehouse` (`code`, `name`) thay vì để ID MongoDB thô; tra cứu `User` (`fullName`) cho người tạo (`createdBy`), người gửi duyệt (`submittedBy`), người yêu cầu (`requestedBy`) và người duyệt (`decidedBy`).
+  - Tra cứu collection `Product` theo danh sách `productId` của các dòng để trả về `productSkuSnapshot`, `productNameSnapshot`, `productIsActive` và `productImageUrl`.
+  - Tra cứu `SalesOrder` và `Stocktake` cho các dòng có `source.documentId` để gắn kèm `documentNo`, `workflowStatus`, `version` thay vì chỉ có ID thô.
+  - `listReplenishments`: Bổ sung thông tin kho, người tạo và SKU sản phẩm cho các dòng trong danh sách phân trang.
+- Cập nhật tài liệu AI Assistance Log và Requirements Traceability Matrix (`be/docs/ai-log.md`, `be/docs/rtm.md`). Không cần migration DB.
+- Bộ kiểm thử backend (`npm test`) đạt 103/103 tests.
+
 ## 10/11/2026 — API tra cứu chứng từ nguồn cho RR
 
 - Theo kế hoạch người dùng duyệt, module replenishments thêm `GET /api/replenishments/options/sources` cho đơn bán và phiên kiểm kê. API phân trang sau khi lọc theo phạm vi người dùng, trạng thái nguồn và bộ lọc sản phẩm hoặc kho. Kiểm kê hợp nhất sản phẩm từ dòng và snapshot.

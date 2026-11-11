@@ -238,7 +238,10 @@ export const replenishmentOptionsSchema = z.object({
   query: z.object({
     mode: z.enum(["CREATE", "FILTER"]),
     requestId: objectIdSchema.optional(),
-  }).strict().refine(query => !query.requestId || query.mode === "CREATE"),
+  }).strict().refine(query => !query.requestId || query.mode === "CREATE", {
+    message: "requestId chỉ được hỗ trợ khi mode là CREATE",
+    path: ["requestId"],
+  }),
 });
 
 export const replenishmentSourceOptionsSchema = z.object({
