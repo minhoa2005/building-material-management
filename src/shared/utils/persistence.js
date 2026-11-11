@@ -7,32 +7,16 @@ export const transactionOptions = {
   writeConcern: { w: "majority" },
 };
 export async function transaction(work) {
-  for (let attempt = 0; ; attempt++) {
-    const session = await mongoose.startSession();
-    let runs = 0;
-    try {
-      return await session.withTransaction(() => {
-        if (runs++)
-          observePlanning("transaction_retry", { reason: "snapshot_conflict" });
-        session.replenishmentGuards = undefined;
-        return work(session);
-      }, transactionOptions);
-    } catch (error) {
-      if (
-        attempt < 3 &&
-        error.code === 11000 &&
-        error.message?.includes("warehouseId_1_productId_1")
-      ) {
-        observePlanning("transaction_retry", {
-          reason: "first_guard_creation",
-          attempt: attempt + 1,
-        });
-        continue;
-      }
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+  const session = await mongoose.startSession();
+  let runs = 0;
+  try {
+    return await session.withTransaction(() => {
+      if (runs++)
+        observePlanning("transaction_retry", { reason: "snapshot_conflict" });
+      return work(session);
+    }, transactionOptions);
+  } finally {
+    await session.endSession();
   }
 }
 

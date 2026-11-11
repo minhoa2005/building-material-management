@@ -44,7 +44,7 @@ Validation performed / not performed:
 - **Intervention** — Adopted.
 - **Human changes** — The user supplied the business decision and BE-only plan and requested the AI log and RTM updates.
 - **Files affected** — `src/models/purchase-order.model.js`, the removed `purchase-order-delivery-schedule.schema.js`, `src/modules/purchase-orders/purchase-order.commands*.js`, `src/modules/po-receiving/purchase-read.service.js`, `src/modules/replenishments/replenishment.evaluation.js`, `src/seeds/rebuild/data.js`, the [PO API contract](../git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập), model documentation, tests and [RTM](rtm.md).
-- **Validation** — The [native API](../test/native-api.integration.test.js), [RR evaluation](../test/replenishment-evaluation.integration.test.js) and [RR guard](../test/replenishment-guards.integration.test.js) suites passed 34/34 on local MongoDB `rs0`. With native API and goods receipt integration enabled, `npm test` passed 149 tests with 44 skipped and 0 failures. `npm run docs:check` and `git diff --check` passed. The seed fixture was checked in memory. FE wiring and browser verification are pending. No migration or demo database reseed was needed.
+- **Validation** — The [native API](../test/native-api.integration.test.js), [RR evaluation](../test/replenishment-evaluation.integration.test.js) and `test/replenishment-guards.integration.test.js` (historical) suites passed 34/34 on local MongoDB `rs0`. With native API and goods receipt integration enabled, `npm test` passed 149 tests with 44 skipped and 0 failures. `npm run docs:check` and `git diff --check` passed. The seed fixture was checked in memory. FE wiring and browser verification are pending. No migration or demo database reseed was needed.
 
 ### 2026-11-11 — Draft-only PO editing and removal of supplier confirmation
 
@@ -96,7 +96,7 @@ Validation performed / not performed:
 - **Result used:** The API accepts omitted notes and validates supplied notes after trimming. Updating the same line without the field preserves its saved note. Submission snapshots accept missing notes and retain supplied ones. No migration is needed.
 - **Intervention:** Adopted.
 - **Human changes:** The user chose the BE-only scope, supplied the implementation plan, and requested the AI log and RTM update.
-- **Files affected:** Replenishment validation and commands in `src/modules/replenishments/`, line and snapshot schemas in `src/models/`, [RR guard tests](../test/replenishment-guards.integration.test.js), [API contract](../git_doc/docs/08_api/REPLENISHMENT_COVERAGE.md), the VI/EN process and model documentation.
+- **Files affected:** Replenishment validation and commands in `src/modules/replenishments/`, line and snapshot schemas in `src/models/`, `test/replenishment-guards.integration.test.js` (historical), [API contract](../git_doc/docs/08_api/REPLENISHMENT_COVERAGE.md), the VI/EN process and model documentation.
 - **Validation:** The RR guards and evaluation integration suites passed 14/14 on a local MongoDB replica set with `RUN_NATIVE_API_TESTS=1`. `npm run docs:check` passed. The FE form still requires a note on each line.
 
 ### 2026-11-10 — Packaging Conversion Version Backend Handling & Optional Verification Reference (UC-22)

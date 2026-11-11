@@ -1,3 +1,7 @@
+## 11/11/2026 — Chi tiết dòng RR theo cảnh báo
+
+Theo quyết định người dùng, `replenishment-details.schema.js` yêu cầu `evaluatedAt` và loại nguồn khớp khi có `source`. Dòng xác nhận nhu cầu phải có giải trình. Các trường `canonicalSourceKey`, `evaluationKey`, lượng đề xuất và snapshot coverage đời cũ còn để đọc dữ liệu lịch sử. Nhánh validation cho dữ liệu không có `source` giữ quy tắc cũ. Lần đánh giá mới ghi nguồn, giải trình và các snapshot tồn, RR mở, PO còn phải nhận, ngưỡng và mục tiêu. Không đổi collection, index hoặc chạy migration. Xem [nhật ký kiểm chứng](../../git_doc/change_logs.md).
+
 ## 11/11/2026 — Bỏ lịch giao từng dòng PO
 
 Theo quyết định người dùng, `purchase-order.model.js` bỏ `items[].deliverySchedule` và xóa `purchase-order-delivery-schedule.schema.js`. Seed PO dùng ngày dự kiến chung `header.expectedOn` cho phần chưa nhận. Không thêm collection hay index. BSON chưa ghi lại có thể còn dữ liệu lịch cũ. DTO lọc trường cũ, còn `saveVersion` loại trường khi thay mảng `items`. Không cần migration. Đã kiểm tương thích bản ghi cũ qua HTTP và kiểm PO mẫu từ bộ dựng seed. [Nhật ký thay đổi](../../git_doc/change_logs.md).

@@ -1,3 +1,12 @@
+## 11/11/2026 — Đánh giá RR theo cảnh báo
+
+- Theo plan người dùng xác nhận ngày 11/11/2026, RR cảnh báo theo cùng kho và sản phẩm khi có RR mở, PO còn hàng chưa nhận hoặc tồn khả dụng đủ. Người lập quyết định lượng và xác nhận kèm giải trình khi lưu/gửi dòng có cảnh báo. SO/WIR và kiểm kê dùng để truy vết. API đánh giá trả tổng lượng và chi tiết trong phạm vi quyền.
+- Duyệt RR và tạo, sửa, phát hành PO dựa trên bản RR hợp lệ và trần lượng đã duyệt. Bỏ so token, lượng đề xuất và guard RR dùng chung. Transaction tạo PO cập nhật thời điểm của RR nguồn để bảo toàn ràng buộc khi hủy RR đồng thời. Giữ phiên bản chứng từ, replay và unique index một PO mỗi RR.
+- Cập nhật [hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md), [native runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md), [phiếu H01–H02 và bản lịch sử](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md), [hướng dẫn dự án](PROJECT_GUIDE.md), [bản đồ model](MODEL_MAP.md) và [từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md). Giữ schema và dữ liệu coverage cũ để tương thích, không migration hoặc seed lại. FE vẫn cần nối hợp đồng cảnh báo mới.
+- Gọi thử POST /api/replenishments/evaluate với SKU AP6601 trên wmsd_demo_tile_shop_v9. HTTP 200, tồn khả dụng 198, RR đang mở 40, PO chưa nhận 0. Response phát OPEN_REQUEST và STOCK_SUFFICIENT.
+- Review sau triển khai sửa hai lỗi. Ngưỡng tối thiểu bằng 0 làm mọi dòng phát `STOCK_SUFFICIENT` kể cả khi hết hàng; nay ngưỡng 0 dùng so sánh theo lượng đề nghị. Sửa dòng lập tay hoặc theo ngưỡng để gắn chứng từ nguồn bị chặn nhầm; nay chỉ dòng đã có chứng từ bị khóa nguồn. Thêm ca test cho cả hai.
+- Trên MongoDB local rs0, ba suite replenishment-evaluation, replenishment-warnings và native-api đạt 33/33. Chạy npm test với RUN_NATIVE_API_TESTS=1 và RUN_GOODS_RECEIPT_TESTS=1 đạt 147 ca, 44 ca skip, 0 lỗi. npm run docs:check và git diff --check đạt.
+
 ## 11/11/2026 — Bỏ lịch giao PO và theo dõi chứng từ nhận hàng
 
 - Theo plan được người dùng xác nhận, `PurchaseOrder` và seed bỏ lịch giao từng dòng. `replenishment.evaluation.js` dùng `header.expectedOn` cho lượng còn phải nhận sau khi trừ nhập đã ghi sổ và lượng hủy. Chuyển lượng hủy `Decimal128` sang số thập phân chính xác trước khi trừ.

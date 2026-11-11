@@ -9,11 +9,6 @@ import {
   notFoundError,
 } from "./ApiError.js";
 import { appendAudit } from "./audit.js";
-import {
-  guardCommandCoverage,
-  completeReplenishmentGuards,
-} from "./replenishment-guard.js";
-import { observePlanning } from "./replenishment-observability.js";
 
 export const same = (left, right) =>
   left != null && right != null && String(left) === String(right);
@@ -75,7 +70,6 @@ export async function command(
   authorizeReplay,
   work,
 ) {
-  const started = Date.now();
   const requestKey =
     input.operationKey ?? input.creationKey ?? input.idempotencyKey;
   if (typeof requestKey !== "string" || !requestKey.trim())
@@ -94,7 +88,6 @@ export async function command(
   for (let attempt = 0; ; attempt++)
     try {
       return await transaction(async (session) => {
-        session.replenishmentGuards = undefined;
         const actor = await User.findById(user._id)
           .populate({ path: "roleId", populate: { path: "permissionIds" } })
           .session(session);
@@ -103,7 +96,6 @@ export async function command(
           session,
         );
         if (prior) return replay(prior, actor, session);
-        await guardCommandCoverage(targetId, input, session);
         const operationId = newId();
         const {
           document,
@@ -133,7 +125,6 @@ export async function command(
           stockTransactionId,
           decisionId,
         }).save({ session });
-        await completeReplenishmentGuards(session, operation._id);
         await appendAudit({
           actorId: actor._id,
           action: code,
@@ -168,11 +159,6 @@ export async function command(
         return receipt(operation, false);
       });
     } catch (error) {
-      if (error.code === "ERR-RR-409-004")
-        observePlanning("coverage_conflict", {
-          operationCode: code,
-          durationMs: Date.now() - started,
-        });
       if (
         error.code === 11000 ||
         error.hasErrorLabel?.("UnknownTransactionCommitResult")
@@ -186,8 +172,7 @@ export async function command(
         if (prior) return replay(prior, actor);
         if (
           error.code === 11000 &&
-          (error.message?.includes("warehouseId_1_productId_1") ||
-            error.message?.includes("document_sequences")) &&
+          error.message?.includes("document_sequences") &&
           attempt < 3
         )
           continue;

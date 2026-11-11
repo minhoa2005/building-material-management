@@ -26,7 +26,7 @@ Product dùng manufacturerCode, sku, color, categoryId, baseUnit, wholeBaseUnits
 
 ## Mua và nhập
 
-RR lưu header/items/submissions; duyệt tạo ApprovalHistory độc lập người lập, kiểm đầy đủ từng dòng và lượng nguyên nếu sản phẩm yêu cầu. Một RR tối đa một PO, thuộc một NCC/kho. PO lưu nguồn, snapshot giá, trạng thái, phiên bản và ngày nhận dự kiến chung `header.expectedOn`.
+RR lưu header/items/submissions; duyệt tạo ApprovalHistory độc lập người lập, kiểm đầy đủ từng dòng và lượng nguyên nếu sản phẩm yêu cầu. Một RR tối đa một PO, thuộc một NCC/kho. PO lưu nguồn, snapshot giá, trạng thái, phiên bản và ngày nhận dự kiến chung `header.expectedOn`. Lập, sửa nháp và phát hành PO kiểm nguồn RR đã duyệt, quyết định mới nhất, trần lượng từng dòng và trạng thái danh mục. Cảnh báo RR được xem riêng qua `POST /api/replenishments/evaluate`.
 
 Kế toán chốt với NCC trước khi lập PO (nguồn quyết định: user, 2026-11-11).
 
@@ -42,7 +42,7 @@ Trạng thái PO: `DRAFT`, `OPEN`, `PARTIAL`, `COMPLETED` (nhận đủ), `CLOSE
 
 `POST /api/purchase-orders/:id/supplier-confirmations` và `POST /api/purchase-orders/:id/amendments` đã được gỡ và trả 404. DTO PO bỏ thông tin xác nhận NCC trên đầu phiếu và dòng. Chi tiết FE hiện vẫn có cột “NCC xác nhận” với giá trị rỗng từ bộ ánh xạ phía FE.
 
-Quyết định người dùng ngày 11/11/2026 bỏ `items[].deliverySchedule` khỏi PO. Đánh giá RR dùng `header.expectedOn` cho lượng đặt trừ lượng nhập `POSTED` và lượng hủy. Ngày sau hạn cần bị loại khỏi coverage. Khi nguồn cung liên quan còn lượng chưa nhận mà thiếu ngày dự kiến, đánh giá yêu cầu đối chiếu với `ERR-RR-409-004`. Lệnh đổi ngày ghi AuditLog `RESCHEDULE_PO_EXPECTED_ON` với lý do, hai phiên bản và giá trị `header.expectedOn` trước/sau.
+Quyết định người dùng ngày 11/11/2026 bỏ `items[].deliverySchedule` khỏi PO. Đánh giá RR hiển thị `header.expectedOn` cùng lượng PO chưa nhận và phát cảnh báo cho PO `OPEN`/`PARTIAL` cùng kho và sản phẩm còn lượng dương. Ngày dự kiến có thể sau hạn cần hoặc vắng mặt. Lệnh đổi ngày ghi AuditLog `RESCHEDULE_PO_EXPECTED_ON` với lý do, hai phiên bản và giá trị `header.expectedOn` trước/sau.
 
 `GET /api/purchase-orders/:id/receiving-summary` trả `documents` thay `schedules` và giữ `quantities`, `tripCount`, `openWork`. Mỗi chứng từ có `kind` (`INSPECTION` hoặc `GR_PURCHASE`), `id`, `documentNo`, `workflowStatus`, `occurredAt` nếu có, `createdAt` và `lines: [{ poLineId, qtyBase }]`. `qtyBase` là chuỗi thập phân. Phiếu kiểm lần theo dòng hàng đến để lấy dòng PO. `poLineId` là `null` nếu dòng chứng từ thiếu liên kết. Danh sách sắp mới nhất theo `occurredAt` hoặc `createdAt` nếu thiếu `occurredAt`, rồi theo ID giảm dần khi cùng thời điểm. Chỉ Owner/Accountant nhận thông tin giá. FE hiện dùng `GET /api/purchase-orders/:id/receiving-trips` có phân trang và chưa nối `documents` hay lệnh đổi ngày.
 
@@ -89,6 +89,6 @@ Ba test tích hợp native trên DB local riêng đã qua: mua/nhập/xếp từ
 
 The user confirmed Accountant verification with uploaded evidence for historical customer-delivery sources. This scope is implemented in [the native return contract](RETURN_WORKFLOWS_NATIVE.md). It does not settle broader new-SO external-source gates. Trungph return workflows now use the native registry; local automated verification and rollout limits are recorded in that contract and the PR evidence. No Atlas data or connection change.
 
-## Chống trùng bổ sung theo nguồn — 07/11/2026
+## Cảnh báo bổ sung hàng — 11/11/2026
 
-[Hợp đồng RR coverage](REPLENISHMENT_COVERAGE.md) quy định evaluate/source/token, cảnh báo thủ công, hủy RR và giao thức lock chung RR–PO–tồn. 60 collections, 97 nested schemas; nguồn RR và snapshot gửi duyệt dùng native schema, không tạo bảng policy/conversion.
+[Hợp đồng RR](REPLENISHMENT_COVERAGE.md) mô tả cảnh báo RR đang mở, PO còn hàng chưa nhận và tồn khả dụng đủ ngưỡng. Lưu và gửi RR cần xác nhận kèm giải trình khi có cảnh báo. Quyết định duyệt và lệnh PO dùng bản RR đã gửi hoặc đã duyệt. Guard coverage theo kho/sản phẩm đã được gỡ khỏi runtime.

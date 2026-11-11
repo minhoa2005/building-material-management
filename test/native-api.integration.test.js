@@ -46,7 +46,7 @@ test.after(async()=>{if(enabled){if(!mongoose.connection.name.startsWith('wmsd_a
 
 async function acknowledgeIndependentNeed(body) {
  const assessments=await rr.evaluateReplenishment(worker,body);
- body.lines=body.lines.map((line,index)=>assessments[index].warningRequired?{...line,evaluationKey:assessments[index].evaluationKey,independentNeedConfirmed:true,independentNeedReason:'Separate independent fixture need'}:line);
+ body.lines=body.lines.map((line,index)=>assessments[index].warningRequired?{...line,independentNeedConfirmed:true,independentNeedReason:'Separate independent fixture need'}:line);
 }
 
 run('conversion versions use the right scope and preserve document snapshots', async () => {

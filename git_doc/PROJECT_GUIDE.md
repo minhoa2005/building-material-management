@@ -99,8 +99,6 @@ Người dùng duyệt 5 nhóm sau tham khảo Gạch Tốt. Mỗi product có m
 
 The user confirmed Accountant verification with uploaded evidence for historical customer-delivery sources. This scope is implemented in [the native return contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). It does not settle broader new-SO external-source gates. Trungph return workflows now use the native registry; local automated verification and rollout limits are recorded in that contract and the PR evidence. No Atlas data or connection change.
 
-## Bổ sung 07/11/2026 — RR coverage
+## Cảnh báo bổ sung hàng — 11/11/2026
 
-[Hợp đồng chống trùng](docs/08_api/REPLENISHMENT_COVERAGE.md): RR đã lưu chiếm lượng theo nguồn; SO/WIR dùng cùng nghĩa vụ gốc, ngưỡng/kiểm kê cùng nhu cầu dự trữ. Nhu cầu thủ công tương tự cần cảnh báo và giải trình độc lập. Ghi chứng từ và đổi ngưỡng tham gia cùng khóa đồng thời.
-
-Theo quyết định ngày 10/11/2026, API tạo và sửa RR cho phép bỏ lý do từng dòng. Lý do chung của phiếu và các giải trình do quy tắc coverage yêu cầu vẫn bắt buộc.
+[Hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md) quy định cảnh báo RR đang mở, PO chưa nhận đủ và tồn khả dụng. Người lập quyết định lượng, xác nhận và giải trình khi có cảnh báo. SO/WIR và kiểm kê là tham chiếu truy vết. Lý do từng dòng tùy chọn. Người duyệt độc lập xét lượng, còn PO dựa trên lượng RR đã duyệt.

@@ -137,6 +137,7 @@ export const sourceSchema = z.discriminatedUnion('triggerType', [
   z.object({ triggerType: z.literal('STOCKTAKE_LOW_STOCK'), documentType: z.literal('stocktakes'), documentId: objectIdSchema, version: expectedVersion }).strict(),
   z.object({ triggerType: z.literal('SALES_SHORTAGE'), documentType: z.enum(['sales_orders','warehouse_issue_requests']), documentId: objectIdSchema, itemId: objectIdSchema, version: expectedVersion }).strict(),
 ]);
+// Deprecated coverage fields remain accepted for existing clients.
 const assessmentFields = {
   evaluationKey: z.string().regex(/^[a-f\d]{64}$/i).optional(),
   independentNeedConfirmed: z.boolean().optional(),

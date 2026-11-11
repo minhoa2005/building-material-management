@@ -7,6 +7,7 @@ import { objectIdString as oid } from '../../shared/utils/domain.js';
 import { schema, handle, key, ver, qty, reason, evidenceIds, commandBody } from '../po-receiving/po-receiving.routes.js';
 import * as c from './purchase-order.commands.js';
 
+// Deprecated. Accepted for older clients and unused by PO commands.
 const evaluations = z.array(z.object({ lineId: oid, evaluationKey: z.string().min(1).max(200) }).strict()).max(100).optional();
 const form = { evaluations, warehouseId: oid, supplierId: oid, currency: z.string().regex(/^[A-Z]{3}$/), expectedOn: z.string().datetime({ offset: true }).optional(),
   lines: z.array(z.object({ id: oid.optional(), rrLineId: oid, approvalId: oid, enteredQty: qty, unitPurchasePrice: decimalStringSchema() }).strict()).min(1).max(100) };

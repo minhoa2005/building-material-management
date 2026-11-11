@@ -36,9 +36,27 @@ Hai unique index dùng tiền tố `(productId, productBatchId, uomId)` và lầ
 
 Product giữ các trường theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md) và bổ sung `imageUrls` kiểu mảng String, mặc định rỗng. Mảng lưu URL ảnh theo thứ tự; phần tử đầu là ảnh đại diện. API kiểm tối đa 5 URL HTTPS hợp lệ, mỗi URL tối đa 2.048 ký tự và không trùng sau khi trim. Đây là giới hạn của hợp đồng API; model không thêm collection hoặc index.
 
-## Lý do từng dòng của `ReplenishmentRequest`
+## Nguồn và snapshot cảnh báo của `ReplenishmentRequest`
 
 `items[].details.reasonNote`, `submissions[].lines[].reasonNote` và `submissions[].lines[].evaluation.reasonNote` là chuỗi tùy chọn, cắt khoảng trắng, tối đa 2.000 ký tự và không có giá trị mặc định. Snapshot giữ lý do tại thời điểm gửi nếu có. Bản ghi hiện có giữ nguyên, không cần migration. Xem [hợp đồng RR](../../08_api/REPLENISHMENT_COVERAGE.md) để biết validation khi gọi API.
+
+Theo quyết định người dùng ngày 11/11/2026, `items[].details` và `submissions[].lines[].evaluation` ghi các trường sau khi đánh giá cảnh báo.
+
+| Trường | Kiểu và ý nghĩa |
+| --- | --- |
+| `triggerType`, `source`, `evaluatedAt` | Loại nguồn, tham chiếu nhúng và mốc Date đánh giá. Dòng có `source` phải có loại nguồn khớp và `evaluatedAt`. |
+| `independentNeedConfirmed`, `independentNeedReason` | Boolean và chuỗi tối đa 2.000 ký tự. Khi xác nhận là true, phải có giải trình. API tạo, sửa và gửi kiểm xác nhận nếu có cảnh báo. |
+| `availableQtySnapshot`, `pendingRequestCoverageQtySnapshot`, `incomingCoverageQtySnapshot` | Decimal128, lần lượt là tồn khả dụng, lượng RR mở và lượng PO chưa nhận tại thời điểm đánh giá. |
+| `minimumQtySnapshot`, `targetQtySnapshot` | Decimal128 tùy chọn. Có giá trị khi kho nhận có cấu hình ngưỡng cho sản phẩm. |
+
+`canonicalSourceKey`, `evaluationKey`, `suggestedQty`, `quantityAdjustmentReason`, `otherWarehouseCoverageQtySnapshot`, `remainingDemandQtySnapshot`, `reservedForDemandQtySnapshot` và `onHandCoverageQtySnapshot` là trường tương thích cho dữ liệu lịch sử. Schema giữ các kiểm tra cũ cho nhánh dữ liệu chưa có `source`. Các lần đánh giá mới ghi snapshot theo quy tắc cảnh báo, còn snapshot gửi duyệt lịch sử giữ dữ liệu đã lưu.
+
+### Dữ liệu coverage lịch sử
+
+- `ReplenishmentLock` (`replenishment_locks`) và `SalesOrder.replenishmentPlanningVersion` giữ schema hiện có. Giao dịch runtime đã ngừng đọc/ghi guard và tăng trường phiên bản này.
+- `SupplyAllocation` (`supply_allocations`) giữ cấu trúc để đọc dữ liệu cũ. Luồng đọc điều chuyển vẫn tra collection. Luồng RR đã ngừng sử dụng và lệnh nghiệp vụ hiện hành không ghi phân bổ.
+
+Không thay số collection, index hoặc quan hệ dữ liệu. Không cần migration cho thay đổi cảnh báo.
 
 ## `purchase_orders` / `PurchaseOrder`
 

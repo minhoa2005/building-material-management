@@ -2,9 +2,13 @@
 
 **H01 và H02 v0.1 ĐÃ DUYỆT RIÊNG.** Ngày 02/11/2026, người dùng trả lời “Duyệt H01 v0.1” sau khi đã được giải thích; H02 đã được duyệt trước đó. Giữ nguyên trường và quy tắc đã trình. [Bản ngay trước khi duyệt H01](history/H01_H35_before_approval_20261102/13_Duyet_yeu_cau_bo_sung_va_don_mua.md) lưu nội dung giải thích và quyết định bỏ UOM để đối chiếu. [Phiếu v0.1 đã trình](history/13_Duyet_yeu_cau_bo_sung_va_don_mua_v0.1_de_xuat.md). Cơ sở: BF-01, UC-01–10 trong [Report 3](../../01_bao_cao/WMSD_Report3_Fix.docx.txt), cấu trúc REPLENISHMENT/PO trong [snapshot MongoDB](03_Cau_truc_DB_hien_tai.md), [B08B nhà cung cấp](08B_Nha_cung_cap.md) và [C05–C06](11_Duyet_giu_hang_va_nguon_cung.md). Tài liệu/code cũ là nguồn đối chiếu; các quyết định mới của người dùng được ưu tiên. H01 được duyệt qua câu trả lời riêng, không suy từ việc H02 đã được duyệt. Phần đơn vị/quy cách được sửa theo [Quyết định bỏ UOM và lưu quy đổi trên dòng](14_Bo_UOM_va_luu_quy_doi_tren_dong.md); H01 đã duyệt cả đầu phiếu và dòng nhúng theo cách lưu này.
 
-## Tích hợp runtime theo yêu cầu 07/11/2026
+## Quy tắc RR cập nhật ngày 11/11/2026
 
-[Hợp đồng triển khai](../../08_api/REPLENISHMENT_COVERAGE.md) mô tả đánh giá nguồn, cảnh báo RR thủ công kèm xác nhận nhu cầu độc lập/giải trình, token stale, vòng đời coverage và thứ tự khóa. RR nháp đã lưu chiếm lượng, form chưa lưu không chiếm lượng. Nguồn ngưỡng dùng Product.stockThresholds, không khôi phục bảng policy. Kết quả kiểm thử được ghi riêng trong changelog ngày triển khai; các phiếu duyệt bên dưới giữ nguyên lịch sử.
+Theo quyết định người dùng, số lượng đề nghị do người lập quyết định. Cùng kho nhận và sản phẩm, hệ thống cảnh báo khi có RR khác đang mở, PO còn hàng chưa nhận hoặc tồn khả dụng đủ ngưỡng. Khi chưa có ngưỡng, so tồn khả dụng với lượng dòng đang đề nghị. Người lập xác nhận và giải trình từng dòng có cảnh báo khi lưu hoặc gửi. Chứng từ nguồn được kiểm và lưu để truy vết.
+
+Người duyệt độc lập quyết định lượng được chấp thuận. Có thể đọc cảnh báo hiện tại khi xem xét. Tạo, sửa nháp và phát hành PO dựa trên quyết định RR còn hiệu lực và trần lượng được duyệt.
+
+[Hợp đồng triển khai](../../08_api/REPLENISHMENT_COVERAGE.md) · [Bản trước cập nhật ngày 11/11/2026](history/13_Duyet_yeu_cau_bo_sung_va_don_mua_truoc_canh_bao_2026-11-11.md)
 
 ## Những điểm đã chốt trước phiếu này
 
@@ -74,16 +78,16 @@ Một bản ghi là một yêu cầu bổ sung cho **một kho nhận**, có m�
 | `enteredUnit`, `baseUnitSnapshot`, `baseUnitsPerUnit`, `packagingSnapshot` | Dữ liệu nhúng trực tiếp trên dòng | Đơn vị nhập, đơn vị gốc, hệ số thực dùng và quy cách kiện khi có; nhập bằng đơn vị gốc dùng hệ số 1. Không tham chiếu B03/B06 |
 | `requestedQty`, `requestedQtyBase` | Decimal128 > 0 | Lượng đề nghị ở đơn vị nhập và đơn vị gốc; phần mềm kiểm hai giá trị khớp |
 | `approvedQtyBase` | Decimal128 ≥ 0 hoặc null trước quyết định | Lượng Owner chấp thuận, không vượt lượng đề nghị; có thể duyệt ít hơn và ghi lý do |
-| `sourceType`, `sourceRef` | SALES_DEMAND, STOCK_THRESHOLD, STOCKTAKE, DEFECT hoặc OTHER; tham chiếu nguồn khi có | Truy về dòng SO, thiết lập ngưỡng và phiên bản, kiểm kê/hồ sơ lỗi. Loại nguồn và tham chiếu phải khớp. Theo quyết định 10/11/2026, lý do từng dòng là tùy chọn. Nhu cầu thủ công có cảnh báo trùng vẫn cần giải trình độc lập. |
+| `sourceType`, `sourceRef` | SALES_DEMAND, STOCK_THRESHOLD, STOCKTAKE, DEFECT hoặc OTHER; tham chiếu nguồn khi có | Truy về dòng SO, thiết lập ngưỡng và phiên bản, kiểm kê/hồ sơ lỗi. Loại nguồn và tham chiếu phải khớp. Theo quyết định 10/11/2026, lý do từng dòng là tùy chọn. Mọi dòng có cảnh báo cần xác nhận và giải trình độc lập. |
 | `requiredBatchId`, `requiredTone`, `requiredCalibre` | Tham chiếu B05 hoặc chuỗi, khi nhu cầu có yêu cầu | Giữ điều kiện tương thích từ nguồn, không tự thay lô/tông/cỡ để coi là đã đáp ứng |
 | `neededBy`, `note` | Ngày giờ/chuỗi, tùy chọn | Hạn riêng của dòng, nếu trống dùng hạn đầu phiếu; ghi chú nhu cầu |
-| `coverageSnapshot` | Số liệu có thời điểm và tham chiếu nguồn | Lượng còn nghĩa vụ, đã giữ, nguồn dự kiến đúng hạn và thiếu tại lúc gửi. Chỉ là căn cứ lịch sử; khi duyệt/lập PO phải tính lại |
+| `items[].details` và snapshot gửi duyệt | Số liệu có thời điểm và tham chiếu nguồn | Tồn khả dụng, lượng RR mở, lượng PO đang về, ngưỡng và mục tiêu, cùng xác nhận và giải trình nếu có. |
 
 ### Vòng đời, quyền và trần lượng
 
-1. **Sales Staff/Warehouse Staff** tạo DRAFT theo phạm vi nhu cầu/kho được giao. Chỉ phần thiếu sau đối chiếu nguồn hợp lệ mới được gửi. Các RR đang mở cho cùng nhu cầu cũng phải được đối chiếu để tránh hai người cùng đề nghị trùng.
+1. **Sales Staff/Warehouse Staff** tạo DRAFT theo phạm vi nhu cầu/kho được giao. Người lập nhập lượng đề nghị và xác nhận kèm giải trình nếu có cảnh báo.
 2. Người tạo sửa DRAFT hoặc RETURNED rồi gửi SUBMITTED. **Store Owner** duyệt đúng bản nội dung, trả sửa hoặc từ chối; người duyệt phải khác `createdBy` theo userId. Từ chối/trả sửa/duyệt giảm lượng cần lý do. Ít nhất một dòng có lượng được duyệt dương mới trở thành APPROVED.
-3. Sau APPROVED, Accountant được lập PO trong trần dòng đã duyệt. Sửa sản phẩm/kho/điều kiện/lượng của bản đã duyệt phải gửi lại duyệt. Nếu đã có PO, kiểm các lượng đang đặt/đã nhận trước thay đổi; không ghi đè dữ liệu mà PO đã tham chiếu.
+3. Sau APPROVED, Accountant được lập PO trong trần dòng đã duyệt. Kiểm bản được duyệt và quyết định mới nhất khi lập, sửa nháp và phát hành. Sửa sản phẩm/kho/điều kiện/lượng của bản đã duyệt phải gửi lại duyệt. Nếu đã có PO, kiểm các lượng đang đặt/đã nhận trước thay đổi; không ghi đè dữ liệu mà PO đã tham chiếu.
 4. Người tạo có thể hủy nháp hoặc rút yêu cầu đang chờ chưa có quyết định. Hủy phần đã duyệt cần quyền quyết định của Store Owner và lý do; phần đã có PO đi theo xử lý PO, không chỉ đổi trạng thái RR để bỏ nghĩa vụ mua. Lịch sử các lần gửi/duyệt được giữ.
 5. Tiến độ đặt mua và nhận hàng được đọc từ PO và phiếu nhập. Đã lập PO không đồng nghĩa hàng đã về. Phần chưa được đặt vẫn hiển thị và xử lý trên PO duy nhất đó hoặc đóng phần không tiếp tục theo quyết định hợp lệ.
 
@@ -152,8 +156,8 @@ Bộ lọc quyền áp dụng cả chi tiết, danh sách, xuất file, thông b
 ### Đặt, nhận, sửa và đóng PO
 
 1. Accountant tạo DRAFT từ bản RR APPROVED còn hiệu lực, chọn một NCC ACTIVE và kho đúng RR. Một dòng RR có thể được chia thành các dòng PO theo quy cách khi cần, nhưng tổng lượng gốc của mọi dòng tham chiếu nó không vượt lượng được duyệt. Quy cách khi nhận có thể khác quy cách đặt, phải đối chiếu bằng đơn vị gốc.
-2. Accountant phát hành nháp sang OPEN và ghi thời điểm phát hành. Việc lập hoặc phát hành PO không tạo tồn và không tự lập phiếu nhập.
-3. Mỗi lần hàng đến ghi phiếu nhận theo đúng dòng PO. Tiến độ phải phân biệt lượng mang đến, lượng chấp nhận sở hữu, lượng chờ/giữ hộ và từ chối. Lượng đã nhận lấy từ chứng từ đã ghi hợp lệ, không nhập tay ở PO. C06 dùng ngày dự kiến chung của PO để xét đúng hạn cho phần chưa nhận. Chi tiết nhận hàng H03–H05 được trình riêng.
+2. Accountant phát hành nháp sang OPEN và ghi thời điểm phát hành. Việc lập hoặc phát hành PO chỉ ghi chứng từ đặt mua. PO dùng kết quả đã duyệt của RR làm căn cứ số lượng.
+3. Mỗi lần hàng đến ghi phiếu nhận theo đúng dòng PO. Tiến độ phải phân biệt lượng mang đến, lượng chấp nhận sở hữu, lượng chờ/giữ hộ và từ chối. Lượng đã nhận lấy từ chứng từ đã ghi hợp lệ, không nhập tay ở PO. Cảnh báo RR hiển thị ngày dự kiến chung và phần PO chưa nhận, kể cả khi ngày dự kiến sau hạn cần của RR. Chi tiết nhận hàng H03–H05 được trình riêng.
 4. `còn phải nhận = lượng đặt − lượng đã chấp nhận theo phiếu nhập hợp lệ − phần chưa nhận được duyệt hủy`. Các lượng quy về đơn vị gốc, không âm. Hàng thừa/sai không tự cộng vào lượng đã hoàn thành PO. Hàng đã nhận rồi trả NCC giữ lịch sử nhập gốc; việc NCC giao bù phải có nguồn liên kết và trần nhận riêng được duyệt ở luồng trả, không tự mở lại trần vô hạn.
 5. Sửa nội dung khi còn DRAFT, trong phạm vi RR đã duyệt. Khi PO `OPEN` hoặc `PARTIAL`, Accountant có thể đổi ngày dự kiến chung và phải ghi lý do. Sau phát hành, nếu ngừng chờ một phần hàng, Accountant đề nghị, người có thẩm quyền duyệt độc lập, rồi Accountant thực hiện đóng lượng chưa nhận đủ điều kiện. Lượng đặt, giá mua và chứng từ nhập đã ghi được giữ để đối chiếu.
 6. Nhận đủ các dòng hợp lệ và xử lý xong các chênh lệch thuộc PO thì COMPLETED. Nếu không nhận phần còn lại, Store Owner cho phép đóng thiếu có lý do rồi CLOSED_SHORT; PO đã nhận một phần không đổi thành CANCELLED để xóa lịch sử. Hủy khi chưa có phần thực hiện cũng phải có căn cứ và giải phóng/đánh giá lại các nguồn C06 liên quan. Thông báo/số liệu đặt lại chỉ là đề xuất, không tự mua thay.

@@ -1,4 +1,3 @@
-import { assessSavedRequest } from '../replenishments/replenishment.commands.js';
 import { PurchaseOrder, ReplenishmentRequest, Supplier, Warehouse, Product, ApprovalHistory, AuditLog } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { requireWarehouseAccess } from '../../shared/utils/access.js';
@@ -8,19 +7,6 @@ import { command, checkVersion, saveVersion, same, hash, newId } from '../../sha
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
 import { findPurchase, replayPurchase, newDocument, evidenceFor } from '../po-receiving/purchase-core.js';
 import { purchaseOrderQuantities } from './purchase-order.service.js';
-
-async function assessPurchaseSource(request, items, actor, input, session, poId) {
-  try { return await assessSavedRequest(request, actor, session, { evaluations: input.evaluations,
-    quantities: request.items.map(source => items.find(item => same(item.requestItemId, source._id))?.qtyBase ?? '0'),
-    selectedItemIds: items.map(item => String(item.requestItemId)), excludePurchaseOrderId: poId, requireAdjustmentReason: false }); }
-  catch (error) {
-    if (error.code === 'ERR-RR-409-004' && error.details?.latestEvaluations) {
-      error.details.latestEvaluations = error.details.latestEvaluations.map((value, index) => ({ ...value,
-        lineId: String(request.items[(value.lineNo ?? index + 1) - 1]._id) }));
-    }
-    throw error;
-  }
-}
 
 async function draftItems(actor,input,session,previous=[]){
   requireWarehouseAccess(actor,input.warehouseId);
@@ -49,7 +35,11 @@ async function draftItems(actor,input,session,previous=[]){
 export function createPurchaseOrder(user,input){
   return command(user,'CREATE_PURCHASE_ORDER','purchase_order:create',null,input,replayPurchase,async(session,actor)=>{
     const prepared=await draftItems(actor,input,session);
-    await assessPurchaseSource(prepared.request,prepared.items,actor,input,session);
+    // RR cancellation checks for a linked PO. Write the source in the same
+    // transaction so a concurrent cancel and PO creation cannot both commit.
+    const request = prepared.request;
+    const updatedAt = new Date(Math.max(Date.now(), (request.updatedAt?.getTime() ?? 0) + 1));
+    await ReplenishmentRequest.updateOne({ _id: request._id }, { $set: { updatedAt } }, { session, timestamps: false });
     const po=newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
       supplierSnapshot:{code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone}},prepared.items);
     po.replenishmentRequestId=prepared.request._id;po.totalAmount=prepared.total;po.currency=input.currency;po.sources=[sourceLink(prepared.request)];
@@ -62,7 +52,6 @@ export function updatePurchaseOrder(user,id,input){
     if(po.workflowStatus!=='DRAFT')throw validationError('Chỉ sửa trực tiếp PO nháp');
     const prepared=await draftItems(actor,input,session,po.items);
     if(!same(prepared.request._id,po.replenishmentRequestId))throw validationError('Không đổi RR nguồn của PO');
-    await assessPurchaseSource(prepared.request,prepared.items,actor,input,session,po._id);
     po.items=prepared.items;po.totalAmount=prepared.total;po.currency=input.currency;
     po.header.warehouseId=input.warehouseId;po.header.supplierId=input.supplierId;po.header.expectedOn=input.expectedOn;
     po.header.supplierSnapshot={code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone};
@@ -82,7 +71,6 @@ export function confirmPurchaseOrder(user,id,input){
       if(!await Product.exists({_id:item.productId,isActive:true}).session(session))throw validationError('Sản phẩm đã ngừng hoạt động');
     }
     if(!await Supplier.exists({_id:po.header.supplierId,status:'ACTIVE'}).session(session))throw validationError('NCC đã ngừng hoạt động');
-    await assessPurchaseSource(rr,po.items,actor,input,session,po._id);
     po.workflowStatus='OPEN';po.header.issuedAt=new Date();
     return{document:await saveVersion(po,input.expectedVersion,session),versionBefore:input.expectedVersion};
   });
