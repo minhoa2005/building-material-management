@@ -156,6 +156,12 @@ export function attachDocumentItems(parent, item) {
     );
 }
 export function addDocumentIndexesAndRules(schema) {
+ schema.add({tenLoaiPhieu:{type:String,maxlength:160},maDonVi:{type:String,maxlength:80},kyDanhSo:{type:String,match:/^[0-9]{6}$/},soThuTu:{type:Number,min:1,validate:Number.isSafeInteger},trangThaiTiengViet:{type:String,maxlength:160}});
+ schema.pre('validate',function(){
+ if(!this.tenLoaiPhieu)return;
+ const labels={OPEN:'Đang mở',DRAFT:'Nháp',RELEASED:'Đã giao kho',PARTIAL:'Đang thực hiện',CONFIRMED:'Đã xác nhận',PICKED:'Đã soạn',POSTED:'Đã ghi sổ',CANCELLED:'Đã hủy',COMPLETED:'Hoàn tất',CLOSED:'Đã đóng',PENDING_APPROVAL:'Chờ duyệt',APPROVED:'Đã duyệt',REJECTED:'Đã từ chối',DELIVERED:'Đã giao'};
+ this.trangThaiTiengViet=labels[this.workflowStatus]||this.trangThaiTiengViet;
+ });
   schema.index({ "items._id": 1 });
   schema.index({ "sources.documentId": 1 });
   schema.index({ "items.sources.itemId": 1 });

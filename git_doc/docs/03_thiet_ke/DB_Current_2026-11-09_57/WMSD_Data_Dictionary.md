@@ -1,8 +1,22 @@
 # Từ điển dữ liệu hiện hành — mốc 09/11/2026
 
-Registry hiện hành có 58 collection, gồm `conversions`. Các định nghĩa chưa được thay thế tại đây giữ theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`.
+Registry hiện hành có 58 collection nghiệp vụ và 1 collection kỹ thuật (`document_sequences`), tổng cộng 59 collection. Các collection nghiệp vụ gồm `conversions`. Các định nghĩa chưa được thay thế tại đây giữ theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`.
 
-[ERD 58 collection](WMSD_ERD_Current.drawio) được sinh từ registry hiện hành. GoodsReceipt nằm trong nhóm nhận hàng và liên kết các luồng nguồn qua `sources`.
+[ERD 58 collection nghiệp vụ](WMSD_ERD_Current.drawio) mô tả các collection nghiệp vụ. Collection kỹ thuật `document_sequences` được mô tả bên dưới. GoodsReceipt nằm trong nhóm nhận hàng và liên kết các luồng nguồn qua `sources`.
+
+## Mã phiếu và nhãn tiếng Việt HieuDT — 11/11/2026
+
+Thiết kế bổ sung: entity kỹ thuật DocumentSequence độc lập, PK _id=tiền tố loại/đơn vị/tháng; không thêm foreign key vào chứng từ. Chứng từ giữ documentNo và metadata cấp số như bảng mô tả dưới đây.
+
+Theo yêu cầu người dùng, phiếu mới lưu documentNo theo mẫu Loại–Kho/Bộ phận–YYYYMM–Số tự động, ví dụ ĐBH–KD–202611–000001 hoặc LCV–KHO01–202611–000001. Tháng tính theo Asia/Ho_Chi_Minh. SO dùng bộ phận KD; phiếu kho lấy warehouses.code tại lúc cấp mã. Mỗi loại/đơn vị/tháng có dãy riêng bắt đầu 1; số tối thiểu 6 chữ số, không cắt khi vượt 999999.
+
+Các loại: ĐBH (đơn bán), YCX (yêu cầu xuất), LGH (lệnh giao), PXB (phiếu xuất bán nháp), LSH (soạn bán), LCV (TO chuyển vị trí/nội bộ), YCĐC (yêu cầu điều chuyển), PXĐC (xuất điều chuyển), YCNB (yêu cầu nội bộ), PNĐC (nhận điều chuyển), BCH (hàng hỏng phát sinh khi nhận), ĐCKK (điều chỉnh kiểm kê), BBBG (bàn giao nhúng).
+
+Giữ trường kỹ thuật và enum hiện hành. Bổ sung trường tùy chọn tenLoaiPhieu (String 160), maDonVi (String 80), kyDanhSo (String YYYYMM), soThuTu (safe integer >0), trangThaiTiengViet (String 160) trên chứng từ. Nhãn trạng thái đồng bộ lúc validate/save; không dùng nhãn để phân quyền hay quyết định nghiệp vụ. Handover lưu cùng metadata. Đợt kiểm kê có sẵn giữ mã, khi HieuDT chốt ghi nhãn đợt/trạng thái. Không đổi các UC tạo/đếm/duyệt kiểm kê thuộc người khác.
+
+Collection kỹ thuật document_sequences (model DocumentSequence): _id String là tiền tố đầy đủ (unique index _id), soCuoi safe integer >=0, tenLoaiPhieu String 160, maDonVi String 80, ky String 6, createdAt/updatedAt Date. Không có quan hệ ObjectId; tiền tố định danh dãy. Bộ đếm tăng nguyên tử max(soCuoi, hậu tố lớn nhất của phiếu cùng mẫu)+1 trong cùng transaction ghi phiếu; rollback không tiêu số, gửi lại cùng idempotencyKey không cấp số mới, phiếu hủy không tái sử dụng số. Không cấp mã phía FE. Cần tạo collection document_sequences trước giao dịch đầu tiên như các collection runtime hiện hành.
+
+Tương thích: không đổi mã/ID hoặc nguồn của phiếu cũ; dữ liệu cũ không bắt buộc metadata. Dãy mới chỉ kế thừa phiếu cùng tiền tố mẫu mới, không lấy hậu tố ObjectId cũ. Chưa chuyển dữ liệu DB nhóm; collection và metadata phát sinh khi triển khai và tạo phiếu mới. Không chạy seed lại để nâng DB đang có dữ liệu.
 
 ## Conversion và Uom
 

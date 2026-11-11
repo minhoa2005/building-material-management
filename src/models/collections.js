@@ -55,7 +55,7 @@ export const legacyMigrationCollections = [...new Set([...migrationCollections.f
 import { removedCollections } from './consolidation.js';
 // Categories belong to the current design; the historical migration profile
 // deliberately retains its original collection/field contract.
-export const newCollections = [...new Set(migrationCollections.filter(name => !removedCollections.includes(name))), 'categories', 'uoms', 'conversions'];
+export const newCollections = [...new Set(migrationCollections.filter(name => !removedCollections.includes(name))), 'categories', 'uoms', 'conversions', 'document_sequences'];
 
 export const workflowModelNames = Object.freeze({
   REPLENISHMENT: 'ReplenishmentRequest', PO: 'PurchaseOrder', ARRIVAL: 'GoodsArrival',

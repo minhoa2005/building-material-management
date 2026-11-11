@@ -22,7 +22,7 @@ import {
 export function createWarehouseIssueRequestSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["ISSUE_REQUEST"], { default: "ISSUE_REQUEST" }),
       workflowStatus: text(40),
       version: integer(1),

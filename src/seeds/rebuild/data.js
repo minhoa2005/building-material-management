@@ -223,5 +223,6 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
     basePerUnit: mongoose.Types.Decimal128.fromString(row.basePerUnit),
     createdAt: demoDate(1), updatedAt: demoDate(1),
   }));
+  result.document_sequences = [];
   return result;
 }

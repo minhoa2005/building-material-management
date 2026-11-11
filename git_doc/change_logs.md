@@ -22,6 +22,22 @@
 - Cập nhật tài liệu AI Assistance Log và Requirements Traceability Matrix (`be/docs/ai-log.md`, `be/docs/rtm.md`). Không cần migration DB.
 - Bộ kiểm thử backend (`npm test`) đạt 103/103 tests.
 
+11/11/2026: người dùng yêu cầu mã phiếu tự động và lưu thêm nhãn tiếng Việt, giữ mã kỹ thuật, giới hạn luồng HieuDT. Thêm DocumentSequence, cấp số transaction từ mã cuối +1, metadata tiếng Việt và cập nhật schema/seed rỗng/tài liệu. Đã fetch và merge main trực tiếp: BE 495b946, FE c91ef76, already up to date, giữ toàn bộ code đang sửa. Không ghi DB nhóm. Kiểm chứng cuối: allocator MongoDB 2/2; HieuDT 11/11; native 15/15 (bao gồm BF03/BF04); suite mặc định 106 pass/77 skip/0 fail; docs:check 59 collections/696 links. Lượt đầu lỗi biểu thức PCRE khi tìm mã đã được sửa và các test bị ảnh hưởng chạy lại đạt. Không commit/push.
+
+## 11/11/2026 — Rà soát và chuẩn bị push HieuDT theo yêu cầu
+
+- Người dùng yêu cầu kiểm tra đủ code ba iteration HieuDT rồi push đúng nhánh. Fetch/gộp main BE 495b946 và FE c91ef76; giữ stash trước gộp, không force-push hoặc sửa nhánh main. Tích hợp Conversion và các thay đổi mới main; giữ luồng tài khoản dùng quyền/kho thật và BF03/BF04 trong phần đang sửa.
+- Bổ sung lịch sử GI/POD/nhập lại hàng giao thất bại trong API SO và lệnh giao theo đúng dòng/kho; FE hiển thị lịch sử thực cùng xác nhận tiền ngoài. Sales options có danh mục đơn vị và quy đổi hiện hành từ main. Không hardcode BOX trên form SO. Không tự quyết người xác minh nguồn D07/D08.
+- Sửa bảng API HieuDT dùng đúng /location-movements và /warehouse-transfers; FE vẫn /location-moves và /transfers. Cập nhật docs/rtm.md hai repo theo mã UC hiện hành, đối chiếu mã trong kế hoạch gốc và ghi rõ mức kiểm chứng local.
+- Bản sau gộp đã qua production build FE và suite BE mặc định 105 đạt/75 skip/0 lỗi. Kết quả kiểm thử tích hợp và UI cuối được ghi bổ sung sau chạy. Không áp dụng backfill Conversion, seed hoặc dữ liệu lên DB của nhóm; đây là push code, không triển khai DB.
+
+## 11/11/2026 — Tự động hóa kiểm thử và demo quy trình trả hàng (trungph)
+
+- Bổ sung kịch bản kiểm thử tự động hóa end-to-end `scripts/demo-return-workflows.mjs` chạy qua toàn bộ 6 quy trình trả hàng của trungph (BF02 báo cáo phế phẩm, BF07 trả hàng khách, trả hàng giao không thành công, BF08 trả nhà cung cấp, truy vết lô đa cấp qua 58 collection và chứng từ ngoài/lịch sử).
+- Thêm lệnh `npm run demo:returns` vào `package.json`. Kịch bản thực thi trực tiếp trên in-memory dataset 58 schema đã chuẩn hóa và tự động kiểm tra kết nối cơ sở dữ liệu trực tiếp khi có biến môi trường.
+- Bảo toàn định dạng hợp đồng API trả hàng, kiểm soát phiên bản và tính lũy kế trong [hợp đồng return workflows](docs/08_api/RETURN_WORKFLOWS_NATIVE.md).
+
+
 ## 10/11/2026 — API tra cứu chứng từ nguồn cho RR
 
 - Theo kế hoạch người dùng duyệt, module replenishments thêm `GET /api/replenishments/options/sources` cho đơn bán và phiên kiểm kê. API phân trang sau khi lọc theo phạm vi người dùng, trạng thái nguồn và bộ lọc sản phẩm hoặc kho. Kiểm kê hợp nhất sản phẩm từ dòng và snapshot.
@@ -110,6 +126,15 @@
 - Cập nhật Model Map, Data Dictionary hiện hành, ERD và hợp đồng runtime Product. Không đổi quyền, không thêm collection/index, không migration/backfill. Upload file và UI nằm ngoài phạm vi.
 - Kiểm tra: 18/18 test Product đạt; kiểm thử tích hợp API Product 1/1 đạt trên MongoDB replica set loopback cô lập; `npm run docs:check` đạt với 57 collection và 674 liên kết. Chưa chạy toàn bộ native API integration suite.
 
+## 10/11/2026 — HieuDT: tích hợp main và nối ba iteration native
+
+- Phạm vi do người dùng chốt: 18 UC riêng HieuDT theo kế hoạch ngày 28/10; giữ và gộp toàn bộ công việc đang sửa. BE chuyển HieuDT và fast-forward origin/main babedb1; FE gộp origin/main 01f4c42 bằng merge b1e1da2. Chỉ sửa trên HieuDT. Stash trước merge còn giữ, bản đối chiếu xung đột ở outputs/hieudt-20261109; không commit phần tính năng mới, không push.
+- Bổ sung sales-execution service/validation/routes: sửa/hủy phần SO tự do, tạo WIR nguồn cho UC51, OD/reservation, picking từng phần, chống vượt cam kết khi đồng thời và hạn mức chung giao bù/hủy. Sửa Customer lookup theo schema, bổ sung reopenedSources và chống tính trùng reservation của nhiệm vụ trong shared stock. Chốt kiểm kê kiểm đúng snapshot/count/phương án/phê duyệt/thực hiện/bằng chứng; ghi DELTA hoặc RECLASS/RELOCATE và mở khóa nguyên tử. Báo cáo lấy dữ liệu native theo kho, không tổng hợp khác đơn vị hoặc trả giá ngoài phạm vi.
+- FE nối orders/outbound-deliveries/picking-tasks/stocktakes/reports; giữ các luồng BF03/BF04 đã sửa. Quyền route dựa permission thực; retry giữ nguyên payload khi chưa rõ kết quả; ảnh nguồn dùng link riêng tư; CSV xuất từng dòng và chặn công thức. Khi giải xung đột giữ hợp đồng mới main cho danh mục/mua/nhập, ghép API tài khoản, lô, phạm vi kho và các luồng HieuDT vào DTO hiện hành.
+- Hợp đồng hiện hành: [18 UC và endpoint/màn hình](docs/08_api/HIEUDT_ITERATIONS_NATIVE.md), [sales](docs/08_api/sales-orders/README.md), [native runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md), [local tests](docs/09_phat_trien/HIEUDT_LOCAL_TESTS.md), PROJECT_GUIDE và context hai repo. Không đổi thiết kế collection. Index chống trùng ITR/TO và tài liệu BF03/BF04 từ công việc đang sửa được giữ lại.
+- Đã kiểm: suite HieuDT 10/10 (service transaction + HTTP); suite native 11/11 (BF03/BF04, mua/nhập/đảo, catalogue); FE 11/11 trong 4 file; typecheck đạt. Suite BE mặc định cuối: 83 đạt, 71 skip theo cờ môi trường, 0 lỗi. FE production build đạt; docs:check đạt (57 collections, 685 liên kết). Lỗi kết nối loopback ở lượt hạn chế đã được xác định và chạy lại thành công, không sửa API để né kiểm quyền.
+- Kiểm thử dùng replica set riêng localhost:27018/hieudt-test, DB ngẫu nhiên có prefix và dọn sau chạy. Không ghi DB chung/Atlas, không đổi instance 27017. Chưa browser E2E và chưa upload/download Cloudinary thật trong lượt này. D07/D08 xác minh nguồn SO mới vẫn chờ quyết định; UC chuẩn bị/phê duyệt/thực hiện kiểm kê ngoài 18 UC là dữ liệu đầu vào, thiếu thì chốt thất bại và giữ khóa.
+
 ## 08/11/2026 — Dọn tiện ích không sử dụng
 
 - Theo yêu cầu người dùng, gỡ `scopedWarehouseIds`, `isPastCalendarDate`, `multiplyBaseQuantity` và `sha256Text` sau khi kiểm tra mã, test và script không có điểm gọi. Bốn mapper product, lot, supplier và replenishment cũ đã không còn trong checkout sau merge. Giữ nguyên toàn bộ mã upload.
@@ -120,6 +145,10 @@
 
 - Form tạo sản phẩm lấy danh mục đang hoạt động từ API tùy chọn, bắt buộc chọn và gửi ObjectId tương ứng. Đơn vị gốc gửi mã UOM. Giữ nguyên API, model và dữ liệu. [Hợp đồng Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md).
 - Sáu test form đạt, gồm kiểm giá trị danh mục, mã UOM, yêu cầu chọn danh mục và hiển thị lỗi `body.categoryId` tại ô phân loại. Kiểm thử form dùng fixture API.
+
+## 2026-11-07 — Presentation startup: public authentication route
+
+Moved the native workflow router after public health/auth mounts so its authentication middleware no longer intercepts login. Reproduced the blocked login, verified local seeded role logins and workflow options, and added a regression for public health/login validation with protected workflow options. Presentation runs against a separate local replica-set demo database; no Atlas connection or data change.
 
 ## 2026-11-07 — Tutor feedback: request terminology and source entry
 
@@ -181,6 +210,39 @@ Theo yêu cầu tạo và chạy script cho `wmsd_api_test_6aedf823b3e33975e06c0
 # 06/11/2026 — Iteration 1 native theo kế hoạch được duyệt
 
 Thêm Uom, metadata sản phẩm/NCC, xử lý giữ hộ trọn vòng đời và Warehouse tự đảo nhập. Registry 60 collections; giữ items/source/snapshot native. Quyết định mới trong git_doc/docs/08_api/ITERATION1_NATIVE_2026-11-06.md. Có migration dry-run chỉ test DB local; không chạy Atlas, không commit/push. Kết quả kiểm thử ghi trong tài liệu bàn giao cùng đợt.
+
+## 2026-11-07 — Seed bổ sung BF03 theo yêu cầu người dùng
+
+Thêm scripts/seed-bf03.mjs và hướng dẫn docs/09_phat_trien/BF03_SEED.md. Preview
+đọc đúng wmsd_database/K-GACH-01: thêm sản phẩm riêng BF03-DEMO-6060, lô VERIFIED,
+hai vị trí BF03-A/B, hai holding points, 40 viên/10 thùng tại A, phiếu tồn đầu kỳ
+và transaction/movement. Không sửa master hoặc tài khoản hiện có; ghi transaction,
+chạy lại không cộng lại tồn đã chuyển. Người dùng duyệt nạp vào wmsd_database.
+Đã phân biệt .env đang ghi sep490 với DB người dùng xác nhận wmsd_database;
+không dùng số liệu sep490 để kết luận dữ liệu wmsd_database thiếu.
+
+Kết quả: 6/6 native integration local đạt, gồm seed→options→chuyển 1 thùng→rerun
+giữ tồn 36 viên. Người dùng đã duyệt đích remote; nạp 9 bản ghi thành công vào
+wmsd_database và đọc lại service options với thukho01 thấy nguồn BF03-A 40 viên,
+đích BF03-B. Không chuyển thử remote. docs:check/diff check đạt. Không đổi kết
+nối ứng dụng, chưa commit/push.
+
+## 2026-11-07 — Sửa API BF03/BF04 theo native models
+
+Theo yêu cầu sửa toàn bộ API BF03/BF04 và quy tắc hiện hành trong PROJECT_GUIDE.
+BF03 bỏ trạng thái PARTIAL khỏi bộ lọc và UI, xác nhận trọn lệnh bởi creator;
+actual hiển thị từ ledger, giữ key khi thử lại. Sửa lỗi embedded packagingPortions
+khi chuyển một phần thùng nguyên: giữ subdocument/timestamp còn lại thay vì recast.
+BF04 thêm options có scope tồn/vị trí và danh mục kho đích, kiểm quyền lại khi
+replay TO, chặn sinh trùng ITR/TO bằng lock + unique partial indexes. Sửa ca nhận
+toàn hàng hỏng với destinations rỗng để có thể đóng TR. FE dùng biểu mẫu thay
+prompt/JSON, quyền theo permission và kho, payload enteredUnit/native IDs.
+
+Đã cập nhật hai API contract, MODEL_MAP, Data Dictionary và model changelog.
+5/5 native integration đã qua trên replica test cục bộ (gồm full BF03, replay,
+full BF04/custom role và ca toàn hỏng). Typecheck FE đạt. Không ghi DB nhóm hoặc
+remote. Index mới cần rà trùng trước triển khai DB có dữ liệu. Full FE suite còn
+lỗi lịch sử theo mốc trước, không coi đây là nghiệm thu toàn project. Chưa commit/push.
 
 ## 2026-11-06 — Đồng bộ runtime theo model mới (đang kiểm chứng)
 

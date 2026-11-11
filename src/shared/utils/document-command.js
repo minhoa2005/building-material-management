@@ -186,7 +186,8 @@ export async function command(
         if (prior) return replay(prior, actor);
         if (
           error.code === 11000 &&
-          error.message?.includes("warehouseId_1_productId_1") &&
+          (error.message?.includes("warehouseId_1_productId_1") ||
+            error.message?.includes("document_sequences")) &&
           attempt < 3
         )
           continue;

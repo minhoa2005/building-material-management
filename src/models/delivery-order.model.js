@@ -22,7 +22,7 @@ import {
 export function createDeliveryOrderSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["OUTBOUND_DELIVERY"], {
         default: "OUTBOUND_DELIVERY",
       }),

@@ -1,3 +1,4 @@
+import { nextDocumentFields } from '../../shared/utils/document-number.js';
 import { TransferOrder, Warehouse, WarehouseLocation, InventoryBalance, StockHoldingPoint, StockTransaction, ProductBatch, Product } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
@@ -38,7 +39,7 @@ export async function relocationItems(user, warehouseId, input, session, exclude
 export function createLocationMovement(user, input) {
   return command(user, 'CREATE_RELOCATION', 'stock_relocation:create', null, input, replay, async (session,actor) => {
     requireWarehouseAccess(actor, input.warehouseId);
-    const document = await new TransferOrder({ documentNo: 'TO-' + newId(), workflowStatus: 'OPEN', version: 1, createdBy: actor._id,
+    const document = await new TransferOrder({ ...await nextDocumentFields(TransferOrder, 'TO', input.warehouseId, session), workflowStatus: 'OPEN', version: 1, createdBy: actor._id,
       header: { warehouseId: input.warehouseId, taskKind: 'RELOCATE', assignedTo: actor._id, reason: input.reason },
       items: await relocationItems(actor, input.warehouseId, input, session) }).save({ session });
     return { document };

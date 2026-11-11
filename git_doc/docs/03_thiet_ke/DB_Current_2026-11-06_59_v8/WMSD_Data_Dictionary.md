@@ -2042,6 +2042,10 @@ Indexes:
 
 Model: [transfer-order.model.js](../../../../src/models/transfer-order.model.js).
 
+Index bổ sung 07/11/2026: unique `header.requirementId`, chỉ áp dụng khi giá trị
+là ObjectId. Mỗi ITR sinh tối đa một TO; BF03 RELOCATE không cần trường này.
+Service kiểm quyền, nguồn và trạng thái; index chỉ bảo vệ tính duy nhất.
+
 | Trường | Kiểu | Bắt buộc | Liên kết |
 |---|---|---|---|
 | `documentNo` | String | true |  |
@@ -2319,6 +2323,10 @@ Indexes:
 ## internal_transfer_requirements
 
 Model: [internal-transfer-requirement.model.js](../../../../src/models/internal-transfer-requirement.model.js).
+
+Index bổ sung 07/11/2026: unique `header.sourceDocumentId`, chỉ áp dụng khi giá
+trị là ObjectId. Mỗi dispatch/receipt sinh tối đa một ITR. Khi triển khai vào DB
+cũ phải rà trùng trước; không tự xóa hoặc gộp hồ sơ. Chưa triển khai index remote.
 
 | Trường | Kiểu | Bắt buộc | Liên kết |
 |---|---|---|---|

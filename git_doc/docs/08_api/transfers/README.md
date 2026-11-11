@@ -1,49 +1,27 @@
-# FE-05 Iteration 1 — UC-38 / UC-39
+# BF04 API
 
-> Phạm vi tài liệu này là API hoặc kết quả kiểm tra của runtime trước khi chuyển DB. Quy tắc thiết kế mới và trạng thái chuyển đổi được nêu trong [PROJECT_GUIDE](../../../PROJECT_GUIDE.md). Khi port module, cập nhật contract tại đây và ghi rõ profile đã kiểm.
+Hợp đồng native hiện hành: [BF04_API.md](BF04_API.md).
 
-GET `/api/warehouse-transfers` and GET `/api/warehouse-transfers/:id` use the
-existing `{success,message,data}` response envelope and authentication.
-Write endpoints for the revised BF04 main flow are described in [BF04_API.md](BF04_API.md).
+`GET /api/warehouse-transfers` nhận `sourceWarehouseId`,
+`destinationWarehouseId`, `status`, `from`, `to`, `page` và `limit` (tối đa 100).
+Kết quả trong envelope `data={items,total,page,limit}`. Bộ lọc lạ, toán tử và ngày
+không hợp lệ trả 400. Scope được lọc trước phân trang.
 
-List query: optional sourceWarehouseId, destinationWarehouseId, status, from/to
-(ISO timestamps with timezone), page (default 1), limit (default 20, maximum 100).
-Unknown fields/operators/invalid IDs/date order return 400. Results sort by
-createdAt descending then _id; filtering and authorization happen before paging.
-Data is `{items,total,page,limit}`. Empty results are valid.
+`GET /api/warehouse-transfers/:id` trả TR với `header`, `items`, các dispatch,
+receipt, internalRequirements, tasks và approvals native. Các dòng nằm trong
+`items[]`, số lượng là decimal string. Sales chỉ nhận tiến độ dispatch/receipt;
+không trả dữ liệu vận hành nội bộ của chúng.
 
-OWNER has store-wide access. ACCOUNTANT reads reconciliation data. WAREHOUSE
-requires assignment to either source or destination. ADMIN has no business
-access. SALES requires a saved, non-cancelled DemandSupplyAllocation tracing
-the supply TR/TD line back to a SO created by that user (directly or through its
-WIR). No assignment field for another Sales user exists in this schema.
-Sales gets progress only; notes, evidence and internal decisions are omitted.
-Decision confirmed on 29 October 2026: a related demand grants Sales the overall
-TR progress, even when the TR serves several Sales users. Internal documents,
-line details, notes, evidence, handovers and operational actors remain hidden.
-Unrelated or unavailable detail returns 404; missing operation permission 403.
+`GET /api/warehouse-transfers/options` trả danh mục kho hoạt động để chọn kho
+đích, và `sourceWarehouseIds` cho kho được thao tác. Truyền `warehouseId` chỉ trả
+vị trí/tồn khi caller có quyền trong kho đó. Products là danh mục đang hoạt động;
+balances/batches dùng cho chọn tồn xuất.
 
-Requested quantities come from TR lines. Dispatch/receipt totals use POSTED TD
-and POSTED MWTR lines; receipts must reference a matching product/lot dispatch
-line in that same dispatch. Draft quantities do not count as actual movements.
-Transit is read from stock accounts keyed by dispatch line, not guessed as the
-requested quantity minus received quantity. Quantities use decimal strings.
-Multiple products are listed in quantitiesByProduct; combined quantity fields
-are null when products differ, to avoid adding incompatible base units.
+Mọi route cần `stock_transfer:read`. Owner đọc toàn cửa hàng, Accountant đọc dữ
+liệu đối chiếu, Sales chỉ đọc TR liên kết nhu cầu của chính mình; người dùng còn
+lại đọc trong kho được phân công. Các command kiểm thêm quyền tương ứng, nguồn,
+version, trạng thái và tách người duyệt/nhận như hợp đồng chính.
 
-Detail includes saved TR lines, current-version TRANSFER_APPROVAL quantities,
-separate dispatch/receipt documents, handovers, source-line links, differences,
-linked warehouse tasks and evidence metadata (never private objectKey/URL/hash).
-Missing approval quantity is null, not implicitly equal to requested quantity.
-The stored status is displayed; receiving one batch never closes a TR on read.
-Read operations use a snapshot transaction and require a MongoDB replica set.
-
-The original Iteration 1 read API is now accompanied by BF04 main-flow writes. Reversal,
-cancellation and variance execution writers must maintain their source documents
-and balances consistently. The current projection does not recalculate a complete
-closure decision or authorize a new posting. There is no evidence download route
-and no FE HTTP integration in this change.
-
-Tests: `node --test test/transfer-reads.test.js` and, with a test replica-set URI
-in MONGODB_TEST_URI, `node --test test/transfer-reads.integration.test.js`.
-Integration creates and drops only a random sep490_transfer_read_* database.
+Kiểm tra DTO: `node --test test/transfer-reads.test.js`. Luồng transaction native:
+`RUN_NATIVE_API_TESTS=1 node --test test/native-api.integration.test.js`, dùng DB
+test ngẫu nhiên tại localhost:27028, không dùng URI ứng dụng.

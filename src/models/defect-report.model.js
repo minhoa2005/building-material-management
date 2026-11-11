@@ -32,7 +32,7 @@ import {
 export function createDefectReportSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["DEFECT_CASE"], { default: "DEFECT_CASE" }),
       workflowStatus: text(40),
       version: integer(1),

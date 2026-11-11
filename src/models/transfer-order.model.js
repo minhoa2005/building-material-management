@@ -22,7 +22,7 @@ import {
 export function createTransferOrderSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["TO"], { default: "TO" }),
       workflowStatus: text(40),
       version: integer(1),
@@ -47,6 +47,11 @@ export function createTransferOrderSchema() {
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   attachDocumentItems(schema, item);
   addDocumentIndexesAndRules(schema);
+  // An ITR generates one BF04 execution order. RELOCATE orders have no requirementId.
+  schema.index(
+    { "header.requirementId": 1 },
+    { unique: true, partialFilterExpression: { "header.requirementId": { $type: "objectId" } } },
+  );
 
   return schema;
 }

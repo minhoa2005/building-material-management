@@ -66,27 +66,27 @@ This BE matrix records BE implementation and test evidence only. The other repos
 | UC-45 | Create Put-away Task | FE-04 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-46 | Confirm Put-away Task | FE-04 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-47 | View location movement list | FE-04 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-48 | View location movement details | FE-04 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-49 | Create location movement | FE-04 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-50 | Confirm actual location movement | FE-04 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-51 | View warehouse transfer list | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-52 | View warehouse transfer details | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-48 | View location movement details | FE-04 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-35; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-49 | Create location movement | FE-04 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-36; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-50 | Confirm actual location movement | FE-04 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-37; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-51 | View warehouse transfer list | FE-05 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-38; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-52 | View warehouse transfer details | FE-05 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-39; current native contract. Local verification; browser E2E/live evidence not certified. |
 | UC-53 | Create Transfer Request | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-54 | Review Transfer Request | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-55 | Record Transfer Dispatch | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-56 | Review Transfer Difference Resolution | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-57 | View Copied Sales Order List | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-58 | View Copied Sales Order Details | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-59 | Create Copied Sales Order | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-60 | Update Eligible Sales Order Remainder | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-61 | Cancel Eligible Sales Order Remainder | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-62 | View Outbound Delivery List | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-63 | View Outbound Delivery Details | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-64 | Create Outbound Delivery | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-65 | View Picking Task List | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-66 | View Picking Task Details | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-67 | Create Picking Task | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-68 | Confirm Picking Task | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-58 | View Copied Sales Order Details | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-46; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-59 | Create Copied Sales Order | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-47; current native contract. Local verification; browser E2E/live evidence not certified. New-SO source verifier D07/D08 remains undecided. |
+| UC-60 | Update Eligible Sales Order Remainder | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-48; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-61 | Cancel Eligible Sales Order Remainder | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-48; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-62 | View Outbound Delivery List | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-49; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-63 | View Outbound Delivery Details | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-50; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-64 | Create Outbound Delivery | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-51; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-65 | View Picking Task List | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-52; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-66 | View Picking Task Details | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-53; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-67 | Create Picking Task | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-54; current native contract. Local verification; browser E2E/live evidence not certified. |
+| UC-68 | Confirm Picking Task | FE-06 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-55; current native contract. Local verification; browser E2E/live evidence not certified. |
 | UC-69 | View goods issue list | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-70 | View goods issue details | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-71 | Post Actual Goods Issue | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
@@ -123,7 +123,7 @@ This BE matrix records BE implementation and test evidence only. The other repos
 | UC-102 | Propose Stocktake Resolution | FE-08 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-103 | Confirm Stocktake Resolution Execution | FE-08 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-104 | Approve Stocktake Resolution | FE-08 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-105 | Clear Stocktake Difference | FE-08 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-105 | Clear Stocktake Difference | FE-08 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-93; current native contract. Local verification; browser E2E/live evidence not certified. |
 | UC-106 | Sign in to the system | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-107 | View account list | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-108 | View account details | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
@@ -131,14 +131,14 @@ This BE matrix records BE implementation and test evidence only. The other repos
 | UC-110 | Update Staff Account Information | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-111 | Change Staff Account Status | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-112 | Assign roles and operation permissions | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-113 | View Operational Reports | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-113 | View Operational Reports | FE-09 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-99; current native contract. Local verification; browser E2E/live evidence not certified. |
 | UC-114 | View stock movement log | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-115 | View stock movement details | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-116 | Trace a product lot through source documents | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-117 | Compare Shortage Fulfilment Options | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-118 | Select Warehouse Supply Option | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-119 | Confirm Customer Fulfilment Choice | FE-06 | ACTIVE | TBD | TBD | TBD | TBD |
-| UC-120 | Inspect and Post Transfer Receipt | FE-05 | ACTIVE | TBD | TBD | TBD | TBD |
+| UC-120 | Inspect and Post Transfer Receipt | FE-05 | ACTIVE | Implemented | Partial | [HieuDT integration](../test/hieudt-iterations.integration.test.js); [native BF03/BF04](../test/native-api.integration.test.js) | HieuDT plan UC-104; current native contract. Local verification; browser E2E/live evidence not certified. |
 | UC-121 | Export or Print Stocktake Count Sheet | FE-08 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-122 | Verify Historical Customer Delivery Source | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |
 | UC-123 | Record External Document Reference | FE-09 | ACTIVE | TBD | TBD | TBD | TBD |

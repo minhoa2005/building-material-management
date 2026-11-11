@@ -23,7 +23,7 @@ import {
 export function createTransferDispatchSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["TRANSFER_DISPATCH"], {
         default: "TRANSFER_DISPATCH",
       }),

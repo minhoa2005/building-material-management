@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { listQuery, detailParams } from '../src/modules/transfers/transfer-read.validation.js';
+import { requirementBody } from '../src/modules/transfers/transfer-write.validation.js';
+
+test('all-damaged receipts accept an empty putaway destination list', () => {
+  assert.equal(requirementBody.safeParse({idempotencyKey:'damaged-only',expectedVersion:1,destinations:[]}).success,true);
+});
 
 test('transfer filters are bounded and reject operators, unknown fields and invalid dates', () => {
   assert.deepEqual(listQuery.parse({}), { page: 1, limit: 20 });

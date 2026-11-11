@@ -32,7 +32,7 @@ import {
 export function createSalesOrderSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["SALES_ORDER"], { default: "SALES_ORDER" }),
       workflowStatus: text(40),
       version: integer(1),

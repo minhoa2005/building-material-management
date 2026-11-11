@@ -1,10 +1,13 @@
 import { Router } from "express";
+import stocktakeClosureRouter from './modules/stocktake-closure/stocktake-closure.routes.js';
+import operationalReportsRouter from './modules/operational-reports/operational-reports.routes.js';
 import locationMovementRouter from "./modules/location-movements/location-movement.routes.js";
 import transferReadRouter from "./modules/transfers/transfer-read.routes.js";
 import transferWriteRouter from "./modules/transfers/transfer-write.routes.js";
 import {
   salesOrderRouter,
   outboundDeliveryRouter,
+  pickingRouter,
 } from "./modules/sales-orders/sales-read.routes.js";
 import healthRouter from "./modules/health/health.routes.js";
 import authRouter from "./modules/auth/auth.routes.js";
@@ -27,11 +30,14 @@ import uomRouter from './modules/uoms/uom.routes.js';
 import goodsReceiptRouter from './modules/goods-receipts/goods-receipt.routes.js';
 
 const router = Router();
+router.use('/stocktakes',stocktakeClosureRouter);
+router.use('/reports',operationalReportsRouter);
 router.use('/uoms',uomRouter);
 router.use("/location-movements", locationMovementRouter);
 router.use("/warehouse-transfers", transferWriteRouter, transferReadRouter);
 router.use("/sales-orders", salesOrderRouter);
 router.use("/outbound-deliveries", outboundDeliveryRouter);
+router.use('/picking-tasks',pickingRouter);
 
 router.use("/health", healthRouter);
 router.use("/auth", authRouter);
