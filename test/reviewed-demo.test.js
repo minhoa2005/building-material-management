@@ -13,7 +13,7 @@ const clone=()=>mongoose.mongo.BSON.EJSON.parse(mongoose.mongo.BSON.EJSON.string
 
 test('complete reviewed demo validates all schemas, links, balances and approved scenarios',async()=>{
   const result=await validateReviewedDemo(data,models);
-  assert.equal(result.collections,58);
+  assert.equal(result.collections,59);
   assert.equal(result.records,661 + data.conversions.length);
   assert.ok(data.conversions.some(row => row.productBatchId && data.uoms.some(unit =>
     String(unit._id) === String(row.uomId) && unit.isCarton)));

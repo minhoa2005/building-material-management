@@ -1,3 +1,5 @@
+11/11/2026: theo yêu cầu người dùng thêm document_sequences và metadata tiếng Việt tùy chọn của phiếu HieuDT; documentNo tăng max cuối+1 theo loại/đơn vị/tháng, transaction an toàn; giới hạn mã 160 ký tự. Registry 59 collection, gồm 58 nghiệp vụ và 1 bộ đếm kỹ thuật. Phiếu cũ giữ mã và ID. Xem hợp đồng HIEUDT_ITERATIONS_NATIVE.
+
 ## 10/11/2026 — Lý do từng dòng yêu cầu bổ sung
 
 `reasonNote` là tùy chọn trong chi tiết dòng và snapshot gửi duyệt. Các lý do đã lưu được giữ nguyên khi cập nhật cùng ID dòng và bỏ trường này. Không cần migration. Kiểm tra lưu nháp, cập nhật và tạo snapshot qua HTTP trên MongoDB local.

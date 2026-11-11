@@ -22,7 +22,7 @@ import {
 export function createTransferOrderSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["TO"], { default: "TO" }),
       workflowStatus: text(40),
       version: integer(1),

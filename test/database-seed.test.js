@@ -28,12 +28,12 @@ test('databaseHasData correctly detects whether collections contain documents', 
   assert.equal(await databaseHasData(populatedDb), true);
 });
 
-test('buildCompleteSeedData compiles all 58 models and validates every document', async () => {
+test('buildCompleteSeedData compiles all 59 models and validates every document', async () => {
   const conn = mongoose.createConnection();
   const { data, groups, modelMap } = await buildCompleteSeedData(conn);
 
-  assert.equal(modelMap.size, 58, 'Must register exactly 58 models');
-  assert.equal(groups.length, 58, 'Must have 58 collection groups');
+  assert.equal(modelMap.size, 59, 'Must register exactly 59 models');
+  assert.equal(groups.length, 59, 'Must have 59 collection groups');
 
   // Verify Roles
   const roleCodes = data.roles.map((r) => r.code);

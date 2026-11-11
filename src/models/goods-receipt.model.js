@@ -19,7 +19,7 @@ export const GOODS_RECEIPT_KINDS = Object.freeze(['PURCHASE', 'CUSTOMER_RETURN',
 // Collection: goods_receipts
 export function createGoodsReceiptSchema() {
   const schema = new Schema({
-    documentNo: text(50),
+    documentNo: text(160),
     documentKind: code(GOODS_RECEIPT_KINDS),
     workflowStatus: text(40),
     version: integer(1),

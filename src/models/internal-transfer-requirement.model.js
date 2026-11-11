@@ -22,7 +22,7 @@ import {
 export function createInternalTransferRequirementSchema() {
   const schema = new Schema(
     {
-      documentNo: text(50, { unique: true }),
+      documentNo: text(160, { unique: true }),
       documentKind: code(["INTERNAL_TRANSFER_REQUIREMENT"], {
         default: "INTERNAL_TRANSFER_REQUIREMENT",
       }),
