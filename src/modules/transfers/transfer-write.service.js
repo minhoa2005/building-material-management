@@ -1,3 +1,4 @@
+import { nextDocumentFields } from '../../shared/utils/document-number.js';
 import { WarehouseTransferRequest as Request, TransferDispatch as Dispatch, TransferReceipt as Receipt,
   InternalTransferRequirement as Requirement, TransferOrder as Task, Warehouse, ApprovalHistory,
   StockHoldingPoint, InventoryBalance, DefectReport } from '../../models/runtime.js';
@@ -30,13 +31,13 @@ async function taskReplay(id,user,session) {
   requirePermission(user,task.header.taskKind==='PICK'?'stock_transfer:dispatch':'stock_transfer:receive');
   return task;
 }
-const document=(Model,prefix,user,header,items=[],status='OPEN')=>new Model({documentNo:prefix+'-'+newId(),workflowStatus:status,version:1,createdBy:user._id,header,items});
+const document=async(Model,prefix,user,header,session,items=[],status='OPEN')=>new Model({...await nextDocumentFields(Model,prefix,header.warehouseId||header.sourceWarehouseId,session),workflowStatus:status,version:1,createdBy:user._id,header,items});
 export function createRequest(user,input) {
   return command(user,'CREATE_TRANSFER_REQUEST','stock_transfer:create',null,input,requestReplay,async(session,actor)=>{
     requireWarehouseAccess(actor,input.sourceWarehouseId);
     if(same(input.sourceWarehouseId,input.destinationWarehouseId)||await Warehouse.countDocuments({_id:{$in:[input.sourceWarehouseId,input.destinationWarehouseId]},isActive:true}).session(session)!==2)throw validationError('Chọn hai kho hoạt động khác nhau');
     const items=[];for(const [i,row]of input.lines.entries())items.push(await makeItem(row,i+1,session));
-    const request=document(Request,'TR',actor,{sourceWarehouseId:input.sourceWarehouseId,destinationWarehouseId:input.destinationWarehouseId,neededOn:input.neededOn,reason:input.reason,requestedBy:actor._id,requestedAt:new Date()},items,'PENDING_APPROVAL');
+    const request=await document(Request,'TR',actor,{sourceWarehouseId:input.sourceWarehouseId,destinationWarehouseId:input.destinationWarehouseId,neededOn:input.neededOn,reason:input.reason,requestedBy:actor._id,requestedAt:new Date()},session,items,'PENDING_APPROVAL');
     await request.save({session});return{document:request};
   });
 }
@@ -62,7 +63,7 @@ export function createDispatch(user,id,input) {
     if(request.workflowStatus!=='APPROVED')throw validationError('Yêu cầu chưa được duyệt hoặc đã đóng');
     const existing=await Dispatch.find({'header.requestId':id,workflowStatus:{$ne:'CANCELLED'}}).session(session);
     const totals=new Map();for(const item of existing.flatMap(row=>row.items)){const key=String(item.details.requestLineId);totals.set(key,(totals.get(key)??exact('0')).plus(String(item.qtyBase)));}
-    const outbound=document(Dispatch,'TD',actor,{requestId:request._id,dispatchedBy:actor._id,dispatchedAt:new Date(),approvedRevision:request.header.approvedRevision,sourceWarehouseId:request.header.sourceWarehouseId,destinationWarehouseId:request.header.destinationWarehouseId},[],'DRAFT');
+    const outbound=await document(Dispatch,'TD',actor,{requestId:request._id,dispatchedBy:actor._id,dispatchedAt:new Date(),approvedRevision:request.header.approvedRevision,sourceWarehouseId:request.header.sourceWarehouseId,destinationWarehouseId:request.header.destinationWarehouseId},session,[],'DRAFT');
     for(const [i,row]of input.lines.entries()){
       const origin=request.items.id(row.requestLineId);if(!origin)throw validationError('Dòng không thuộc TR');
       const ctx=await sourceContext(row.sourceBalanceId,session);
@@ -93,8 +94,8 @@ export function createRequirement(user,id,input) {
     // concurrent creator will retry against the new version and see the ITR.
     await saveVersion(source,source.version,session);
     if(await Requirement.exists({'header.sourceDocumentId':id}).session(session))throw validationError('Nguồn đã có yêu cầu nội bộ');
-    const requirement=document(Requirement,'ITR',actor,{warehouseId,sourceDocumentId:source._id,sourceType:source.constructor.collection.name,taskKind:picking?'PICK':'PUTAWAY'});
-    const task=document(Task,'TO',actor,{warehouseId,taskKind:picking?'PICK':'PUTAWAY',assignedTo:actor._id,requirementId:requirement._id});
+    const requirement=await document(Requirement,'ITR',actor,{warehouseId,sourceDocumentId:source._id,sourceType:source.constructor.collection.name,taskKind:picking?'PICK':'PUTAWAY'},session);
+    const task=await document(Task,'TO',actor,{warehouseId,taskKind:picking?'PICK':'PUTAWAY',assignedTo:actor._id,requirementId:requirement._id},session);
     const rows=source.items.filter(item=>picking||item.details.qualityCode!=='DAMAGED');
     const destinations=input.destinations??[];
     if(!picking&&(destinations.length!==rows.length||new Set(destinations.map(row=>row.receiptLineId)).size!==rows.length))throw validationError('Chọn đích cho tất cả dòng hàng tốt');
@@ -141,7 +142,7 @@ export function confirmTask(user,id,input) {
       }
     }
     await verifyCapacity(locations,session);await posting.save({session});
-    if(picking){outbound.handovers ??= [];outbound.handovers.push({documentNo:'HO-'+newId(),workflowStatus:'CONFIRMED',version:1,createdBy:actor._id,header:{relatedDocumentId:outbound._id,recipientName:input.recipientName,vehiclePlate:input.vehiclePlate,handedOverAt:new Date(),confirmedBy:actor._id},items:outbound.items.map((i,index)=>copyItem(i,i.qtyBase,{lineNo:index+1,sources:[sourceLink(outbound,i,i.qtyBase)]}))});outbound.workflowStatus='POSTED';outbound.header.dispatchedBy=actor._id;outbound.header.dispatchedAt=new Date();outbound.stockTransactionId=posting._id;await saveVersion(outbound,outbound.version,session);}
+    if(picking){outbound.handovers ??= [];outbound.handovers.push({...await nextDocumentFields(Dispatch,'HO',outbound.header.sourceWarehouseId,session),workflowStatus:'CONFIRMED',version:1,createdBy:actor._id,header:{relatedDocumentId:outbound._id,recipientName:input.recipientName,vehiclePlate:input.vehiclePlate,handedOverAt:new Date(),confirmedBy:actor._id},items:outbound.items.map((i,index)=>copyItem(i,i.qtyBase,{lineNo:index+1,sources:[sourceLink(outbound,i,i.qtyBase)]}))});outbound.workflowStatus='POSTED';outbound.header.dispatchedBy=actor._id;outbound.header.dispatchedAt=new Date();outbound.stockTransactionId=posting._id;await saveVersion(outbound,outbound.version,session);}
     requirement.workflowStatus='COMPLETED';await saveVersion(requirement,requirement.version,session);
     task.workflowStatus='CONFIRMED';task.header.confirmedBy=actor._id;task.header.confirmedAt=new Date();task.stockTransactionId=posting._id;
     return{document:await saveVersion(task,input.expectedVersion,session),versionBefore:input.expectedVersion,stockTransactionId:posting._id};
@@ -154,7 +155,7 @@ export function receiveTransfer(user,id,input) {
     if(outbound.workflowStatus!=='POSTED'||request.workflowStatus!=='APPROVED')throw validationError('Nguồn chưa thực xuất hoặc đã đóng');
     if(same(outbound.header.dispatchedBy,actor._id))throw forbiddenError('Người nhận phải khác người xuất');
     await guardLocations(input.lines.map(row=>row.locationId),session);
-    const receipt=document(Receipt,'MWTR',actor,{dispatchId:outbound._id,warehouseId:request.header.destinationWarehouseId,receivedBy:actor._id,receivedAt:new Date()},[],'POSTED');
+    const receipt=await document(Receipt,'MWTR',actor,{dispatchId:outbound._id,warehouseId:request.header.destinationWarehouseId,receivedBy:actor._id,receivedAt:new Date()},session,[],'POSTED');
     const posting=beginStock(receipt,actor,'TRANSFER_RECEIPT',input);
     for(const [i,row]of input.lines.entries()){
       const origin=outbound.items.id(row.dispatchLineId);if(!origin)throw validationError('Dòng không thuộc phiếu xuất');
@@ -166,7 +167,7 @@ export function receiveTransfer(user,id,input) {
       const item=copyItem(origin,row.qtyBase,{lineNo:i+1,lineKind:'TRANSFER_RECEIPT',sources:[sourceLink(outbound,origin,row.qtyBase)],details:{dispatchLineId:origin._id,qualityCode:row.qualityCode,destinationBalanceId:destination._id,receivingLocationId:row.locationId}});
       receipt.items.push(item);await moveStock(transit._id,destination._id,row.qtyBase,item._id,posting,actor,session);
       if(row.qualityCode==='DAMAGED'){
-        const report=document(DefectReport,'DEF',actor,{warehouseId:receipt.header.warehouseId,discoveredAt:new Date(),reason:row.damageReason,reportedBy:actor._id},[copyItem(item,row.qtyBase,{lineNo:1,lineKind:'STANDARD',balanceId:destination._id,ownerType:'STORE',sources:[sourceLink(receipt,item,row.qtyBase)]})]);
+        const report=await document(DefectReport,'DEF',actor,{warehouseId:receipt.header.warehouseId,discoveredAt:new Date(),reason:row.damageReason,reportedBy:actor._id},session,[copyItem(item,row.qtyBase,{lineNo:1,lineKind:'STANDARD',balanceId:destination._id,ownerType:'STORE',sources:[sourceLink(receipt,item,row.qtyBase)]})]);
         report.sources=[sourceLink(receipt)];await report.save({session});receipt.header.damageReportIds.push(report._id);
       }
     }
