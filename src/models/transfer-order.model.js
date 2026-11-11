@@ -47,6 +47,11 @@ export function createTransferOrderSchema() {
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   attachDocumentItems(schema, item);
   addDocumentIndexesAndRules(schema);
+  // An ITR generates one BF04 execution order. RELOCATE orders have no requirementId.
+  schema.index(
+    { "header.requirementId": 1 },
+    { unique: true, partialFilterExpression: { "header.requirementId": { $type: "objectId" } } },
+  );
 
   return schema;
 }

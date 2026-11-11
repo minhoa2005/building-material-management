@@ -22,7 +22,7 @@ export function createSalesOrder(user,input){
     let evidence;
     try{evidence=jwt.verify(input.evidenceReceipt,secret(),{algorithms:['HS256'],audience:'sales-source-evidence'});}catch{throw validationError('Bằng chứng không hợp lệ hoặc hết hạn');}
     if(evidence.actorId!==String(actor._id))throw forbiddenError('Bằng chứng không thuộc người tạo');
-    if(!await Customer.exists({_id:input.customerId,isActive:true}).session(session))throw validationError('Khách hàng không hợp lệ');
+    if(!await Customer.exists({_id:input.customerId}).session(session))throw validationError('Khách hàng không hợp lệ');
     const reference=new ExternalReference({...input.source,referenceKind:'SALES_ORDER',correlationId:'so:'+newId(),items:[]});
     const order=new SalesOrder({documentNo:'SO-'+newId(),workflowStatus:'OPEN',version:1,createdBy:actor._id,
       externalReferenceIds:[reference._id],header:{externalReferenceId:reference._id,customerId:input.customerId,neededOn:input.neededOn,deliveryAddressSnapshot:input.deliveryAddress},
@@ -44,4 +44,3 @@ export function createSalesOrder(user,input){
     order.evidenceIds=[attachment._id];await order.save({session});return {document:order};
   });
 }
-

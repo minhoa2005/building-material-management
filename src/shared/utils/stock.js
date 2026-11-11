@@ -48,8 +48,17 @@ export async function pendingTaskQuantity(balanceId, session, excludeTaskId) {
 export async function freeQuantity(balance, session, excludeTaskId) {
   const reservations = await StockReservation.find({ balanceId: balance._id }).session(session);
   const reserved = reservations.reduce((sum,row) => sum.plus(remainingReservation(row)), exact('0'));
-  const pending = await pendingTaskQuantity(balance._id, session, excludeTaskId);
+  const pending = await unreservedPendingTaskQuantity(balance._id, session, excludeTaskId);
   return exact(balance.quantityBase).minus(reserved).minus(pending).minus(await heldQuantity(balance._id, session));
+}
+// Sales picking tasks are backed by execution reservations. Count that stock
+// once; relocation/putaway tasks without reservations still consume headroom.
+export async function unreservedPendingTaskQuantity(balanceId, session, excludeTaskId) {
+  const pending = await pendingTaskQuantity(balanceId, session, excludeTaskId);
+  const tasks = await TransferOrder.find({ ...(excludeTaskId && {_id:{$ne:excludeTaskId}}), workflowStatus:{$in:['OPEN','DRAFT','PARTIAL']}, 'items.details.sourceBalanceId':balanceId }).session(session);
+  const reservations = await StockReservation.find({balanceId,'executionRef.documentType':'transfer_orders','executionRef.documentId':{$in:tasks.map(t=>t._id)}}).session(session);
+  const covered=reservations.reduce((n,r)=>n.plus(remainingReservation(r)),exact('0'));
+  return pending.gt(covered)?pending.minus(covered):exact('0');
 }
 export function heldOnBalance(reports, balanceId, excludeHoldId) {
   return reports.reduce((sum, report) => sum.plus(report.holds.filter(hold => hold.status === 'ACTIVE' && !same(hold._id, excludeHoldId)).reduce((n, hold) => {
@@ -109,11 +118,21 @@ export async function moveStock(sourceId, destinationId, quantity, itemId, stock
   if (!amount.gt(0) || amount.gt(from)) throw validationError('Không đủ tồn nguồn');
   const reservations = await StockReservation.find({ balanceId: sourceId }).session(session);
   const reserved = reservations.reduce((sum,row) => sum.plus(remainingReservation(row)), exact('0'));
-  const pending = await pendingTaskQuantity(sourceId, session, excludeTaskId);
+  const pending = await unreservedPendingTaskQuantity(sourceId, session, excludeTaskId);
   if (amount.plus(pending).plus(preserveReservations ? '0' : reserved).plus(await heldQuantity(sourceId, session)).gt(from)) throw validationError('Lượng chuyển thuộc phần hàng đang bị chặn');
   if (amount.plus(pending).plus(preserveReservations ? '0' : reserved).gt(from)) throw validationError('Tồn đã được giữ hoặc lập lệnh khác');
   const { kept, taken } = splitPortions(source.packagingPortions, amount, user._id);
-  source.packagingPortions = kept; destination.packagingPortions.push(...taken);
+  // Retain existing subdocuments rather than recasting their immutable creation
+  // timestamps when an earlier portion is removed from the array.
+  const keptIds = new Set(kept.map(row => String(row._id)));
+  source.packagingPortions.pull(...source.packagingPortions.filter(row => !keptIds.has(String(row._id))).map(row => row._id));
+  for (const portion of kept) {
+    const retained = source.packagingPortions.id(portion._id);
+    retained.quantityBase = portion.quantityBase;
+    if (portion.sealedPackCount != null) retained.sealedPackCount = portion.sealedPackCount;
+    if (portion.updatedBy) retained.updatedBy = portion.updatedBy;
+  }
+  destination.packagingPortions.push(...taken);
   source.quantityBase = from.minus(amount).toFixed(); destination.quantityBase = to.plus(amount).toFixed();
   const movementId = newId();
   if (preserveReservations) {

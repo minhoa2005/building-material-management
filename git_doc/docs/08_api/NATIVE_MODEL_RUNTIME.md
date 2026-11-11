@@ -1,3 +1,5 @@
+> 10/11/2026: [18 UC HieuDT](HIEUDT_ITERATIONS_NATIVE.md) bổ sung lệnh sửa/hủy SO, WIR/OD, soạn từng phần, chốt kiểm kê và báo cáo. FE đã nối các màn tương ứng vào API. GI posting/POD/thanh toán và các UC chuẩn bị kiểm kê ngoài phạm vi không được suy là đã hoàn tất.
+
 > Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](CONVERSIONS.md). [Iteration 1 native](ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
 
 # Hợp đồng runtime theo model mới — 06/11/2026
@@ -38,6 +40,14 @@ Putaway tạo TransferOrder và xác nhận từng phần; lượng đã xếp l
 
 ## Chuyển kho và bán
 
+Contract cập nhật 07/11: [BF03](location-movements/README.md) và
+[BF04](transfers/BF04_API.md). BF03 không có trạng thái PARTIAL, lượng thực lấy
+từ ledger. BF04 có `/options` với `sourceWarehouseIds` cho kho được thao tác;
+warehouses dùng chọn kho đích; tồn/vị trí vẫn scope. Một nguồn sinh một ITR,
+một ITR sinh một TO bằng lock và unique partial index. Nhận toàn hàng hỏng dùng
+destinations rỗng, sinh TO hoàn tất không có movement. Replay TO kiểm lại quyền
+dispatch/receive. Giữ ID và createdAt của packagingPortions còn lại khi chuyển.
+
 Chuyển ô dùng TransferOrder RELOCATE, một lần xác nhận toàn lệnh bởi người lập. Chuyển liên kho đi TR → duyệt → Dispatch → PICK và bàn giao → transit → Receipt bởi người khác → PUTAWAY → đóng. PICK bắt buộc recipientName, biển số nếu có. Hàng không đạt chuyển vào QUARANTINE. Mỗi bước giữ hạn mức và kiểm quyền/kho/version.
 
 API sales-orders dùng SalesOrder, ExternalReference và Attachment mới, redaction giá theo quyền. D07/D08 chưa có quyết định xác minh nguồn ngoài; không tự suy ra người xác minh được duyệt. Các màn hình prototype ngoài router API đang triển khai không chứng minh đã có đầy đủ nghiệp vụ phía server.
@@ -47,6 +57,11 @@ Role tùy chỉnh có `sales_order:read` chỉ xem SO có yêu cầu xuất tạ
 ## Bằng chứng và việc đang làm
 
 Dùng endpoint upload riêng của từng nghiệp vụ với xác thực, permission và scope của chứng từ. Route upload chung `POST /api/upload` đã được gỡ. Router hàng lỗi và trả hàng áp dụng xác thực theo route của nhóm, nên `/api/health` và các route xác thực công khai vẫn được xử lý bởi router tương ứng.
+
+07/11: 5/5 integration native đạt, 64 unit/model test đạt (14 profile cần môi
+trường bị skip khi chạy mặc định); FE build và 3/3 BF03 presentation test đạt.
+Đây là service transaction và build verification, chưa là browser E2E. Số liệu
+toàn suite FE bên dưới là bằng chứng lịch sử, không phải kết quả chạy lại lượt này.
 
 Ba test tích hợp native trên DB local riêng đã qua: mua/nhập/xếp từng phần và replay; đảo nhập độc lập; chuyển kho đủ bước. FE build đã qua tại mốc kiểm tra trước các chỉnh sửa tiếp theo. Toàn suite FE hiện có 102 test thất bại/264 qua, 2 lỗi không bắt: nhiều fixture và kỳ vọng vẫn theo hợp đồng cũ; đang chuyển và chưa tuyên bố hoàn thành. Các kiểm tra cần chạy lại sau chỉnh sửa cuối. Không ghi dữ liệu Atlas, không commit/push.
 

@@ -18,6 +18,15 @@ Supplier-return details add PROPOSED/VERIFIED phase, sourceBalanceId and optiona
 
 Thêm Uom, metadata sản phẩm/NCC, xử lý giữ hộ trọn vòng đời và Warehouse tự đảo nhập. Registry 60 collections; giữ items/source/snapshot native. Quyết định mới trong git_doc/docs/08_api/ITERATION1_NATIVE_2026-11-06.md. Có migration dry-run chỉ test DB local; không chạy Atlas, không commit/push. Kết quả kiểm thử ghi trong tài liệu bàn giao cùng đợt.
 
+## 2026-11-07 — BF03/BF04 API consistency
+
+Added partial unique indexes on ITR sourceDocumentId and TO requirementId to
+enforce the existing one-source/one-requirement/one-task flow. No fields or
+collections changed. Existing databases need a duplicate audit before index
+deployment; only isolated local test databases were indexed in this task.
+Stock movement retains original embedded packaging timestamps and IDs when
+removing a preceding portion. Native integration: 5/5 passed.
+
 ## 2026-11-06 — Flat native runtime
 
 Removed the three model directories with user approval. Registered 59 collections and 96 nested schemas from the root model directory; runtime services use this single registry. Renamed the former reviewed registry entry file and reference configurator to neutral runtime names. Added native transaction integration coverage. Seed v9 has 642 records. See ../../git_doc/docs/08_api/NATIVE_MODEL_RUNTIME.md for verification limits.

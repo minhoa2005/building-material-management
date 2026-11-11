@@ -22,7 +22,8 @@ const input=()=>({operationKey:key()});
 test.before(async()=>{
  if(!enabled)return;
  // A new isolated test database each run. Never use the application's URI.
- await mongoose.connect('mongodb://127.0.0.1:27017/wmsd_api_test_'+key()+'?replicaSet=rs0',{serverSelectionTimeoutMS:5000});
+ const isolated=process.env.RUN_HIEUDT_TESTS==='1';
+ await mongoose.connect(`mongodb://127.0.0.1:${isolated?27018:27017}/wmsd_api_test_${key()}?replicaSet=${isolated?'hieudt-test':'rs0'}`,{serverSelectionTimeoutMS:5000});
  for(const Model of m.models.values()){await Model.createCollection();await Model.createIndexes();}
  await m.Uom.create([{code:'PIECE',name:'Viên'},{code:'BOX',name:'Thùng'},{code:'M2',name:'Mét vuông'}]);
  const permissions=await m.Permission.insertMany(PERMISSION_CATALOGUE.map(p=>({code:p.code,description:p.description,name:p.code})));
@@ -261,6 +262,30 @@ run('native RR → PO → inspection → receipt → partial putaway preserves s
  assert.equal((await m.TransferOrder.findById(task.id)).workflowStatus,'CONFIRMED');assert.equal((await putaway.placementQuantities(receipt))[0].unplacedQtyBase,'0');const report=await reconcilePurchasing();assert.deepEqual(report.issues,[]);
  const preflight=await correction.reversalPreflight(worker,receipt._id);assert.equal(preflight.eligible,false);
 });
+run('BF03 confirms one complete relocation only and an idempotent retry posts once',async()=>{
+ const relocations=await import('../src/modules/location-movements/location-movement.service.js');
+ const overflow=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:'BF03-ALT',locationType:'STORAGE',usableLengthMm:'5000',usableWidthMm:'5000'});
+ const point=await m.StockHoldingPoint.findOne({locationId:storageLocation._id});
+ const balance=await m.InventoryBalance.findOne({holdingPointId:point._id,batchId:batch._id});
+ const options=await relocations.locationMovementOptions(worker,String(warehouse._id));
+ assert.ok(options.balances.some(row=>String(row._id)===String(balance._id)));
+ const created=await relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'BF03 full confirmation',lines:[{sourceBalanceId:String(balance._id),sourceBalanceVersion:balance.version,toLocationId:String(overflow._id),enteredUnit:'PIECE',enteredQty:'4'}]});
+ const otherRaw=await m.User.create({username:'other-warehouse',fullName:'Other warehouse',passwordHash:'unused',roleId:worker.roleId._id,warehouseIds:[warehouse._id]});
+ const other=await m.User.findById(otherRaw._id).populate({path:'roleId',populate:{path:'permissionIds'}});
+ await assert.rejects(relocations.confirmLocationMovement(other,created.id,{idempotencyKey:key(),expectedVersion:1,lines:[{lineId:String((await m.TransferOrder.findById(created.id)).items[0]._id),actualQtyBase:'4'}]}),/người lập/);
+ const open=await m.TransferOrder.findById(created.id);
+ await assert.rejects(relocations.confirmLocationMovement(worker,created.id,{idempotencyKey:key(),expectedVersion:open.version,lines:[{lineId:String(open.items[0]._id),actualQtyBase:'1'}]}),/bằng lượng lệnh/);
+ const confirmInput={idempotencyKey:key(),expectedVersion:open.version,lines:[{lineId:String(open.items[0]._id),actualQtyBase:'4'}]};
+ await relocations.confirmLocationMovement(worker,created.id,confirmInput);
+ await relocations.confirmLocationMovement(worker,created.id,confirmInput);
+ assert.equal((await m.TransferOrder.findById(created.id)).workflowStatus,'CONFIRMED');
+ assert.equal(await m.StockTransaction.countDocuments({sourceId:created.id,operation:'RELOCATE'}),1);
+ const destinationPoint=await m.StockHoldingPoint.findOne({locationId:overflow._id});
+ const destinationBalance=await m.InventoryBalance.findOne({holdingPointId:destinationPoint._id,batchId:batch._id});
+ const reverse=await relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'Restore test stock',lines:[{sourceBalanceId:String(destinationBalance._id),sourceBalanceVersion:destinationBalance.version,toLocationId:String(storageLocation._id),enteredUnit:'PIECE',enteredQty:'4'}]});
+ const reverseDoc=await m.TransferOrder.findById(reverse.id);
+ await relocations.confirmLocationMovement(worker,reverse.id,{idempotencyKey:key(),expectedVersion:reverseDoc.version,lines:[{lineId:String(reverseDoc.items[0]._id),actualQtyBase:'4'}]});
+});
 run('Warehouse reversal restores PO headroom once without separate approval',async()=>{
  const receipt=await postedReceipt();const attachment=await m.Attachment.create({ownerDocumentType:'goods_receipts',ownerDocumentId:receipt._id,purpose:'TEST',originalName:'test.png',mediaType:'image/png',sizeBytes:10,storageKey:'local-test',checksum:'a'.repeat(64),uploadedBy:worker._id,uploadedAt:new Date(),accessCategory:'BUSINESS',status:'ATTACHED'});
  const order=await m.PurchaseOrder.findById(receipt.header.purchaseOrderId);const payload={...input(),expectedVersion:receipt.version,expectedPoVersion:order.version,reason:'Wrong entry',evidenceIds:[String(attachment._id)]};
@@ -276,6 +301,12 @@ run('native transfer dispatch, independent receipt and putaway reconcile all mov
  const customRole=await m.Role.create({code:'TRANSFER_OPERATOR',name:'Custom transfer operator',permissionIds:worker.roleId.permissionIds.map(p=>p._id),isSystemRole:false});
  const recipient=await m.User.create({username:'receiver',fullName:'Receiver',passwordHash:'unused',roleId:customRole._id,warehouseIds:[destination._id]});
  const actor=await m.User.findById(recipient._id).populate({path:'roleId',populate:{path:'permissionIds'}});
+ const reads=await import('../src/modules/transfers/transfer-read.service.js');
+ const selections=await reads.transferOptions(actor,String(destination._id));
+ assert.ok(selections.warehouses.some(row=>String(row._id)===String(destination._id)));
+ assert.ok(selections.warehouses.some(row=>String(row._id)===String(warehouse._id)));
+ assert.deepEqual(selections.sourceWarehouseIds,[String(destination._id)]);
+ await assert.rejects(reads.transferOptions(actor,String(warehouse._id)));
  const request=await transfers.createRequest(worker,{idempotencyKey:key(),sourceWarehouseId:String(warehouse._id),destinationWarehouseId:String(destination._id),reason:'Transfer test',lines:[{productId:String(product._id),enteredUnit:'PIECE',enteredQty:'8'}]});
  await transfers.reviewRequest(owner,request.id,{idempotencyKey:key(),expectedVersion:1,decision:'APPROVE',reason:'Approved test'});
  const req=await m.WarehouseTransferRequest.findById(request.id),point=await m.StockHoldingPoint.findOne({locationId:storageLocation._id}),balance=await m.InventoryBalance.findOne({holdingPointId:point._id,batchId:batch._id});
@@ -289,6 +320,21 @@ run('native transfer dispatch, independent receipt and putaway reconcile all mov
  await transfers.confirmTask(actor,putting.id,{idempotencyKey:key(),expectedVersion:1});
  const current=await m.WarehouseTransferRequest.findById(request.id);await transfers.closeRequest(actor,request.id,{idempotencyKey:key(),expectedVersion:current.version});
  assert.equal((await m.WarehouseTransferRequest.findById(request.id)).workflowStatus,'COMPLETED');assert.deepEqual((await reconcilePurchasing()).issues,[]);
+ const reverseStaging=await m.WarehouseLocation.create({warehouseId:destination._id,code:'BACK-OUT',locationType:'STAGING',usableLengthMm:'5000',usableWidthMm:'5000'});
+ const quarantine=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:'BF04-Q',locationType:'QUARANTINE',usableLengthMm:'5000',usableWidthMm:'5000'});
+ const reverseRequest=await transfers.createRequest(actor,{idempotencyKey:key(),sourceWarehouseId:String(destination._id),destinationWarehouseId:String(warehouse._id),reason:'Damaged receipt completion',lines:[{productId:String(product._id),enteredUnit:'PIECE',enteredQty:'4'}]});
+ await transfers.reviewRequest(owner,reverseRequest.id,{idempotencyKey:key(),expectedVersion:1,decision:'APPROVE',reason:'Approved damaged path'});
+ const reverseDoc=await m.WarehouseTransferRequest.findById(reverseRequest.id),targetPoint=await m.StockHoldingPoint.findOne({locationId:target._id}),targetBalance=await m.InventoryBalance.findOne({holdingPointId:targetPoint._id,batchId:batch._id});
+ const reverseDispatch=await transfers.createDispatch(actor,reverseRequest.id,{idempotencyKey:key(),expectedVersion:reverseDoc.version,lines:[{requestLineId:String(reverseDoc.items[0]._id),sourceBalanceId:String(targetBalance._id),stagingLocationId:String(reverseStaging._id),qtyBase:'4'}]});
+ const reversePick=await transfers.createRequirement(actor,reverseDispatch.id,{idempotencyKey:key(),expectedVersion:1});
+ await transfers.confirmTask(actor,reversePick.id,{idempotencyKey:key(),expectedVersion:1,recipientName:'Return carrier'});
+ const reverseShipped=await m.TransferDispatch.findById(reverseDispatch.id);
+ const damagedReceipt=await transfers.receiveTransfer(worker,reverseDispatch.id,{idempotencyKey:key(),expectedVersion:reverseShipped.version,lines:[{dispatchLineId:String(reverseShipped.items[0]._id),locationId:String(quarantine._id),qtyBase:'4',qualityCode:'DAMAGED',damageReason:'Damaged in test'}]});
+ const damagedPutaway=await transfers.createRequirement(worker,damagedReceipt.id,{idempotencyKey:key(),expectedVersion:1,destinations:[]});
+ assert.equal((await m.TransferOrder.findById(damagedPutaway.id)).workflowStatus,'CONFIRMED');
+ const requestToClose=await m.WarehouseTransferRequest.findById(reverseRequest.id);
+ await transfers.closeRequest(worker,reverseRequest.id,{idempotencyKey:key(),expectedVersion:requestToClose.version});
+ assert.equal((await m.WarehouseTransferRequest.findById(reverseRequest.id)).workflowStatus,'COMPLETED');
 });
 
 run('opened cartons require measured packaging and failed posting leaves no stock transaction',async()=>{const receipt=await postedReceipt('OPENED');assert.equal(receipt.workflowStatus,'POSTED');assert.deepEqual((await reconcilePurchasing()).issues,[]);});
@@ -407,4 +453,26 @@ run('one RR cannot create concurrent POs and freeze rolls back receipt posting',
  const check=await receiving.createInspection(worker,order.id,{creationKey:key(),expectedPoVersion:orderDoc.version,arrivedAt:new Date().toISOString(),lines:[{poLineId:String(orderDoc.items[0]._id),lotId:String(batch._id),enteredQty:'8',qualityCode:'GOOD',ownershipDecision:'ACCEPT',packagingCondition:'SEALED'}]});const inspection=await m.GoodsInspection.findById(check.id);const confirmation=await receiving.confirmInspection(worker,check.id,{...input(),expectedVersion:1,expectedPoVersion:orderDoc.version,destinations:[{inspectionItemId:String(inspection.items[0]._id),locationId:String(receivingLocation._id)}]});
  const receiptId=confirmation.resultRefs[0].documentId;orderDoc=await m.PurchaseOrder.findById(order.id);const lock=await m.StocktakeLocationLock.create({stocktakeId:new mongoose.Types.ObjectId(),locationId:receivingLocation._id,scopeVersion:1,lockedAt:new Date(),lockedBy:worker._id,status:'LOCKED',version:1});
  try{await assert.rejects(receiving.postReceipt(worker,receiptId,{...input(),expectedVersion:1,expectedPoVersion:orderDoc.version}),/khóa/);assert.equal(await m.StockTransaction.countDocuments({sourceId:receiptId}),0);assert.equal((await m.PurchaseReceipt.findById(receiptId)).workflowStatus,'DRAFT');}finally{await m.StocktakeLocationLock.deleteOne({_id:lock._id});}
+});
+run('BF03 additive seed supplies selectable stock and rerun never restores consumed quantity',async()=>{
+ const {seedBF03}=await import('../scripts/seed-bf03.mjs');
+ const relocations=await import('../src/modules/location-movements/location-movement.service.js');
+ const preview=await seedBF03(mongoose.connection,{warehouseCode:warehouse.code});
+ assert.equal(preview.status,'PREVIEW');
+ assert.equal(await m.Product.countDocuments({sku:'BF03-DEMO-6060'}),0);
+ const seeded=await seedBF03(mongoose.connection,{warehouseCode:warehouse.code,apply:true});
+ assert.equal(seeded.status,'SEEDED');
+ const options=await relocations.locationMovementOptions(worker,String(warehouse._id));
+ const demoProduct=options.products.find(p=>p.sku==='BF03-DEMO-6060');
+ const demoBatch=options.batches.find(b=>b.productId===demoProduct.id);
+ const sourcePoint=options.holdingPoints.find(p=>options.locations.find(l=>l.id===p.locationId)?.code==='BF03-A');
+ const source=options.balances.find(b=>b.holdingPointId===sourcePoint.id&&b.batchId===demoBatch.id);
+ assert.equal(source.quantityBase,'40');
+ const destination=options.locations.find(l=>l.code==='BF03-B');
+ const created=await relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'Seed smoke',lines:[{sourceBalanceId:source.id,sourceBalanceVersion:source.version,toLocationId:destination.id,enteredUnit:'BOX',enteredQty:'1'}]});
+ const document=await m.TransferOrder.findById(created.id);
+ await relocations.confirmLocationMovement(worker,created.id,{idempotencyKey:key(),expectedVersion:document.version,lines:[{lineId:String(document.items[0]._id),actualQtyBase:'4'}]});
+ const rerun=await seedBF03(mongoose.connection,{warehouseCode:warehouse.code,apply:true});
+ assert.equal(rerun.status,'ALREADY_SEEDED');assert.equal(rerun.currentSourceQty,'36');
+ assert.equal(await m.OpeningStock.countDocuments({documentNo:'BF03-OPENING-'+warehouse.code}),1);
 });

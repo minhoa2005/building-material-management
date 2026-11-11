@@ -11,3 +11,4 @@ export const listQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 }).strict().refine((value) => !value.from || !value.to || new Date(value.from) <= new Date(value.to), { message: 'from must be before to' });
 export const detailParams = z.object({ id: objectId }).strict();
+export const optionsQuery = z.object({ warehouseId: objectId.optional() }).strict();

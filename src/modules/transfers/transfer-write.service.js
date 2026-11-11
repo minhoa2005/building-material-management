@@ -24,7 +24,12 @@ async function receiptReplay(id,user,session) {
   const receipt=await find(Receipt,id,session);
   requireWarehouseAccess(user,receipt.header.warehouseId);return receipt;
 }
-async function taskReplay(id,user,session) { const task=await find(Task,id,session); requireWarehouseAccess(user,task.header.warehouseId);return task; }
+async function taskReplay(id,user,session) {
+  const task=await find(Task,id,session);
+  requireWarehouseAccess(user,task.header.warehouseId);
+  requirePermission(user,task.header.taskKind==='PICK'?'stock_transfer:dispatch':'stock_transfer:receive');
+  return task;
+}
 const document=(Model,prefix,user,header,items=[],status='OPEN')=>new Model({documentNo:prefix+'-'+newId(),workflowStatus:status,version:1,createdBy:user._id,header,items});
 export function createRequest(user,input) {
   return command(user,'CREATE_TRANSFER_REQUEST','stock_transfer:create',null,input,requestReplay,async(session,actor)=>{
@@ -84,15 +89,19 @@ export function createRequirement(user,id,input) {
     requirePermission(actor,picking?'stock_transfer:dispatch':'stock_transfer:receive');
     const warehouseId=picking?request.header.sourceWarehouseId:request.header.destinationWarehouseId;requireWarehouseAccess(actor,warehouseId);
     if(source.workflowStatus!==(picking?'DRAFT':'POSTED')||request.workflowStatus!=='APPROVED')throw validationError('Nguồn chưa đủ điều kiện');
+    // Lock the source document before checking the one-to-one relationship. A
+    // concurrent creator will retry against the new version and see the ITR.
+    await saveVersion(source,source.version,session);
     if(await Requirement.exists({'header.sourceDocumentId':id}).session(session))throw validationError('Nguồn đã có yêu cầu nội bộ');
     const requirement=document(Requirement,'ITR',actor,{warehouseId,sourceDocumentId:source._id,sourceType:source.constructor.collection.name,taskKind:picking?'PICK':'PUTAWAY'});
     const task=document(Task,'TO',actor,{warehouseId,taskKind:picking?'PICK':'PUTAWAY',assignedTo:actor._id,requirementId:requirement._id});
     const rows=source.items.filter(item=>picking||item.details.qualityCode!=='DAMAGED');
-    if(!picking&&(input.destinations?.length!==rows.length||new Set(input.destinations.map(row=>row.receiptLineId)).size!==rows.length))throw validationError('Chọn đích cho tất cả dòng hàng tốt');
+    const destinations=input.destinations??[];
+    if(!picking&&(destinations.length!==rows.length||new Set(destinations.map(row=>row.receiptLineId)).size!==rows.length))throw validationError('Chọn đích cho tất cả dòng hàng tốt');
     const totals=new Map();
     for(const [i,row]of rows.entries()){
       const ctx=await sourceContext(picking?row.details.sourceBalanceId:row.details.destinationBalanceId,session);
-      const destinationId=picking?row.details.stagingLocationId:input.destinations.find(value=>same(value.receiptLineId,row._id))?.locationId;
+      const destinationId=picking?row.details.stagingLocationId:destinations.find(value=>same(value.receiptLineId,row._id))?.locationId;
       const to=await locationAt(destinationId,warehouseId,[picking?'STAGING':'STORAGE'],session);
       if(!ctx.location||!same(ctx.location.warehouseId,warehouseId)||same(ctx.location._id,to._id))throw validationError('Vị trí nguồn hoặc đích không hợp lệ');
       const total=(totals.get(String(ctx.balance._id))??exact('0')).plus(String(row.qtyBase));totals.set(String(ctx.balance._id),total);
@@ -103,7 +112,7 @@ export function createRequirement(user,id,input) {
     await guardLocations(task.items.flatMap(row=>[row.details.fromLocationId,row.details.toLocationId]),session);
     requirement.sources=[sourceLink(source)];task.sources=[sourceLink(requirement)];
     if(!rows.length){requirement.workflowStatus='COMPLETED';task.workflowStatus='CONFIRMED';}
-    await requirement.save({session});await task.save({session});await saveVersion(source,source.version,session);
+    await requirement.save({session});await task.save({session});
     return{document:task,resultRefs:[{documentType:'internal_transfer_requirements',documentId:requirement._id,revision:requirement.version}]};
   });
 }
@@ -186,5 +195,3 @@ export function closeRequest(user,id,input) {
     return{document:await saveVersion(request,input.expectedVersion,session),versionBefore:input.expectedVersion};
   });
 }
-
-

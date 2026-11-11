@@ -1,3 +1,5 @@
+> 10/11/2026: [18 UC HieuDT, ba iteration](git_doc/docs/08_api/HIEUDT_ITERATIONS_NATIVE.md) đã nối API native cho bán/soạn, BF03/BF04, chốt kiểm kê và báo cáo. Mã UC trong tài liệu theo kế hoạch HieuDT gốc. Trạng thái kiểm chứng và điều kiện đầu vào xem hợp đồng; không suy mọi prototype đã hoàn tất.
+
 > Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](git_doc/docs/08_api/CONVERSIONS.md). [Iteration 1 native](git_doc/docs/08_api/ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
 
 # Backend context

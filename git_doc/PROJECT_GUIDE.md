@@ -1,3 +1,5 @@
+> 10/11/2026: [Hợp đồng 18 UC HieuDT](docs/08_api/HIEUDT_ITERATIONS_NATIVE.md) là nguồn hiện hành cho SO/WIR/OD/picking, chốt kiểm kê và báo cáo; [kiểm thử local](docs/09_phat_trien/HIEUDT_LOCAL_TESTS.md). Chốt kiểm kê kiểm phê duyệt đúng nội dung, count mới nhất, thực hiện/bằng chứng trước khi ghi tồn và mở khóa nguyên tử.
+
 > Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](docs/08_api/CONVERSIONS.md). [Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
 
 # WMSD — Hướng dẫn chung khi phát triển
@@ -67,6 +69,13 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 - Email/notification qua outbox sau commit. Lỗi gửi thư chỉ thử gửi lại.
 
 ## 6. Kiểm chứng và giới hạn hiện tại
+
+Mốc BF03/BF04 07/11: đã kiểm 5/5 native integration trên localhost replica test,
+gồm full BF03/replay, BF04/custom role và ca nhận toàn hàng hỏng. BF04 options
+trả danh mục kho đích nhưng chỉ trả tồn/vị trí kho được phân công; một nguồn chỉ
+sinh một ITR, mỗi ITR một TO. Chi tiết tại [BF03](docs/08_api/location-movements/README.md)
+và [BF04](docs/08_api/transfers/BF04_API.md). FE build và 3 test presentation BF03
+đạt; chưa kiểm toàn luồng qua trình duyệt.
 
 Các API đang gắn router dùng registry mới. Ba kiểm thử tích hợp trên MongoDB replica set thử riêng đã qua: RR–PO–kiểm–nhập–xếp từng phần, đảo nhập với người duyệt độc lập, và chuyển kho đủ các bước. FE đã build nhưng toàn bộ kiểm thử giao diện còn lỗi do hợp đồng/kỳ vọng cũ; chưa xác nhận toàn project hoàn tất. D07/D08 vẫn chờ xác minh. Không tự ghi dữ liệu remote.
 

@@ -12,6 +12,12 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 
 ## Toàn bộ collection
 
+BF04 (07/11/2026): `internal_transfer_requirements.header.sourceDocumentId` có
+unique partial index khi là ObjectId; `transfer_orders.header.requirementId`
+có cùng ràng buộc. Một nguồn sinh một ITR, một ITR sinh một TO. RELOCATE không
+có requirementId. Trước triển khai index lên DB đã có dữ liệu, rà và xử lý
+nguồn/requirement trùng; không tự xóa bản ghi hoặc dựng lại DB.
+
 | Collection | Một bản ghi dùng để làm gì | Nơi bắt đầu đọc trong src/models |
 |---|---|---|
 | `users` | Tài khoản nhân viên: một vai trò, nhiều kho được phân công; mật khẩu được băm. | [user.model.js](../src/models/user.model.js) |
