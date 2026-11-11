@@ -1,3 +1,5 @@
+12/11/2026: bỏ document_sequences và đổi định danh chứng từ mới: mọi model có documentNo dùng _id DocumentIdentity = mã phiếu [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự]. Các ref documentId/sourceId/subjectId và hậu tố liên kết chứng từ chấp nhận mã mới hoặc ObjectId lịch sử; warehouse/product/lot/location và embedded item vẫn ObjectId. Registry còn 58 collection. Chứng từ cũ không migration/đổi _id; kiểm thử concurrency và rollback chạy DB loopback riêng. Xem git_doc/docs/08_api/DOCUMENT_IDENTITIES.md.
+
 11/11/2026: theo yêu cầu người dùng thêm document_sequences và metadata tiếng Việt tùy chọn của phiếu HieuDT; documentNo tăng max cuối+1 theo loại/đơn vị/tháng, transaction an toàn; giới hạn mã 160 ký tự. Registry 59 collection, gồm 58 nghiệp vụ và 1 bộ đếm kỹ thuật. Phiếu cũ giữ mã và ID. Xem hợp đồng HIEUDT_ITERATIONS_NATIVE.
 
 ## 10/11/2026 — Lý do từng dòng yêu cầu bổ sung

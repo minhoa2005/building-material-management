@@ -1,3 +1,4 @@
+import { nextDocumentFields } from '../../shared/utils/document-number.js';
 import { OtherGoodsReceipt, ApprovalHistory } from "../../models/runtime.js";
 import { currentRole } from "../../shared/utils/userRole.js";
 import {
@@ -102,7 +103,7 @@ export function createOtherReceipt(user, input) {
         }));
       if (!lines?.length) throw validationError("Phiếu phải có dòng hàng");
       const receipt = new OtherGoodsReceipt({
-        documentNo: `GRO-${newId()}`,
+        ...await nextDocumentFields(OtherGoodsReceipt,'OTHER',input.warehouseId,session),
         workflowStatus: "DRAFT",
         version: 1,
         createdBy: actor._id,

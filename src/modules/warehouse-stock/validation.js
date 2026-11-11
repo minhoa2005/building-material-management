@@ -1,0 +1,13 @@
+import { z } from 'zod';
+export const oid = z.string().regex(/^[a-f\d]{24}$/i).transform(v => v.toLowerCase());
+const text = max => z.string().trim().min(1).max(max);
+const dimension = z.string().regex(/^\d{1,14}(\.\d{1,6})?$/).refine(v => Number(v) > 0);
+export const listQuery = z.object({ page: z.coerce.number().int().min(1).max(100000).default(1), limit: z.coerce.number().int().min(1).max(100).default(20), q: text(100).optional(), balanceId: oid.optional(), warehouseId: oid.optional(), locationId: oid.optional(), productId: oid.optional(), batchId: oid.optional(), quality: text(30).optional(), ownerType: z.enum(['STORE','CUSTOMER','SUPPLIER']).optional(), active: z.enum(['true','false']).optional(), type: z.enum(['RECEIVING','STORAGE','STAGING','QUARANTINE','CUSTODY']).optional(), operation: text(40).optional(), from: z.iso.datetime({offset:true}).optional(), to: z.iso.datetime({offset:true}).optional() }).strict().refine(q => !q.from || !q.to || new Date(q.from) <= new Date(q.to));
+const locationDimension = z.union([dimension, z.number().positive().transform(value => String(value))]);
+const location = { warehouseId: oid, code: text(50), name: text(160), areaCode: z.string().trim().max(50).optional(), locationType: z.enum(['RECEIVING','STORAGE','STAGING','QUARANTINE','CUSTODY']), usableLengthMm: locationDimension, usableWidthMm: locationDimension, description: z.string().trim().max(500).optional(), isPickable: z.boolean(), isActive: z.boolean() };
+export const createBody = z.object({ ...location, idempotencyKey: text(64) }).strict().refine(v => !v.isPickable || v.locationType === 'STORAGE');
+export const editBody = z.object({ ...location, expectedVersion: z.number().int().min(1), idempotencyKey: text(64) }).strict().refine(v => !v.isPickable || v.locationType === 'STORAGE');
+const warehouseDimension = z.union([dimension, z.number().positive().transform(value => String(value))]);
+const warehouse = { code: text(60), name: text(160), address: z.string().trim().max(500).optional(), description: z.string().trim().max(500).optional(), lengthMm: warehouseDimension, widthMm: warehouseDimension, clearHeightMm: warehouseDimension, isActive: z.boolean() };
+export const warehouseCreateBody = z.object({ ...warehouse, idempotencyKey: text(64) }).strict();
+export const warehouseEditBody = z.object({ ...warehouse, expectedUpdatedAt: z.iso.datetime({ offset: true }), idempotencyKey: text(64) }).strict().refine(v => v.code === undefined || v.code.length > 0);

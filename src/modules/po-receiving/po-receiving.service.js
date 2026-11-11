@@ -115,7 +115,7 @@ export function createInspection(user, id, input) {
     replayPurchase,
     async (session, actor) => {
       const po = await activePo(actor, id, input.expectedPoVersion, session);
-      const arrival = newDocument(GoodsArrival, "ARR", actor, {
+      const arrival = await newDocument(GoodsArrival, "ARR", actor, {
         purchaseOrderId: po._id,
         warehouseId: po.header.warehouseId,
         supplierId: po.header.supplierId,
@@ -124,7 +124,7 @@ export function createInspection(user, id, input) {
         deliveredBy: input.deliveredBy,
       });
       arrival.sources = [sourceLink(po)];
-      const inspection = newDocument(GoodsInspection, "INS", actor, {
+      const inspection = await newDocument(GoodsInspection, "INS", actor, {
         arrivalId: arrival._id,
         warehouseId: po.header.warehouseId,
         participants: [actor._id],
@@ -227,7 +227,7 @@ export function confirmInspection(user, id, input) {
       )
         throw validationError("Chọn vị trí nhập cho từng phần nhận sở hữu");
       const receipt = accepted.length
-        ? newDocument(PurchaseReceipt, "GR", actor, {
+        ? await newDocument(PurchaseReceipt, "GR", actor, {
             purchaseOrderId: po._id,
             arrivalId: arrival._id,
             warehouseId: po.header.warehouseId,
@@ -285,7 +285,7 @@ export function confirmInspection(user, id, input) {
         (row) => row.details.ownershipDecision === "CUSTODY",
       );
       if (held.length) {
-        const custody = newDocument(CustodyReceipt, "CRCV", actor, {
+        const custody = await newDocument(CustodyReceipt, "CRCV", actor, {
           warehouseId: po.header.warehouseId,
           ownerType: "SUPPLIER",
           ownerId: po.header.supplierId,

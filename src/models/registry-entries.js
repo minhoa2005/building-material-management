@@ -1,4 +1,3 @@
-import { createDocumentSequenceSchema } from './document-sequence.model.js';
 import { createUserSchema } from "./user.model.js";
 import { createRoleSchema } from "./role.model.js";
 import { createPermissionSchema } from "./permission.model.js";
@@ -59,7 +58,7 @@ import { createSalesInvoiceSchema } from "./sales-invoice.model.js";
 import { createUomSchema } from './uom.model.js';
 import { createConversionSchema } from './conversion.model.js';
 export function modelSchemaEntries() {
-  return [{name:'DocumentSequence',collection:'document_sequences',schema:createDocumentSequenceSchema()}, {name:"Uom",collection:"uoms",schema:createUomSchema()},
+  return [{name:"Uom",collection:"uoms",schema:createUomSchema()},
     { name: 'Conversion', collection: 'conversions', schema: createConversionSchema() },
     { name: "Category", collection: "categories", schema: createCategorySchema() },
     { name: "User", collection: "users", schema: createUserSchema() },

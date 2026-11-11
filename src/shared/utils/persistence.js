@@ -1,3 +1,5 @@
+import { isDocumentId } from '../../models/document-identity.js';
+import { transactionContext } from './transaction-context.js';
 import mongoose from 'mongoose';
 import { notFoundError, validationError, versionConflict } from './ApiError.js';
 import { observePlanning } from './replenishment-observability.js';
@@ -10,10 +12,11 @@ export async function transaction(work) {
     try { return await session.withTransaction(() => {
       if (runs++) observePlanning('transaction_retry', { reason: 'snapshot_conflict' });
       session.replenishmentGuards = undefined;
-      return work(session);
+      session.documentNumbers = new Map();
+      return transactionContext.run(session, () => work(session));
     }, transactionOptions); }
     catch (error) {
-      if (attempt < 3 && error.code === 11000 && error.message?.includes('warehouseId_1_productId_1')) {
+      if (error.code===11000 && ((attempt<20 && isDocumentId(error.keyValue?._id??error.keyValue?.documentNo)) || (attempt<3 && error.message?.includes('warehouseId_1_productId_1')))) {
         observePlanning('transaction_retry', { reason: 'first_guard_creation', attempt: attempt + 1 });
         continue;
       }

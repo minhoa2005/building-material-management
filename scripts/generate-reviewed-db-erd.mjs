@@ -6,7 +6,7 @@ import { registerReviewedModels, newCollections } from '../src/models/index.js';
 import { removedCollections, embeddedTables } from '../src/models/consolidation.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const output = resolve(root, 'git_doc/docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_ERD_Current.drawio');
+const output = resolve(root, 'git_doc/docs/03_thiet_ke/DB_Current_2026-11-12_58/WMSD_ERD_Current.drawio');
 
 const groups = [
   ['A · Access', '#DDEBFF', ['users', 'roles', 'permissions']],
@@ -40,6 +40,7 @@ function refOf(path) {
 }
 function typeOf(path) {
   if (path?.instance === 'Array') return '[]';
+  if (path?.instance === 'DocumentIdentity') return 'DocID';
   if (path?.instance === 'ObjectId') return 'ObjectId';
   if (path?.instance === 'Decimal128') return 'Decimal';
   if (path?.instance === 'Date') return 'Date';
@@ -67,7 +68,7 @@ const metadata = new Map([...models].map(([collection, Model]) => [collection, {
 function displayFields(collection, detail = false) {
   const { fields } = metadata.get(collection);
   const limit = detail ? 26 : 11;
-  const lines = ['<b>PK</b>  _id : ObjectId'];
+  const lines = ['<b>PK</b>  _id : '+typeOf(metadata.get(collection).Model.schema.path('_id'))];
   for (const field of fields.slice(0, limit)) {
     const mark = field.target ? (field.many ? 'FK[]' : 'FK') : field.required ? '•' : '○';
     const target = field.target ? ` → ${field.target}` : '';
@@ -102,7 +103,7 @@ function diagram(id, name, collections, detail, color = '#DDEBFF') {
   const nodes = new Map();
   const parts = [
     '<mxGraphModel dx="2400" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="18000" pageHeight="15000" math="0" shadow="0" background="#FFFFFF"><root><mxCell id="0"/><mxCell id="1" parent="0"/>',
-    cell('title', html(`<b>${name}</b><br/><font style="font-size:14px">PK = document _id · FK = ObjectId ref · [] = array / embedded item · Crow’s foot shows logical cardinality</font>`), 'rounded=0;whiteSpace=wrap;html=1;fillColor=#17324D;strokeColor=none;fontColor=#FFFFFF;align=left;verticalAlign=middle;spacing=16;fontFamily=Arial;fontSize=26;', 30, 20, Math.max(310, Math.min(collections.length, columns) * gapX - 40), 80),
+    cell('title', html(`<b>${name}</b><br/><font style="font-size:14px">DocID = coded String / historical ObjectId · FK = typed ref · [] = array / embedded item · Crow’s foot shows logical cardinality</font>`), 'rounded=0;whiteSpace=wrap;html=1;fillColor=#17324D;strokeColor=none;fontColor=#FFFFFF;align=left;verticalAlign=middle;spacing=16;fontFamily=Arial;fontSize=26;', 30, 20, Math.max(310, Math.min(collections.length, columns) * gapX - 40), 80),
   ];
   let rowY = 145;
   for (let start = 0; start < collections.length; start += columns) {
@@ -132,7 +133,7 @@ const allCollections = groups.flatMap(([, , rows]) => rows);
 const pages = [diagram('overall_sql', '00 — Full SQL-style Database Diagram', allCollections, false)];
 for (const [name, color, collections] of groups) pages.push(diagram(safeId(name), name, collections, true, color));
 
-const file = `<?xml version="1.0" encoding="UTF-8"?>\n<mxfile host="app.diagrams.net" modified="2026-11-06T09:00:00.000Z" agent="WMSD reviewed model generator" version="26.0.0" type="device">\n${pages.join('\n')}\n</mxfile>\n`;
+const file = `<?xml version="1.0" encoding="UTF-8"?>\n<mxfile host="app.diagrams.net" modified="2026-11-12T00:00:00.000Z" agent="WMSD reviewed model generator" version="26.0.0" type="device">\n${pages.join('\n')}\n</mxfile>\n`;
 await mkdir(dirname(output), { recursive: true });
 await writeFile(output, file, 'utf8');
 await connection.close();

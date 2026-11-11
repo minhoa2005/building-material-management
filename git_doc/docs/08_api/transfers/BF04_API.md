@@ -10,6 +10,10 @@ the UI must not infer access from a fixed role name.  The `GET /options` endpoin
 is selection data only: each write command repeats its data, stock, capacity and
 scope checks inside its transaction.
 
+## Read DTO names — 11/11/2026
+
+Scoped list/detail responses add sourceWarehouse and destinationWarehouse objects containing id,code,name (null if a reference no longer exists). FE renders explicit warehouse source/destination code and name for BF04, retaining the header IDs separately for actions. Lookups happen only after the request scope check; Sales redaction of operational documents remains unchanged. These fields are response-only current catalogue labels; no migration or shared-DB write is required.
+
 ## Read and selection APIs
 
 | Endpoint | Permission | Result |
@@ -21,21 +25,21 @@ scope checks inside its transaction.
 The active warehouse catalogue supports choosing a destination outside the source
 user's assignments. `sourceWarehouseIds` lists warehouses the caller may operate.
 Only those warehouses expose locations and balances. Sales read scope remains
-restricted to its linked demand documents.
+restricted to its linked demand documents. Sales options return warehouse catalogue only, with empty operational source IDs, locations, balances and product/lot data.
 
 ## Main flow
 
 | Step | API | Permission | Result |
 | --- | --- | --- | --- |
 | 1 | `POST /` | `stock_transfer:create` | Create `PENDING_APPROVAL` Transfer Request (TR). |
-| 2 | `POST /:id/review` | `stock_transfer:approve` | A different user approves or rejects the TR. |
+| 2 | `POST /:id/review` | `stock_transfer:approve` | A different user approves, rejects or returns the TR (REVISE). |
 | 3 | `POST /:id/outbound-deliveries` | `stock_transfer:dispatch` | Create one DRAFT Transfer Dispatch from approved lines. More than one dispatch may fulfil a TR, never beyond approved quantity. |
 | 4 | `POST /documents/:dispatchId/internal-requirements` | `stock_transfer:dispatch` | Create one ITR and one PICK Transfer Order (TO) for that dispatch. |
 | 5 | `POST /tasks/:pickToId/confirm` | `stock_transfer:dispatch` | Creator confirms PICK; source → staging → transit posts atomically, and dispatch becomes `POSTED`. |
 | 6 | `POST /dispatches/:dispatchId/receipts` | `stock_transfer:receive` | A different destination user receives transit stock into RECEIVING or QUARANTINE. |
-| 7 | `POST /documents/:receiptId/internal-requirements` | `stock_transfer:receive` | Create one ITR/PUTAWAY TO for the receipt. |
+| 7 | `POST /documents/:receiptId/internal-requirements` | `stock_transfer:receive` | Create one ITR/PUTAWAY TO for its GOOD lines; all-DAMAGED receipts need no TO. |
 | 8 | `POST /tasks/:putawayToId/confirm` | `stock_transfer:receive` | Confirm PUTAWAY: receiving → storage. |
-| 9 | `POST /:id/close` | `stock_transfer:receive` | Close only after every approved quantity is dispatched, transit is zero and every receipt's ITR is complete. |
+| 9 | `POST /:id/close` | `stock_transfer:receive` | Close only after every approved quantity is dispatched, transit is zero and every required GOOD putaway is complete, with no unresolved difference report. |
 
 An ITR is one-to-one with its source dispatch or receipt, and a TO is one-to-one
 with the ITR.  The indexes and command locking enforce those relationships even
@@ -91,9 +95,7 @@ Receive dispatch:
 
 For a receipt with GOOD lines, create its PUTAWAY requirement with
 `destinations:[{receiptLineId,locationId}]`, one STORAGE location for every good
-receipt line.  A receipt containing only DAMAGED lines validly sends
-`destinations:[]`; it completes its empty putaway task without inventing a stock
-movement.  Confirming a PUTAWAY TO and closing a TR otherwise use
+receipt line.  A receipt containing only DAMAGED lines needs no ITR/TO; the service rejects empty putaway work.  Confirming a PUTAWAY TO and closing a TR otherwise use
 `{idempotencyKey, expectedVersion}`.
 
 ## Guarantees and checks
@@ -108,3 +110,17 @@ commands roll back completely.
 The isolated native test (`RUN_NATIVE_API_TESTS=1 node --test
 test/native-api.integration.test.js`) covers the complete happy path, a custom
 destination role, scoped option data, and the all-damaged receipt closure path.
+
+## Danh sách chuyển kho — 12/11/2026
+
+Theo yêu cầu UX của người dùng: GET `/api/warehouse-transfers` hỗ trợ thêm `q` (mã đơn literal, không phân biệt hoa thường), `sortBy=createdAt|documentNo|workflowStatus|warehouse|destinationWarehouse`, `sortOrder=asc|desc`. Giữ bộ lọc sourceWarehouseId, destinationWarehouseId, status, from/to ISO có múi giờ (bao gồm hai đầu), page/limit (tối đa 100). Sắp xếp warehouse/destinationWarehouse theo tên kho nguồn/đích, đồng hạng theo _id. Chỉ nhận khóa sort trong allowlist, khoảng ngày đảo bị từ chối.
+
+Response data giữ items/total/page/limit; thêm summary={total,incomplete,completed,cancelled}, warehouses=[{id,code,name}], capturedAt. Summary và các kho lấy từ toàn bộ đơn được phép xem trước bộ lọc; total là số đơn phù hợp bộ lọc. completed=COMPLETED; cancelled=CANCELLED hoặc REJECTED; incomplete là các trạng thái còn lại (bao gồm PENDING_APPROVAL, APPROVED). Scope role/warehouse/record hiện hành được áp trước mọi nhánh thống kê/lọc. Không thay lệnh ghi, quyền hoặc tồn. FE mở danh sách trước, ẩn form tạo sau nút Tạo đơn, đánh STT xuyên trang và dùng createdAt thật từ DTO. Ngày lọc FE lấy trọn ngày giờ Việt Nam.
+
+### UX trang riêng — 12/11/2026
+
+Theo yêu cầu người dùng, FE chuyển tạo đơn sang `/transfers/create`; lưu thành công mở `/transfers/:id`. Danh sách không nhúng form. Trang tạo chia thông tin kho, hàng hóa và lý do, giữ payload/key khi retry chưa rõ kết quả; trang chi tiết có header/trạng thái, metadata và bảng dòng yêu cầu. Các cập nhật duyệt/xuất/nhận/cất/đóng vẫn thực hiện trên trang chi tiết với quyền/trạng thái đang có. Cập nhật 12/11: sửa/gửi lại TR ở /transfers/:id/edit qua PUT với expectedVersion; xem hợp đồng phạm vi mới bên dưới.
+
+## Phạm vi hoàn thiện 12/11/2026
+
+[Hợp đồng 20 UC hiện hành](../HIEUDT_WAREHOUSE_SCOPE.md) mô tả update/resubmit, reservation từ draft dispatch, hủy draft, bảng tiến độ, UC56 và nhận hỗn hợp/từng phần. Bổ sung PUT /:id (stock_transfer:update), POST /dispatches/:id/cancel (dispatch, key/version/reason), POST /dispatches/:id/differences (update, key/version/reason/lines[{dispatchLineId,qtyBase}]), POST /differences/:id/review (approve_variance, key/version/decision/reason/receiptId khi APPROVE). Không có lệnh sửa số lượng đã POSTED hoặc tự đóng thiếu hàng.

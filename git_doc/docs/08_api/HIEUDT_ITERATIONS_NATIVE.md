@@ -1,6 +1,10 @@
+> 12/11/2026: Quy tắc định danh cũ dùng collection document_sequences đã được thay thế. Tất cả chứng từ mới dùng _id=documentNo theo [DOCUMENT_IDENTITIES.md](DOCUMENT_IDENTITIES.md); phần dưới là lịch sử phạm vi/API trước ngày này.
+
+> Phạm vi mới ngày 12/11/2026: xem [20 UC kho/vị trí/điều chuyển/nhật ký](HIEUDT_WAREHOUSE_SCOPE.md). Bảng 18 UC dưới đây là mốc triển khai trước, không dùng để loại trừ các UC mới được giao.
+
 ## Mã phiếu và nhãn tiếng Việt HieuDT — 11/11/2026
 
-Theo yêu cầu người dùng, phiếu mới lưu documentNo theo mẫu Loại–Kho/Bộ phận–YYYYMM–Số tự động, ví dụ ĐBH–KD–202611–000001 hoặc LCV–KHO01–202611–000001. Tháng tính theo Asia/Ho_Chi_Minh. SO dùng bộ phận KD; phiếu kho lấy warehouses.code tại lúc cấp mã. Mỗi loại/đơn vị/tháng có dãy riêng bắt đầu 1; số tối thiểu 6 chữ số, không cắt khi vượt 999999.
+Quy tắc lịch sử trước 12/11 dùng documentNo theo tháng; đã được thay bằng DOCUMENT_IDENTITIES.md dùng YYMMDD và _id=documentNo.
 
 Các loại: ĐBH (đơn bán), YCX (yêu cầu xuất), LGH (lệnh giao), PXB (phiếu xuất bán nháp), LSH (soạn bán), LCV (TO chuyển vị trí/nội bộ), YCĐC (yêu cầu điều chuyển), PXĐC (xuất điều chuyển), YCNB (yêu cầu nội bộ), PNĐC (nhận điều chuyển), BCH (hàng hỏng phát sinh khi nhận), ĐCKK (điều chỉnh kiểm kê), BBBG (bàn giao nhúng).
 
@@ -44,7 +48,7 @@ Hợp đồng chi tiết BF03/BF04: [chuyển vị trí](location-movements/READ
 
 ## DTO và bảo vệ chung
 
-Registry hiện hành có 59 collections (58 nghiệp vụ gồm Conversion từ main, cùng bộ đếm kỹ thuật document_sequences); không thêm collection hoặc phục hồi model legacy. `id`/`_id` và số thập phân là chuỗi; trạng thái là `workflowStatus`. Dòng dùng `_id`, `productId`, `lotId`, `enteredUnit`, `enteredQty`, `baseUnitsPerUnit`, `qtyBase`, `baseUnitSnapshot`; không dùng conversionId. Danh sách trả `{items,total,page,limit}` trong envelope `{success,message,data}`.
+Registry hiện hành có 58 collections; không có collection bộ đếm kỹ thuật. không thêm collection hoặc phục hồi model legacy. `id`/`_id` và số thập phân là chuỗi; trạng thái là `workflowStatus`. Dòng dùng `_id`, `productId`, `lotId`, `enteredUnit`, `enteredQty`, `baseUnitsPerUnit`, `qtyBase`, `baseUnitSnapshot`; không dùng conversionId. Danh sách trả `{items,total,page,limit}` trong envelope `{success,message,data}`.
 
 Lệnh bổ sung dùng `idempotencyKey` và `expectedVersion` nguyên dương; tạo SO chưa có expectedVersion. Mỗi lần thử lại không rõ kết quả phải giữ nguyên key, actor và toàn bộ payload. Sai quyền, kho, người thực hiện, nguồn, trạng thái hoặc phiên bản không được ghi một phần. Transaction ghi chứng từ, stock/reservations nếu có, OperationRecord, AuditLog và BusinessEvent cùng lúc. FE giữ key/payload khi lỗi mạng hoặc 5xx; lỗi nghiệp vụ 4xx cho phép sửa rồi gửi lệnh mới.
 

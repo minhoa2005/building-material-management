@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
@@ -27,8 +28,8 @@ const form = { expectedPoVersion: ver, arrivedAt: iso, deliveryReference: option
 const pager = z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().safe());
 export const pagination = { page: pager.default(1), limit: pager.pipe(z.number().max(100)).default(10) };
 export const paged = fields => z.object({ ...pagination, ...fields }).strict().refine(q => Number.isSafeInteger((q.page - 1) * q.limit));
-const query = status => paged({ purchaseOrderId: oid.optional(), warehouseId: oid.optional(), status: z.enum(status).optional() });
-export const schema = (body = empty, params = z.object({ id: oid }).strict(), query = empty) => z.object({ body, params, query });
+const query = status => paged({ purchaseOrderId: documentIdentifier.optional(), warehouseId: oid.optional(), status: z.enum(status).optional() });
+export const schema = (body = empty, params = z.object({ id: documentIdentifier }).strict(), query = empty) => z.object({ body, params, query });
 export const handle = fn => catchAsync(async (req, res) => { const data = await fn(req.user, req.validated); formatApiResponse(res, { data }); });
 export const commandBody = { expectedVersion: ver, operationKey: key };
 export const inspectionRouter = Router(); inspectionRouter.use(authenticate);
@@ -52,7 +53,7 @@ receiptRouter.get('/', validate(schema(empty,empty,query(['DRAFT','POSTED','REVE
 receiptRouter.get('/:id', validate(schema()), handle((u,v) => reads.getDocument(u,v.params.id,'GR_PURCHASE')));
 receiptRouter.post('/:id/post', validate(schema(z.object({ ...commandBody, expectedPoVersion: ver, packaging }).strict())), handle((u,v) => service.postReceipt(u,v.params.id,v.body)));
 export const purchaseReceivingRouter = Router(); purchaseReceivingRouter.use(authenticate);
-purchaseReceivingRouter.get('/:id/receiving-operations/:key', validate(schema(empty,z.object({ id: oid, key }).strict())), handle((u,v) => service.receivingOperation(u,v.params.id,v.params.key)));
+purchaseReceivingRouter.get('/:id/receiving-operations/:key', validate(schema(empty,z.object({ id: documentIdentifier, key }).strict())), handle((u,v) => service.receivingOperation(u,v.params.id,v.params.key)));
 purchaseReceivingRouter.get('/:id/receiving-summary', validate(schema()), handle((u,v) => reads.receivingSummary(u,v.params.id)));
 purchaseReceivingRouter.get('/:id/receiving-trips', validate(schema(empty,undefined,paged({ status: z.enum(['DRAFT','CONFIRMED','CANCELLED']).optional() }))), handle((u,v) => reads.receivingTrips(u,v.params.id,v.query)));
 purchaseReceivingRouter.get('/:id/inspection-context', validate(schema()), handle((u,v) => service.inspectionContext(u,v.params.id)));
@@ -62,14 +63,14 @@ putawayRouter.get('/:id', validate(schema()), handle((u,v) => tasks.getPutaway(u
 putawayRouter.post('/:id/confirm', validate(schema(z.object({ ...commandBody, lines: z.array(z.object({ taskLineId: oid, actualQtyBase: qty }).strict()).min(1).max(100) }).strict())), handle((u,v) => tasks.confirmPutaway(u,v.params.id,v.body)));
 putawayRouter.post('/:id/cancel-remainder', validate(schema(z.object({ ...commandBody, reason }).strict())), handle((u,v) => tasks.cancelPutaway(u,v.params.id,v.body)));
 export const queueRouter = Router(); queueRouter.use(authenticate);
-queueRouter.get('/', validate(schema(empty,empty,paged({ warehouseId: oid.optional(), purchaseOrderId: oid.optional(), stage: z.enum(['DRAFT_INSPECTION','AWAITING_POST','AWAITING_PUTAWAY','CORRECTION']) }))), handle((u,v) => reads.receivingQueue(u,v.query)));
+queueRouter.get('/', validate(schema(empty,empty,paged({ warehouseId: oid.optional(), purchaseOrderId: documentIdentifier.optional(), stage: z.enum(['DRAFT_INSPECTION','AWAITING_POST','AWAITING_PUTAWAY','CORRECTION']) }))), handle((u,v) => reads.receivingQueue(u,v.query)));
 export const purchaseDocumentRouter = Router(); purchaseDocumentRouter.use(authenticate);
 purchaseDocumentRouter.get('/:id/history', validate(schema(empty,undefined,paged({}))), handle((u,v) => reads.receivingHistory(u,v.params.id,v.query)));
 purchaseDocumentRouter.get('/:id/evidence', validate(schema()), handle((u,v) => evidence.listEvidence(u,v.params.id)));
 const multipart = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 1 } }).single('file');
 purchaseDocumentRouter.post('/:id/evidence/uploads', (req,res,next) => multipart(req,res,e => next(e ? new ApiError(e.code === 'LIMIT_FILE_SIZE' ? 413 : 400,'Một tệp JPEG/PNG/PDF tối đa 5 MB') : undefined)), validate(schema(z.object({ lineId: oid.optional() }).strict())), catchAsync(async (req,res) => formatApiResponse(res,{ data: await evidence.uploadEvidence(req.user,req.validated.params.id,req.file,req.validated.body.lineId) })));
 purchaseDocumentRouter.post('/:id/evidence/attach', validate(schema(z.object({ ...commandBody, attachmentId: oid }).strict())), handle((u,v) => evidence.attachEvidence(u,v.params.id,v.body)));
-purchaseDocumentRouter.get('/:id/evidence/:evidenceId/download', validate(schema(empty,z.object({ id: oid,evidenceId: oid }).strict())), handle((u,v) => evidence.downloadEvidence(u,v.params.id,v.params.evidenceId)));
+purchaseDocumentRouter.get('/:id/evidence/:evidenceId/download', validate(schema(empty,z.object({ id: documentIdentifier,evidenceId: oid }).strict())), handle((u,v) => evidence.downloadEvidence(u,v.params.id,v.params.evidenceId)));
 
 export const reversalRouter=Router();reversalRouter.use(authenticate);
 reversalRouter.get('/:id',validate(schema()),handle((u,v)=>correction.getReversal(u,v.params.id)));

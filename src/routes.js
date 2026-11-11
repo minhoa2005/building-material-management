@@ -1,3 +1,4 @@
+import warehouseStockRouter from './modules/warehouse-stock/routes.js';
 import { Router } from "express";
 import stocktakeClosureRouter from './modules/stocktake-closure/stocktake-closure.routes.js';
 import operationalReportsRouter from './modules/operational-reports/operational-reports.routes.js';
@@ -30,6 +31,7 @@ import uomRouter from './modules/uoms/uom.routes.js';
 import goodsReceiptRouter from './modules/goods-receipts/goods-receipt.routes.js';
 
 const router = Router();
+router.use(warehouseStockRouter);
 router.use('/stocktakes',stocktakeClosureRouter);
 router.use('/reports',operationalReportsRouter);
 router.use('/uoms',uomRouter);

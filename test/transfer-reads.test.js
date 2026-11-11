@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { listQuery, detailParams } from '../src/modules/transfers/transfer-read.validation.js';
 import { requirementBody } from '../src/modules/transfers/transfer-write.validation.js';
 
-test('all-damaged receipts accept an empty putaway destination list', () => {
+test('putaway destinations allow empty input for service-level all-damaged validation', () => {
   assert.equal(requirementBody.safeParse({idempotencyKey:'damaged-only',expectedVersion:1,destinations:[]}).success,true);
 });
 
 test('transfer filters are bounded and reject operators, unknown fields and invalid dates', () => {
-  assert.deepEqual(listQuery.parse({}), { page: 1, limit: 20 });
+  assert.deepEqual(listQuery.parse({}), { page: 1, limit: 20, sortBy:'createdAt',sortOrder:'desc' });
   assert.equal(listQuery.parse({ page: '2', limit: '10' }).page, 2);
   for (const input of [{ page: '0' }, { limit: '101' }, { status: { $ne: 'DRAFT' } }, { sort: '$where' },
     { sourceWarehouseId: 'bad-id' }, { from: 'yesterday' },

@@ -1,5 +1,6 @@
 import { Schema, integer, text, decimal, code, rules } from "./model-utils.js";
 import { documentCollections } from "./collections.js";
+import { DocumentIdentity } from './document-identity.js';
 export const objectId = Schema.Types.ObjectId;
 export const id = (required = true) => ({
   type: Schema.Types.ObjectId,
@@ -32,10 +33,11 @@ export const warehouse = () => ({
 });
 export const quality = () => code(QUALITY_CODES);
 export const financialStatus = () => text(20, { default: "NOT_RECORDED" });
-export const subject = () => ({ subjectType: text(80), subjectId: id() });
+export const documentId = (required=true) => ({type:DocumentIdentity,required});
+export const subject = () => ({ subjectType: text(80), subjectId: documentId() });
 export const origin = () => ({
   sourceType: text(80),
-  sourceId: id(),
+  sourceId: documentId(),
   sourceVersion: integer(1),
 });
 import { QUALITY_CODES } from "./constants.js";

@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { z } from "zod";
 import {
   calendarDateString,
@@ -13,7 +14,7 @@ const positiveInteger = (fallback, max = Number.MAX_SAFE_INTEGER) =>
     .default(fallback);
 
 export const getPurchaseOrderSchema = z.object({
-  params: z.object({ id: objectIdString }).strict(),
+  params: z.object({ id: documentIdentifier }).strict(),
   body: z.object({}).strict(),
   query: z.object({}).strict(),
 });
