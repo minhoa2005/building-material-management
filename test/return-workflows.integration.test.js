@@ -61,6 +61,19 @@ run('customer custody, current inspection decision and receipt preserve physical
  const ownedAfter=await m.InventoryBalance.find({ownerType:'STORE',batchId:batch._id});assert.equal(ownedAfter.reduce((n,b)=>n+Number(String(b.quantityBase)),0),totalBefore+4);assert.equal((await m.CustomerReturn.findById(doc.id)).workflowStatus,'COMPLETED');
  const claim=await m.ReturnQuantityClaim.findOne({requestLineId:doc.items[0]._id});assert.equal(claim.events.at(-1).kind,'RECEIVED');
 });
+run('multiple customer custody arrivals retain later packaging timestamps on receipt',async()=>{
+ const location=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:'RET-MULTI-CUSTODY',locationType:'CUSTODY',usableLengthMm:5000,usableWidthMm:5000});
+ const result=await reads.createHistoricalSource(users.ACCOUNTANT,{...input(),sourceSystem:'EXTERNAL',referenceNo:key(),referenceDate:new Date().toISOString(),correlationId:key(),customerId:customer.id,warehouseId:warehouse.id,lines:[{productId:sid(batch.productId),lotId:batch.id,qtyBase:'8',enteredUnit:'PIECE',baseUnitsPerUnit:'1'}]},stored);
+ const external=await m.ExternalReference.findById(result.id),returns=[];
+ for(let i=0;i<2;i++){
+  const created=await service.createCustomerReturn(users.SALES,{...input(),warehouseId:warehouse.id,customerId:customer.id,lines:[{historicalExternalLineId:sid(external.items[0]),qtyBase:'4',reason:'Unused cartons'}]});let doc=await m.CustomerReturn.findById(created.id);const ev=await attachment(doc,users.WAREHOUSE);
+  await service.inspectCustomerReturn(users.WAREHOUSE,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],custodyLocationId:location.id,lines:[{returnLineId:sid(doc.items[0]),qtyReceived:'4',packagingCondition:'SEALED',installationStatus:'UNUSED',damageCause:'NONE',deadlineStatus:'WITHIN',deadlineReference:'Actual terms',assessmentReason:'Intact goods'}]});
+  doc=await m.CustomerReturn.findById(doc.id);await service.decideCustomerReturn(users.SALES,doc.id,{...input(),expectedVersion:doc.version,decision:'APPROVE',reason:'Ordinary return'});returns.push({id:doc.id,evidenceId:ev.id});
+ }
+ const point=await m.StockHoldingPoint.findOne({locationId:location._id}),before=await m.InventoryBalance.findOne({holdingPointId:point._id});const retained=before.packagingPortions[1].toObject();
+ const doc=await m.CustomerReturn.findById(returns[0].id);await service.receiveCustomerReturn(users.WAREHOUSE,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[returns[0].evidenceId],lines:[{lineId:sid(doc.items[0]),qtyBase:'4',locationId:receiving.id,qualityCode:'GOOD'}]});
+ const after=await m.InventoryBalance.findById(before._id);assert.equal(String(after.quantityBase),'4');assert.equal(after.packagingPortions.length,1);assert.equal(sid(after.packagingPortions[0]),sid(retained));assert.equal(after.packagingPortions[0].createdAt.getTime(),retained.createdAt.getTime());
+});
 run('failed delivery receives actual stock and reopens demand atomically with replay',async()=>{
  const original=await m.SalesGoodsIssue.findOne();const originalOd=await m.DeliveryOrder.findOne({'items._id':original.items[0].details.outboundDeliveryLineId});const originalWir=await m.WarehouseIssueRequest.findById(originalOd.header.issueRequestId);const originalSo=await m.SalesOrder.findById(originalWir.header.salesOrderId);
  const clone=doc=>{const x=doc.toObject();x._id=id();x.documentNo='TEST-'+id();x.version=1;x.items=x.items.map(i=>({...i,_id:id()}));delete x.createdAt;delete x.updatedAt;return x;};
