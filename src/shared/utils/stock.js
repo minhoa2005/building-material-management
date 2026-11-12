@@ -175,11 +175,20 @@ export async function receiveStock(balance, item, portions, posting, user, sessi
   if (!batch || batch.identificationStatus !== 'VERIFIED' || !product?.isActive || !same(batch.productId, item.productId) || (product.wholeBaseUnits && !amount.isInteger())) throw validationError('Lô hoặc lượng nhập không hợp lệ');
   let packaging = portions;
   if (!packaging?.length) {
-    const cartons = amount.div(batch.piecesPerCarton);
-    if (!cartons.isInteger()) throw validationError('Nhập quy cách và thể tích thực đo cho phần hàng mở/lẻ');
-    packaging = [{ packagingState: 'SEALED', sealedPackCount: cartons.toNumber(), quantityBase: amount.toFixed(),
-      packagingSnapshot: { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
-        outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm } }];
+    const perCarton = exact(String(batch.piecesPerCarton));
+    const fullCartons = amount.dividedToIntegerBy(perCarton);
+    const looseQty = amount.mod(perCarton);
+    const packagingSnapshot = { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
+      outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm };
+    packaging = [];
+    if (fullCartons.gt(0)) {
+      packaging.push({ packagingState: 'SEALED', sealedPackCount: fullCartons.toNumber(), quantityBase: fullCartons.mul(perCarton).toFixed(), packagingSnapshot });
+    }
+    if (looseQty.gt(0)) {
+      const cartonVolume = exact(String(batch.cartonLengthMm)).mul(String(batch.cartonWidthMm)).mul(String(batch.cartonHeightMm));
+      const measuredVolumeMm3 = cartonVolume.mul(looseQty).div(perCarton).toDecimalPlaces(3).toFixed();
+      packaging.push({ packagingState: 'LOOSE', quantityBase: looseQty.toFixed(), measuredVolumeMm3, packagingSnapshot });
+    }
   }
   if (!packaging.reduce((sum,row) => sum.plus(String(row.quantityBase)), exact('0')).eq(amount)) throw validationError('Tổng quy cách khác lượng thực nhập');
   const before = exact(balance.quantityBase);

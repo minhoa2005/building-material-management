@@ -6,6 +6,7 @@ import { PERMISSION_CATALOGUE, ROLE_PERMISSIONS } from '../src/seeds/data/permis
 import * as rr from '../src/modules/replenishments/replenishment.commands.js';
 import * as po from '../src/modules/purchase-orders/purchase-order.commands.js';
 import * as receiving from '../src/modules/po-receiving/po-receiving.service.js';
+import { getDocument, listDocuments, receivingSummary } from '../src/modules/po-receiving/purchase-read.service.js';
 import * as putaway from '../src/modules/po-receiving/purchase-putaway.service.js';
 import * as correction from '../src/modules/po-receiving/purchase-correction.service.js';
 import * as productService from '../src/modules/products/product.service.js';
@@ -210,7 +211,7 @@ async function postedReceipt(packagingCondition='SEALED',custodyOnly=false,quali
  await rr.reviewReplenishment(owner,created.id,{...input(),expectedVersion:request.version,decision:'APPROVE',reason:'Test',lines:request.items.map(i=>({lineId:String(i._id),approvedQtyBase:'8'}))});request=await m.ReplenishmentRequest.findById(created.id);
  const order=await po.createPurchaseOrder(accountant,{creationKey:key(),warehouseId:String(warehouse._id),supplierId:String(supplier._id),expectedOn:'2026-12-01',currency:'VND',lines:[{rrLineId:String(request.items[0]._id),approvalId:String(request.header.latestDecisionId),enteredQty:'2',unitPurchasePrice:'100000'}]});
  await po.confirmPurchaseOrder(accountant,order.id,{...input(),expectedVersion:1});let orderDoc=await m.PurchaseOrder.findById(order.id);
- const inspection=await receiving.createInspection(worker,order.id,{creationKey:key(),expectedPoVersion:orderDoc.version,arrivedAt:new Date().toISOString(),lines:[{poLineId:String(orderDoc.items[0]._id),lotId:String(batch._id),enteredQty:'2',qualityCode,ownershipDecision:custodyOnly?'CUSTODY':'ACCEPT',packagingCondition}]});
+ const inspection=await receiving.createInspection(worker,order.id,{creationKey:key(),expectedPoVersion:orderDoc.version,arrivedAt:new Date().toISOString(),deliveredBy:'Người giao A - 0901234567',deliveryReference:'PG-001',lines:[{poLineId:String(orderDoc.items[0]._id),lotId:String(batch._id),enteredQty:'2',qualityCode,ownershipDecision:custodyOnly?'CUSTODY':'ACCEPT',packagingCondition}]});
  let inspected=await m.GoodsInspection.findById(inspection.id);
  const confirmed=await receiving.confirmInspection(worker,inspection.id,{...input(),expectedVersion:inspected.version,expectedPoVersion:orderDoc.version,destinations:custodyOnly?[]:[{inspectionItemId:String(inspected.items[0]._id),locationId:String(receivingLocation._id)}]});
  if(custodyOnly){const ref=confirmed.resultRefs.find(r=>r.documentType==='custody_receipts');const d=await m.CustodyReceipt.findById(ref.documentId);const loc=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:key(),locationType:'CUSTODY',usableLengthMm:'5000',usableWidthMm:'5000'});await receiving.postCustodyReceipt(worker,d._id,{...input(),expectedVersion:d.version,handedOverBy:'Supplier',destinations:[{lineId:String(d.items[0]._id),locationId:String(loc._id)}]});return m.CustodyReceipt.findById(d._id);}
@@ -263,8 +264,27 @@ run('product image URLs create, list, detail, update, audit and legacy defaults'
 });
 run('native RR → PO → inspection → receipt → partial putaway preserves stock, sources and replay',async()=>{
  const receipt=await postedReceipt();const context=await putaway.putawayContext(worker,receipt._id);
+ const detail = await getDocument(worker, receipt._id, 'GR_PURCHASE');
+ assert.equal(detail.header.supplierName, supplier.name);
+ assert.equal(detail.header.warehouseName, warehouse.name);
+ assert.equal(detail.header.postedBy, String(worker._id));
+ assert.equal(detail.header.postedByName, worker.fullName);
+ assert.equal(detail.header.postedAt, receipt.postedAt.toISOString());
+ const arrival = await m.GoodsArrival.findById(receipt.header.arrivalId);
+ assert.deepEqual(detail.arrival.header, {
+   arrivedAt: arrival.header.arrivedAt.toISOString(),
+   deliveredBy: 'Người giao A - 0901234567',
+   deliveryReference: 'PG-001',
+ });
+ assert.equal(detail.items[0].inspectionResult.qualityCode, 'GOOD');
+ assert.equal(detail.items[0].lotLabelSnapshot, batch.manufacturerLot);
  const task=await putaway.createPutaway(worker,receipt._id,{creationKey:key(),expectedVersion:receipt.version,lines:[{receiptLineId:String(receipt.items[0]._id),expectedSourceVersion:context.items[0].sourceBalanceVersion,qtyBase:'8',toLocationId:String(storageLocation._id)}]});
  let taskDoc=await m.TransferOrder.findById(task.id);await putaway.confirmPutaway(worker,task.id,{...input(),expectedVersion:taskDoc.version,lines:[{taskLineId:String(taskDoc.items[0]._id),actualQtyBase:'4'}]});
+ const taskList = await putaway.listPutaway(worker, { page: 1, limit: 10, status: 'PARTIAL', purchaseOrderId: String(receipt.header.purchaseOrderId) });
+ assert.equal(taskList.total, 1);
+ assert.deepEqual([taskList.items[0].plannedQtyBase, taskList.items[0].actualQtyBase, taskList.items[0].remainingQtyBase], ['8','4','4']);
+ assert.equal(taskList.items[0].sourceReceipt.id, String(receipt._id));
+ assert.ok((await receivingSummary(worker, String(receipt.header.purchaseOrderId))).documents.some(row => row.kind === 'PUTAWAY' && row.id === task.id));
  taskDoc=await m.TransferOrder.findById(task.id);assert.equal(taskDoc.workflowStatus,'PARTIAL');await putaway.confirmPutaway(worker,task.id,{...input(),expectedVersion:taskDoc.version,lines:[{taskLineId:String(taskDoc.items[0]._id),actualQtyBase:'4'}]});
  assert.equal((await m.TransferOrder.findById(task.id)).workflowStatus,'CONFIRMED');assert.equal((await putaway.placementQuantities(receipt))[0].unplacedQtyBase,'0');const report=await reconcilePurchasing();assert.deepEqual(report.issues,[]);
  const preflight=await correction.reversalPreflight(worker,receipt._id);assert.equal(preflight.eligible,false);
@@ -353,7 +373,14 @@ run('native transfer dispatch, independent receipt and putaway reconcile all mov
  const pick=await transfers.createRequirement(worker,dispatch.id,{idempotencyKey:key(),expectedVersion:1});
  await transfers.confirmTask(worker,pick.id,{idempotencyKey:key(),expectedVersion:1,recipientName:'Transporter'});
  let shipped=await m.TransferDispatch.findById(dispatch.id);assert.equal(shipped.handovers.length,1);
+ const eligible = { receivable: 'true', page: 1, limit: 10, destinationWarehouseId: String(destination._id), status: ['POSTED', 'DRAFT'] };
+ assert.deepEqual((await reads.listDispatches(actor, eligible)).items.map(row => row._id), [dispatch.id]);
+ assert.equal((await reads.listDispatches(worker, eligible)).total, 0);
+ assert.equal((await reads.getDispatch(actor, dispatch.id)).receivableLines[0].remainingQtyBase, '8');
+ const { listQuery } = await import('../src/modules/transfers/transfer-read.validation.js');
+ assert.ok((await reads.listTransfers(actor, listQuery.parse({ status: 'APPROVED,OPEN' }))).items.some(row => row._id === request.id));
  const received=await transfers.receiveTransfer(actor,dispatch.id,{idempotencyKey:key(),expectedVersion:shipped.version,lines:[{dispatchLineId:String(shipped.items[0]._id),locationId:String(inbound._id),qtyBase:'8',qualityCode:'GOOD'}]});
+ assert.equal((await reads.listDispatches(actor, eligible)).total, 0);
  const receivingDoc=await m.TransferReceipt.findById(received.id);
  const putting=await transfers.createRequirement(actor,received.id,{idempotencyKey:key(),expectedVersion:1,destinations:[{receiptLineId:String(receivingDoc.items[0]._id),locationId:String(target._id)}]});
  await transfers.confirmTask(actor,putting.id,{idempotencyKey:key(),expectedVersion:1});
@@ -381,6 +408,16 @@ run('opened cartons require measured packaging and failed posting leaves no stoc
 import * as custody from '../src/modules/po-receiving/purchase-custody.service.js';
 run('custody acceptance, ownership reversal and return preserve physical stock and sources',async()=>{
  let held=await postedReceipt('SEALED',true);const item=held.items[0];
+ const heldInspection = await m.GoodsInspection.findById(held.sources[0].documentId);
+ const heldArrival = await m.GoodsArrival.findById(heldInspection.header.arrivalId);
+ const custodyList = await listDocuments(worker, 'CUSTODY_RECEIPT', { page: 1, limit: 10, status: 'POSTED',
+   purchaseOrderId: String(heldArrival.header.purchaseOrderId) });
+ assert.equal(custodyList.total, 1);
+ assert.equal(custodyList.items[0].sourceInspection.id, String(heldInspection._id));
+ assert.equal(custodyList.items[0].header.warehouseName, warehouse.name);
+ assert.ok(custodyList.items[0].items[0].holdingLocationId);
+ assert.ok((await receivingSummary(worker, String(heldArrival.header.purchaseOrderId))).documents.some(row =>
+   row.kind === 'CUSTODY_RECEIPT' && row.id === String(held._id)));
  const evidence=await m.Attachment.create({ownerDocumentType:'custody_receipts',ownerDocumentId:held._id,purpose:'TEST',originalName:'test.png',mediaType:'image/png',sizeBytes:10,storageKey:'local-test',checksum:'a'.repeat(64),uploadedBy:worker._id,uploadedAt:new Date(),accessCategory:'BUSINESS',status:'ATTACHED'});
  const decision=await custody.decideCustody(accountant,held._id,{...input(),expectedVersion:held.version,decision:'ACCEPT',reason:'Agreed',evidenceIds:[String(evidence._id)],lines:[{custodyItemId:String(item._id),qtyBase:'4'}]});held=await m.CustodyReceipt.findById(held._id);
  const inspection=await m.GoodsInspection.findById(held.items[0].sources[0].documentId);const arrival=await m.GoodsArrival.findById(inspection.header.arrivalId);let order=await m.PurchaseOrder.findById(arrival.header.purchaseOrderId);

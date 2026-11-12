@@ -19,6 +19,8 @@ Scoped list/detail responses add sourceWarehouse and destinationWarehouse object
 | Endpoint | Permission | Result |
 | --- | --- | --- |
 | `GET /` | `stock_transfer:read` | Scoped TR list; filters include source/destination warehouse, status and date. |
+| `GET /dispatches` | `stock_transfer:read` | Tra phiếu xuất theo kho nguồn, kho đích, số phiếu và trạng thái. Với `receivable=true`, cần `stock_transfer:receive`. Kết quả chỉ gồm phiếu xuất đã ghi, yêu cầu đã duyệt, còn hàng đang chuyển và người nhận khác người xuất. |
+| `GET /dispatches/:id` | `stock_transfer:read` | Chi tiết phiếu xuất với `receivableLines` nếu người dùng đủ điều kiện nhận. |
 | `GET /:id` | `stock_transfer:read` | TR, dispatches, receipts, ITRs, generated TOs and approvals within scope. |
 | `GET /options?warehouseId=` | `stock_transfer:read` | Accessible warehouses; with `warehouseId`, its locations, holding points, positive balances, verified batches and active products. |
 
@@ -26,6 +28,8 @@ The active warehouse catalogue supports choosing a destination outside the sourc
 user's assignments. `sourceWarehouseIds` lists warehouses the caller may operate.
 Only those warehouses expose locations and balances. Sales read scope remains
 restricted to its linked demand documents. Sales options return warehouse catalogue only, with empty operational source IDs, locations, balances and product/lot data.
+
+Bộ lọc `status` của danh sách yêu cầu và phiếu xuất nhận một hoặc nhiều trạng thái phân tách bằng dấu phẩy. Từ yêu cầu điều chuyển, nút **Lập phiếu nhập** mở form Nhập kho với phiếu xuất điền sẵn. Form gọi `POST /dispatches/:id/receipts` và mở phiếu nhập theo `data.id`. Các dòng hư hỏng cần vị trí cách ly và lý do.
 
 ## Main flow
 

@@ -6,8 +6,8 @@ import { nextDocumentFields, formatDocumentNumber, numberPeriod } from '../src/s
 
 test('document IDs use the Vietnamese local day and preserve numbers above six digits', () => {
   assert.equal(numberPeriod(new Date('2026-11-30T18:00:00Z')), '261201');
-  assert.equal(formatDocumentNumber('ĐBH','KD','261112',1),'ĐBH - KD - 261112 - 000001');
-  assert.equal(formatDocumentNumber('ĐBH','KD','261112',1000000),'ĐBH - KD - 261112 - 1000000');
+  assert.equal(formatDocumentNumber('ĐBH', 'K-GACH-01', '261112', 1), 'ĐBH-K-GACH-01-261112-000001');
+  assert.equal(formatDocumentNumber('ĐBH', 'KD', '261112', 1000000), 'ĐBH-KD-261112-1000000');
   assert.throws(()=>formatDocumentNumber('ĐBH','KD','261112',Number.MAX_SAFE_INTEGER+1));
 });
 
@@ -33,12 +33,25 @@ test('number allocation uses last code, serializes concurrency, rolls back and i
       }
     };
     const first=await allocate(); assert.equal(first.soThuTu,42);
+    assert.equal(first._id, 'ĐBH-KD-261111-000042');
     assert.equal(first.tenLoaiPhieu,'Đơn bán hàng');
+    const operations = models.get('operation_records').collection;
+    await operations.insertOne({
+      operationKey: 'legacy-history',
+      requestKey: 'legacy-history',
+      subjectId: 'ĐBH - KD - 261111 - 000043',
+    });
     const results=await Promise.all([allocate(),allocate(),allocate()]);
-    assert.deepEqual(results.map(r=>r.soThuTu).sort((a,b)=>a-b),[43,44,45]);
+    assert.deepEqual(results.map(r=>r.soThuTu).sort((a,b)=>a-b),[44,45,46]);
     const session=await connection.startSession();
     try {await assert.rejects(session.withTransaction(async()=>{await nextDocumentFields(orders,'SO',null,session,new Date('2026-11-11'));throw Error('rollback');}),/rollback/);} finally {await session.endSession();}
-    assert.equal((await allocate()).soThuTu,46);
+    assert.equal((await allocate()).soThuTu,47);
+    await operations.insertOne({
+      operationKey: 'compact-history',
+      requestKey: 'compact-history',
+      subjectId: 'ĐBH-KD-261111-000048',
+    });
+    assert.equal((await allocate()).soThuTu,49);
     assert.equal((await allocate(new Date('2026-11-12'))).soThuTu,1);
     assert.equal((await connection.db.listCollections({name:'document_sequences'}).toArray()).length,0);
   } finally {assert.match(connection.name,/^hieudt_numbers_/);await connection.dropDatabase();await connection.close();}

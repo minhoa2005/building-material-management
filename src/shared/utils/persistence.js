@@ -54,7 +54,7 @@ export function serialize(value) {
   return value;
 }
 
-export const dto = (row) => ({ ...serialize(row), id: String(row._id) });
+export const dto = (row) => (row ? { ...serialize(row), id: String(row._id) } : null);
 export async function page(Model, filter, query, select) {
   const {
     page = 1,
