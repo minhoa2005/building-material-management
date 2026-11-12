@@ -71,3 +71,6 @@ FE dùng trang riêng cho tạo/sửa/xem, header/breadcrumb/trạng thái, tìm
 ## Kiểm chứng và triển khai
 
 Xem [hướng dẫn kiểm thử local](../09_phat_trien/HIEUDT_LOCAL_TESTS.md). Không có migration schema; giữ collection/index và liên kết tài liệu cũ. Đích review vẫn loopback 27018; không thay DB nhóm hoặc tự triển khai.
+
+## UI kho và vị trí theo từng kho — 12/11/2026
+Danh sách /warehouses chỉ liệt kê kho, không tải toàn bộ vị trí. /warehouses/:id dùng warehouse-catalogue/:id để đọc kho và warehouse-locations?warehouseId=:id để đọc vị trí phân trang theo kho đang xem. Các bộ lọc tìm kiếm/loại/trạng thái giữ warehouseId từ URL. Thêm vị trí chọn sẵn kho theo query warehouseId; BE vẫn kiểm quyền/phạm vi khi lưu. Không đổi API hoặc dữ liệu.

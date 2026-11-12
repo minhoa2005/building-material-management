@@ -15,3 +15,9 @@ No automatic commit/push. No remote writes as part of the model synchronization.
 ## Historical return-source decision — 7 November 2026
 
 The user confirmed Accountant verification with uploaded evidence for historical customer-delivery sources. This scope is implemented in [the native return contract](git_doc/docs/08_api/RETURN_WORKFLOWS_NATIVE.md). It does not settle broader new-SO external-source gates. Trungph return workflows now use the native registry; local automated verification and rollout limits are recorded in that contract and the PR evidence. No Atlas data or connection change.
+
+12/11/2026: code Kho 3D chặng 1: warehouses.layout3d, API lưu theo updatedAt và scope; xem git_doc/docs/10_Kho3D/IMPLEMENTATION.md. Chưa có khu vực/ô/pallet và chưa rollout DB.
+
+12/11/2026: Kho 3D chặng 2 mở rộng layout3d cho functions/zones/slots, maxStackHeight và snapshot layout3dApplied/layout3dAppliedAt. PUT layout thêm apply, kiểm containment khi apply và access_control:update khi đổi danh mục chức năng. Danh sách catalogue không trả payload thiết kế. Hợp đồng git_doc/docs/10_Kho3D/STAGE2_ZONES.md.
+
+Kho 3D: functionId rỗng hợp lệ ở nháp, không hợp lệ khi apply; functionId có giá trị phải tồn tại trong functions. Danh mục vẫn kiểm quyền quản trị, không khóa vẽ nháp khi danh mục trống.
