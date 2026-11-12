@@ -18,7 +18,7 @@ export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', 
     batch = await ProductBatch.findOne({ _id: input.lotId, productId: product._id, identificationStatus: 'VERIFIED' }).session(session);
     if (!batch) throw validationError('Lô chưa xác minh hoặc không thuộc sản phẩm');
     await lockLotIdentity(batch._id, session);
-    packagingSnapshot = { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
+    packagingSnapshot = { packageUnit: 'Thùng', baseUnitsPerPackage: String(batch.piecesPerCarton),
       outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm };
   }
   if (reuseSnapshot) {

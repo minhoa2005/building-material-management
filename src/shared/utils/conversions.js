@@ -30,7 +30,7 @@ export function conversionDto(row, uom, creator, isCurrent) {
     productBatchId: row.productBatchId ? String(row.productBatchId) : null,
     version: row.version,
     productVersion: 1,
-    uom: { id: String(uom._id), code: uom.code, name: uom.name },
+    uom: uom ? { id: String(uom._id), code: uom.code, name: uom.name } : null,
     basePerUnit: exact(row.basePerUnit).toFixed(),
     validFrom: row.validFrom.toISOString(),
     verificationReference: row.verificationReference,

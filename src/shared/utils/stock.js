@@ -178,7 +178,7 @@ export async function receiveStock(balance, item, portions, posting, user, sessi
     const perCarton = exact(String(batch.piecesPerCarton));
     const fullCartons = amount.dividedToIntegerBy(perCarton);
     const looseQty = amount.mod(perCarton);
-    const packagingSnapshot = { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
+    const packagingSnapshot = { packageUnit: 'Thùng', baseUnitsPerPackage: String(batch.piecesPerCarton),
       outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm };
     packaging = [];
     if (fullCartons.gt(0)) {

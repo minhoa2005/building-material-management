@@ -8,8 +8,10 @@ export const purchaseModels={PO:PurchaseOrder,ARRIVAL:GoodsArrival,INSPECTION:Go
 export const newDocument=(Model,prefix,user,header,items=[],status='DRAFT')=>newBusinessDocument(Model,user,header,items,status);
 export async function findPurchase(id,user,session,{kind,readOnly=false}={}){
   let document;
+  const isHex = /^[a-f\d]{24}$/i.test(id);
+  const filter = isHex ? { $or: [{ _id: id }, { documentNo: id }] } : { documentNo: id };
   const candidates=kind?[purchaseModels[kind]]:Object.values(purchaseModels);
-  for(const Model of candidates){if(!Model)throw notFoundError();document=await Model.findById(id).session(session);if(document)break;}
+  for(const Model of candidates){if(!Model)throw notFoundError();document=await Model.findOne(filter).session(session);if(document)break;}
   if(!document)throw notFoundError();
   if(!(readOnly&&currentRole(user)?.code==='ACCOUNTANT'))requireWarehouseAccess(user,document.header.warehouseId);
   return document;

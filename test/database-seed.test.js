@@ -67,7 +67,7 @@ test('buildCompleteSeedData compiles all 58 models and validates every document'
   assert.equal(data.categories.length, 5, 'Must have 5 product categories');
 
   // Verify UOMs
-  assert.ok(data.uoms.length >= 5, 'Must have standard UOMs');
+  assert.deepEqual(data.uoms.map(uom => uom.code).sort(), ['M2', 'Thùng', 'Viên'].sort());
 });
 
 test('seedDatabaseIfEmpty skips execution when database already contains data', async () => {

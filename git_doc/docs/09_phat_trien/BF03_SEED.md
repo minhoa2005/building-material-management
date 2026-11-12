@@ -34,7 +34,7 @@ hiện tại, không cộng lại lượng người dùng đã chuyển.
 
 Vào FE `/location-moves`, dùng tài khoản được phân công K-GACH-01, chọn kho đó
 → Tạo Transfer Order → tồn nguồn có SKU BF03-DEMO-6060 tại BF03-A → đích BF03-B
-→ đơn vị BOX → lượng 1 → Lưu lệnh → Xác nhận thực chuyển → Xác nhận và cập nhật
+→ đơn vị Thùng → lượng 1 → Lưu lệnh → Xác nhận thực chuyển → Xác nhận và cập nhật
 tồn. Kỳ vọng còn 36 viên ở A, 4 viên ở B. Chỉ chạy thao tác này khi muốn tiêu thụ
 dữ liệu mẫu; lần kiểm script không tự chuyển hàng trên DB remote.
 
@@ -62,6 +62,6 @@ VERIFIED, nguồn BF03-A hoạt động có 40 viên, đích BF03-B hoạt độ
 hiện TO chuyển thử trên remote. `docs:check` và `git diff --check` đạt. Process
 HTTP/phiên đăng nhập FE hiện tại vẫn cần đối chiếu nếu giao diện còn trống.
 
-## Tương thích Conversion từ main — 11/11/2026
+## Đơn vị và quy đổi của bộ dữ liệu mẫu
 
-Fixture mới dùng baseUnit PIECE, tái sử dụng UOM PIECE/BOX đang hoạt động (chỉ tạo nếu chưa có) và tạo Conversion theo lô 1 BOX = 4 PIECE cùng transaction. Không sửa UOM có sẵn hoặc đặt lại tồn. Fixture cũ đã nạp vẫn trả ALREADY_SEEDED; muốn dùng với runtime Conversion mới phải theo hướng dẫn backfill chung, không chạy lại seed để sửa tồn. Kiểm chứng bằng ca BF03 additive seed trong native-api.integration.test.js.
+Fixture dùng đơn vị gốc Viên và tái sử dụng Viên, Thùng đang hoạt động. Seed tạo đơn vị còn thiếu và quy đổi theo lô 1 Thùng = 4 Viên trong cùng transaction. Nếu Thùng đã có, danh mục phải đánh dấu `isCarton`. Fixture đã nạp trả `ALREADY_SEEDED` và giữ lượng tồn còn lại. Xem ca BF03 additive seed trong `test/native-api.integration.test.js`.
