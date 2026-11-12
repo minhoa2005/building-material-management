@@ -1897,6 +1897,8 @@ Indexes:
 
 Model: [goods-inspection.model.js](../../../../src/models/goods-inspection.model.js).
 
+`items[].details.receivingLocationId` là ObjectId tùy chọn tham chiếu `WarehouseLocation`, khai báo trong [inspection-details.schema.js](../../../../src/models/inspection-details.schema.js). Lệnh kiểm nhận mua xác thực vị trí đang hoạt động, thuộc kho nhận và có loại `RECEIVING`. Bản ghi cũ có thể thiếu trường này.
+
 | Trường | Kiểu | Bắt buộc | Liên kết |
 |---|---|---|---|
 | `documentNo` | String | true |  |

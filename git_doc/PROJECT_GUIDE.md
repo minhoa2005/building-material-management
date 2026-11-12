@@ -16,7 +16,7 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 
 [Hợp đồng runtime mới](docs/08_api/NATIVE_MODEL_RUNTIME.md) phân biệt API đã chuyển và phạm vi kiểm chứng. Việc có schema cho một nghiệp vụ không có nghĩa mọi màn hình demo đã thành chức năng vận hành.
 
-[Hợp đồng GoodsReceipt BE](docs/08_api/GOODS_RECEIPTS.md) là nguồn hiện hành cho năm loại phiếu nhập, quyền tách riêng khách trả/giao thất bại, phiếu `OTHER`, Bỏ ghi và API đã gỡ. FE sẽ được chuyển ở đợt riêng.
+[Hợp đồng GoodsReceipt BE](docs/08_api/GOODS_RECEIPTS.md) là nguồn hiện hành cho năm loại phiếu nhập, quyền tách riêng khách trả/giao thất bại, phiếu `OTHER`, Bỏ ghi và API đã gỡ. FE dùng danh sách phiếu nhập gộp, chi tiết theo loại và form ghi tồn từ chứng từ nguồn. Kiểm hàng, tạm giữ và cất hàng có màn hình riêng.
 
 ## 2. Thứ tự dùng nguồn
 

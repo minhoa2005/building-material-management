@@ -8,7 +8,7 @@ const rootEntries=[...Object.values(s.resources),[m.SupplierReturnIssue,'supplie
 const scope=user=>currentRole(user)?.code==='OWNER'?{}:{'header.warehouseId':{$in:user.warehouseIds??[]}};
 export async function parent(user,id,session,write=false){
  for(const [Model,permission] of rootEntries){const found=await Model.exists({_id:id}).session(session);if(!found)continue;if(!hasPermission(user,permission)&&!hasPermission(user,'stock_movement:read'))requirePermission(user,permission);const doc=await scoped(Model,id,user,session);
-  if(write){const permissions=Model===m.DefectReport?['defect:create','defect:execute']:Model===m.CustomerReturn?['customer_return:create','customer_return:inspect']:Model===m.FailedDelivery?['failed_delivery:inspect']:Model===m.OtherGoodsReceipt?['goods_receipt_other:create']:Model===m.SupplierReturn?['supplier_return:create','supplier_return:record_agreement','supplier_return:dispatch']:['external_reference:create'];if(!permissions.some(p=>hasPermission(user,p)))throw new s.ApiError(403,'Không có quyền ghi chứng cứ');}
+  if(write){const permissions=Model===m.DefectReport?['defect:create','defect:execute']:Model===m.CustomerReturn?['customer_return:create','customer_return:inspect','customer_return:post']:Model===m.FailedDelivery?['failed_delivery:inspect','failed_delivery:post']:Model===m.OtherGoodsReceipt?['goods_receipt_other:create']:Model===m.SupplierReturn?['supplier_return:create','supplier_return:record_agreement','supplier_return:dispatch']:['external_reference:create'];if(!permissions.some(p=>hasPermission(user,p)))throw new s.ApiError(403,'Không có quyền ghi chứng cứ');}
   return doc;
  }throw notFoundError();
 }
@@ -16,7 +16,7 @@ export async function list(user,resource,query){
  const [Model,permission]=s.resources[resource];requirePermission(user,permission);const filter={...scope(user)};
  if(resource==='customer-returns'&&hasPermission(user,'customer_return:create')&&!hasPermission(user,'customer_return:inspect')&&!hasPermission(user,'customer_return:approve_exception'))filter.createdBy=user._id;
  if(query.warehouseId){requireWarehouseAccess(user,query.warehouseId);filter['header.warehouseId']=query.warehouseId;}
- if(query.status)filter.workflowStatus=query.status;if(query.supplierId)filter['header.supplierId']=query.supplierId;
+ if(query.status)filter.workflowStatus={$in:query.status};if(query.supplierId)filter['header.supplierId']=query.supplierId;
  if(query.search){const re=query.search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');filter.$or=[{documentNo:{$regex:re,$options:'i'}},{note:{$regex:re,$options:'i'}},{'header.agreementReference':{$regex:re,$options:'i'}}];}
  if(query.lotId)filter['items.lotId']=query.lotId;if(query.hasEvidence)filter['evidenceIds.0']={$exists:query.hasEvidence==='yes'};
  if(query.unresolvedOnly)filter.workflowStatus=query.unresolvedOnly==='yes'?{$nin:['CLOSED','COMPLETED']}:{$in:['CLOSED','COMPLETED']};
@@ -24,7 +24,53 @@ export async function list(user,resource,query){
  if(query.sourceKind)filter['header.sourceKind']=query.sourceKind;
  if(query.locationId){const points=await m.StockHoldingPoint.find({locationId:query.locationId});const balances=await m.InventoryBalance.find({holdingPointId:{$in:points.map(p=>p._id)}});filter['items.balanceId']={$in:balances.map(b=>b._id)};}
  if(query.ownerPartyId)filter.items={$elemMatch:{ownerId:query.ownerPartyId}};
+ if (query.receivable === 'true' && ['customer-returns', 'failed-deliveries'].includes(resource)) {
+  if (resource === 'customer-returns') filter['decisions.decisionId'] = { $exists: true };
+  const eligible = resource === 'customer-returns' ? ['ACCEPTED', 'PARTIAL'] : ['INSPECTED', 'PARTIAL'];
+  const states = query.status?.filter(status => eligible.includes(status)) ?? eligible;
+  filter.workflowStatus = { $in: states };
+ }
  const page=query.page??1,limit=query.limit??25;const [items,total]=await Promise.all([Model.find(filter).sort({createdAt:-1,_id:-1}).skip((page-1)*limit).limit(limit),Model.countDocuments(filter)]);return {items:items.map(serialize),total,page,limit};
+}
+async function receivableLines(resource, doc, related) {
+  if (resource === 'customer-returns' && ['ACCEPTED', 'PARTIAL'].includes(doc.workflowStatus)) {
+    const approval = await m.ApprovalHistory.findById(doc.decisions.at(-1)?.decisionId).lean();
+    if (!approval) return [];
+    const posted = related.filter(row => row.documentKind === 'CUSTOMER_RETURN' && row.workflowStatus === 'POSTED').flatMap(row => row.items);
+    return (approval.reviewedContent.items ?? []).flatMap(item => {
+      const inspection = doc.inspections.filter(row => same(row.returnLineId, item._id)).at(-1);
+      if (!inspection || !same(inspection._id, item.inspection?._id)) return [];
+      const received = s.sum(posted.filter(row => row.sources.some(ref => same(ref.itemId, item._id))));
+      const remaining = exact(item.approvedQtyBase).minus(received);
+      if (!remaining.gt(0)) return [];
+      const allowedQualities = inspection.portions.some(row => row.damageCause !== 'NONE') ? ['DAMAGED', 'BLOCKED'] : ['GOOD', 'DAMAGED', 'BLOCKED'];
+      return [{ lineId: item._id, remainingQtyBase: remaining.toFixed(), allowedQualities }];
+    });
+  }
+  if (resource === 'failed-deliveries' && ['INSPECTED', 'PARTIAL'].includes(doc.workflowStatus)) {
+    const sourceIds = new Set(doc.items.map(item => String(item._id)));
+    const inspections = related.filter(row => row.documentKind === 'INSPECTION' && row.workflowStatus === 'CONFIRMED')
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)) || String(b._id).localeCompare(String(a._id)));
+    const posted = related.filter(row => row.documentKind === 'FAILED_DELIVERY' && row.workflowStatus === 'POSTED').flatMap(row => row.items);
+    const latest = new Map();
+    for (const row of inspections.flatMap(doc => doc.items)) {
+      const { inspectedSourceLineId, qualityCode } = row.details ?? {};
+      const key = [inspectedSourceLineId, qualityCode].join(':');
+      if (sourceIds.has(inspectedSourceLineId) && !latest.has(key)) latest.set(key, row);
+    }
+    const claims = await m.ReturnQuantityClaim.find({ requestLineId: { $in: doc.items.map(row => row._id) } }).lean();
+    return [...latest.values()].flatMap(row => {
+      const lineId = row.details.inspectedSourceLineId;
+      const received = s.sum(posted.filter(item => same(item.details?.inspectionLineId, row._id)));
+      const claim = claims.find(claim => same(claim.requestLineId, lineId));
+      const remaining = exact(row.qtyBase).minus(received);
+      if (!claim || !remaining.gt(0) || !s.remainingClaim(claim).gt(0)) return [];
+      const limit = s.remainingClaim(claim);
+      return [{ lineId, remainingQtyBase: (remaining.lt(limit) ? remaining : limit).toFixed(),
+        allowedQualities: [row.details.qualityCode], packagingCondition: row.details.packagingCondition }];
+    });
+  }
+  return [];
 }
 export async function detail(user,resource,id){
  const [Model,permission]=s.resources[resource],doc=await scoped(Model,id,user,undefined,permission);
@@ -32,12 +78,18 @@ export async function detail(user,resource,id){
   const rows=await Related.find({...scope(user),$or:[{'items.sources.documentId':doc._id},{'sources.documentId':doc._id},{'header.returnId':doc._id},{'header.supplierReturnId':doc._id},{'header.planId':{$in:(doc.resolutionPlans??[]).map(p=>p._id)}}]});related.push(...rows.map(serialize));
  }
  const attachments=await m.Attachment.find({ownerDocumentId:doc._id,status:'ATTACHED',accessCategory:'BUSINESS'}).select('-storageKey -checksum -uploadSessionId');
- const history=await m.AuditLog.find({subjectId:doc._id}).sort({createdAt:1}).select('-changes');const lots=await m.ProductBatch.find({_id:{$in:doc.items.map(item=>item.lotId).filter(Boolean)}}).select('manufacturerLot');const products=await m.Product.find({_id:{$in:doc.items.map(item=>item.productId)}}).select('wholeBaseUnits');const result={...serialize(doc),items:doc.items.map(item=>({...serialize(item),wholeBaseUnits:products.find(product=>same(product._id,item.productId))?.wholeBaseUnits,lotCode:lots.find(lot=>same(lot._id,item.lotId))?.manufacturerLot})),...(Model===m.DefectReport&&{unresolvedQty:doc.holds.filter(h=>h.status==='ACTIVE').reduce((n,h)=>n.plus(s.sum(h.allocations,'quantityBase').minus(s.sum(h.events,'quantityBase'))),exact('0')).toFixed()}),relatedDocuments:related,evidence:attachments.map(serialize),history:history.map(serialize)};return ['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code)?result:redactPrices(result);
+ const party = resource === 'customer-returns' && await m.Customer.findById(doc.header.customerId).select('name').lean();
+ const warehouse = ['customer-returns', 'failed-deliveries'].includes(resource) && await m.Warehouse.findById(doc.header.warehouseId).select('name').lean();
+ const history=await m.AuditLog.find({subjectId:doc._id}).sort({createdAt:1}).select('-changes');const lots=await m.ProductBatch.find({_id:{$in:doc.items.map(item=>item.lotId).filter(Boolean)}}).select('manufacturerLot piecesPerCarton');const products=await m.Product.find({_id:{$in:doc.items.map(item=>item.productId)}}).select('wholeBaseUnits');const result={...serialize(doc),warehouseName:warehouse?.name,counterpartyName:party?.name,items:doc.items.map(item=>{
+  const lot=lots.find(lot=>same(lot._id,item.lotId));
+  return {...serialize(item),wholeBaseUnits:products.find(product=>same(product._id,item.productId))?.wholeBaseUnits,
+    lotCode:lot?.manufacturerLot,baseUnitsPerPackage:lot?.piecesPerCarton == null ? undefined : String(lot.piecesPerCarton)};
+ }),...(Model===m.DefectReport&&{unresolvedQty:doc.holds.filter(h=>h.status==='ACTIVE').reduce((n,h)=>n.plus(s.sum(h.allocations,'quantityBase').minus(s.sum(h.events,'quantityBase'))),exact('0')).toFixed()}),relatedDocuments:related,receivableLines:await receivableLines(resource,doc,related),evidence:attachments.map(serialize),history:history.map(serialize)};return ['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code)?result:redactPrices(result);
 }
 export async function listExternal(user,query){
  requirePermission(user,'external_reference:read');const filter=currentRole(user)?.code==='OWNER'?{}:{warehouseId:{$in:user.warehouseIds??[]}};
  if(query.search){const re=query.search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');filter.$or=['sourceSystem','referenceNo','correlationId'].map(field=>({[field]:{$regex:re,$options:'i'}}));}
- if(query.status)filter.status=query.status;const page=query.page??1,limit=query.limit??25;
+ if(query.status)filter.status={$in:query.status};const page=query.page??1,limit=query.limit??25;
  const [items,total]=await Promise.all([m.ExternalReference.find(filter).select('-items -evidenceIds').sort({createdAt:-1,_id:-1}).skip((page-1)*limit).limit(limit),m.ExternalReference.countDocuments(filter)]);
  return {items:items.map(serialize),total,page,limit};
 }

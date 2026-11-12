@@ -27,11 +27,17 @@ All routes below are under `/api`, require active authentication, and recheck th
 
 The older 19-UC assignment is covered by these functions; split UCs are shown separately. Retired supplier Owner approval is not restored.
 
+## Nhập kho từ chứng từ nguồn
+
+Kho dùng **Lập phiếu nhập** trên hồ sơ khách trả hoặc giao thất bại, hoặc tìm nguồn từ **Phiếu nhập kho**. API danh sách nhận `status` phân tách bằng dấu phẩy và `receivable=true`. Khách trả lọc `ACCEPTED,PARTIAL` và có tham chiếu quyết định. Giao thất bại lọc `INSPECTED,PARTIAL`. Chi tiết trả `receivableLines` theo dòng gốc, gồm lượng còn được nhập và phẩm cấp hợp lệ. Giao thất bại có thêm tình trạng bao bì đã kiểm.
+
+Form gọi lệnh `/receipt` của nguồn với `expectedVersion`, `idempotencyKey`, minh chứng đã đính kèm và các dòng có lượng thực nhận. ĐVT là đơn vị gốc. Giao thất bại gửi quy cách và thể tích đo nếu thùng mở hoặc hàng lẻ. Lệnh thành công trả ID phiếu nhập trong `resultRefs` và cập nhật tồn trong cùng giao dịch. Kiểm hàng, ra quyết định và bàn giao lại khách thực hiện ở hồ sơ nguồn.
+
 ## Payload and response rules
 
 Quantities are exact decimal strings, never JS floating-point numbers. IDs identify a native parent document and stable embedded item. `items[].sources[]` identifies the source collection/document/item and linked quantity. Client DTO adapters may call display rows `lines`; storage remains `items[]`.
 
-All business creations use a stable `idempotencyKey`; commands also require `expectedVersion` on the parent. Reuse the original payload/key after a lost response. Changing payload requires a new key. Operation records bind actor, operation, target and payload hash. Replays recheck permission and scope. Command results are `{id, version, workflowStatus, operationId, resultRefs, replayed}` in the usual `data` envelope. Lists use array `data` with `meta.total/page/limit`; detail responses include `relatedDocuments`, scoped attachment metadata and audit history.
+All business creations use a stable `idempotencyKey`; commands also require `expectedVersion` on the parent. Reuse the original payload/key after a lost response. Changing payload requires a new key. Operation records bind actor, operation, target and payload hash. Replays recheck permission and scope. Command results are `{id, version, workflowStatus, operationId, resultRefs, replayed}` in the usual `data` envelope. Lists use `data.items` with `data.total/page/limit`; detail responses include `relatedDocuments`, scoped attachment metadata and audit history.
 
 - Defect creation: `warehouseId, balanceId, quantity, sourceKind, reason`, optional matching source item and optional initial disposition. `sourceKind=STOCKTAKE` requires the actual locked session and forbids ordinary disposition. Source-free inspection is MANUAL. Detection may be followed later by `/proposals` with `lines[{lineId,qtyBase,outcome,targetQuality?}]`, evidence and note.
 - Decisions: `expectedVersion, idempotencyKey, decision, reason`, optional per-item `lines[{lineId,qtyBase}]`. Defect approval binds the plan and approved quantity; CR approval binds the actual current inspection snapshot. Installed/customer-damaged/verified-overdue or unknown facts cannot be approved as an eligible return.

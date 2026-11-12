@@ -72,6 +72,10 @@ export async function prepare(po, input, actor, session, arrival, inspection) {
       prior && arrival.items.id(prior.details.inspectedSourceLineId);
     if (oldArrival && !same(oldArrival.purchaseOrderItemId, source._id))
       throw validationError("Không đổi nguồn của dòng đã lưu");
+    if (row.receivingLocationId) {
+      if (row.ownershipDecision !== 'ACCEPT') throw validationError('Chỉ chọn bãi tiếp nhận cho hàng được nhận mua');
+      await locationAt(row.receivingLocationId, po.header.warehouseId, ['RECEIVING'], session);
+    }
     const item = await makeItem({
       productId: source.productId, lotId: row.lotId,
       enteredUnit: source.enteredUnit, enteredQty: row.enteredQty,
@@ -93,6 +97,7 @@ export async function prepare(po, input, actor, session, arrival, inspection) {
         sources: [sourceLink(arrival, arrived, item.qtyBase)],
         details: {
           inspectedSourceLineId: arrived._id,
+          receivingLocationId: row.receivingLocationId,
           qualityCode: row.qualityCode,
           ownershipDecision: row.ownershipDecision,
           inspectedBy: actor._id,
@@ -257,6 +262,7 @@ export function confirmInspection(user, id, input) {
           [item.details.qualityCode === "GOOD" ? "RECEIVING" : "QUARANTINE"],
           session,
         );
+        item.details.receivingLocationId = destination.locationId;
         receipt.items.push(
           copyItem(item, item.qtyBase, {
             lineNo: i + 1,

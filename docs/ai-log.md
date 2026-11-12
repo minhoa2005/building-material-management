@@ -35,6 +35,28 @@ Validation performed / not performed:
 
 ## Log entries
 
+### 2026-11-12 — Inbound receipts and linked purchase documents
+
+- **Work item:** Implement the approved inbound plan for purchase inspection, custody placement, put-away and five receipt kinds.
+- **Tool/model:** Codex AI, GPT-6 family.
+- **Prompt summary:** Connect the separated FE pages to native models, add scoped queries and allow edits of OTHER drafts.
+- **Result used:** Added unified list and detail APIs for five receipt kinds, paginated custody and put-away lists, eligible source lookup, versioned edits to `OTHER` drafts, and an optional receiving location on purchase inspection lines. The PO receiving summary links inspections, receipts, custody receipts and put-away tasks. See the [GoodsReceipt API contract](../git_doc/docs/08_api/GOODS_RECEIPTS.md).
+- **Intervention:** Adopted.
+- **Human changes:** User supplied the plan and confirmed implementation on the existing FE checkout.
+- **Files affected:** `src/modules/goods-receipts`, `src/modules/po-receiving`, `src/modules/return-workflows`, `src/modules/transfers`, integration tests and `git_doc`.
+- **Validation:** The local MongoDB suite passed 180 tests with 32 skips. Focused purchase and receipt integration passed 19/19. The final `OTHER` draft-edit regression passed 1/1. The local browser run posted all five receipt kinds, verified stock movements, and confirmed that purchase custody stock retained supplier ownership. The browser run used simulated evidence storage. See the [BE RTM](rtm.md).
+
+### 2026-11-12 — Auto-partition loose packaging on goods receipt posting & Putaway route schema alignment (UC-37, UC-45)
+
+- **Work item:** Fix goods receipt posting rejection "Nhập quy cách và thể tích thực đo cho phần hàng mở/lẻ" when received quantity is not an exact multiple of carton pieces (`batch.piecesPerCarton`). Update `receiveStock` in `src/shared/utils/stock.js` to automatically partition quantity into whole cartons (`SEALED`) and loose items (`LOOSE`) with proportional `measuredVolumeMm3` calculated from batch carton dimensions. Fix putaway task creation failure "body.lines.0: Unrecognized key: expectedPlacementVersion" on `POST /api/goods-receipts/purchase/:id/putaway-tasks` by adding `expectedPlacementVersion: z.number().int().min(0).optional()` to line schema in `src/modules/po-receiving/po-receiving.routes.js`.
+- **Tool and model:** Antigravity AI (Gemini 3.8 Flash High).
+- **Prompt summary:** Fix error "Nhập quy cách và thể tích thực đo cho phần hàng mở/lẻ" when confirming purchase goods receipt, and fix "body.lines.0: Unrecognized key: expectedPlacementVersion" when creating putaway task; update ai-log and rtm.
+- **Result used:** Updated `src/shared/utils/stock.js` and `src/modules/po-receiving/po-receiving.routes.js`.
+- **Intervention:** Adopted.
+- **Human changes:** Directed automatic loose carton partitioning calculation and inclusion of `expectedPlacementVersion` in the putaway route Zod schema.
+- **Files affected:** `be/src/shared/utils/stock.js`, `be/src/modules/po-receiving/po-receiving.routes.js`, `be/docs/ai-log.md`, `be/docs/rtm.md`.
+- **Validation:** Tested via Node.js native test runner: `node --test test/location-movements.test.js` (2/2 passed) and `test/goods-receipt.integration.test.js`.
+
 ### 2026-11-11 — Remove PO delivery schedules and track receiving documents (UC-08, UC-10, UC-12, UC-13, UC-117)
 
 - **Work item** — Replace line-level delivery schedules with one expected date for the unreceived PO quantity.

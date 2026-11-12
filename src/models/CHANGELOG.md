@@ -1,3 +1,7 @@
+## 12/11/2026 — Bãi tiếp nhận trên dòng kiểm hàng
+
+`inspection-details.schema.js` nhận `receivingLocationId` tùy chọn. Khi lưu nháp hoặc chốt kiểm nhận mua, backend kiểm vị trí `RECEIVING` cùng kho và chỉ lưu cho dòng nhận mua. Dữ liệu cũ vẫn hợp lệ. Không có collection, index hoặc migration mới.
+
 12/11/2026: bỏ document_sequences và đổi định danh chứng từ mới: mọi model có documentNo dùng _id DocumentIdentity = mã phiếu [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự]. Các ref documentId/sourceId/subjectId và hậu tố liên kết chứng từ chấp nhận mã mới hoặc ObjectId lịch sử; warehouse/product/lot/location và embedded item vẫn ObjectId. Registry còn 58 collection. Chứng từ cũ không migration/đổi _id; kiểm thử concurrency và rollback chạy DB loopback riêng. Xem git_doc/docs/08_api/DOCUMENT_IDENTITIES.md.
 
 ## 11/11/2026 — Chi tiết dòng RR theo cảnh báo

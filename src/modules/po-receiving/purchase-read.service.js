@@ -1,15 +1,51 @@
-import { GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLog, StockTransaction, User } from '../../models/runtime.js';
-import { requirePermission, requireWarehouseAccess, isOwner, hasPermission, canAccessWarehouse } from '../../shared/utils/access.js';
+import { GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLog, StockTransaction, Supplier, User, Warehouse, PurchaseOrder, TransferOrder, InventoryBalance, StockHoldingPoint, WarehouseLocation } from '../../models/runtime.js';
+import { requirePermission, hasPermission, canAccessWarehouse } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
 import { exact } from '../../models/model-utils.js';
 import { same } from '../../shared/utils/document-command.js';
 import { findPurchase, purchaseModels } from './purchase-core.js';
-import { placementQuantities } from './purchase-putaway.service.js';
+import { placementQuantities, purchaseWarehouseFilter as warehouseFilter } from './purchase-putaway.service.js';
 import { getPurchaseOrder } from '../purchase-orders/purchase-order.service.js';
 import { redactPrices } from '../sales-orders/sales-read.service.js';
 const financial=u=>['OWNER','ACCOUNTANT'].includes(currentRole(u)?.code);
-function warehouseFilter(user,id){const all=isOwner(user)||currentRole(user)?.code==='ACCOUNTANT';if(id){if(!all)requireWarehouseAccess(user,id);return {'header.warehouseId':id};}return all?{}:{'header.warehouseId':{$in:user.warehouseIds||[]}};}
+const fromInspections = ids => ({ sources: { $elemMatch: {
+  subjectCollection: 'goods_inspections', documentId: { $in: ids },
+} } });
+
+async function custodyMetadata(document, value) {
+  const { warehouseId, ownerType, ownerId } = document.header;
+  const ref = document.sources?.find(ref => ref.subjectCollection === 'goods_inspections');
+  const [inspection, supplier, warehouse, posting] = await Promise.all([
+    ref && GoodsInspection.findOne({ _id: ref.documentId, 'header.warehouseId': warehouseId }).select('documentNo header.arrivalId'),
+    ownerType === 'SUPPLIER' && Supplier.findById(ownerId).select('name').lean(),
+    Warehouse.findById(warehouseId).select('name').lean(),
+    document.stockTransactionId && StockTransaction.findById(document.stockTransactionId).select('movements').lean(),
+  ]);
+  const arrival = inspection?.header.arrivalId && await GoodsArrival.findOne({
+    _id: inspection.header.arrivalId, 'header.warehouseId': warehouseId,
+  }).select('header.purchaseOrderId').lean();
+  const purchaseOrderId = arrival?.header.purchaseOrderId;
+  const po = purchaseOrderId && await PurchaseOrder.findById(purchaseOrderId).select('documentNo').lean();
+  Object.assign(value.header, serialize({
+    purchaseOrderId, purchaseOrderNo: po?.documentNo, supplierName: supplier?.name, warehouseName: warehouse?.name,
+  }));
+  if (inspection) value.sourceInspection = { id: String(inspection._id), documentNo: inspection.documentNo };
+  if (!posting) return;
+  const balances = await InventoryBalance.find({ _id: { $in: posting.movements.map(row => row.toBalanceId).filter(Boolean) } }).select('holdingPointId').lean();
+  const points = await StockHoldingPoint.find({ _id: { $in: balances.map(row => row.holdingPointId) } }).select('locationId').lean();
+  const locationByLine = new Map(posting.movements.map(row => {
+    const balance = balances.find(balance => same(balance._id, row.toBalanceId));
+    return [String(row.sourceLineId), points.find(point => same(point._id, balance?.holdingPointId))?.locationId];
+  }));
+  const locations = await WarehouseLocation.find({ _id: { $in: [...locationByLine.values()].filter(Boolean) }, warehouseId }).select('code').lean();
+  for (const item of value.items) {
+    const location = locationByLine.get(item._id);
+    if (!location) continue;
+    item.holdingLocationId = String(location);
+    item.holdingLocationCode = locations.find(row => same(row._id, location))?.code;
+  }
+}
 async function enriched(user,document){
   const value=dto(document),kind=document.documentKind;
   const writeWarehouse = canAccessWarehouse(user, document.header.warehouseId);
@@ -21,8 +57,9 @@ async function enriched(user,document){
     writeWarehouse,
     edit: draft && canUpdate,
     confirm: kind === 'INSPECTION' && draft && canUpdate,
-    post: kind === 'PURCHASE' && draft && canPost
-      && (!document.custodyDecisionId || hasPermission(user, 'purchase_custody:execute')),
+    post: draft && canPost && (kind === 'PURCHASE'
+      ? (!document.custodyDecisionId || hasPermission(user, 'purchase_custody:execute'))
+      : kind === 'CUSTODY_RECEIPT' && document.header.ownerType === 'SUPPLIER'),
     cancel: draft && canUpdate,
     reversePreflight: kind === 'PURCHASE' && posted && canPost && hasPermission(user, 'goods_receipt_inspection:reverse'),
     planPutaway: kind === 'PURCHASE' && posted && writeWarehouse && hasPermission(user, 'putaway_task:create'),
@@ -37,16 +74,60 @@ async function enriched(user,document){
       const ref=item.sources?.find(r=>r.subjectCollection==='goods_inspections');
       const inspection=await GoodsInspection.findOne({_id:item.inspectionId??ref?.documentId,'header.warehouseId':document.header.warehouseId});
       const source=inspection?.items.id(item.inspectionResultId??ref?.itemId);
-      if(source)item.inspectionResult=dto(source.details);
+      if(source)item.inspectionResult={...serialize(source.details),handlingNote:source.note};
     }
   }
-  if(kind==='PURCHASE'){value.reversed=!!await StockTransaction.exists({reversedTransactionId:document.stockTransactionId});if(document.workflowStatus==='POSTED')value.placements=await placementQuantities(document);}
+  if (kind === 'CUSTODY_RECEIPT') await custodyMetadata(document, value);
+  if(kind==='PURCHASE'){value.header.postedAt=value.postedAt;value.reversed=!!document.stockTransactionId&&!!await StockTransaction.exists({reversedTransactionId:document.stockTransactionId});if(document.workflowStatus==='POSTED')value.placements=await placementQuantities(document);}
   return financial(user)?value:redactPrices(value);
 }
-export async function getDocument(user,id,kind){requirePermission(user,'goods_receipt_inspection:read');return enriched(user,await findPurchase(id,user,null,{kind,readOnly:true}));}
+export async function getDocument(user, id, kind) {
+  requirePermission(user, 'goods_receipt_inspection:read');
+  const document = await findPurchase(id, user, null, { kind, readOnly: true });
+  if (document.documentKind !== 'PURCHASE') return enriched(user, document);
+
+  const { supplierId, warehouseId, arrivalId, purchaseOrderId } = document.header;
+  const [value, supplier, warehouse, poster, arrival] = await Promise.all([
+    enriched(user, document),
+    supplierId && Supplier.findById(supplierId).select('name').lean(),
+    warehouseId && Warehouse.findById(warehouseId).select('name').lean(),
+    document.postedBy && User.findById(document.postedBy).select('fullName').lean(),
+    arrivalId && GoodsArrival.findOne({
+      _id: arrivalId,
+      'header.warehouseId': warehouseId,
+      ...(purchaseOrderId && { 'header.purchaseOrderId': purchaseOrderId }),
+    }).select('header.arrivedAt header.deliveredBy header.deliveryReference items._id items.lotId items.lotLabelSnapshot').lean(),
+  ]);
+
+  value.header.supplierName = supplier?.name;
+  value.header.warehouseName = warehouse?.name;
+  value.header.postedAt = value.postedAt;
+  value.header.postedBy = value.postedBy;
+  value.header.postedByName = poster?.fullName;
+  if (arrival) {
+    value.arrival = { header: serialize(arrival.header) };
+    const arrivalItems = new Map((arrival.items ?? []).map(item => [String(item._id), item]));
+    for (const item of value.items) {
+      const source = arrivalItems.get(item.arrivalItemId);
+      if (!item.lotLabelSnapshot && source?.lotLabelSnapshot && same(source.lotId, item.lotId)) {
+        item.lotLabelSnapshot = source.lotLabelSnapshot;
+      }
+    }
+  }
+  return value;
+}
 export async function listDocuments(user,kind,query){
   requirePermission(user,'goods_receipt_inspection:read');const filter={...warehouseFilter(user,query.warehouseId),...(query.status&&{workflowStatus:query.status})};
-  if(query.purchaseOrderId){if(kind==='INSPECTION'){const arrivals=await GoodsArrival.find({'header.purchaseOrderId':query.purchaseOrderId,...warehouseFilter(user,query.warehouseId)}).select('_id');filter['header.arrivalId']={$in:arrivals.map(a=>a._id)};}else filter['header.purchaseOrderId']=query.purchaseOrderId;}
+  if (kind === 'CUSTODY_RECEIPT') filter['header.ownerType'] = 'SUPPLIER';
+  if (query.purchaseOrderId) {
+    if (['INSPECTION', 'CUSTODY_RECEIPT'].includes(kind)) {
+      const scope = warehouseFilter(user, query.warehouseId);
+      const arrivals = await GoodsArrival.find({ ...scope, 'header.purchaseOrderId': query.purchaseOrderId }).distinct('_id');
+      const byArrival = { 'header.arrivalId': { $in: arrivals } };
+      if (kind === 'INSPECTION') Object.assign(filter, byArrival);
+      else Object.assign(filter, fromInspections(await GoodsInspection.find({ ...scope, ...byArrival }).distinct('_id')));
+    } else filter['header.purchaseOrderId'] = query.purchaseOrderId;
+  }
   const Model=purchaseModels[kind];const [documents,total]=await Promise.all([Model.find(filter).sort({createdAt:-1,_id:-1}).skip((query.page-1)*query.limit).limit(query.limit),Model.countDocuments(filter)]);
   return {items:await Promise.all(documents.map(d=>enriched(user,d))),total,page:query.page,limit:query.limit};
 }
@@ -69,6 +150,16 @@ export async function receivingSummary(user, id) {
     PurchaseReceipt.find({ 'header.purchaseOrderId': id }),
   ]);
   const arrivalsById = new Map(arrivals.map(arrival => [String(arrival._id), arrival]));
+  const [custody, tasks] = await Promise.all([
+    CustodyReceipt.find({ ...fromInspections(inspections.map(d => d._id)), 'header.ownerType': 'SUPPLIER' }),
+    TransferOrder.find({ 'header.taskKind': 'PUTAWAY', sources: { $elemMatch: {
+      subjectCollection: 'goods_receipts', documentId: { $in: receipts.map(d => d._id) },
+    } } }),
+  ]);
+  const poLineByInspection = new Map(inspections.flatMap(inspection => inspection.items.map(item => [
+    String(item._id), arrivalsById.get(String(inspection.header.arrivalId))?.items.id(item.details?.inspectedSourceLineId)?.purchaseOrderItemId,
+  ])));
+  const poLineByReceipt = new Map(receipts.flatMap(receipt => receipt.items.map(item => [String(item._id), item.purchaseOrderItemId])));
   const documents = [
     ...inspections.map(inspection => {
       const arrival = arrivalsById.get(String(inspection.header.arrivalId));
@@ -76,6 +167,10 @@ export async function receivingSummary(user, id) {
         arrival?.items.id(item.details?.inspectedSourceLineId)?.purchaseOrderItemId);
     }),
     ...receipts.map(receipt => receivingDocument('GR_PURCHASE', receipt, item => item.purchaseOrderItemId)),
+    ...custody.map(document => receivingDocument('CUSTODY_RECEIPT', document, item =>
+      poLineByInspection.get(String(item.sources?.find(ref => ref.subjectCollection === 'goods_inspections')?.itemId)))),
+    ...tasks.map(document => receivingDocument('PUTAWAY', document, item =>
+      poLineByReceipt.get(String(item.sources?.find(ref => ref.subjectCollection === 'goods_receipts')?.itemId)))),
   ].sort((a, b) => (b.occurredAt ?? b.createdAt ?? '').localeCompare(a.occurredAt ?? a.createdAt ?? '')
     || b.id.localeCompare(a.id));
   const placements = (await Promise.all(receipts.filter(r => r.workflowStatus === 'POSTED').map(r => placementQuantities(r))))
