@@ -358,3 +358,109 @@ run("a concurrent PO creation and approved RR cancellation cannot both commit", 
   assert.equal(await m.PurchaseOrder.countDocuments({ replenishmentRequestId: document._id }), created.status === 200 ? 1 : 0);
   assert.equal(saved.workflowStatus, cancelled.status === 200 ? "CANCELLED" : "APPROVED");
 });
+
+run("list, detail and submission reads enrich the RR with linked users, products, sources and POs", async () => {
+  const order = await m.SalesOrder.create({
+    documentNo: "SO-" + key(), workflowStatus: "OPEN", version: 2, createdBy: worker._id,
+    header: { externalReferenceId: key(), customerId: key(), neededOn: new Date("2026-12-01"), deliveryAddressSnapshot: "Test address" },
+    items: [{ lineNo: 1, lineKind: "STANDARD", productId: product._id,
+      enteredUnit: "PIECE", baseUnitSnapshot: "PIECE", baseUnitsPerUnit: "1",
+      enteredQty: "1", qtyBase: "1", productNameSnapshot: product.name, unitSellingPrice: "0", lineAmount: "0" }],
+    orderAmount: "0", currencyCode: "VND",
+  });
+  const source = { triggerType: "SALES_SHORTAGE", documentType: "sales_orders", documentId: String(order._id),
+    itemId: String(order.items[0]._id), version: order.version };
+  const body = draft({ action: "SUBMIT" });
+  const document = await create({ ...body, lines: [{ ...body.lines[0], source }] });
+  const approval = await api(rr + "/" + document._id + "/review", owner, decision(document));
+  assert.equal(approval.status, 200, JSON.stringify(approval.body));
+  const purchase = await api(po, accountant, purchaseForm(document, approval.body.data.decisionId, "10"));
+  assert.equal(purchase.status, 200, JSON.stringify(purchase.body));
+  const pending = await create(draft({ lines: [{ ...draft().lines[0], ...accepted }] }));
+
+  const list = async (actor, query = "") => {
+    const result = await api(rr + query, actor, undefined, "GET");
+    assert.equal(result.status, 200, JSON.stringify(result.body));
+    return result.body.data;
+  };
+  const ids = (data) => data.items.map((row) => row.id).sort();
+  const all = await list(owner, "?warehouseId=" + warehouse._id + "&createdBy=" + worker._id +
+    "&createdFrom=2020-01-01&createdTo=2099-12-31");
+  assert.deepEqual(ids(all), [String(document._id), String(pending._id)].sort());
+  const row = all.items.find((item) => item.id === String(document._id));
+  assert.deepEqual(row.warehouse, { id: String(warehouse._id), code: "TEST", name: "Test warehouse" });
+  assert.deepEqual(row.createdByUser, { id: String(worker._id), fullName: worker.fullName });
+  assert.equal(row.items[0].productSkuSnapshot, "TEST");
+  assert.equal(row.items[0].productIsActive, true);
+  assert.equal(row.items[0].productImageUrl, null);
+
+  assert.deepEqual(ids(await list(owner, "?hasPurchaseOrder=true")), [String(document._id)]);
+  assert.deepEqual(ids(await list(owner, "?poCreated=false")), [String(pending._id)]);
+  assert.deepEqual(ids(await list(owner, "?approvalDecision=APPROVE")), [String(document._id)]);
+  assert.deepEqual(ids(await list(owner, "?approvalDecision=NONE")), [String(pending._id)]);
+  assert.deepEqual(ids(await list(owner, "?status=DRAFT&search=" + encodeURIComponent(pending.documentNo))), [String(pending._id)]);
+  assert.equal((await list(owner, "?search=no-such-document")).total, 0);
+
+  const detail = await api(rr + "/" + document._id, owner, undefined, "GET");
+  assert.equal(detail.status, 200, JSON.stringify(detail.body));
+  const data = detail.body.data;
+  assert.equal(data.warehouse.code, "TEST");
+  assert.equal(data.createdByUser.fullName, worker.fullName);
+  assert.equal(data.submittedByUser.id, String(worker._id));
+  assert.equal(data.items[0].productSkuSnapshot, "TEST");
+  assert.equal(data.items[0].details.source.documentNo, order.documentNo);
+  assert.equal(data.items[0].details.source.workflowStatus, "OPEN");
+  assert.equal(data.items[0].details.source.version, 2);
+  assert.equal(data.approvals.length, 1);
+  assert.equal(data.approvals[0].decidedByUser.fullName, owner.fullName);
+  assert.equal(data.approvals[0].lines[0].lineId, String(document.items[0]._id));
+  assert.equal(data.approvals[0].lines[0].approvedQtyBase, "10");
+  assert.deepEqual(data.purchaseOrders.map((row) => row.id), [purchase.body.data.id]);
+
+  const plain = await api(rr + "/" + pending._id, worker, undefined, "GET");
+  assert.equal(plain.status, 200, JSON.stringify(plain.body));
+  assert.equal(plain.body.data.submittedByUser, undefined);
+  assert.deepEqual(plain.body.data.approvals, []);
+
+  const submissions = await api(rr + "/" + document._id + "/submissions?page=1&limit=5", owner, undefined, "GET");
+  assert.equal(submissions.status, 200, JSON.stringify(submissions.body));
+  assert.equal(submissions.body.data.total, 1);
+  const version = submissions.body.data.items[0].documentVersion;
+  const one = await api(rr + "/" + document._id + "/submissions/" + version, owner, undefined, "GET");
+  assert.equal(one.status, 200, JSON.stringify(one.body));
+  assert.equal(one.body.data.documentVersion, version);
+  const missing = await api(rr + "/" + document._id + "/submissions/999", owner, undefined, "GET");
+  assert.equal(missing.status, 404, JSON.stringify(missing.body));
+});
+
+run("draft PO detail falls back to the approval history and source item when links are missing", async () => {
+  const document = await create(draft({ action: "SUBMIT" }));
+  const approval = await api(rr + "/" + document._id + "/review", owner, decision(document));
+  assert.equal(approval.status, 200, JSON.stringify(approval.body));
+  const created = await api(po, accountant, purchaseForm(document, approval.body.data.decisionId, "10"));
+  assert.equal(created.status, 200, JSON.stringify(created.body));
+  const poId = created.body.data.id;
+  const read = async () => {
+    const result = await api(po + "/" + poId, accountant, undefined, "GET");
+    assert.equal(result.status, 200, JSON.stringify(result.body));
+    return result.body.data.draftEdit;
+  };
+  assert.equal((await read()).lines[0].approvalId, approval.body.data.decisionId);
+
+  // Older records may lack the cached decision and the direct RR item link.
+  await m.ReplenishmentRequest.collection.updateOne({ _id: document._id }, { $unset: { "header.latestDecisionId": "" } });
+  await m.PurchaseOrder.collection.updateOne({ _id: poId }, {
+    $unset: { "items.0.requestItemId": "" },
+    $set: { "items.0.sources": [{ _id: new mongoose.Types.ObjectId(), subjectCollection: "replenishment_requests",
+      documentId: document._id, itemId: document.items[0]._id }] },
+  });
+  const fallback = await read();
+  assert.equal(fallback.lines[0].approvalId, approval.body.data.decisionId);
+  assert.equal(fallback.lines[0].rrLineId, String(document.items[0]._id));
+
+  await m.ApprovalHistory.collection.deleteMany({ subjectId: document._id });
+  await m.PurchaseOrder.collection.updateOne({ _id: poId }, { $unset: { "items.0.sources": "" } });
+  const bare = await read();
+  assert.equal(bare.lines[0].approvalId, null);
+  assert.equal(bare.lines[0].rrLineId, bare.lines[0].id);
+});

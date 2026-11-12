@@ -249,3 +249,85 @@ run('available stock excludes reservations, defect holds, locked storage and rec
   assert.equal(evaluation.availableQtyBase, '0');
   assert.deepEqual(evaluation.warnings, []);
 });
+
+run('WIR sources resolve to their sales order line and reject inactive or mismatched references', async () => {
+  const so = await order('5');
+  const wirId = id(), wirItemId = id();
+  const insertWir = (status, extra = {}) => m.WarehouseIssueRequest.collection.insertOne({
+    _id: wirId, documentKind: 'ISSUE_REQUEST', workflowStatus: status, version: 3, createdBy: user._id,
+    header: { requestedWarehouseId: warehouse._id },
+    items: [{ _id: wirItemId, lineNo: 1, productId: product._id,
+      sources: [{ _id: id(), subjectCollection: 'sales_orders', documentId: so._id, itemId: so.items[0]._id }], ...extra }],
+  });
+  const wirLine = (documentId = String(wirId), itemId = String(wirItemId)) => manual({ source: {
+    triggerType: 'SALES_SHORTAGE', documentType: 'warehouse_issue_requests', documentId, itemId, version: 1,
+  } });
+
+  await assert.rejects(evaluate([wirLine(String(id()))]), (error) => error.statusCode === 404 && /WIR/.test(error.message));
+  await insertWir('CANCELLED');
+  await assert.rejects(evaluate([wirLine()]), (error) => error.statusCode === 409 && /WIR không còn hiệu lực/.test(error.message));
+  await m.WarehouseIssueRequest.collection.deleteMany({});
+  await insertWir('OPEN');
+  await assert.rejects(evaluate([wirLine(String(wirId), String(id()))]), (error) => error.statusCode === 400 && /Dòng WIR/.test(error.message));
+
+  const [evaluation] = await evaluate([wirLine()]);
+  assert.equal(evaluation.source.version, 3);
+  assert.equal(evaluation.source.salesOrderId, String(so._id));
+  assert.equal(evaluation.source.salesOrderItemId, String(so.items[0]._id));
+  assert.equal(evaluation.source.salesOrderVersion, so.version);
+
+  await assert.rejects(evaluate([manual({ source: { triggerType: 'SALES_SHORTAGE', documentType: 'stocktakes',
+    documentId: String(so._id), itemId: String(so.items[0]._id), version: 1 } })]),
+  (error) => error.statusCode === 400 && /chứng từ nguồn bán/.test(error.message));
+  await assert.rejects(evaluate([manual({ source: { triggerType: 'UNKNOWN' } })]),
+    (error) => error.statusCode === 400 && /chưa được hỗ trợ/.test(error.message));
+});
+
+run('a completed sales order no longer qualifies as a shortage source', async () => {
+  const so = await order('5');
+  await m.SalesOrder.updateOne({ _id: so._id }, { $set: { workflowStatus: 'COMPLETED' } });
+  await assert.rejects(evaluate([sourceLine(so)]),
+    (error) => error.statusCode === 409 && /SO không còn hiệu lực/.test(error.message));
+  await assert.rejects(evaluate([{ ...sourceLine(so), source: { ...sourceLine(so).source, documentId: String(id()) } }]),
+    (error) => error.statusCode === 404 && /nguồn SO/.test(error.message));
+});
+
+run('stocktake sources must be closed and contain the requested product', async () => {
+  const countId = id();
+  const insertCount = (fields) => m.Stocktake.collection.insertOne({ _id: countId, documentKind: 'STOCKTAKE',
+    version: 2, createdBy: user._id, items: [], ...fields });
+  const line = manual({ source: { triggerType: 'STOCKTAKE_LOW_STOCK', documentType: 'stocktakes',
+    documentId: String(countId), version: 1 } });
+
+  await assert.rejects(evaluate([line]), (error) => error.statusCode === 404 && /kiểm kê/.test(error.message));
+  await insertCount({ workflowStatus: 'IN_PROGRESS', header: { warehouseId: warehouse._id } });
+  await assert.rejects(evaluate([line]), (error) => error.statusCode === 409 && /đã chốt/.test(error.message));
+  await m.Stocktake.collection.deleteMany({});
+  await insertCount({ workflowStatus: 'COMPLETED', header: { warehouseId: warehouse._id, completedAt: new Date() } });
+  await assert.rejects(evaluate([line]), (error) => error.statusCode === 400 && /ngữ cảnh kiểm kê/.test(error.message));
+
+  await m.StocktakeSnapshot.collection.insertOne({ stocktakeId: countId, batchId: batch._id });
+  const [evaluation] = await evaluate([line]);
+  assert.equal(evaluation.source.version, 2);
+  await m.StocktakeSnapshot.collection.deleteMany({});
+});
+
+run('stock in warehouses outside the user scope is totalled but not offered', async () => {
+  const permissions = await m.Permission.find({});
+  const role = await m.Role.create({ code: 'ACCOUNTANT', name: 'Scoped accountant ' + id(), permissionIds: permissions.map((p) => p._id) });
+  const record = await m.User.create({ username: 'eval-scoped-' + id(), fullName: 'Scoped', passwordHash: 'test-unused',
+    roleId: role._id, warehouseIds: [warehouse._id] });
+  const scoped = await m.User.findById(record._id).populate({ path: 'roleId', populate: { path: 'permissionIds' } });
+  const otherStorage = await m.WarehouseLocation.create({ warehouseId: otherWarehouse._id, code: 'ST2-' + id(),
+    locationType: 'STORAGE', isPickable: true, usableLengthMm: '5000', usableWidthMm: '5000' });
+  await stock('7', otherStorage);
+
+  const [restricted] = await evaluateLines(scoped, { warehouseId: String(warehouse._id), neededOn: date, lines: [manual()] });
+  assert.equal(restricted.otherWarehouseAvailableQtyBase, '7');
+  assert.equal(restricted.restrictedOtherWarehouseQtyBase, '7');
+  assert.deepEqual(restricted.otherWarehouseOptions, []);
+
+  const [visible] = await evaluate([manual()]);
+  assert.equal(visible.restrictedOtherWarehouseQtyBase, '0');
+  assert.deepEqual(visible.otherWarehouseOptions, [{ warehouseId: String(otherWarehouse._id), qtyBase: '7' }]);
+});
