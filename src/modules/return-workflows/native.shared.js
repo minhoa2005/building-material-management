@@ -101,8 +101,15 @@ export async function takeStock(balanceId,quantity,itemId,posting,user,session,{
  const own=reservations.filter(r=>same(r.demandRef.documentId,reservationDocumentId)),other=reservations.filter(r=>!same(r.demandRef.documentId,reservationDocumentId));
  const blocked=await heldQuantity(balanceId,session,holdId),pending=await pendingTaskQuantity(balanceId,session);
  if(amount.plus(sum(other.map(r=>({qtyBase:remainingReservation(r)})))).plus(blocked).plus(pending).gt(before))throw validationError('Không đủ tồn tự do hoặc tồn đang bị chặn');
- const {kept,taken}=splitPortions(balance.packagingPortions,amount,user._id);balance.quantityBase=before.minus(amount).toFixed();balance.packagingPortions=kept;await balance.validate();
- const result=await m.InventoryBalance.updateOne({_id:balance._id,version:balance.version},{$set:{quantityBase:balance.quantityBase,packagingPortions:kept},$inc:{version:1}},{session});if(result.matchedCount!==1)throw versionConflict();
+ const {kept,taken}=splitPortions(balance.packagingPortions,amount,user._id);balance.quantityBase=before.minus(amount).toFixed();
+ // Keep subdocument identity when consuming an earlier arrival, as moveStock does.
+ const keptIds=new Set(kept.map(row=>String(row._id)));
+ balance.packagingPortions.pull(...balance.packagingPortions.filter(row=>!keptIds.has(String(row._id))).map(row=>row._id));
+ for(const portion of kept){const retained=balance.packagingPortions.id(portion._id);retained.quantityBase=portion.quantityBase;if(portion.sealedPackCount!=null)retained.sealedPackCount=portion.sealedPackCount;if(portion.updatedBy)retained.updatedBy=portion.updatedBy;}
+ await balance.validate();
+ // The document is validated above; native persistence preserves each retained
+ // portion's timestamps instead of applying array-replacement timestamps.
+ const result=await m.InventoryBalance.collection.updateOne({_id:balance._id,version:balance.version},{$set:{quantityBase:balance.quantityBase,packagingPortions:balance.packagingPortions.map(portion=>portion.toObject()),updatedAt:new Date()},$inc:{version:1}},{session});if(result.matchedCount!==1)throw versionConflict();
  let consume=amount;for(const r of own){const available=remainingReservation(r),q=available.lt(consume)?available:consume;if(!q.gt(0))continue;const result=await m.StockReservation.updateOne({_id:r._id,version:r.version},{$set:{consumedQty:exact(r.consumedQty).plus(q).toFixed()},$inc:{version:1}},{session});if(result.matchedCount!==1)throw versionConflict();consume=consume.minus(q);}
  posting.movements.push({transactionId:posting._id,lineNo:posting.movements.length+1,sourceLineId:itemId,fromBalanceId:balance._id,quantityBase:amount.toFixed(),fromBefore:before.toFixed(),fromAfter:balance.quantityBase});
  return {ctx,portions:taken};
