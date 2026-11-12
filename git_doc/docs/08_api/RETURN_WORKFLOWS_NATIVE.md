@@ -1,5 +1,7 @@
 # Trungph return workflows on native models
 
+12 November 2026: stock consumption preserves retained packaging subdocument identities and creation timestamps when earlier custody arrivals are removed. Balance validation, version guards, ledger and transaction boundaries remain enforced. The multiple-arrival custody regression reproduces the former immutable-timestamp failure and verifies the later portion remains unchanged after receipt.
+
 Updated 7 November 2026. Scope: Trungph's three iterations, carried forward by function name through the [UC crosswalk](../07_ra_soat/UC_RENUMBER_2026-10-30.md). This implementation uses the single 59-collection registry and does not restore BusinessDocument, DocumentLine, UOM, separate holds/plans/ACKs or standalone movements.
 
 ## Scope and routes
