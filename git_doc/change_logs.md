@@ -1,3 +1,34 @@
+## 13/11/2026 - Tinh chỉnh UI nhập kho và sửa lỗi tra cứu lệnh cất hàng
+
+- **FE**:
+  - Sửa lỗi UI tab đơn mua hàng chi tiết (`/purchase-orders/:id`): chuyển sang dùng `Tabs` từ `@shared/ui` và khôi phục viền dưới/padding trong `@shared/components/Tabs.tsx`.
+  - Thiết kế lại bộ lọc trạng thái `/inspections` từ `Radio.Group` sang `Tabs` có gạch chân active theo mẫu thiết kế, tách thanh tìm kiếm và bộ đếm tổng số, căn chỉnh khoảng cách các cột bảng.
+  - Xóa nền trắng thanh nút lưu/chốt tại `/inspections/create`; tăng cỡ chữ và bỏ làm mờ nhãn theo dõi tình trạng.
+  - Bọc bảng danh sách và phân trang tại `/receipts` và `/putaway-tasks` vào container trắng (`rounded-lg border border-slate-200 bg-white p-4 space-y-4`).
+  - Sửa lỗi 404 "Không tìm thấy dữ liệu" tại `/putaway-tasks/:id` bằng cách bỏ gọi `useGetPutawayContextQuery` khi ở chế độ xem và dùng `useGetWarehouseLocationsQuery`.
+- **BE**:
+  - `purchase-core.js`: Cập nhật `findPurchase` hỗ trợ tra cứu chứng từ bằng cả `_id` và `documentNo`, tránh CastError khi client truyền mã dạng `TO-202610-001`.
+  - `purchase-putaway.service.js`: Hỗ trợ lệnh cất hàng liên kết từ yêu cầu điều chuyển nội bộ (`internal_transfer_requirements`) bên cạnh `goods_receipts`, giải quyết `receiptId` mà không bị chặn 404.
+- Cập nhật `ai-log.md` và `rtm.md` ở cả frontend và backend.
+
+## 12/11/2026 - Bổ sung quy tắc cỡ chữ, màu và khoảng cách cho frontend
+
+[DESIGN.md](../../fe/DESIGN.md) thêm bảng khoảng cách, chiều cao control, bo góc, type scale theo vai trò, quy tắc vai trò màu chữ, màu trạng thái và ngưỡng contrast WCAG 2.2 AA. Mục phạm vi liệt kê các vi phạm hiện có để công việc mới không làm tăng thêm. [AGENTS.md](../../fe/AGENTS.md) yêu cầu đọc và tuân thủ DESIGN.md trước khi làm giao diện.
+
+Chỉ thay đổi tài liệu. Tỉ lệ contrast tính từ mã hex trong `colors.ts`, chưa đo trên giao diện chạy thật.
+
+
+## 12/11/2026 - Đồng bộ đơn vị tính trong dữ liệu mẫu
+
+Seed cửa hàng gạch và BF03 dùng Viên, Thùng và Mét vuông (mã `M2`). Seed mới tạo một quy đổi thùng trên mỗi lô đã xác minh. Các form sản phẩm và bổ sung hàng nhận diện đơn vị thùng bằng `isCarton`. Snapshot đóng gói mặc định dùng “Thùng”. [Seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md) và [hợp đồng quy đổi](docs/08_api/CONVERSIONS.md).
+
+Nạp và đọc lại seed trên DB replica set loopback tạm xác nhận 58 collection, 702 bản ghi, 38 quy đổi thùng và đầy đủ tham chiếu UOM. Bộ kiểm thử seed, catalogue và API native đạt 44/44. DB đang dùng chưa được cập nhật.
+
+## 12/11/2026 - Sửa lỗi lịch sử quy đổi trên chi tiết sản phẩm
+
+Theo yêu cầu sửa lỗi đọc `_id`, bộ chuyển đổi response giữ dòng lịch sử khi không tìm thấy đơn vị tính. [Hợp đồng quy đổi](docs/08_api/CONVERSIONS.md) mô tả `uom: null` và nhãn hiển thị tương ứng. Bản sửa chỉ đổi cách đọc và hiển thị dữ liệu.
+
+Kiểm thử tích hợp API native đạt 18/18 trên replica set loopback, gồm trường hợp quy đổi còn lưu tham chiếu đơn vị bị thiếu. Kiểm tra HTTP chỉ đọc trên backend đang chạy trả 200 cho chi tiết và lịch sử của 18 sản phẩm. Hai ca kiểm thử giao diện Product Detail đạt, gồm hiển thị dòng quy đổi có `uom: null`.
 
 ## 12/11/2026 - Bật kiểm thử tích hợp trả hàng trong CI backend
 

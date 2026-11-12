@@ -1,4 +1,4 @@
-import { PurchaseReceipt, TransferOrder, StockTransaction, WarehouseLocation, InventoryBalance } from '../../models/runtime.js';
+import { PurchaseReceipt, TransferOrder, StockTransaction, WarehouseLocation, InventoryBalance, InternalTransferRequirement } from '../../models/runtime.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
@@ -69,7 +69,14 @@ export async function placementQuantities(receipt, session) {
   });
 }
 async function receipt(id,user,session){const d=await findPurchase(id,user,session,{kind:'GR_PURCHASE',readOnly:true});if(d.workflowStatus!=='POSTED')throw validationError('Phiếu nhập chưa ghi tồn');return d;}
-async function task(id,user,session){const d=await findPurchase(id,user,session,{kind:'TO',readOnly:true});if(d.header.taskKind!=='PUTAWAY'||!d.sources.some(s=>s.subjectCollection==='goods_receipts'))throw notFoundError();return d;}
+async function task(id,user,session){
+  const d=await findPurchase(id,user,session,{kind:'TO',readOnly:true});
+  if(d.header.taskKind!=='PUTAWAY')throw notFoundError();
+  const hasGr=d.sources?.some(s=>s.subjectCollection==='goods_receipts');
+  const hasItr=d.header?.requirementId||d.sources?.some(s=>s.subjectCollection==='internal_transfer_requirements');
+  if(!hasGr&&!hasItr)throw notFoundError();
+  return d;
+}
 async function actual(task,session){const tx=await StockTransaction.find({sourceType:'transfer_orders',sourceId:task._id}).session(session);return new Map(task.items.map(i=>[String(i._id),tx.flatMap(t=>t.movements).filter(m=>same(m.sourceLineId,i._id)).reduce((n,m)=>n.plus(String(m.quantityBase)),exact('0'))]));}
 async function source(gr,item,balanceId,toLocationId,session){
   const ctx=await sourceContext(balanceId,session);
@@ -101,7 +108,27 @@ export function createPutaway(user,id,input){return command(user,'CREATE_PURCHAS
   const document=await newDocument(TransferOrder,'TO',actor,{warehouseId:gr.header.warehouseId,taskKind:'PUTAWAY',assignedTo:actor._id},items,'OPEN');
   document.sources=[{subjectCollection:'goods_receipts',documentId:gr._id,relationCode:'PURCHASE_PUTAWAY'}];await document.save({session});await saveVersion(gr,gr.version,session);return {document};
 });}
-export async function getPutaway(user,id){requirePermission(user,'putaway_task:read');const d=await task(id,user),done=await actual(d);return {...dto(d),header:{...dto(d.header),receiptId:String(d.sources.find(ref=>ref.subjectCollection==='goods_receipts').documentId)},items:d.items.map(i=>({...dto(i),actualQtyBase:done.get(String(i._id)).toFixed(),remainingQtyBase:exact(i.qtyBase).minus(done.get(String(i._id))).toFixed()}))};}
+export async function getPutaway(user,id){
+  requirePermission(user,'putaway_task:read');
+  const d=await task(id,user),done=await actual(d);
+  let receiptId=d.sources?.find(ref=>ref.subjectCollection==='goods_receipts')?.documentId;
+  if(!receiptId&&d.header?.requirementId){
+    const itr=await InternalTransferRequirement.findById(d.header.requirementId).lean();
+    receiptId=itr?.header?.sourceDocumentId||itr?.sources?.find(s=>s.subjectCollection==='goods_receipts')?.documentId;
+  }
+  return {
+    ...dto(d),
+    header:{
+      ...dto(d.header),
+      receiptId:receiptId?String(receiptId):''
+    },
+    items:d.items.map(i=>({
+      ...dto(i),
+      actualQtyBase:done.get(String(i._id)).toFixed(),
+      remainingQtyBase:exact(i.qtyBase).minus(done.get(String(i._id))).toFixed()
+    }))
+  };
+}
 export function confirmPutaway(user,id,input){return command(user,'CONFIRM_PURCHASE_PUTAWAY','putaway_task:confirm',id,input,replayPurchase,async(session,actor)=>{
   const d=await task(id,actor,session);await findPurchase(id,actor,session,{kind:'TO'});checkVersion(d,input.expectedVersion);if(!['OPEN','PARTIAL'].includes(d.workflowStatus))throw validationError('Lệnh không còn mở');
   const gr=await receipt(d.sources.find(s=>s.subjectCollection==='goods_receipts').documentId,actor,session);const done=await actual(d,session),seen=new Set();

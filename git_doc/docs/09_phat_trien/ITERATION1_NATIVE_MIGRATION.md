@@ -17,3 +17,7 @@ node scripts/sync-iteration1-permissions.mjs --uri=mongodb://127.0.0.1:27017/sep
 Kết quả gồm catalogue thiếu, quyền vô hiệu hóa, grant mặc định chưa có hiệu lực, tham chiếu hỏng và danh sách thay đổi dự kiến. Script chỉ nhận một endpoint loopback với tên DB ứng dụng rõ ràng. Thêm `--apply` vào lệnh khi đã chọn đúng DB đích, có unique index `permissions.code` và MongoDB hỗ trợ transaction.
 
 Transaction chỉ tạo các mã còn thiếu trong nhóm `uom:read/create/update/activate`, `purchase_custody:decide/execute` và `stock_reversal:approve`, rồi thêm grant mặc định tương ứng cho role hệ thống hiện hữu. Role tùy chỉnh, grant đã có, quyền đã bị thu hồi và các cảnh báo ngoài bảy mã được giữ nguyên. Kiểm lại bằng dry-run sau apply. Lệnh này chỉ đồng bộ quyền. Xác minh migration model riêng trước khi chạy runtime native trên một DB cũ như `sep490`.
+
+## Danh mục đơn vị
+
+Script mặc định bổ sung Viên, Thùng và Mét vuông (mã `M2`). Mã đơn vị lịch sử đang được sản phẩm hoặc dòng chứng từ tham chiếu vẫn có trong kế hoạch để các bản ghi đó đọc được.

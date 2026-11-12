@@ -29,7 +29,7 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
   const warehouse = await m.Warehouse.findById(worker.warehouseIds[0]);
   const category = await m.Category.findOne();
   const product = await m.Product.create({ sku: key(), name: 'Test receipt tile', manufacturerCode: 'TEST', categoryId: category._id,
-    color: 'White', baseUnit: 'PIECE', wholeBaseUnits: true, lengthMm: '600', widthMm: '600', heightMm: '10' });
+    color: 'White', baseUnit: 'Viên', wholeBaseUnits: true, lengthMm: '600', widthMm: '600', heightMm: '10' });
   const batch = await m.ProductBatch.create({ productId: product._id, manufacturerLot: key(), identificationStatus: 'VERIFIED',
     piecesPerCarton: 4, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50' });
   const location = await m.WarehouseLocation.create({ warehouseId: warehouse._id, code: 'GR-' + key().slice(0, 8),
@@ -99,7 +99,7 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
   assert.equal((await api('GET', `/goods-receipts/purchase/${purchase._id}`, outsider)).status, 403);
 
   const createBody = { operationKey: key(), warehouseId: String(warehouse._id), reason: 'Bổ sung tồn có chứng cứ',
-    lines: [{ productId: String(product._id), lotId: String(batch._id), enteredUnit: 'PIECE', enteredQty: '4',
+    lines: [{ productId: String(product._id), lotId: String(batch._id), enteredUnit: 'Viên', enteredQty: '4',
       destinationLocationId: String(location._id), qualityCode: 'GOOD' }] };
   const created = await api('POST', '/goods-receipts/other', worker, createBody);
   assert.equal(created.status, 200, JSON.stringify(created.body));

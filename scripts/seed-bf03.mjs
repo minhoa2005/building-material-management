@@ -30,20 +30,25 @@ export async function seedBF03(connection, { warehouseCode, apply = false }) {
   const category = await model('categories').findOne({ isActive: true });
   const categoryId = category?._id ?? id('category');
   const now = new Date();
-  const pieceUnit = await model('uoms').findOne({ code: 'PIECE' });
-  const boxUnit = await model('uoms').findOne({ code: 'BOX' });
-  if (pieceUnit?.isActive === false || boxUnit?.isActive === false) throw new Error('Demo units PIECE/BOX must be active; no existing UOM is modified');
+  const pieceUnit = await model('uoms').findOne({ code: 'Viên' });
+  const boxUnit = await model('uoms').findOne({ code: 'Thùng' });
+  if (pieceUnit?.isActive === false || (boxUnit && (!boxUnit.isActive || !boxUnit.isCarton))) {
+    throw new Error('Đơn vị Viên và Thùng phải đang hoạt động, và Thùng phải được đánh dấu là đơn vị thùng.');
+  }
   const boxUnitId = boxUnit?._id ?? id('uom-box');
-  const packaging = { packageUnit: 'BOX', baseUnitsPerPackage: '4', outerLengthMm: '620', outerWidthMm: '620', outerHeightMm: '50' };
+  const packaging = { packageUnit: 'Thùng', baseUnitsPerPackage: '4', outerLengthMm: '620', outerWidthMm: '620', outerHeightMm: '50' };
   const location = (suffix, name) => ({ _id: id(suffix), warehouseId: warehouse._id, code: name,
     name: 'Vị trí mẫu BF03 ' + name, locationType: 'STORAGE', isPickable: true, isActive: true,
     usableLengthMm: '2500', usableWidthMm: '2500', version: 1, operationVersion: 0 });
   const records = {
-    uoms: [...(!pieceUnit ? [{ _id: id('uom-piece'), code: 'PIECE', name: 'Viên', isActive: true }] : []), ...(!boxUnit ? [{ _id: boxUnitId, code: 'BOX', name: 'Thùng', isCarton: true, isActive: true }] : [])],
+    uoms: [
+      ...(!pieceUnit ? [{ _id: id('uom-piece'), code: 'Viên', name: 'Viên', isActive: true }] : []),
+      ...(!boxUnit ? [{ _id: boxUnitId, code: 'Thùng', name: 'Thùng', isCarton: true, isActive: true }] : []),
+    ],
     conversions: [{ _id: id('conversion-box'), productId: id('product'), productBatchId: id('batch'), uomId: boxUnitId, basePerUnit: '4', version: 1, validFrom: now, verificationReference: 'BF03 synthetic verified carton fixture', createdBy: owner._id }],
     ...(!category && { categories: [{ _id: categoryId, code: 'BF03-DEMO', name: 'Gạch mẫu BF03', isActive: true }] }),
     products: [{ _id: id('product'), categoryId, manufacturerCode: 'WMSD-DEMO', sku: 'BF03-DEMO-6060',
-      name: 'Gạch mẫu chuyển vị trí BF03 60×60', color: 'Trắng mẫu BF03', baseUnit: 'PIECE', wholeBaseUnits: true,
+      name: 'Gạch mẫu chuyển vị trí BF03 60×60', color: 'Trắng mẫu BF03', baseUnit: 'Viên', wholeBaseUnits: true,
       lengthMm: '600', widthMm: '600', heightMm: '10', isActive: true }],
     product_batches: [{ _id: id('batch'), productId: id('product'), manufacturerLot: 'BF03-DEMO-LOT-01',
       identificationStatus: 'VERIFIED', piecesPerCarton: 4, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50' }],
@@ -60,7 +65,7 @@ export async function seedBF03(connection, { warehouseCode, apply = false }) {
       header: { warehouseId: warehouse._id, cutoverKey: key, openingAt: now, coveredLocationIds: [id('source')],
         preparedBy: worker._id, preparedAt: now, verifiedBy: owner._id, verifiedAt: now, verifiedVersion: 1 },
       items: [{ _id: id('item'), lineNo: 1, lineKind: 'STANDARD', productId: id('product'), lotId: id('batch'),
-        productNameSnapshot: 'Gạch mẫu chuyển vị trí BF03 60×60', enteredUnit: 'BOX', baseUnitSnapshot: 'PIECE',
+        productNameSnapshot: 'Gạch mẫu chuyển vị trí BF03 60×60', enteredUnit: 'Thùng', baseUnitSnapshot: 'Viên',
         baseUnitsPerUnit: '4', enteredQty: '10', qtyBase: '40', packagingSnapshot: packaging,
         locationId: id('source'), ownerType: 'STORE', qualityStatus: 'GOOD' }] }],
     stock_transactions: [{ _id: id('posting'), sourceType: 'opening_stocks', sourceId: id('opening'), operation: 'OPENING',

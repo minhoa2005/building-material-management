@@ -95,6 +95,7 @@ run('conversion versions use the right scope and preserve document snapshots', a
      PIECE: '1', BOX: '6', PACK: '3',
    });
    assert.equal(option.units.find(row => row.code === 'BOX').name, 'Thùng');
+   assert.equal(option.units.find(row => row.code === 'BOX').isCarton, true);
    assert.deepEqual(options.sources, []);
  }
  const records = await productService.listConversions(owner, pid, { uomId: String(box._id), productBatchId: 'null', limit: 1 });
@@ -279,6 +280,7 @@ run('native RR → PO → inspection → receipt → partial putaway preserves s
  assert.equal(detail.items[0].inspectionResult.qualityCode, 'GOOD');
  assert.equal(detail.items[0].lotLabelSnapshot, batch.manufacturerLot);
  const task=await putaway.createPutaway(worker,receipt._id,{creationKey:key(),expectedVersion:receipt.version,lines:[{receiptLineId:String(receipt.items[0]._id),expectedSourceVersion:context.items[0].sourceBalanceVersion,qtyBase:'8',toLocationId:String(storageLocation._id)}]});
+ const taskDetail=await putaway.getPutaway(worker,task.id);assert.equal(taskDetail.header.receiptId,String(receipt._id));assert.deepEqual([taskDetail.items[0].actualQtyBase,taskDetail.items[0].remainingQtyBase],['0','8']);
  let taskDoc=await m.TransferOrder.findById(task.id);await putaway.confirmPutaway(worker,task.id,{...input(),expectedVersion:taskDoc.version,lines:[{taskLineId:String(taskDoc.items[0]._id),actualQtyBase:'4'}]});
  const taskList = await putaway.listPutaway(worker, { page: 1, limit: 10, status: 'PARTIAL', purchaseOrderId: String(receipt.header.purchaseOrderId) });
  assert.equal(taskList.total, 1);
@@ -654,6 +656,17 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  });
  assert.equal(noConversionProduct.status,201);
  assert.deepEqual((await api('GET','/products/'+noConversionProduct.body.data.id,owner)).body.data.currentConversions,[]);
+ const orphanedConversion = await m.Conversion.create({
+   productId, productBatchId: verifiedBatch._id, uomId: new mongoose.Types.ObjectId(), basePerUnit: '4',
+   version: 1, validFrom: new Date('2020-02-01'), verificationReference: 'Legacy unit',
+ });
+ const historyWithMissingUnit = await api('GET', conversionPath, worker);
+ assert.equal(historyWithMissingUnit.status, 200, historyWithMissingUnit.body.message);
+ assert.equal(historyWithMissingUnit.body.data.total, 2);
+ const orphanedItem = historyWithMissingUnit.body.data.items.find(row => row.id === String(orphanedConversion._id));
+ assert.equal(orphanedItem.uom, null);
+ assert.equal(orphanedItem.basePerUnit, '4');
+ assert.deepEqual((await api('GET', detailPath, worker)).body.data.currentConversions, fallbackDetail.body.data.currentConversions);
  assert.equal((await api('POST',conversionPath,worker,initialConversion)).status,403);
  assert.equal((await api('POST',conversionPath,owner,initialConversion)).status,409);
  const futureConversion = {...initialConversion,basePerUnit:'8',validFrom:'2099-01-01'};
@@ -715,12 +728,13 @@ run('BF03 additive seed supplies selectable stock and rerun never restores consu
  assert.equal(seeded.status,'SEEDED');
  const options=await relocations.locationMovementOptions(worker,String(warehouse._id));
  const demoProduct=options.products.find(p=>p.sku==='BF03-DEMO-6060');
+ assert.equal(demoProduct.baseUnit,'Viên');
  const demoBatch=options.batches.find(b=>b.productId===demoProduct.id);
  const sourcePoint=options.holdingPoints.find(p=>options.locations.find(l=>l.id===p.locationId)?.code==='BF03-A');
  const source=options.balances.find(b=>b.holdingPointId===sourcePoint.id&&b.batchId===demoBatch.id);
  assert.equal(source.quantityBase,'40');
  const destination=options.locations.find(l=>l.code==='BF03-B');
- const created=await relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'Seed smoke',lines:[{sourceBalanceId:source.id,sourceBalanceVersion:source.version,toLocationId:destination.id,enteredUnit:'BOX',enteredQty:'1'}]});
+ const created=await relocations.createLocationMovement(worker,{idempotencyKey:key(),warehouseId:String(warehouse._id),reason:'Seed smoke',lines:[{sourceBalanceId:source.id,sourceBalanceVersion:source.version,toLocationId:destination.id,enteredUnit:'Thùng',enteredQty:'1'}]});
  const document=await m.TransferOrder.findById(created.id);
  await relocations.confirmLocationMovement(worker,created.id,{idempotencyKey:key(),expectedVersion:document.version,lines:[{lineId:String(document.items[0]._id),actualQtyBase:'4'}]});
  const rerun=await seedBF03(mongoose.connection,{warehouseCode:warehouse.code,apply:true});

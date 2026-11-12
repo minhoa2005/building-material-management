@@ -35,6 +35,33 @@ Validation performed / not performed:
 
 ## Log entries
 
+### 2026-11-13 — Putaway Task Lookup by Code & Support for Transfer Requirement Sources (UC-45, UC-46)
+
+- **Work item:** Fix putaway task detail query failures and 404 "Không tìm thấy dữ liệu" errors when querying putaway tasks (`GET /api/goods-receipts/purchase/putaway-tasks/:id`) by document number (e.g., `TO-202610-001`) or when tasks originate from internal transfer requirements (`internal_transfer_requirements`):
+  - **Document Lookup by _id or documentNo (`purchase-core.js`)**: Updated `findPurchase` helper to detect 24-character hexadecimal strings; query `{ $or: [{ _id: id }, { documentNo: id }] }` for hex candidates or `{ documentNo: id }` otherwise, eliminating Mongoose `CastError: Cast to DocumentIdentity failed` when clients pass document numbers instead of ObjectIds.
+  - **Internal Transfer Requirement Support (`purchase-putaway.service.js`)**: In `task(id)`, expanded source document filtering to permit tasks referencing `internal_transfer_requirements` alongside `goods_receipts`. In `getPutaway(id)`, resolved `receiptId` through the linked transfer requirement when the task source references an internal transfer, ensuring both purchase and transfer putaway tasks return complete task and receipt details without 404 errors.
+- **Tool and model:** Antigravity AI (Gemini 3.8 Flash High).
+- **Prompt summary:** Fix putaway task lookup returning 404 "Không tìm thấy dữ liệu" when opening putaway tasks by ID / document number or transfer-linked tasks; update ai-log and rtm.
+- **Result used:** Updated `be/src/modules/po-receiving/purchase-core.js` and `be/src/modules/po-receiving/purchase-putaway.service.js`.
+- **Intervention:** Adopted.
+- **Human changes:** Directed dual `_id`/`documentNo` resolution and support for transfer requirement putaway tasks.
+- **Files affected:** `be/src/modules/po-receiving/purchase-core.js`, `be/src/modules/po-receiving/purchase-putaway.service.js`, `be/docs/ai-log.md`, `be/docs/rtm.md`.
+- **Validation:** Full backend test runner: `npm test` passed 126/126 tests (0 failed). Direct Node test script verified successful lookup by ObjectId, document number (`TO-202610-001`), and ITR source reference (`TO-202610-010`).
+
+### 2026-11-12 - Vietnamese units in demo data
+
+- **Work item and prompt:** Remove duplicate English UOMs from seed data and align dependent flows.
+- **Tool and intervention:** Codex, adopted. No human edits during verification.
+- **Result:** The tile-shop and BF03 seeds use Viên and Thùng. The seed keeps code `M2` with the name Mét vuông. Replenishment options expose `isCarton`, and new default packaging snapshots use Thùng.
+- **Validation:** Seed and native API checks passed 44/44. A fresh local replica-set seed contained 702 records and no conversions with a missing UOM. The application DB was inspected read-only.
+
+### 2026-11-12 - Product conversion history with missing units
+
+- **Work item and prompt:** Fix the `_id` error on Product Detail.
+- **Tool and intervention:** Codex, adopted. No human edits during verification.
+- **Result:** `src/shared/utils/conversions.js` serializes a missing UOM as `null` in history. The API contract and regression assertions in `test/native-api.integration.test.js` record this behavior.
+- **Validation:** Native API integration passed 18/18. Read-only HTTP checks on the running backend returned 200 for detail and history across all 18 products.
+
 ### 2026-11-12 — Inbound receipts and linked purchase documents
 
 - **Work item:** Implement the approved inbound plan for purchase inspection, custody placement, put-away and five receipt kinds.

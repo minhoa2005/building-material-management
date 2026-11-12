@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 import {PERMISSION_CATALOGUE,ROLE_PERMISSIONS} from '../src/seeds/data/permissions.data.js';
 import {pathToFileURL} from 'node:url';
 export function planCatalogueMigration(data){
- const codes=new Set(['PIECE','BOX','M2']);for(const p of data.products||[])if(p.baseUnit)codes.add(p.baseUnit);
+ const codes=new Set(['Viên','Thùng','M2']);for(const p of data.products||[])if(p.baseUnit)codes.add(p.baseUnit);
  for(const rows of Object.values(data))for(const row of rows||[])for(const item of row.items||[]){if(item.enteredUnit)codes.add(item.enteredUnit);if(item.baseUnitSnapshot)codes.add(item.baseUnitSnapshot);}
  const suppliers=(data.suppliers||[]).filter(s=>['PENDING','INACTIVE'].includes(s.status)).map(s=>({id:String(s._id),before:s.status,status:'SUSPENDED',statusReason:s.status==='PENDING'?'Chưa xác nhận hoạt động trước chuyển đổi':'Ngừng hoạt động trước chuyển đổi'}));
  const groups=new Map();for(const po of data.purchase_orders||[]){const key=String(po.replenishmentRequestId||'');groups.set(key,[...(groups.get(key)||[]),String(po._id)]);}
- return {uoms:[...codes].sort().map(code=>({code,name:code,isActive:true})),suppliers,unsupportedConversionCodes:[...codes].filter(c=>!['PIECE','BOX','M2','Viên','Thùng','m²'].includes(c)),blockers:[...groups].filter(([id,rows])=>!id||rows.length>1).map(([rr,orders])=>({rr,orders})),legacyCollections:['business_documents','document_lines','product_uom_versions'].filter(c=>(data[c]||[]).length)};
+ return {uoms:[...codes].sort().map(code=>({code,name:code==='M2'?'Mét vuông':code,isActive:true,isCarton:code==='Thùng'||code==='BOX'})),suppliers,unsupportedConversionCodes:[...codes].filter(c=>!['PIECE','BOX','M2','Viên','Thùng','m²'].includes(c)),blockers:[...groups].filter(([id,rows])=>!id||rows.length>1).map(([rr,orders])=>({rr,orders})),legacyCollections:['business_documents','document_lines','product_uom_versions'].filter(c=>(data[c]||[]).length)};
 }
 export async function migrate(uri,{apply=false}={}){
  const parsed=new URL(uri);if(!['127.0.0.1','localhost'].includes(parsed.hostname)||!/^wmsd_(api_test|migration_test)_/.test(parsed.pathname.slice(1)))throw Error('Only isolated local test databases are allowed');
