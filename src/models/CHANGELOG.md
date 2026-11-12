@@ -1,3 +1,5 @@
+12/11/2026: bỏ document_sequences và đổi định danh chứng từ mới: mọi model có documentNo dùng _id DocumentIdentity = mã phiếu [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự]. Các ref documentId/sourceId/subjectId và hậu tố liên kết chứng từ chấp nhận mã mới hoặc ObjectId lịch sử; warehouse/product/lot/location và embedded item vẫn ObjectId. Registry còn 58 collection. Chứng từ cũ không migration/đổi _id; kiểm thử concurrency và rollback chạy DB loopback riêng. Xem git_doc/docs/08_api/DOCUMENT_IDENTITIES.md.
+
 ## 11/11/2026 — Chi tiết dòng RR theo cảnh báo
 
 Theo quyết định người dùng, `replenishment-details.schema.js` yêu cầu `evaluatedAt` và loại nguồn khớp khi có `source`. Dòng xác nhận nhu cầu phải có giải trình. Các trường `canonicalSourceKey`, `evaluationKey`, lượng đề xuất và snapshot coverage đời cũ còn để đọc dữ liệu lịch sử. Nhánh validation cho dữ liệu không có `source` giữ quy tắc cũ. Lần đánh giá mới ghi nguồn, giải trình và các snapshot tồn, RR mở, PO còn phải nhận, ngưỡng và mục tiêu. Không đổi collection, index hoặc chạy migration. Xem [nhật ký kiểm chứng](../../git_doc/change_logs.md).

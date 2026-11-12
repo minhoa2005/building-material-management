@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { z } from "zod";
 import { decimalStringSchema } from "../../shared/utils/domain.js";
 
@@ -119,7 +120,7 @@ export const listQuerySchema = z
 
 export const listReplenishmentsSchema = z.object({ query: listQuerySchema });
 export const getReplenishmentSchema = z.object({
-  params: z.object({ id: objectIdSchema }).strict(),
+  params: z.object({ id: documentIdentifier }).strict(),
   query: emptyQuery,
   body: emptyQuery,
 });
@@ -134,8 +135,8 @@ const headerShape = {
 export const sourceSchema = z.discriminatedUnion('triggerType', [
   z.object({ triggerType: z.literal('MANUAL_OTHER') }).strict(),
   z.object({ triggerType: z.literal('STOCK_THRESHOLD') }).strict(),
-  z.object({ triggerType: z.literal('STOCKTAKE_LOW_STOCK'), documentType: z.literal('stocktakes'), documentId: objectIdSchema, version: expectedVersion }).strict(),
-  z.object({ triggerType: z.literal('SALES_SHORTAGE'), documentType: z.enum(['sales_orders','warehouse_issue_requests']), documentId: objectIdSchema, itemId: objectIdSchema, version: expectedVersion }).strict(),
+  z.object({ triggerType: z.literal('STOCKTAKE_LOW_STOCK'), documentType: z.literal('stocktakes'), documentId: documentIdentifier, version: expectedVersion }).strict(),
+  z.object({ triggerType: z.literal('SALES_SHORTAGE'), documentType: z.enum(['sales_orders','warehouse_issue_requests']), documentId: documentIdentifier, itemId: objectIdSchema, version: expectedVersion }).strict(),
 ]);
 // Deprecated coverage fields remain accepted for existing clients.
 const assessmentFields = {
@@ -181,7 +182,7 @@ const updateLineSchema = z
   .strict();
 
 export const updateReplenishmentSchema = z.object({
-  params: z.object({ id: objectIdSchema }).strict(),
+  params: z.object({ id: documentIdentifier }).strict(),
   query: emptyQuery,
   body: z
     .object({
@@ -195,7 +196,7 @@ export const updateReplenishmentSchema = z.object({
 
 const evaluations = z.array(z.object({ lineId: objectIdSchema, ...assessmentFields }).strict()).max(100).optional();
 export const submitReplenishmentSchema = z.object({
-  params: z.object({ id: objectIdSchema }).strict(),
+  params: z.object({ id: documentIdentifier }).strict(),
   query: emptyQuery,
   body: z.object({ expectedVersion, operationKey, evaluations }).strict(),
 });
@@ -209,7 +210,7 @@ const reviewLineSchema = z
   .strict();
 
 export const reviewReplenishmentSchema = z.object({
-  params: z.object({ id: objectIdSchema }).strict(),
+  params: z.object({ id: documentIdentifier }).strict(),
   query: emptyQuery,
   body: z
     .object({
@@ -227,7 +228,7 @@ export const replenishmentLotOptionsSchema = z.object({
   query: z.object({
     productId: objectIdSchema,
     warehouseId: objectIdSchema,
-    requestId: objectIdSchema.optional(),
+    requestId: documentIdentifier.optional(),
     page: positiveInteger(1),
     limit: positiveInteger(20, 100),
   }).strict().refine(({ page, limit }) => Number.isSafeInteger((page - 1) * limit)),
@@ -238,7 +239,7 @@ export const replenishmentOptionsSchema = z.object({
   body: emptyQuery,
   query: z.object({
     mode: z.enum(["CREATE", "FILTER"]),
-    requestId: objectIdSchema.optional(),
+    requestId: documentIdentifier.optional(),
   }).strict().refine(query => !query.requestId || query.mode === "CREATE", {
     message: "requestId chỉ được hỗ trợ khi mode là CREATE",
     path: ["requestId"],
@@ -252,7 +253,7 @@ export const replenishmentSourceOptionsSchema = z.object({
     type: z.enum(["stocktakes", "saleorders"]),
     productId: objectIdSchema.optional(),
     warehouseId: objectIdSchema.optional(),
-    requestId: objectIdSchema.optional(),
+    requestId: documentIdentifier.optional(),
     page: positiveInteger(1),
     limit: positiveInteger(20, 100),
   }).strict().refine(({ page, limit }) => Number.isSafeInteger((page - 1) * limit)),
@@ -261,7 +262,7 @@ export const replenishmentSourceOptionsSchema = z.object({
 export const evaluateReplenishmentSchema = z.object({
   params: emptyQuery, query: emptyQuery,
   body: z.object({ warehouseId: objectIdSchema, neededOn: calendarDate,
-    requestId: objectIdSchema.optional(),
+    requestId: documentIdentifier.optional(),
     lines: z.array(z.object({ id: objectIdSchema.optional(), productId: objectIdSchema,
       source: sourceSchema.optional(), enteredUnit: z.string().trim().min(1).max(60).optional(),
       lotId: objectIdSchema.optional(), enteredQty: lineQty.optional(), reasonNote: reasonNote.optional(),
@@ -269,19 +270,19 @@ export const evaluateReplenishmentSchema = z.object({
   }).strict(),
 });
 export const cancelReplenishmentSchema = z.object({
-  params: z.object({ id: objectIdSchema }).strict(), query: emptyQuery,
+  params: z.object({ id: documentIdentifier }).strict(), query: emptyQuery,
   body: z.object({ expectedVersion, operationKey, reason: reasonNote }).strict(),
 });
 
 export const listSubmissionsSchema = z.object({
-  params: z.object({ id: objectIdSchema }).strict(),
+  params: z.object({ id: documentIdentifier }).strict(),
   query: pageQuery,
   body: emptyQuery,
 });
 
 export const getSubmissionSchema = z.object({
   params: z
-    .object({ id: objectIdSchema, version: integerFromPath })
+    .object({ id: documentIdentifier, version: integerFromPath })
     .strict(),
   query: emptyQuery,
   body: emptyQuery,

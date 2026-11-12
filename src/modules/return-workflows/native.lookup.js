@@ -1,3 +1,4 @@
+import { databaseId } from '../../models/document-identity.js';
 import mongoose from 'mongoose';
 import * as s from './native.shared.js';
 import { currentRole } from '../../shared/utils/userRole.js';
@@ -5,7 +6,7 @@ import { freeQuantity } from '../../shared/utils/stock.js';
 import { parent } from './native.read.js';
 
 const { m, exact, same, serialize, requirePermission, requireWarehouseAccess, hasPermission } = s;
-const oid = value => new mongoose.Types.ObjectId(String(value));
+const oid = value => databaseId(String(value));
 const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const join = (Model, localField, as, foreignField = '_id') => ({ $lookup: { from: Model.collection.name, localField, foreignField, as } });
 const first = path => ({ $arrayElemAt: [`$${path}`, 0] });

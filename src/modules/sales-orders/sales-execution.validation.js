@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { z } from 'zod';
 import { objectId } from './sales.validation.js';
 import { decimalStringSchema } from '../../shared/utils/domain.js';
@@ -8,6 +9,6 @@ const rows = schema => z.array(schema.strict()).min(1).max(200);
 export const updateSalesBody = operation.extend({ reason: text, lines: rows(z.object({ lineId: objectId, quantity: qty, unitSellingPrice: decimalStringSchema().optional() })) }).strict();
 export const cancelSalesBody = operation.extend({ reason: text, lines: rows(z.object({ lineId: objectId, qtyBase: qty, reopeningReceiptLineId: objectId.optional() })) }).strict();
 export const issueRequestBody = operation.extend({ warehouseId: objectId, neededOn: z.iso.datetime({ offset: true }), lines: rows(z.object({ lineId: objectId, qtyBase: qty })) }).strict();
-export const deliveryBody = operation.extend({ issueRequestId: objectId, warehouseId: objectId, fifoExceptionReason: text.optional(), plannedOn: z.iso.datetime({ offset: true }), recipientName: text.max(160), recipientPhone: text.max(30), deliveryAddress: text.max(500), lines: rows(z.object({ lineId: objectId, sourceBalanceId: objectId, sourceBalanceVersion: z.number().int().nonnegative(), qtyBase: qty, reopeningReceiptLineId: objectId.optional() })) }).strict();
+export const deliveryBody = operation.extend({ issueRequestId: documentIdentifier, warehouseId: objectId, fifoExceptionReason: text.optional(), plannedOn: z.iso.datetime({ offset: true }), recipientName: text.max(160), recipientPhone: text.max(30), deliveryAddress: text.max(500), lines: rows(z.object({ lineId: objectId, sourceBalanceId: objectId, sourceBalanceVersion: z.number().int().nonnegative(), qtyBase: qty, reopeningReceiptLineId: objectId.optional() })) }).strict();
 export const pickingBody = operation.extend({ lines: rows(z.object({ reservationId: objectId, qtyBase: qty, toLocationId: objectId })) }).strict();
 export const confirmPickingBody = operation.extend({ lines: rows(z.object({ lineId: objectId, qtyBase: qty })) }).strict();

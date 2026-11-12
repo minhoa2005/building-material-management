@@ -40,7 +40,7 @@ export function createPurchaseOrder(user,input){
     const request = prepared.request;
     const updatedAt = new Date(Math.max(Date.now(), (request.updatedAt?.getTime() ?? 0) + 1));
     await ReplenishmentRequest.updateOne({ _id: request._id }, { $set: { updatedAt } }, { session, timestamps: false });
-    const po=newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
+    const po=await newDocument(PurchaseOrder,'PO',actor,{warehouseId:input.warehouseId,supplierId:input.supplierId,expectedOn:input.expectedOn,approvedRequestRevision:prepared.request.header.approvedRevision,
       supplierSnapshot:{code:prepared.supplier.code,name:prepared.supplier.name,phone:prepared.supplier.phone}},prepared.items);
     po.replenishmentRequestId=prepared.request._id;po.totalAmount=prepared.total;po.currency=input.currency;po.sources=[sourceLink(prepared.request)];
     await po.save({session});return{document:po};

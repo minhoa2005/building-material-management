@@ -1,3 +1,4 @@
+import { nextDocumentFields } from '../../shared/utils/document-number.js';
 import {
   ReplenishmentRequest,
   Warehouse,
@@ -368,8 +369,7 @@ export function createReplenishment(user, input) {
     replay,
     async (session, actor) => {
       const document = new ReplenishmentRequest({
-        _id: newId(),
-        documentNo: "RR-" + newId(),
+        ...await nextDocumentFields(ReplenishmentRequest,'RR',input.warehouseId,session),
         workflowStatus: "DRAFT",
         version: 1,
         createdBy: actor._id,

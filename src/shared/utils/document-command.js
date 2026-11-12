@@ -170,12 +170,6 @@ export async function command(
         requirePermission(actor, permission);
         const prior = await OperationRecord.findOne({ operationKey });
         if (prior) return replay(prior, actor);
-        if (
-          error.code === 11000 &&
-          error.message?.includes("document_sequences") &&
-          attempt < 3
-        )
-          continue;
       }
       throw error;
     }

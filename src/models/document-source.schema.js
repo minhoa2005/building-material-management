@@ -1,11 +1,11 @@
 import { Schema, embeddedOptions, text, decimal } from "./model-utils.js";
-import { objectId } from "./schema-helpers.js";
+import { objectId, documentId } from "./schema-helpers.js";
 
 // Embedded schema; no standalone collection.
 export function createDocumentSourceSchema() {
   const link = new Schema(
     {
-      documentId: { type: objectId, required: true },
+      documentId: documentId(),
       subjectCollection: text(80),
       relationCode: text(40),
       handoverId: objectId,

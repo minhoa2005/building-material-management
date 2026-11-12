@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { decimalStringSchema } from '../../shared/utils/domain.js';
@@ -19,7 +20,7 @@ router.put('/:id', validate(schema(action(form))), handle((u,v) => c.updatePurch
 router.post('/:id/confirm', validate(schema(action({}))), handle((u,v) => c.confirmPurchaseOrder(u,v.params.id,v.body)));
 router.post('/:id/expected-on', validate(schema(action({ expectedOn: z.string().datetime({ offset: true }), reason }))), handle((u,v) => c.rescheduleExpectedOn(u,v.params.id,v.body)));
 router.post('/:id/close-requests', validate(schema(action({ reason, evidenceIds, lines: closeLines }))), handle((u,v) => c.requestClose(u,v.params.id,v.body)));
-router.post('/:id/close-approvals', validate(schema(action({ reason, evidenceIds, requestId: oid }))), handle((u,v) => c.approveClose(u,v.params.id,v.body)));
+router.post('/:id/close-approvals', validate(schema(action({ reason, evidenceIds, requestId: documentIdentifier }))), handle((u,v) => c.approveClose(u,v.params.id,v.body)));
 router.post('/:id/close-executions', validate(schema(action({ reason, approvalId: oid }))), handle((u,v) => c.executeClose(u,v.params.id,v.body)));
 export default router;
 

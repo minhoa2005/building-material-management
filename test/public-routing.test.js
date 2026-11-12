@@ -8,6 +8,7 @@ test('workflow authentication does not intercept public health and login routes'
   const base = `http://127.0.0.1:${server.address().port}/api`;
   try {
     assert.equal((await fetch(`${base}/health`)).status, 200);
+    for(const path of ['/warehouse-locations','/inventory','/stock-movements','/warehouses'])assert.equal((await fetch(base+path)).status,401);
     const login = await fetch(`${base}/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
     });

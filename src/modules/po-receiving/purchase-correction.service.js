@@ -43,7 +43,7 @@ export function reverseReceipt(user,id,input){return command(user,'REVERSE_PURCH
  requirePermission(actor,'goods_receipt_inspection:post');requireWarehouseAccess(actor,(await findPurchase(id,actor,session,{kind:'GR_PURCHASE'})).header.warehouseId);
  const source=await findPurchase(id,actor,session,{kind:'GR_PURCHASE'});checkVersion(source,input.expectedVersion);await evidenceFor(actor,source,input.evidenceIds,session,true);
  const originalSource=await eligible(source,actor,session);
- const d=newDocument(StockReversal,'REV',actor,{originalTransactionId:originalSource.original._id,sourceDocument:{documentType:'goods_receipts',documentId:source._id,revision:source.version},sourceVersion:source.version,warehouseIds:[source.header.warehouseId],requestedBy:actor._id,requestedAt:new Date(),reason:input.reason},originalSource.original.movements.map((m,i)=>copyItem(source.items.id(m.sourceLineId),m.quantityBase,{lineNo:i+1,sources:[{subjectCollection:'stock_transactions',documentId:originalSource.original._id,itemId:m._id,linkedQty:String(m.quantityBase),relationCode:'REVERSES'}]})));
+ const d=await newDocument(StockReversal,'REV',actor,{originalTransactionId:originalSource.original._id,sourceDocument:{documentType:'goods_receipts',documentId:source._id,revision:source.version},sourceVersion:source.version,warehouseIds:[source.header.warehouseId],requestedBy:actor._id,requestedAt:new Date(),reason:input.reason},originalSource.original.movements.map((m,i)=>copyItem(source.items.id(m.sourceLineId),m.quantityBase,{lineNo:i+1,sources:[{subjectCollection:'stock_transactions',documentId:originalSource.original._id,itemId:m._id,linkedQty:String(m.quantityBase),relationCode:'REVERSES'}]})));
  d.evidenceIds=input.evidenceIds;
   const gr=await findPurchase(d.header.sourceDocument.documentId,actor,session,{kind:'GR_PURCHASE'});checkVersion(gr,d.header.sourceVersion);const {original,locations}=await eligible(gr,actor,session);await guardLocations(locations,session);
   const po=await findPurchase(gr.header.purchaseOrderId,actor,session,{kind:'PO'});checkVersion(po,input.expectedPoVersion);
@@ -65,8 +65,8 @@ export function replaceInspection(user,id,input){return command(user,'REPLACE_GO
   for(const [collection,Model] of models){if(!['custody_receipts','supplier_returns'].includes(collection))continue;if(await Model.exists({'items.sources.documentId':id,workflowStatus:{$ne:'CANCELLED'}}).session(session))throw validationError('Còn chứng từ giữ hộ hoặc trả hàng phụ thuộc');}
   if(await GoodsInspection.exists({'header.previousInspectionId':id,workflowStatus:{$ne:'CANCELLED'}}).session(session))throw validationError('Đã có bản thay thế');
   const po=await activePo(actor,arrival.header.purchaseOrderId,input.expectedPoVersion,session);
-  const newArrival=newDocument(GoodsArrival,'ARR',actor,{...arrival.header.toObject(),recordedAt:undefined});
-  const document=newDocument(GoodsInspection,'INS',actor,{arrivalId:newArrival._id,warehouseId:arrival.header.warehouseId,previousInspectionId:inspection._id,correctionReason:input.reason,participants:[actor._id]});
+  const newArrival=await newDocument(GoodsArrival,'ARR',actor,{...arrival.header.toObject(),recordedAt:undefined});
+  const document=await newDocument(GoodsInspection,'INS',actor,{arrivalId:newArrival._id,warehouseId:arrival.header.warehouseId,previousInspectionId:inspection._id,correctionReason:input.reason,participants:[actor._id]});
   newArrival.sources=[sourceLink(po),sourceLink(arrival,null,null,'CORRECTION')];document.sources=[sourceLink(newArrival),sourceLink(inspection,null,null,'REPLACES')];
   await prepare(po,input,actor,session,newArrival,document);await newArrival.save({session});await document.save({session});await saveVersion(inspection,inspection.version,session);
   return {document,reason:input.reason};

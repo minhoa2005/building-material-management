@@ -1,3 +1,7 @@
+> 12/11/2026: [Phạm vi HieuDT 20 UC mới](docs/08_api/HIEUDT_WAREHOUSE_SCOPE.md) theo bảng người dùng: kho/vị trí, tồn, BF03, BF04, đối soát và nhật ký. Đây là nguồn đối chiếu phạm vi hiện tại; các khả năng 18 UC trước vẫn được giữ. Native warehouse-stock thay route demo, không fallback dữ liệu mẫu.
+
+> 11/11/2026: BF03 dùng bảng chọn hàng theo kho/vị trí, chỉ số nguyên thùng/viên; không tự mở thùng. Luồng tạo/sửa kiểm quy cách ngay trước lưu. Thử đơn vị/quy đổi trên DB local riêng và chờ người dùng kiểm tra trước triển khai lên wmsd_database.
+
 > 10/11/2026: [Hợp đồng 18 UC HieuDT](docs/08_api/HIEUDT_ITERATIONS_NATIVE.md) là nguồn hiện hành cho SO/WIR/OD/picking, chốt kiểm kê và báo cáo; [kiểm thử local](docs/09_phat_trien/HIEUDT_LOCAL_TESTS.md). Chốt kiểm kê kiểm phê duyệt đúng nội dung, count mới nhất, thực hiện/bằng chứng trước khi ghi tồn và mở khóa nguyên tử.
 
 > Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](docs/08_api/CONVERSIONS.md). [Iteration 1 native](docs/08_api/ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.

@@ -1,3 +1,4 @@
+import { documentIdentifier } from '../../shared/utils/document-id.validation.js';
 import { z } from 'zod';
 import { exact } from '../../models/model-utils.js';
 const oid = z.string().regex(/^[a-f\d]{24}$/i).transform((v) => v.toLowerCase());
@@ -10,7 +11,7 @@ export const createRequestBody = z.object({ idempotencyKey: key, sourceWarehouse
   reason, neededOn: z.iso.datetime({ offset: true }).optional(),
   lines: z.array(z.object({ productId: oid, enteredUnit: z.string().trim().min(1).max(60), lotId: oid.optional(), enteredQty: qty }).strict()).min(1).max(100).refine(unique('productId')),
 }).strict().refine((v) => v.sourceWarehouseId !== v.destinationWarehouseId);
-export const reviewBody = z.object({ idempotencyKey: key, expectedVersion: version, decision: z.enum(['APPROVE', 'REJECT']), reason }).strict();
+export const reviewBody = z.object({ idempotencyKey: key, expectedVersion: version, decision: z.enum(['APPROVE', 'REJECT', 'REVISE']), reason }).strict();
 export const dispatchBody = z.object({ idempotencyKey: key, expectedVersion: version,
   lines: z.array(z.object({ requestLineId: oid, sourceBalanceId: oid, stagingLocationId: oid, qtyBase: qty }).strict()).min(1).max(100),
 }).strict();
@@ -25,4 +26,8 @@ export const receiptBody = z.object({ idempotencyKey: key, expectedVersion: vers
     qualityCode: z.enum(['GOOD', 'DAMAGED']), damageReason: z.string().trim().min(1).max(1000).optional(),
   }).strict().refine((v) => v.qualityCode !== 'DAMAGED' || Boolean(v.damageReason))).min(1).max(100),
 }).strict();
-export const params = z.object({ id: oid }).strict();
+export const params = z.object({ id: documentIdentifier }).strict();
+
+export const updateRequestBody = createRequestBody.safeExtend({ expectedVersion: version });
+
+export const cancelDispatchBody=z.object({idempotencyKey:key,expectedVersion:version,reason}).strict();

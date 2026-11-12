@@ -1,22 +1,41 @@
 import mongoose from "mongoose";
+import { isDocumentId } from "../../models/document-identity.js";
 import { notFoundError, validationError, versionConflict } from "./ApiError.js";
 import { observePlanning } from "./replenishment-observability.js";
+import { transactionContext } from "./transaction-context.js";
 
 export const transactionOptions = {
   readConcern: { level: "snapshot" },
   writeConcern: { w: "majority" },
 };
 export async function transaction(work) {
-  const session = await mongoose.startSession();
-  let runs = 0;
-  try {
-    return await session.withTransaction(() => {
-      if (runs++)
-        observePlanning("transaction_retry", { reason: "snapshot_conflict" });
-      return work(session);
-    }, transactionOptions);
-  } finally {
-    await session.endSession();
+  for (let attempt = 0; ; attempt++) {
+    const session = await mongoose.startSession();
+    let runs = 0;
+    try {
+      return await session.withTransaction(() => {
+        if (runs++)
+          observePlanning("transaction_retry", { reason: "snapshot_conflict" });
+        session.documentNumbers = new Map();
+        return transactionContext.run(session, () => work(session));
+      }, transactionOptions);
+    } catch (error) {
+      // _id = documentNo: a concurrent transaction may take the same number.
+      if (
+        error.code === 11000 &&
+        attempt < 20 &&
+        isDocumentId(error.keyValue?._id ?? error.keyValue?.documentNo)
+      ) {
+        observePlanning("transaction_retry", {
+          reason: "document_number_collision",
+          attempt: attempt + 1,
+        });
+        continue;
+      }
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 }
 
