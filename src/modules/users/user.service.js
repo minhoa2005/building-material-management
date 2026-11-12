@@ -3,6 +3,7 @@ import { User, Role, Warehouse } from '../../models/runtime.js';
 import { ApiError } from '../../shared/utils/ApiError.js';
 import { escapeRegex } from '../../shared/utils/domain.js';
 import { userRoleDto, rolePermissions } from '../../shared/utils/userRole.js';
+import { appendAudit } from '../../shared/utils/audit.js';
 
 export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', status = 'all' }) => {
   const query = {};
@@ -50,7 +51,7 @@ export const listUsers = async ({ page = 1, limit = 10, search = '', role = '', 
       fullName: u.fullName,
       phone: u.phone, email:u.email, warehouseIds:(u.warehouseIds||[]).map(String),
       ...userRoleDto(u),
-      status: u.isActive ? 'active' : 'inactive',
+      status: u.isActive ? 'active' : 'inactive', lockReason: u.lockReason,
       createdAt: u.createdAt,
       lastLogin: u.updatedAt,
     };
@@ -72,7 +73,7 @@ export const getUserById = async (id) => {
     phone: user.phone, email:user.email, warehouseIds:(user.warehouseIds||[]).map(String),
     ...userRoleDto(user),
     permissions: rolePermissions(user),
-    status: user.isActive ? 'active' : 'inactive',
+    status: user.isActive ? 'active' : 'inactive', lockReason: user.lockReason,
     createdAt: user.createdAt,
     lastLogin: user.updatedAt,
   };
@@ -114,7 +115,6 @@ export const updateUser = async (id, updates) => {
   if(updates.email!==undefined)user.email=updates.email;
   if (updates.fullName) user.fullName = updates.fullName.trim();
   if (updates.phone !== undefined) user.phone = updates.phone;
-  if (updates.isActive !== undefined) user.isActive = updates.isActive;
 
   if (updates.roleCode) {
     const roleDoc = await Role.findOne({ code: updates.roleCode.toUpperCase(), isActive:true });
@@ -132,7 +132,7 @@ export const updateUser = async (id, updates) => {
   return getUserById(user._id);
 };
 
-export const toggleUserStatus = async (id, isActive, currentUserId) => {
+export const toggleUserStatus = async (id, isActive, currentUserId, reason) => {
   if (String(id) === String(currentUserId) && !isActive) {
     throw new ApiError(400, 'Không thể tự vô hiệu hóa tài khoản của chính mình');
   }
@@ -142,8 +142,12 @@ export const toggleUserStatus = async (id, isActive, currentUserId) => {
     throw new ApiError(404, 'Không tìm thấy người dùng');
   }
 
+  if (!isActive && !reason?.trim()) throw new ApiError(400, 'Cần nhập lý do khóa tài khoản');
+  const before = user.isActive;
   user.isActive = isActive;
+  user.lockReason = isActive ? undefined : reason.trim();
   await user.save();
+  if (before !== isActive) await appendAudit({ actorId: currentUserId, action: isActive ? 'UNLOCK_USER' : 'LOCK_USER', entityType: 'users', entityId: user._id, details: { reason: reason?.trim() || 'Kích hoạt tài khoản' } });
   return getUserById(user._id);
 };
 

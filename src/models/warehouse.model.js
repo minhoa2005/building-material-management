@@ -19,6 +19,9 @@ export function createWarehouseSchema() {
       widthMm: dimension(),
       clearHeightMm: dimension(),
       isActive: active(),
+      layout3d: { type: Schema.Types.Mixed, default: undefined },
+      layout3dApplied: { type: Schema.Types.Mixed, default: undefined },
+      layout3dAppliedAt: { type: Date, default: undefined },
     },
     options("warehouses"),
   );

@@ -122,6 +122,7 @@ Model: [user.model.js](../../../../src/models/user.model.js).
 | `phone` | String | false |  |
 | `email` | String | false |  |
 | `isActive` | Boolean | true |  |
+| `lockReason` | String (tối đa 2000 ký tự) | false | Lý do khoá hiện tại; xoá khi mở khoá. Dữ liệu cũ có thể để trống. |
 | `version` | Number | true |  |
 | `_id` | ObjectId | false |  |
 | `createdAt` | Date | false |  |
@@ -220,6 +221,9 @@ Model: [warehouse.model.js](../../../../src/models/warehouse.model.js).
 | `lengthMm` | Number | false |  |
 | `widthMm` | Number | false |  |
 | `clearHeightMm` | Number | false |  |
+| `layout3d` | Mixed/Object | false | Bản nháp: points, height, doors, maxStackHeight?, functions[] và zones[] (slots[] local); m/độ. Cấu trúc và kiểm tra tại [chặng 2](../../10_Kho3D/STAGE2_ZONES.md). |
+| `layout3dApplied` | Mixed/Object | false | Snapshot áp dụng gần nhất cùng cấu trúc layout3d; lưu nháp không thay snapshot. |
+| `layout3dAppliedAt` | Date | false | Thời điểm áp dụng snapshot; chưa có ở dữ liệu cũ. |
 | `isActive` | Boolean | true |  |
 | `_id` | ObjectId | false |  |
 | `createdAt` | Date | false |  |

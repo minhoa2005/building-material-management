@@ -22,10 +22,10 @@ nguồn/requirement trùng; không tự xóa bản ghi hoặc dựng lại DB.
 
 | Collection | Một bản ghi dùng để làm gì | Nơi bắt đầu đọc trong src/models |
 |---|---|---|
-| `users` | Tài khoản nhân viên: một vai trò, nhiều kho được phân công; mật khẩu được băm. | [user.model.js](../src/models/user.model.js) |
+| `users` | Tài khoản nhân viên: một vai trò, nhiều kho được phân công; mật khẩu được băm, lý do khoá hiện tại lưu ở `lockReason`. | [user.model.js](../src/models/user.model.js) |
 | `roles` | Vai trò có sẵn hoặc do Administrator tạo; giữ danh sách quyền được chọn. | [role.model.js](../src/models/role.model.js) |
 | `permissions` | Danh mục quyền thao tác có sẵn, phân nhóm theo chức năng. | [permission.model.js](../src/models/permission.model.js) |
-| `warehouses` | Kho vật lý, thông tin nhận diện và kích thước sử dụng được. | [warehouse.model.js](../src/models/warehouse.model.js) |
+| `warehouses` | Kho vật lý, kích thước; `layout3d` nháp gồm mặt bằng/khu vực/ô, `layout3dApplied` snapshot áp dụng và `layout3dAppliedAt`; [hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md). | [warehouse.model.js](../src/models/warehouse.model.js) |
 | `warehouse_locations` | Ô/vị trí thuộc một kho, loại ô và kích thước phục vụ kiểm sức chứa. | [warehouse-location.model.js](../src/models/warehouse-location.model.js) |
 | `categories` | Nhóm phân loại sản phẩm: 5 nhóm đã duyệt, mỗi sản phẩm thuộc một category. | [category.model.js](../src/models/category.model.js) |
 | `uoms` | Danh mục đơn vị. Mã bất biến và `isCarton` đánh dấu đơn vị thùng. `Product.baseUnit` tham chiếu mã qua service. | [uom.model.js](../src/models/uom.model.js) |

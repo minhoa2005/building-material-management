@@ -23,6 +23,6 @@ export const updateUser = catchAsync(async (req, res) => {
 });
 
 export const toggleUserStatus = catchAsync(async (req, res) => {
-  const result = await userService.toggleUserStatus(req.params.id, req.body.isActive, req.user._id);
+  const result = await userService.toggleUserStatus(req.params.id, req.body.isActive, req.user._id, req.body.reason);
   formatApiResponse(res, { message: 'Cập nhật trạng thái thành công', data: result });
 });

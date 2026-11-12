@@ -32,7 +32,7 @@ export async function options(user, permission) {
 }
 export async function warehouseList(user) {
   requirePermission(user, 'warehouse_location:read');
-  const rows = await m.Warehouse.find(warehouseScope(user)).sort({ code: 1 }).lean();
+  const rows = await m.Warehouse.find(warehouseScope(user)).select('-layout3d -layout3dApplied -layout3dAppliedAt').sort({ code: 1 }).lean();
   const locationCounts = await m.WarehouseLocation.aggregate([{ $match: { warehouseId: { $in: rows.map(r => r._id) } } }, { $group: { _id: '$warehouseId', count: { $sum: 1 }, activeCount: { $sum: { $cond: ['$isActive', 1, 0] } } } }]);
   const counts = new Map(locationCounts.map(row => [String(row._id), row]));
   return { items: rows.map(row => ({ ...dto(row), locationCount: counts.get(String(row._id))?.count ?? 0, activeLocationCount: counts.get(String(row._id))?.activeCount ?? 0 })), total: rows.length, capturedAt: new Date().toISOString() };
@@ -53,6 +53,8 @@ export function saveWarehouse(user, id, input) {
       if (row.isActive && fields.isActive === false) {
         const locations = await m.WarehouseLocation.find({ warehouseId: row._id }).select('_id').session(session);
         const locationIds = locations.map(l => l._id);
+        const lockedLocations = await m.StocktakeLocationLock.exists({ locationId: { $in: locationIds }, status: 'LOCKED' }).session(session);
+        if (lockedLocations) throw validationError('Không thể ngừng kho đang khóa kiểm kê');
         const points = await m.StockHoldingPoint.find({ locationId: { $in: locationIds } }).select('_id').session(session);
         const balances = await m.InventoryBalance.find({ holdingPointId: { $in: points.map(p => p._id) }, quantityBase: { $gt: 0 } }).session(session);
         const reservations = await m.StockReservation.find({ balanceId: { $in: balances.map(b => b._id) } }).session(session);
@@ -63,6 +65,8 @@ export function saveWarehouse(user, id, input) {
       const updated = await m.Warehouse.findOneAndUpdate({ _id: row._id, updatedAt: row.updatedAt }, { $set: { ...fields, updatedAt: nextUpdatedAt } }, { session, timestamps: false, returnDocument: 'after', runValidators: true });
       if (!updated) throw validationError('Kho đã thay đổi, hãy tải lại');
       row = updated;
+      const locationIds = await m.WarehouseLocation.find({ warehouseId: row._id }).distinct('_id').session(session);
+      if (locationIds.length) await verifyCapacity(locationIds, session);
     }
     row.status = row.isActive ? 'ACTIVE' : 'INACTIVE';
     return { document: row, versionBefore: 0 };

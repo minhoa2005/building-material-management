@@ -36,6 +36,7 @@ Code thực tế chứng minh hiện trạng triển khai, không tự thay quy�
 | SKU và lô | Nhận diện sản phẩm bằng hãng + SKU hãng + màu; khác màu là productId khác. Sản phẩm có lengthMm/widthMm/heightMm của từng viên. Lô theo productId + manufacturerLot; không có calibre/tone. Số viên/thùng cố định theo lô, kích thước ngoài thùng ghi thực tế, không suy từ thể tích viên. | [B04/B05 hiện hành](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md) |
 | Đơn vị/thùng | Uom giữ mã, tên, trạng thái và dấu hiệu đơn vị thùng. Conversion giữ hệ số theo sản phẩm, lô tùy chọn và ngày hiệu lực. Chứng từ lưu snapshot hệ số và quy cách. Một thùng vật lý chỉ chứa một sản phẩm, một lô. Gộp thùng cùng sản phẩm, lô và quy cách trên một dòng. | [Quy đổi](docs/08_api/CONVERSIONS.md), [nhận thùng](docs/03_thiet_ke/DB_Rebuild_Review/15_Duyet_hang_den_kiem_nhan_va_phieu_nhap.md) |
 | Kho và sức chứa | Ô giữ chiều dài/rộng; chiều cao dùng chung từ kho. Không quản lý chồng. packagingPortions[] giữ thùng nguyên/hàng lẻ và thể tích thực đo. BE kiểm cạnh thùng vừa ô và tổng thể tích. Chưa có tọa độ xếp kiện nên lượng thùng còn xếp được chỉ là ước tính; 3D triển khai sau. | [B01/B02](docs/03_thiet_ke/DB_Rebuild_Review/05_Duyet_kho_vi_tri_don_vi_tinh.md), [quy cách và kiểm sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md) |
+| Kho 3D — yêu cầu mới 12/11, chưa triển khai | Thiết kế mặt bằng đa giác, khu chữ nhật xoay, ô thuộc khu; pallet nhiều sản phẩm/lô và lớp hàng; chồng pallet, đồng bộ thao tác 2D/3D; giới hạn chiều cao theo kho/khu và cảnh báo vẫn cho lưu. Đây là mục tiêu phát triển tiếp theo, không mô tả runtime đã có hoặc tự bỏ kiểm sức chứa giao dịch ở dòng trên. | [Đặc tả Kho 3D và điểm tích hợp còn mở](docs/10_Kho3D/README.md) |
 | Khách/NCC/bàn giao | Khách và nhà cung cấp có danh mục riêng. Không quản lý đội xe; mỗi lần bàn giao ghi biển số xe trực tiếp nếu có phương tiện. | [B08A](docs/03_thiet_ke/DB_Rebuild_Review/08A_Khach_hang.md), [B08B](docs/03_thiet_ke/DB_Rebuild_Review/08B_Nha_cung_cap.md), [bàn giao H11](docs/03_thiet_ke/DB_Rebuild_Review/17_Duyet_phieu_xuat_nhan_va_ban_giao_chuyen_kho.md) |
 | RR và PO | Một RR tối đa một PO, một PO thuộc một RR, một NCC, một kho. PO nhiều lần nhận. Accountant lập và cùng Owner xem giá mua/tổng tiền. | [H01/H02](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md) |
 | Giá bán/hóa đơn | SO lưu giá bán, quy đổi và giá lịch sử. Accountant lập hóa đơn cuối theo SO, mỗi SO tối đa một bản đang hiệu lực. Ghi từng phiếu/ngày xuất và lượng xuất, tính tiền theo lượng khách nhận. 100 xuất/98 nhận thì hiển thị 100 và tính 98. | [H12](docs/03_thiet_ke/DB_Rebuild_Review/18_Duyet_don_ban_yeu_cau_xuat_va_lenh_giao.md), [H37](docs/03_thiet_ke/DB_Rebuild_Review/19_Duyet_xuat_ban_giao_nhan_va_hoa_don.md) |
@@ -68,6 +69,7 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 - Tồn theo điểm giữ hàng + lô + chất lượng + chủ. Hàng transit, hàng giữ hộ, hàng đã giữ cho nhu cầu được theo dõi riêng. Hàng chưa nhận không tính available.
 - Xác nhận tồn phải nguyên tử với balance, transaction, movement, chứng từ, hạn mức/giữ hàng, audit và outbox. Cùng request key/payload trả lại kết quả cũ, key khác nội dung phải báo xung đột.
 - Kiểm active user, permission hiện tại, warehouseIds, nguồn, creator/approver/receiver, trạng thái, revision, freeze, số lượng còn lại và sức chứa ngay khi ghi. UI không thay kiểm quyền BE.
+- Khoá tài khoản qua lệnh đổi trạng thái phải nhập lý do; tài khoản giữ `lockReason` trong thời gian bị khoá và ghi sự kiện audit. Mở khoá xoá lý do hiện tại. Cập nhật thông tin người dùng thông thường không được đổi `isActive`.
 - Chứng từ đã ghi tồn, snapshot, kết quả đếm và lịch sử duyệt giữ dấu vết. Sửa sai dùng phiếu đảo/điều chỉnh có nguồn và kiểm phụ thuộc.
 - Tệp/bằng chứng theo quyền phiếu và kho. Không lộ giá mua, giá bán hoặc chứng cứ nội bộ qua DTO, export hay audit ngoài quyền.
 - Email/notification qua outbox sau commit. Lỗi gửi thư chỉ thử gửi lại.
@@ -106,3 +108,9 @@ The user confirmed Accountant verification with uploaded evidence for historical
 ## Cảnh báo bổ sung hàng — 11/11/2026
 
 [Hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md) quy định cảnh báo RR đang mở, PO chưa nhận đủ và tồn khả dụng. Người lập quyết định lượng, xác nhận và giải trình khi có cảnh báo. SO/WIR và kiểm kê là tham chiếu truy vết. Lý do từng dòng tùy chọn. Người duyệt độc lập xét lượng, còn PO dựa trên lượng RR đã duyệt.
+
+Kho 3D chặng 1 đã có code vẽ nền/tường/cửa, dùng warehouses.layout3d và quyền kho hiện có; không áp bố trí vào tồn. Hợp đồng: [Kho 3D](docs/10_Kho3D/IMPLEMENTATION.md).
+
+Kho 3D chặng 2: vùng chữ nhật xoay, ô local, danh mục chức năng riêng từng kho do người có access_control:update quản lý; lưu bản nháp và snapshot áp dụng tách biệt, kiểm phạm vi/updatedAt. Không đồng nhất chức năng tự tạo với enum vị trí nghiệp vụ, không tự ghi tồn. [Hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md).
+
+Kho 3D 12/11: cho phép vẽ và lưu nháp khu vực chưa gán chức năng (functionId rỗng); áp dụng cần gán đầy đủ. Danh mục chức năng vẫn cần access_control:update. Xem STAGE2_ZONES.md.

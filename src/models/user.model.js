@@ -13,6 +13,7 @@ export function createUserSchema() {
       phone: optionalText(30),
       email: optionalText(254),
       isActive: active(),
+      lockReason: optionalText(2000),
       version: version(),
     },
     options("users"),

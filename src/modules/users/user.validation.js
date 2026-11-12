@@ -32,7 +32,6 @@ export const updateUserSchema = z.object({
     roleCode: z.string().trim().min(1).max(60).optional(),
     phone: z.string().max(30).optional(),
     email: z.email().optional(), warehouseIds:z.array(oid).max(100).refine(ids=>new Set(ids).size===ids.length).optional(),
-    isActive: z.boolean().optional(),
     password: z.string().min(8).optional(),
   }),
 });
@@ -43,5 +42,6 @@ export const toggleStatusSchema = z.object({
   }),
   body: z.object({
     isActive: z.boolean(),
-  }),
+    reason: z.string().trim().min(1).max(2000).optional(),
+  }).refine(value => value.isActive || !!value.reason, { message: 'Cần nhập lý do khóa tài khoản', path: ['reason'] }),
 });
