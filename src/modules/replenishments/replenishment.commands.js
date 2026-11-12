@@ -34,6 +34,7 @@ import {
 import { makeItem } from "../../shared/utils/document-items.js";
 import { evaluateLines, reviewRequired } from "./replenishment.evaluation.js";
 import { transaction } from "../../shared/utils/persistence.js";
+import { idString } from "./replenishment.access.js";
 
 export async function readRequest(id, user, session) {
   const document = await scopedDocument(
@@ -64,109 +65,52 @@ async function header(input, user, session) {
     triggerReason: input.triggerReason,
   };
 }
-const snapshotNames = [
-  "availableQty",
-  "otherWarehouseCoverageQty",
-  "remainingDemandQty",
-  "reservedForDemandQty",
-  "onHandCoverageQty",
-  "incomingCoverageQty",
-  "pendingRequestCoverageQty",
-  "minimumQty",
-  "targetQty",
-];
 function evaluatedDetails(line, evaluation) {
   return {
     triggerType: evaluation.source.triggerType,
     source: evaluation.source,
-    canonicalSourceKey: evaluation.canonicalKey,
-    evaluationKey: evaluation.evaluationKey,
     evaluatedAt: new Date(evaluation.evaluatedAt),
     reasonNote: line.reasonNote,
     independentNeedConfirmed: line.independentNeedConfirmed === true,
     independentNeedReason: line.independentNeedReason,
-    quantityAdjustmentReason: line.quantityAdjustmentReason,
-    ...(exact(evaluation.suggestedQtyBase).gt(0) && {
-      suggestedQty: evaluation.suggestedQtyBase,
-    }),
-    ...Object.fromEntries(
-      snapshotNames
-        .filter((name) => evaluation[name + "Base"] != null)
-        .map((name) => [name + "Snapshot", evaluation[name + "Base"]]),
-    ),
+    availableQtySnapshot: evaluation.availableQtyBase,
+    pendingRequestCoverageQtySnapshot: evaluation.pendingRequestQtyBase,
+    incomingCoverageQtySnapshot: evaluation.incomingQtyBase,
+    minimumQtySnapshot: evaluation.minimumQtyBase ?? undefined,
+    targetQtySnapshot: evaluation.targetQtyBase ?? undefined,
   };
 }
-function checkAssessments(
-  lines,
-  evaluated,
-  quantities,
-  { requireAdjustmentReason = true } = {},
-) {
-  const totals = new Map(),
-    invalid = [];
+function checkWarnings(lines, evaluated) {
+  const invalidLines = [];
   for (const [index, line] of lines.entries()) {
-    const evaluation = evaluated[index];
-    if (exact(quantities[index]).isZero()) continue;
-    if (evaluation.source.triggerType !== "MANUAL_OTHER") {
-      const amount = exact(quantities[index]);
-      if (amount.isZero()) continue;
-      totals.set(
-        evaluation.canonicalKey,
-        (totals.get(evaluation.canonicalKey) ?? exact("0")).plus(amount),
-      );
-      if (
-        line.evaluationKey !== evaluation.evaluationKey ||
-        amount.gt(evaluation.suggestedQtyBase) ||
-        (requireAdjustmentReason &&
-          amount.lt(evaluation.suggestedQtyBase) &&
-          !line.quantityAdjustmentReason?.trim())
-      )
-        invalid.push(index);
-    } else if (
-      evaluation.warningRequired &&
-      (line.evaluationKey !== evaluation.evaluationKey ||
-        line.independentNeedConfirmed !== true ||
-        !line.independentNeedReason?.trim())
-    )
-      invalid.push(index);
-  }
-  for (const [index, evaluation] of evaluated.entries()) {
     if (
-      totals.has(evaluation.canonicalKey) &&
-      totals.get(evaluation.canonicalKey).gt(evaluation.suggestedQtyBase)
+      evaluated[index].warningRequired &&
+      (line.independentNeedConfirmed !== true || !line.independentNeedReason?.trim())
     )
-      invalid.push(index);
+      invalidLines.push({
+        lineNo: evaluated[index].lineNo,
+        message: "Cần xác nhận nhu cầu và giải trình cảnh báo",
+      });
   }
-  if (invalid.length) {
-    const error = reviewRequired(evaluated);
-    error.details.invalidLines = [...new Set(invalid)].map((index) => ({
-      lineNo: index + 1,
-      message:
-        "Nguồn, lượng còn thiếu hoặc xác nhận nhu cầu độc lập cần được kiểm tra lại",
-    }));
-    throw error;
-  }
+  if (invalidLines.length) throw reviewRequired(evaluated, undefined, invalidLines);
 }
 async function items(input, actor, session, previous = [], requestId) {
-  const evaluated = await evaluateLines(
-    actor,
-    { ...input, requestId },
-    session,
-  );
-  const result = [],
+  const staged = [],
     seen = new Set();
+  const previousById = new Map(previous.map((item) => [String(item._id), item]));
   for (const [index, line] of input.lines.entries()) {
-    const old = line.id
-      ? previous.find((item) => same(item._id, line.id))
-      : null;
-    if (line.id && (!old || seen.has(line.id)))
+    const lineId = idString(line.id);
+    const old = previousById.get(lineId);
+    if (lineId && (!old || seen.has(lineId)))
       throw validationError("Dòng hàng không thuộc yêu cầu hoặc bị trùng");
-    if (line.id) seen.add(line.id);
-    if (
-      old?.details?.triggerType &&
-      old.details.triggerType !== "MANUAL_OTHER" &&
-      old.details.canonicalSourceKey !== evaluated[index].canonicalKey
-    )
+    if (lineId) seen.add(lineId);
+    const oldSource = old?.details?.source;
+    // Only a document-backed line is pinned; a manual or threshold line may gain a source.
+    if (oldSource?.documentId && (
+      (oldSource.documentType ?? null) !== (line.source?.documentType ?? null) ||
+      idString(oldSource.documentId) !== idString(line.source?.documentId) ||
+      idString(oldSource.itemId) !== idString(line.source?.itemId)
+    ))
       throw validationError(
         "Không đổi nguồn của dòng đã lưu; xóa dòng và chọn nguồn hợp lệ",
       );
@@ -174,6 +118,15 @@ async function items(input, actor, session, previous = [], requestId) {
       previous: old,
       lineKind: "REPLENISHMENT",
     });
+    staged.push({ value, reasonNote: line.reasonNote ?? old?.details?.reasonNote });
+  }
+
+  const evaluated = await evaluateLines(actor, { ...input, requestId }, session, {
+    permission: requestId ? "replenishment_request:update" : "replenishment_request:create",
+    items: staged.map(({ value }) => value),
+  });
+  checkWarnings(input.lines, evaluated);
+  return staged.map(({ value, reasonNote }, index) => {
     const source = evaluated[index].source;
     const sources = source.documentId
       ? [
@@ -189,28 +142,16 @@ async function items(input, actor, session, previous = [], requestId) {
           },
         ]
       : [];
-    const reasonNote = line.reasonNote ?? old?.details?.reasonNote;
-    result.push({
+    return {
       ...value,
       sources,
-      details: evaluatedDetails({ ...line, reasonNote }, evaluated[index]),
-    });
-  }
-  checkAssessments(
-    input.lines,
-    evaluated,
-    result.map((row) => row.qtyBase),
-  );
-  return result;
+      details: evaluatedDetails({ ...input.lines[index], reasonNote }, evaluated[index]),
+    };
+  });
 }
-export function savedAssessmentInput(document, overrides = []) {
+function savedAssessmentInput(document, overrides = []) {
   return {
     warehouseId: String(document.header.warehouseId),
-    neededOn: new Date(
-      new Date(document.header.neededOn).getTime() + 7 * 3600000,
-    )
-      .toISOString()
-      .slice(0, 10),
     requestId: String(document._id),
     lines: document.items.map((item) => {
       const details = item.details?.toObject
@@ -237,54 +178,24 @@ export function savedAssessmentInput(document, overrides = []) {
           ? serialize(details.source)
           : { triggerType: "MANUAL_OTHER" },
         reasonNote: details.reasonNote,
-        evaluationKey: override.evaluationKey ?? details.evaluationKey,
         independentNeedConfirmed:
           override.independentNeedConfirmed ?? details.independentNeedConfirmed,
         independentNeedReason:
           override.independentNeedReason ?? details.independentNeedReason,
-        quantityAdjustmentReason:
-          override.quantityAdjustmentReason ?? details.quantityAdjustmentReason,
       };
     }),
   };
 }
-export async function assessSavedRequest(
-  document,
-  actor,
-  session,
-  {
-    evaluations = [],
-    quantities,
-    excludePurchaseOrderId,
-    selectedItemIds,
-    requireAdjustmentReason = true,
-  } = {},
-) {
+async function assessSavedRequest(document, actor, session, evaluations) {
   const input = savedAssessmentInput(document, evaluations);
-  if (excludePurchaseOrderId)
-    input.excludePurchaseOrderId = excludePurchaseOrderId;
   const evaluated = await evaluateLines(actor, input, session, {
-    internal: true,
+    permission: "replenishment_request:update",
+    items: document.items,
   });
-  const indexes = document.items
-    .map((item, index) =>
-      !selectedItemIds || selectedItemIds.some((id) => same(id, item._id))
-        ? index
-        : -1,
-    )
-    .filter((index) => index >= 0);
-  checkAssessments(
-    indexes.map((i) => input.lines[i]),
-    indexes.map((i) => evaluated[i]),
-    indexes.map(
-      (i) => (quantities ?? document.items.map((item) => item.qtyBase))[i],
-    ),
-    { requireAdjustmentReason },
-  );
+  checkWarnings(input.lines, evaluated);
   document.items.forEach((item, index) => {
     item.details = evaluatedDetails(input.lines[index], evaluated[index]);
   });
-  return evaluated;
 }
 export async function evaluateReplenishment(user, input) {
   requirePermission(
@@ -522,9 +433,7 @@ export function submitReplenishment(user, id, input) {
         throw forbiddenError("Chỉ người lập được gửi");
       if (!["DRAFT", "REVISION_REQUIRED"].includes(document.workflowStatus))
         throw validationError("Yêu cầu không thể gửi ở trạng thái hiện tại");
-      await assessSavedRequest(document, actor, session, {
-        evaluations: input.evaluations,
-      });
+      await assessSavedRequest(document, actor, session, input.evaluations);
       document.version = input.expectedVersion + 1;
       await submission(document, actor, session);
       return {
@@ -590,18 +499,6 @@ export function reviewReplenishment(user, id, input) {
       });
       if (input.decision === "APPROVE" && !positive)
         throw validationError("Duyệt cần có lượng lớn hơn 0");
-      if (input.decision === "APPROVE")
-        await assessSavedRequest(document, actor, session, {
-          evaluations: document.items.map((item) => ({
-            lineId: String(item._id),
-            quantityAdjustmentReason:
-              input.lines.find((row) => same(row.lineId, item._id))?.reason ||
-              input.reason,
-            ...(input.evaluations?.find((row) => same(row.lineId, item._id)) ??
-              {}),
-          })),
-          quantities: document.items.map((item) => item.approvedQtyBase),
-        });
       const approval = await new ApprovalHistory({
         decisionKey: hash({
           id,

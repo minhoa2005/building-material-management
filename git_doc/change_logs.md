@@ -1,3 +1,5 @@
+12/11/2026: gộp origin/main (định danh chứng từ _id=documentNo) vào nhánh minhtd (RR theo cảnh báo, bỏ replenishment guard). Giải quyết xung đột: xóa src/shared/utils/replenishment-guard.js theo minhtd; persistence.transaction giữ transactionContext, session.documentNumbers và retry tối đa 20 lần khi trùng mã chứng từ (lý do observability document_number_collision), bỏ retry warehouseId_1_productId_1 của guard; document-command bỏ retry document_sequences; createPurchaseOrder giữ cập nhật updatedAt của RR và await newDocument; replenishmentOptionsSchema dùng documentIdentifier cho requestId kèm thông báo lỗi tiếng Việt. Sửa test HTTP PO lifecycle (native-api) không ép _id PO sang ObjectId. Kiểm tra: RUN_NATIVE_API_TESTS=1 RUN_GOODS_RECEIPT_TESTS=1 npm test trên MongoDB local đạt 155 ca, 47 skip, 0 lỗi; npm run docs:check đạt.
+
 12/11/2026: bổ sung quản lý danh mục kho cửa hàng cho màn /warehouses: GET catalogue/chi tiết, tạo và cập nhật kho qua warehouse_location:create/update; mã kho bất biến, kiểm optimistic updatedAt/idempotency, chặn tắt kho khi còn tồn/reservation/nhiệm vụ và kiểm sức chứa khi đổi kích thước. FE thêm trang tạo/sửa kho và hiển thị số vị trí thực. Test validation warehouse master đạt, FE typecheck/build đạt.
 
 12/11/2026: đã chạy migration Atlas wmsd_database bằng scripts/migrate-receipts-to-goods-receipts.mjs --apply --allow-atlas sau dry-run: chuyển 7 phiếu từ purchase_receipts(1), customer_return_receipts(1), failed_delivery_receipts(1), transfer_receipts(4) vào goods_receipts với documentKind PURCHASE/CUSTOMER_RETURN/FAILED_DELIVERY/TRANSFER; cập nhật 21 bản ghi chứa subject/source collection legacy; tạo index goods_receipts; tạo uoms và conversions với index native; xác minh targetCount=7, referencesAfter=0 rồi xóa 4 collection legacy. Đối soát cuối Atlas: 58 collections, goods_receipts 4 kinds, không còn 4 collection legacy. Không xóa dữ liệu nghiệp vụ, giữ _id/source links; không ghi DB local trong migration.
@@ -16,6 +18,47 @@
 
 11/11/2026: sửa proxy Vite từ localhost:3333 sang 127.0.0.1:3000, khớp cổng BE thực tế. Trước sửa auth/me qua FE trả 502 trong khi BE health 200 và auth/me 401. Thay đổi tại FE vite.config.ts và context.md; không đổi API hay dữ liệu DB. Sau sửa đã kiểm qua Vite 3334: /api/health 200, /api/auth/me 401 khi chưa đăng nhập; hết lỗi kết nối proxy.
 
+## 11/11/2026 — Đánh giá RR theo cảnh báo
+
+- Theo plan người dùng xác nhận ngày 11/11/2026, RR cảnh báo theo cùng kho và sản phẩm khi có RR mở, PO còn hàng chưa nhận hoặc tồn khả dụng đủ. Người lập quyết định lượng và xác nhận kèm giải trình khi lưu/gửi dòng có cảnh báo. SO/WIR và kiểm kê dùng để truy vết. API đánh giá trả tổng lượng và chi tiết trong phạm vi quyền.
+- Duyệt RR và tạo, sửa, phát hành PO dựa trên bản RR hợp lệ và trần lượng đã duyệt. Bỏ so token, lượng đề xuất và guard RR dùng chung. Transaction tạo PO cập nhật thời điểm của RR nguồn để bảo toàn ràng buộc khi hủy RR đồng thời. Giữ phiên bản chứng từ, replay và unique index một PO mỗi RR.
+- Cập nhật [hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md), [native runtime](docs/08_api/NATIVE_MODEL_RUNTIME.md), [phiếu H01–H02 và bản lịch sử](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md), [hướng dẫn dự án](PROJECT_GUIDE.md), [bản đồ model](MODEL_MAP.md) và [từ điển dữ liệu](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md). Giữ schema và dữ liệu coverage cũ để tương thích, không migration hoặc seed lại. FE vẫn cần nối hợp đồng cảnh báo mới.
+- Gọi thử POST /api/replenishments/evaluate với SKU AP6601 trên wmsd_demo_tile_shop_v9. HTTP 200, tồn khả dụng 198, RR đang mở 40, PO chưa nhận 0. Response phát OPEN_REQUEST và STOCK_SUFFICIENT.
+- Review sau triển khai sửa hai lỗi. Ngưỡng tối thiểu bằng 0 làm mọi dòng phát `STOCK_SUFFICIENT` kể cả khi hết hàng; nay ngưỡng 0 dùng so sánh theo lượng đề nghị. Sửa dòng lập tay hoặc theo ngưỡng để gắn chứng từ nguồn bị chặn nhầm; nay chỉ dòng đã có chứng từ bị khóa nguồn. Thêm ca test cho cả hai.
+- Trên MongoDB local rs0, ba suite replenishment-evaluation, replenishment-warnings và native-api đạt 33/33. Chạy npm test với RUN_NATIVE_API_TESTS=1 và RUN_GOODS_RECEIPT_TESTS=1 đạt 147 ca, 44 ca skip, 0 lỗi. npm run docs:check và git diff --check đạt.
+
+## 11/11/2026 — Bỏ lịch giao PO và theo dõi chứng từ nhận hàng
+
+- Theo plan được người dùng xác nhận, `PurchaseOrder` và seed bỏ lịch giao từng dòng. `replenishment.evaluation.js` dùng `header.expectedOn` cho lượng còn phải nhận sau khi trừ nhập đã ghi sổ và lượng hủy. Chuyển lượng hủy `Decimal128` sang số thập phân chính xác trước khi trừ.
+- `purchase-order.commands` thêm lệnh đổi ngày dự kiến cho `OPEN`/`PARTIAL` với `purchase_order:update`, phạm vi kho, phiên bản, lý do và audit `RESCHEDULE_PO_EXPECTED_ON`. `purchase-read.service.js` trả phiếu kiểm và phiếu nhập trong `receiving-summary.documents`, giữ số lượng và tiến độ theo PO.
+- Cập nhật [hợp đồng PO](docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập), [hợp đồng đánh giá RR](docs/08_api/REPLENISHMENT_COVERAGE.md), [từ điển](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md), ERD, BF01, phiếu duyệt H02 và [hướng dẫn seed](docs/09_phat_trien/DB_REBUILD.md). BSON cũ có thể giữ lịch đến lần ghi phiên bản tiếp theo. Không chạy migration hoặc seed lại DB demo. FE chưa nối hợp đồng mới.
+- Chạy ba suite `native-api`, `replenishment-evaluation` và `replenishment-guards` với `RUN_NATIVE_API_TESTS=1` trên MongoDB local `rs0` tại `127.0.0.1:27017`, đạt 35/35, gồm ca mới kiểm đổi `expectedOn` đưa phần còn thiếu của PO vào hoặc ra khỏi coverage RR. Kiểm trực tiếp bộ dựng seed trong bộ nhớ xác nhận `PO-202610-001` có `expectedOn` và các dòng không còn lịch giao.
+- `npm test` với `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` đạt 150 ca, 44 ca skip, 0 lỗi. `npm run docs:check` và `git diff --check` đạt.
+
+## 11/11/2026 — Đảo phiếu nhập giữ PO đã đóng và cờ đang nhận hàng
+
+- Theo quyết định user, 2026-11-11, đảo phiếu nhập của PO `CLOSED` giữ nguyên `CLOSED`; PO `OPEN`, `PARTIAL`, `COMPLETED` vẫn tính lại `PARTIAL`/`OPEN`. Sửa `purchase-correction.service.js`.
+- Thêm `hasOpenReceivingWork` vào DTO danh sách và chi tiết PO ở `purchase-order.service.js` (hàm `openReceivingWorkIds`). Không thêm trạng thái PO. Ghi trong [hợp đồng PO](docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập).
+- Test mới trong `native-api.integration.test.js`: đảo phiếu với PO `COMPLETED`/`CLOSED`, và cờ `hasOpenReceivingWork` theo kiểm nhận nháp. Chạy `RUN_NATIVE_API_TESTS=1`: 16/16 đạt. FE chưa hiển thị nhãn và chưa thống nhất màu trạng thái `COMPLETED`/`CLOSED`.
+
+## 11/11/2026 — PO chỉ sửa khi còn nháp
+
+- Theo quyết định user, 2026-11-11, kế toán chốt với NCC trước khi lập PO. Gỡ hai lệnh `supplier-confirmations` và `amendments` trong module `purchase-orders`. Khi PO đã phát hành, ngừng chờ phần hàng chưa nhận qua quy trình đề nghị, duyệt và thực hiện đóng.
+- Bỏ dữ liệu xác nhận NCC khỏi hai schema PO và bộ dựng seed. Đọc và ghi phiên bản mới loại các trường cũ. Lịch giao đã lưu vẫn dùng cho nhận mua và đánh giá RR. API tạo/sửa nháp hiện chỉ nhận ngày dự kiến chung.
+- Cập nhật [phiếu duyệt H02](docs/03_thiet_ke/DB_Rebuild_Review/13_Duyet_yeu_cau_bo_sung_va_don_mua.md), [từ điển dữ liệu và ERD](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md), [hợp đồng PO](docs/08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập) và quy trình BF01.
+- `npm test` trên replica set local với `RUN_NATIVE_API_TESTS=1` và `RUN_GOODS_RECEIPT_TESTS=1` đạt 141, bỏ qua 32. Test mới kiểm tra tạo/sửa/phát hành PO, hai route 404, từ chối sửa sau phát hành, đọc PO cũ, đóng phần chưa nhận và tính lượng đến đúng hạn theo lịch giao.
+- Đã seed và xác minh `wmsd_demo_tile_shop_v9`, gồm PO mẫu `PO-202610-001` có lịch giao. Dữ liệu demo cũ muốn dựng theo schema mới cần seed lại trên đích demo trống. Chưa có migration hoặc API nhập lịch theo dòng. Xem [hướng dẫn seed](docs/09_phat_trien/DB_REBUILD.md#seed-po-theo-quyết-định-11112026).
+
+## 11/11/2026 — Bổ sung liên kết kho, người dùng, SKU sản phẩm và chứng từ nguồn trong API RR
+
+- Theo yêu cầu kiểm tra và hoàn thiện hiển thị chi tiết chứng từ bổ sung hàng (`replenishment/:id`), cập nhật service `replenishment.service.js`:
+  - `getReplenishment`: Tra cứu và gắn thông tin đối tượng `Warehouse` (`code`, `name`) thay vì để ID MongoDB thô; tra cứu `User` (`fullName`) cho người tạo (`createdBy`), người gửi duyệt (`submittedBy`), người yêu cầu (`requestedBy`) và người duyệt (`decidedBy`).
+  - Tra cứu collection `Product` theo danh sách `productId` của các dòng để trả về `productSkuSnapshot`, `productNameSnapshot`, `productIsActive` và `productImageUrl`.
+  - Tra cứu `SalesOrder` và `Stocktake` cho các dòng có `source.documentId` để gắn kèm `documentNo`, `workflowStatus`, `version` thay vì chỉ có ID thô.
+  - `listReplenishments`: Bổ sung thông tin kho, người tạo và SKU sản phẩm cho các dòng trong danh sách phân trang.
+- Cập nhật tài liệu AI Assistance Log và Requirements Traceability Matrix (`be/docs/ai-log.md`, `be/docs/rtm.md`). Không cần migration DB.
+- Bộ kiểm thử backend (`npm test`) đạt 103/103 tests.
+
 11/11/2026: người dùng yêu cầu mã phiếu tự động và lưu thêm nhãn tiếng Việt, giữ mã kỹ thuật, giới hạn luồng HieuDT. Thêm DocumentSequence, cấp số transaction từ mã cuối +1, metadata tiếng Việt và cập nhật schema/seed rỗng/tài liệu. Đã fetch và merge main trực tiếp: BE 495b946, FE c91ef76, already up to date, giữ toàn bộ code đang sửa. Không ghi DB nhóm. Kiểm chứng cuối: allocator MongoDB 2/2; HieuDT 11/11; native 15/15 (bao gồm BF03/BF04); suite mặc định 106 pass/77 skip/0 fail; docs:check 59 collections/696 links. Lượt đầu lỗi biểu thức PCRE khi tìm mã đã được sửa và các test bị ảnh hưởng chạy lại đạt. Không commit/push.
 
 ## 11/11/2026 — Rà soát và chuẩn bị push HieuDT theo yêu cầu
@@ -30,6 +73,7 @@
 - Bổ sung kịch bản kiểm thử tự động hóa end-to-end `scripts/demo-return-workflows.mjs` chạy qua toàn bộ 6 quy trình trả hàng của trungph (BF02 báo cáo phế phẩm, BF07 trả hàng khách, trả hàng giao không thành công, BF08 trả nhà cung cấp, truy vết lô đa cấp qua 58 collection và chứng từ ngoài/lịch sử).
 - Thêm lệnh `npm run demo:returns` vào `package.json`. Kịch bản thực thi trực tiếp trên in-memory dataset 58 schema đã chuẩn hóa và tự động kiểm tra kết nối cơ sở dữ liệu trực tiếp khi có biến môi trường.
 - Bảo toàn định dạng hợp đồng API trả hàng, kiểm soát phiên bản và tính lũy kế trong [hợp đồng return workflows](docs/08_api/RETURN_WORKFLOWS_NATIVE.md).
+
 
 ## 10/11/2026 — API tra cứu chứng từ nguồn cho RR
 

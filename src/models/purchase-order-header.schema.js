@@ -1,4 +1,4 @@
-import { Schema, embeddedOptions, text, ref, date } from "./model-utils.js";
+import { Schema, embeddedOptions, ref, date } from "./model-utils.js";
 import { opt, revision, warehouse } from "./schema-helpers.js";
 
 import { createPurchaseOrderHeaderSupplierSnapshotSchema } from "./purchase-order-header-supplier-snapshot.schema.js";
@@ -10,7 +10,6 @@ export function createPurchaseOrderHeaderSchema() {
       ...warehouse(),
       supplierId: ref("Party"),
       expectedOn: date(false),
-      supplierConfirmation: text(1000, { required: false }),
     },
     embeddedOptions,
   );

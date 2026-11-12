@@ -54,7 +54,8 @@ export function reverseReceipt(user,id,input){return command(user,'REVERSE_PURCH
  let target=null;if(item.custodyBalanceId){const ctx=await sourceContext(item.custodyBalanceId,session);if(ctx.balance.ownerType!=='SUPPLIER'||!same(ctx.balance.ownerId,gr.header.supplierId))throw validationError('Sai nguồn chủ hàng');target=ctx.balance;await guardLocations([ctx.location._id],session);locations.push(ctx.location._id);}
  await transferCustodyStock(move.toBalanceId,target,{...reversalItem.toObject(),qtyBase:String(move.quantityBase)},posting,actor,session,move.packagingPortionIds);
  }
-  await verifyCapacity(locations,session);await posting.save({session});gr.workflowStatus='REVERSED';await saveVersion(gr,gr.version,session);const quantities=await purchaseOrderQuantities(po,session);po.workflowStatus=quantities.some(q=>exact(q.receivedQtyBase).gt(0))?'PARTIAL':'OPEN';await saveVersion(po,po.version,session);
+  await verifyCapacity(locations,session);await posting.save({session});gr.workflowStatus='REVERSED';await saveVersion(gr,gr.version,session);const quantities=await purchaseOrderQuantities(po,session);/* A CLOSED PO keeps its terminal status: the unreceived remainder was cancelled by an approved decision. */
+  if(po.workflowStatus!=='CLOSED')po.workflowStatus=quantities.some(q=>exact(q.receivedQtyBase).gt(0))?'PARTIAL':'OPEN';await saveVersion(po,po.version,session);
   d.workflowStatus='POSTED';d.stockTransactionId=posting._id;d.postedBy=actor._id;d.postedAt=new Date();await d.save({session});return {document:d,versionBefore:0,stockTransactionId:posting._id};
 });}
 export function replaceInspection(user,id,input){return command(user,'REPLACE_GOODS_INSPECTION','goods_receipt_inspection:update',id,input,replayPurchase,async(session,actor)=>{

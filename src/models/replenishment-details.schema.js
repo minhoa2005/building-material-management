@@ -20,6 +20,7 @@ export function createReplenishmentDetailsSchema() {
     {
       triggerType: code(REPLENISHMENT_TRIGGER_TYPES),
       source: { type: createReplenishmentSourceSchema(), required: false },
+      // Legacy coverage keys and snapshots stay optional for saved records.
       canonicalSourceKey: text(200, { required: false }),
       independentNeedConfirmed: { type: Boolean, default: false },
       independentNeedReason: text(2000, { required: false }),
@@ -51,7 +52,7 @@ export function createReplenishmentDetailsSchema() {
   rules(replenishmentDetails, function validateReplenishmentSource() {
     if (this.source) {
       if (this.source.triggerType !== this.triggerType) this.invalidate('source', 'Source type must match the line');
-      if (!this.canonicalSourceKey || !this.evaluationKey || !this.evaluatedAt) this.invalidate('source', 'Native source requires a server evaluation');
+      if (!this.evaluatedAt) this.invalidate('source', 'Native source requires a server evaluation');
       if (this.independentNeedConfirmed && !this.independentNeedReason?.trim()) this.invalidate('independentNeedReason', 'An independent need requires an explanation');
       return;
     }

@@ -1,3 +1,9 @@
+# Từ điển dữ liệu hiện hành — mốc 09/11/2026
+
+Registry hiện hành có 58 collection nghiệp vụ và 1 collection kỹ thuật (`document_sequences`), tổng cộng 59 collection. Các collection nghiệp vụ gồm `conversions`. Các định nghĩa chưa được thay thế tại đây giữ theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`.
+
+[ERD 58 collection nghiệp vụ](WMSD_ERD_Current.drawio) mô tả các collection nghiệp vụ. Collection kỹ thuật `document_sequences` được mô tả bên dưới. GoodsReceipt nằm trong nhóm nhận hàng và liên kết các luồng nguồn qua `sources`.
+
 ## Mã phiếu và nhãn tiếng Việt HieuDT — 11/11/2026
 
 Thiết kế bổ sung: entity kỹ thuật DocumentSequence độc lập, PK _id=tiền tố loại/đơn vị/tháng; không thêm foreign key vào chứng từ. Chứng từ giữ documentNo và metadata cấp số như bảng mô tả dưới đây.
@@ -11,13 +17,6 @@ Giữ trường kỹ thuật và enum hiện hành. Bổ sung trường tùy ch�
 Collection kỹ thuật document_sequences (model DocumentSequence): _id String là tiền tố đầy đủ (unique index _id), soCuoi safe integer >=0, tenLoaiPhieu String 160, maDonVi String 80, ky String 6, createdAt/updatedAt Date. Không có quan hệ ObjectId; tiền tố định danh dãy. Bộ đếm tăng nguyên tử max(soCuoi, hậu tố lớn nhất của phiếu cùng mẫu)+1 trong cùng transaction ghi phiếu; rollback không tiêu số, gửi lại cùng idempotencyKey không cấp số mới, phiếu hủy không tái sử dụng số. Không cấp mã phía FE. Cần tạo collection document_sequences trước giao dịch đầu tiên như các collection runtime hiện hành.
 
 Tương thích: không đổi mã/ID hoặc nguồn của phiếu cũ; dữ liệu cũ không bắt buộc metadata. Dãy mới chỉ kế thừa phiếu cùng tiền tố mẫu mới, không lấy hậu tố ObjectId cũ. Chưa chuyển dữ liệu DB nhóm; collection và metadata phát sinh khi triển khai và tạo phiếu mới. Không chạy seed lại để nâng DB đang có dữ liệu.
-
-
-# Từ điển GoodsReceipt hiện hành — 09/11/2026
-
-Registry hiện hành có 58 collection, gồm `conversions`. Các định nghĩa chưa được thay thế tại đây giữ theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md). Bốn collection `purchase_receipts`, `customer_return_receipts`, `failed_delivery_receipts`, `transfer_receipts` được thay bằng một collection `goods_receipts`.
-
-[ERD 58 collection](WMSD_ERD_Current.drawio) được sinh từ registry hiện hành. GoodsReceipt nằm trong nhóm nhận hàng và liên kết các luồng nguồn qua `sources`.
 
 ## Conversion và Uom
 
@@ -37,9 +36,35 @@ Hai unique index dùng tiền tố `(productId, productBatchId, uomId)` và lầ
 
 Product giữ các trường theo [từ điển trước lần gộp](../DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md) và bổ sung `imageUrls` kiểu mảng String, mặc định rỗng. Mảng lưu URL ảnh theo thứ tự; phần tử đầu là ảnh đại diện. API kiểm tối đa 5 URL HTTPS hợp lệ, mỗi URL tối đa 2.048 ký tự và không trùng sau khi trim. Đây là giới hạn của hợp đồng API; model không thêm collection hoặc index.
 
-## Lý do từng dòng của `ReplenishmentRequest`
+## Nguồn và snapshot cảnh báo của `ReplenishmentRequest`
 
 `items[].details.reasonNote`, `submissions[].lines[].reasonNote` và `submissions[].lines[].evaluation.reasonNote` là chuỗi tùy chọn, cắt khoảng trắng, tối đa 2.000 ký tự và không có giá trị mặc định. Snapshot giữ lý do tại thời điểm gửi nếu có. Bản ghi hiện có giữ nguyên, không cần migration. Xem [hợp đồng RR](../../08_api/REPLENISHMENT_COVERAGE.md) để biết validation khi gọi API.
+
+Theo quyết định người dùng ngày 11/11/2026, `items[].details` và `submissions[].lines[].evaluation` ghi các trường sau khi đánh giá cảnh báo.
+
+| Trường | Kiểu và ý nghĩa |
+| --- | --- |
+| `triggerType`, `source`, `evaluatedAt` | Loại nguồn, tham chiếu nhúng và mốc Date đánh giá. Dòng có `source` phải có loại nguồn khớp và `evaluatedAt`. |
+| `independentNeedConfirmed`, `independentNeedReason` | Boolean và chuỗi tối đa 2.000 ký tự. Khi xác nhận là true, phải có giải trình. API tạo, sửa và gửi kiểm xác nhận nếu có cảnh báo. |
+| `availableQtySnapshot`, `pendingRequestCoverageQtySnapshot`, `incomingCoverageQtySnapshot` | Decimal128, lần lượt là tồn khả dụng, lượng RR mở và lượng PO chưa nhận tại thời điểm đánh giá. |
+| `minimumQtySnapshot`, `targetQtySnapshot` | Decimal128 tùy chọn. Có giá trị khi kho nhận có cấu hình ngưỡng cho sản phẩm. |
+
+`canonicalSourceKey`, `evaluationKey`, `suggestedQty`, `quantityAdjustmentReason`, `otherWarehouseCoverageQtySnapshot`, `remainingDemandQtySnapshot`, `reservedForDemandQtySnapshot` và `onHandCoverageQtySnapshot` là trường tương thích cho dữ liệu lịch sử. Schema giữ các kiểm tra cũ cho nhánh dữ liệu chưa có `source`. Các lần đánh giá mới ghi snapshot theo quy tắc cảnh báo, còn snapshot gửi duyệt lịch sử giữ dữ liệu đã lưu.
+
+### Dữ liệu coverage lịch sử
+
+- `ReplenishmentLock` (`replenishment_locks`) và `SalesOrder.replenishmentPlanningVersion` giữ schema hiện có. Giao dịch runtime đã ngừng đọc/ghi guard và tăng trường phiên bản này.
+- `SupplyAllocation` (`supply_allocations`) giữ cấu trúc để đọc dữ liệu cũ. Luồng đọc điều chuyển vẫn tra collection. Luồng RR đã ngừng sử dụng và lệnh nghiệp vụ hiện hành không ghi phân bổ.
+
+Không thay số collection, index hoặc quan hệ dữ liệu. Không cần migration cho thay đổi cảnh báo.
+
+## `purchase_orders` / `PurchaseOrder`
+
+Theo quyết định user, 2026-11-11, PO lưu nội dung đặt hàng sau khi kế toán đã chốt với NCC. Các định nghĩa `header.supplierConfirmation` và `items[].supplierConfirmedQtyBase`, `supplierConfirmedBy`, `supplierConfirmedAt` trong từ điển trước đây đã hết hiệu lực. PO chỉ sửa nội dung ở `DRAFT`. Sau phát hành, lượng được phép ngừng nhận được ghi ở `items[].cancelledRemainderQtyBase` kèm `cancellationDecisionId`.
+
+`header.expectedOn` là `Date` tùy chọn, dùng chung cho lượng chưa nhận. API nhận ngày này khi tạo hoặc sửa nháp. Với `OPEN`/`PARTIAL`, lệnh đổi ngày kiểm quyền, kho và phiên bản, rồi ghi lý do cùng giá trị trước/sau vào AuditLog. `items[].deliverySchedule` đã bị loại khỏi schema. Quan hệ nhận nhiều lần lấy từ `GoodsArrival.header.purchaseOrderId`, `GoodsInspection.header.arrivalId` và `GoodsReceipt.header.purchaseOrderId`.
+
+PO cũ có thể còn dữ liệu xác nhận hoặc lịch giao trong MongoDB. DTO bỏ các trường đó và RR chỉ đọc ngày ở đầu PO. Ghi phiên bản thay mảng `items` bằng dữ liệu đã lọc. Dữ liệu demo theo schema mới được tạo bằng seed trên DB demo trống. Xem [hợp đồng PO](../../08_api/NATIVE_MODEL_RUNTIME.md#mua-và-nhập) và [hướng dẫn seed](../../09_phat_trien/DB_REBUILD.md).
 
 ## `goods_receipts` / `GoodsReceipt`
 
@@ -58,6 +83,8 @@ Các `items.details` theo `lineKind` giữ toàn bộ 19 discriminator cũ. `FAI
 | `OTHER` | `warehouseId`, `reason`, `originalReceiptId` nếu thay thế | Warehouse lập và gửi duyệt, Owner duyệt phiên bản, Warehouse ghi sổ hoặc Bỏ ghi. |
 
 Trường nguồn tùy loại được Mongoose header discriminator và service kiểm. Các đường link `sources.subjectCollection`, `Attachment.ownerDocumentType`, `StockTransaction.sourceType`, `ApprovalHistory.subjectType` trỏ tới `goods_receipts`. `CustodyReceipt` vẫn là collection riêng. Các trường `approvedStockHash`, `approvedVersion`, `approvalDecisionId` chỉ dùng cho `OTHER` để chặn ghi tồn khi nội dung đã duyệt thay đổi.
+
+`supplierScheduleId` là trường tùy chọn phục vụ tương thích với phiếu nhập mua cũ. Luồng nhận hàng và lịch sử nhận dùng `purchaseOrderItemId` để liên kết dòng PO.
 
 ## Sửa sai và dữ liệu mẫu
 

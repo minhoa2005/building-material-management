@@ -138,6 +138,7 @@ export const sourceSchema = z.discriminatedUnion('triggerType', [
   z.object({ triggerType: z.literal('STOCKTAKE_LOW_STOCK'), documentType: z.literal('stocktakes'), documentId: documentIdentifier, version: expectedVersion }).strict(),
   z.object({ triggerType: z.literal('SALES_SHORTAGE'), documentType: z.enum(['sales_orders','warehouse_issue_requests']), documentId: documentIdentifier, itemId: objectIdSchema, version: expectedVersion }).strict(),
 ]);
+// Deprecated coverage fields remain accepted for existing clients.
 const assessmentFields = {
   evaluationKey: z.string().regex(/^[a-f\d]{64}$/i).optional(),
   independentNeedConfirmed: z.boolean().optional(),
@@ -239,7 +240,10 @@ export const replenishmentOptionsSchema = z.object({
   query: z.object({
     mode: z.enum(["CREATE", "FILTER"]),
     requestId: documentIdentifier.optional(),
-  }).strict().refine(query => !query.requestId || query.mode === "CREATE"),
+  }).strict().refine(query => !query.requestId || query.mode === "CREATE", {
+    message: "requestId chỉ được hỗ trợ khi mode là CREATE",
+    path: ["requestId"],
+  }),
 });
 
 export const replenishmentSourceOptionsSchema = z.object({

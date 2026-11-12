@@ -35,7 +35,7 @@ nguồn/requirement trùng; không tự xóa bản ghi hoặc dựng lại DB.
 | `inventory_balances` | Số dư theo điểm tồn, lô, chất lượng và chủ sở hữu; lượng dùng đơn vị gốc. | [inventory-balance.model.js](../src/models/inventory-balance.model.js) |
 | `stock_transactions` | Một lần ghi tồn đã thành công, liên kết nghiệp vụ nguồn và mã chống ghi lặp. | [stock-transaction.model.js](../src/models/stock-transaction.model.js) |
 | `stock_reservations` | Giữ hàng thực tế cho nhu cầu và lệnh thực hiện; theo dõi đã dùng, giải phóng hoặc chuyển. | [stock-reservation.model.js](../src/models/stock-reservation.model.js) |
-| `supply_allocations` | Phân bổ nguồn dự kiến từ PO/TR cho nhu cầu; không cộng như tồn thực tế. | [supply-allocation.model.js](../src/models/supply-allocation.model.js) |
+| `supply_allocations` | Dữ liệu phân bổ nguồn PO/TR. Luồng đánh giá RR đã ngừng đọc. Chi tiết điều chuyển vẫn đọc bản ghi có sẵn. | [supply-allocation.model.js](../src/models/supply-allocation.model.js) |
 | `approval_history` | Lịch sử quyết định theo đúng phiên bản phiếu/dòng, người quyết định và căn cứ. | [approval-history.model.js](../src/models/approval-history.model.js) |
 | `attachments` | Metadata ảnh/PDF và quyền truy cập bằng chứng; dữ liệu tệp lưu theo storageKey. | [attachment.model.js](../src/models/attachment.model.js) |
 | `return_quantity_claims` | Giữ hạn mức theo nguồn giao/nhận để không đề nghị trả vượt lượng còn được trả. | [return-quantity-claim.model.js](../src/models/return-quantity-claim.model.js) |
@@ -46,12 +46,12 @@ nguồn/requirement trùng; không tự xóa bản ghi hoặc dựng lại DB.
 | `audit_logs` | Nhật ký người thao tác, kết quả và thay đổi; tách khỏi lịch sử số lượng tồn. | [audit-log.model.js](../src/models/audit-log.model.js) |
 | `system_events` | Công việc sau khi lưu thành công, như gửi thông báo/email và thử lại độc lập. | [system-event.model.js](../src/models/system-event.model.js) |
 | `operation_records` | Ghi kết quả thao tác theo mã yêu cầu để chống xử lý lặp và liên kết kết quả. | [operation-record.model.js](../src/models/operation-record.model.js) |
-| `replenishment_locks` | Phối hợp xử lý đồng thời theo kho/sản phẩm để tránh lập bổ sung trùng. | [replenishment-lock.model.js](../src/models/replenishment-lock.model.js) |
+| `replenishment_locks` | Collection lịch sử của guard theo kho/sản phẩm. Runtime đã ngừng sử dụng ngày 11/11/2026. | [replenishment-lock.model.js](../src/models/replenishment-lock.model.js) |
 | `return_source_locks` | Phối hợp xử lý đồng thời theo nguồn trả; hạn mức thực tế ở return_quantity_claims. | [return-source-lock.model.js](../src/models/return-source-lock.model.js) |
 | `external_references` | Hồ sơ chứng từ nguồn bên ngoài. D07 còn chờ chốt người/quy trình xác minh; không tích hợp MISA. | [external-reference.model.js](../src/models/external-reference.model.js) |
 | `product_batches` | Lô theo productId + manufacturerLot; số viên/thùng cố định và kích thước ngoài thùng (mm). Không có calibre/tone. | [product-batch.model.js](../src/models/product-batch.model.js) |
 | `replenishment_requests` | Yêu cầu bổ sung cho một kho. Các dòng lưu lượng đề nghị và lượng duyệt. `reasonNote` tùy chọn trên dòng hiện tại và snapshot gửi duyệt. | [replenishment-request.model.js](../src/models/replenishment-request.model.js) |
-| `purchase_orders` | Đơn mua theo một RR, một nhà cung cấp và một kho; lưu giá mua, tổng tiền và lịch giao. | [purchase-order.model.js](../src/models/purchase-order.model.js) |
+| `purchase_orders` | Đơn mua theo một RR, một nhà cung cấp và một kho. Lưu giá mua, tổng tiền và ngày dự kiến chung `header.expectedOn` cho phần chưa nhận. Chỉ sửa nội dung khi còn nháp. Từ 11/11/2026, `OPEN` và `PARTIAL` có lệnh đổi ngày dự kiến. Các lần nhận thực tế liên kết qua hàng đến, phiếu kiểm và phiếu nhập. | [purchase-order.model.js](../src/models/purchase-order.model.js) |
 | `goods_arrivals` | Mỗi lần hàng mua thực đến; giữ lịch sử kể cả khi từ chối toàn bộ, chưa tự tăng tồn sở hữu. | [goods-arrival.model.js](../src/models/goods-arrival.model.js) |
 | `goods_inspections` | Kết quả kiểm nhận theo từng phần hàng đến, chất lượng và quyết định sở hữu/giữ hộ/từ chối. | [goods-inspection.model.js](../src/models/goods-inspection.model.js) |
 | `goods_receipts` | Phiếu nhập PURCHASE, CUSTOMER_RETURN, FAILED_DELIVERY, TRANSFER, OTHER; `documentKind` chọn header và ràng buộc dòng, ghi tồn theo luồng nguồn. | [goods-receipt.model.js](../src/models/goods-receipt.model.js) |
@@ -97,6 +97,6 @@ See [current return API and compatibility rules](docs/08_api/RETURN_WORKFLOWS_NA
 
 Mốc Iteration 1 ngày 06/11: [Data Dictionary 60 collections](docs/03_thiet_ke/DB_Current_2026-11-06_60/WMSD_Data_Dictionary.md), [quan hệ thay đổi](docs/03_thiet_ke/DB_Current_2026-11-06_60/Iteration1_Model_Relationships.mmd). Phiếu nhập đã được gộp trong schema 09/11 ở đầu bản đồ.
 
-## Nguồn bổ sung native — 07/11/2026
+## Nguồn và cảnh báo RR — 11/11/2026
 
-Không thêm collection: 60 collection, 97 nested schemas. ReplenishmentRequest.items.details.source dùng [replenishment-source.schema.js](../src/models/replenishment-source.schema.js), canonicalSourceKey và snapshot đánh giá; submissions.lines.evaluation giữ bản lịch sử. SalesOrder.replenishmentPlanningVersion phối hợp nguồn giữa nhiều kho; ReplenishmentLock.lastOperationId chỉ thao tác commit. [API và tương thích](docs/08_api/REPLENISHMENT_COVERAGE.md).
+`ReplenishmentRequest.items[].details.source` giữ tham chiếu đã kiểm, `evaluatedAt`, các snapshot cảnh báo và giải trình. `submissions[].lines[].evaluation` giữ bản tại thời điểm gửi duyệt. `canonicalSourceKey`, `evaluationKey`, lượng đề xuất và các snapshot coverage cũ là trường tương thích dữ liệu lịch sử. Runtime bỏ guard theo kho/sản phẩm, giữ nguyên collection `replenishment_locks` và field `SalesOrder.replenishmentPlanningVersion`. `SupplyAllocation` còn được đọc trong luồng điều chuyển và không tham gia đánh giá RR. Xem [hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md).

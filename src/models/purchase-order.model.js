@@ -14,7 +14,6 @@ import { documentId, objectId, id, opt, version, quantity } from "./schema-helpe
 import { createDocumentSourceSchema } from "./document-source.schema.js";
 import { createDocumentItemSchema } from "./document-item.schema.js";
 import { createPurchaseOrderHeaderSchema } from "./purchase-order-header.schema.js";
-import { createPurchaseOrderDeliveryScheduleSchema } from "./purchase-order-delivery-schedule.schema.js";
 import {
   attachDocumentItems,
   addDocumentIndexesAndRules,
@@ -47,12 +46,8 @@ export function createPurchaseOrderSchema() {
   item.add({ note: opt(2000), evidenceIds: refs("Attachment") });
   item.add({
     requestItemId: id(false),
-    supplierConfirmedQtyBase: quantity(),
-    supplierConfirmedBy: ref("User", false),
-    supplierConfirmedAt: date(false),
     cancelledRemainderQtyBase: quantity(),
     cancellationDecisionId: ref("ApprovalHistory", false),
-    deliverySchedule: [createPurchaseOrderDeliveryScheduleSchema()],
   });
   attachDocumentItems(schema, item);
   addDocumentIndexesAndRules(schema);
@@ -70,6 +65,21 @@ export function createPurchaseOrderSchema() {
       },
     },
   );
+
+  // MongoDB documents saved under the old schema can still carry these paths.
+  // Omit retired confirmation and schedule fields from DTOs and versioned writes.
+  schema.set("toObject", {
+    transform(_document, purchaseOrder) {
+      if (purchaseOrder.header) delete purchaseOrder.header.supplierConfirmation;
+      for (const item of purchaseOrder.items ?? []) {
+        delete item.supplierConfirmedQtyBase;
+        delete item.supplierConfirmedBy;
+        delete item.supplierConfirmedAt;
+        delete item.deliverySchedule;
+      }
+      return purchaseOrder;
+    },
+  });
 
   return schema;
 }

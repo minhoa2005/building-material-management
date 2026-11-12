@@ -1,7 +1,3 @@
-import {
-  guardCommandCoverage,
-  completeReplenishmentGuards,
-} from "../../shared/utils/replenishment-guard.js";
 import { hash } from "../../shared/utils/document-command.js";
 import {
   ProductBatch,
@@ -102,7 +98,6 @@ export async function createLot(user, input) {
 export async function updateLot(user, id, input) {
   requirePermission(user, "product_lot:update");
   return transaction(async (session) => {
-    await guardCommandCoverage(id, input, session);
     const before = await batch(id, session);
     const { expectedUpdatedAt, ...changes } = input;
     const immutable = [
@@ -146,7 +141,6 @@ export async function updateLot(user, id, input) {
       resultCode: "UPDATED",
       completedAt: new Date(),
     }).save({ session });
-    await completeReplenishmentGuards(session, operation._id);
     await appendAudit({
       operationId: operation._id,
       actorId: user._id,

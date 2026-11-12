@@ -53,7 +53,7 @@ test.after(async()=>{if(enabled){if(!mongoose.connection.name.startsWith('wmsd_a
 
 async function acknowledgeIndependentNeed(body) {
  const assessments=await rr.evaluateReplenishment(worker,body);
- body.lines=body.lines.map((line,index)=>assessments[index].warningRequired?{...line,evaluationKey:assessments[index].evaluationKey,independentNeedConfirmed:true,independentNeedReason:'Separate independent fixture need'}:line);
+ body.lines=body.lines.map((line,index)=>assessments[index].warningRequired?{...line,independentNeedConfirmed:true,independentNeedReason:'Separate independent fixture need'}:line);
 }
 
 run('conversion versions use the right scope and preserve document snapshots', async () => {
@@ -300,6 +300,37 @@ run('Warehouse reversal restores PO headroom once without separate approval',asy
  const reversal=await correction.reverseReceipt(worker,receipt._id,payload);await correction.reverseReceipt(worker,receipt._id,payload);
  assert.equal((await m.StockReversal.findById(reversal.id)).workflowStatus,'POSTED');assert.equal(await m.StockTransaction.countDocuments({reversedTransactionId:receipt.stockTransactionId}),1);assert.equal((await m.PurchaseReceipt.findById(receipt._id)).workflowStatus,'REVERSED');assert.deepEqual((await reconcilePurchasing()).issues,[]);
 });
+run('reversal reopens a COMPLETED PO but keeps a CLOSED PO terminal',async()=>{
+ const reverse=async(status)=>{
+  const receipt=await postedReceipt();const attachment=await m.Attachment.create({ownerDocumentType:'goods_receipts',ownerDocumentId:receipt._id,purpose:'TEST',originalName:'test.png',mediaType:'image/png',sizeBytes:10,storageKey:'local-test',checksum:'a'.repeat(64),uploadedBy:worker._id,uploadedAt:new Date(),accessCategory:'BUSINESS',status:'ATTACHED'});
+  if(status)await m.PurchaseOrder.collection.updateOne({_id:receipt.header.purchaseOrderId},{$set:{workflowStatus:status}});
+  const order=await m.PurchaseOrder.findById(receipt.header.purchaseOrderId);
+  await correction.reverseReceipt(worker,receipt._id,{...input(),expectedVersion:receipt.version,expectedPoVersion:order.version,reason:'Wrong entry',evidenceIds:[String(attachment._id)]});
+  return (await m.PurchaseOrder.findById(order._id)).workflowStatus;
+ };
+ assert.equal(await reverse(null),'OPEN');
+ assert.equal(await reverse('COMPLETED'),'OPEN');
+ assert.equal(await reverse('CLOSED'),'CLOSED');
+});
+run('PO exposes hasOpenReceivingWork for draft inspections without changing its status',async()=>{
+ const receipt=await postedReceipt();const poId=receipt.header.purchaseOrderId;
+ await m.PurchaseOrder.collection.updateOne({_id:poId},{$set:{workflowStatus:'PARTIAL'}});
+ const flag=async()=>(await getPurchaseOrder(accountant,String(poId))).hasOpenReceivingWork;
+ assert.equal(await flag(),false);
+ const arrivalId=new mongoose.Types.ObjectId();
+ await m.GoodsArrival.collection.insertOne({_id:arrivalId,header:{purchaseOrderId:poId}});
+ const inspectionId=new mongoose.Types.ObjectId();
+ await m.GoodsInspection.collection.insertOne({_id:inspectionId,workflowStatus:'DRAFT',header:{arrivalId}});
+ assert.equal(await flag(),true);
+ assert.equal((await getPurchaseOrder(accountant,String(poId))).workflowStatus,'PARTIAL');
+ const listed=await listPurchaseOrders(accountant,{page:1,limit:100});
+ assert.equal(listed.items.find(row=>row.id===String(poId)).hasOpenReceivingWork,true);
+ await m.GoodsInspection.collection.updateOne({_id:inspectionId},{$set:{workflowStatus:'CONFIRMED'}});
+ assert.equal(await flag(),false);
+ await m.PurchaseOrder.collection.updateOne({_id:poId},{$set:{workflowStatus:'COMPLETED'}});
+ await m.GoodsInspection.collection.updateOne({_id:inspectionId},{$set:{workflowStatus:'DRAFT'}});
+ assert.equal(await flag(),false);
+});
 run('native transfer dispatch, independent receipt and putaway reconcile all movement legs',async()=>{
  const transfers=await import('../src/modules/transfers/transfer-write.service.js');
  const destination=await m.Warehouse.create({code:'DEST',name:'Destination',lengthMm:'10000',widthMm:'10000',clearHeightMm:'3000'});
@@ -368,7 +399,182 @@ run('RR replay enforces current warehouse scope and payload hash',async()=>{
 
 import jwt from 'jsonwebtoken';
 import app from '../src/app.js';
-import { getPurchaseOrder } from '../src/modules/purchase-orders/purchase-order.service.js';
+import { getPurchaseOrder, listPurchaseOrders } from '../src/modules/purchase-orders/purchase-order.service.js';
+
+run('HTTP PO lifecycle supports draft edits, expected-date changes, receiving history and closure', async () => {
+ const requestBody = {
+   creationKey: key(), action: 'SUBMIT', warehouseId: String(warehouse._id), neededOn: '2026-12-01',
+   triggerReason: 'PO draft lifecycle test',
+   lines: [{ productId: String(product._id), enteredUnit: 'PIECE', enteredQty: '8', reasonNote: 'Fixture' }],
+ };
+ await acknowledgeIndependentNeed(requestBody);
+ const createdRequest = await rr.createReplenishment(worker, requestBody);
+ const request = await m.ReplenishmentRequest.findById(createdRequest.id);
+ const rrLineId = String(request.items[0]._id);
+ const approval = await rr.reviewReplenishment(owner, createdRequest.id, {
+   ...input(), expectedVersion: request.version, decision: 'APPROVE', reason: 'Approved',
+   lines: [{ lineId: rrLineId, approvedQtyBase: '8' }],
+ });
+ const server = app.listen(0, '127.0.0.1');
+ try {
+   await new Promise(resolve => server.once('listening', resolve));
+   const base = 'http://127.0.0.1:' + server.address().port + '/api/purchase-orders';
+   const api = async (method, path = '', body, user = accountant) => {
+     const token = jwt.sign({ userId: String(user._id) }, process.env.JWT_SECRET || 'wmsd_default_super_secret_jwt_key_2026');
+     const response = await fetch(base + path, {
+       method, headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+       body: JSON.stringify(body),
+     });
+     return { status: response.status, body: await response.json() };
+   };
+   const line = { rrLineId, approvalId: approval.decisionId, enteredQty: '8', unitPurchasePrice: '1000' };
+   const expectedOn = '2026-11-30T00:00:00.000Z';
+   const form = { warehouseId: String(warehouse._id), supplierId: String(supplier._id), currency: 'VND', expectedOn };
+   const created = await api('POST', '', { ...form, creationKey: key(), lines: [line] });
+   assert.equal(created.status, 200, created.body.message);
+   assert.equal(created.body.data.workflowStatus, 'DRAFT');
+   const { id, version } = created.body.data;
+   const path = '/' + id;
+   const expectedOnPath = path + '/expected-on';
+   const reschedule = expectedVersion => ({
+     ...input(), expectedVersion, expectedOn: '2026-12-03T09:00:00+07:00', reason: 'Supplier changed the delivery date',
+   });
+   assert.equal((await api('POST', expectedOnPath, reschedule(version))).status, 400);
+   const detail = await api('GET', path);
+   const poLineId = detail.body.data.items[0]._id;
+   const edit = expectedVersion => ({
+     ...form, ...input(), expectedVersion, lines: [{ ...line, id: poLineId, enteredQty: '4' }],
+   });
+   const updated = await api('PUT', path, edit(version));
+   assert.equal(updated.status, 200, updated.body.message);
+   assert.equal(updated.body.data.workflowStatus, 'DRAFT');
+   const issued = await api('POST', path + '/confirm', { ...input(), expectedVersion: updated.body.data.version });
+   assert.equal(issued.status, 200, issued.body.message);
+   assert.equal(issued.body.data.workflowStatus, 'OPEN');
+   const issuedVersion = issued.body.data.version;
+   const rejected = await api('PUT', path, edit(issuedVersion));
+   assert.equal(rejected.status, 400);
+   assert.equal(rejected.body.message, 'Chỉ sửa trực tiếp PO nháp');
+   for (const route of ['/supplier-confirmations', '/amendments']) {
+     assert.equal((await api('POST', path + route, { ...input(), expectedVersion: issuedVersion })).status, 404);
+   }
+
+   // Simulate an older stored PO without backfilling or rewriting MongoDB records.
+   const expectedAt = new Date(expectedOn);
+   const quantityBase = mongoose.Types.Decimal128.fromString('4');
+   await m.PurchaseOrder.collection.updateOne({ _id: id }, { $set: {
+     'header.supplierConfirmation': 'Legacy confirmation',
+     'items.0.supplierConfirmedQtyBase': quantityBase,
+     'items.0.supplierConfirmedBy': accountant._id,
+     'items.0.supplierConfirmedAt': expectedAt,
+     'items.0.deliverySchedule': [{ quantityBase, expectedAt, supplierReference: 'LEGACY-SCHEDULE' }],
+   } });
+   const summary = await api('GET', path + '/receiving-summary');
+   assert.equal(summary.status, 200);
+   assert.deepEqual(summary.body.data.documents, []);
+   assert.ok(!Object.hasOwn(summary.body.data, 'schedules'));
+   assert.equal(summary.body.data.quantities[0].orderedQtyBase, '4');
+   assert.ok(!Object.hasOwn(summary.body.data.quantities[0].snapshot, 'deliverySchedule'));
+   const legacyDetail = (await api('GET', path)).body.data;
+   assert.ok(legacyDetail.header.issuedAt);
+   assert.equal(legacyDetail.version, issuedVersion);
+   assert.ok(!Object.hasOwn(legacyDetail.header, 'supplierConfirmation'));
+   const retiredFields = ['supplierConfirmedQtyBase', 'supplierConfirmedBy', 'supplierConfirmedAt', 'deliverySchedule'];
+   for (const field of retiredFields) {
+     assert.ok(!Object.hasOwn(legacyDetail.items[0], field));
+   }
+
+   const change = reschedule(issuedVersion);
+   assert.equal((await api('POST', expectedOnPath, change, worker)).status, 403);
+   assert.equal((await api('POST', expectedOnPath, { ...change, expectedOn: '2026-12-03' })).status, 400);
+   const rescheduled = await api('POST', expectedOnPath, change);
+   assert.equal(rescheduled.status, 200, rescheduled.body.message);
+   assert.equal(rescheduled.body.data.workflowStatus, 'OPEN');
+   assert.equal(rescheduled.body.data.version, issuedVersion + 1);
+   const newExpectedOn = '2026-12-03T02:00:00.000Z';
+   assert.equal((await api('GET', path)).body.data.header.expectedOn, newExpectedOn);
+   const replayed = await api('POST', expectedOnPath, change);
+   assert.equal(replayed.body.data.replayed, true);
+   assert.equal(replayed.body.data.version, rescheduled.body.data.version);
+   assert.equal((await api('POST', expectedOnPath, reschedule(issuedVersion))).status, 409);
+   const audits = await m.AuditLog.find({ subjectId: id, action: 'RESCHEDULE_PO_EXPECTED_ON' }).lean();
+   assert.equal(audits.length, 1);
+   assert.equal(audits[0].reason, change.reason);
+   assert.equal(audits[0].versionBefore, issuedVersion);
+   assert.equal(audits[0].versionAfter, issuedVersion + 1);
+   assert.deepEqual(audits[0].changes.map(({ field, before, after }) => ({ field, before, after })), [
+     { field: 'header.expectedOn', before: expectedOn, after: newExpectedOn },
+   ]);
+
+   const inspection = await receiving.createInspection(worker, id, {
+     creationKey: key(), expectedPoVersion: rescheduled.body.data.version, arrivedAt: new Date().toISOString(),
+     lines: [{ poLineId, lotId: String(batch._id), enteredQty: '2', qualityCode: 'GOOD', ownershipDecision: 'ACCEPT', packagingCondition: 'OPENED' }],
+   });
+   const inspectionDoc = await m.GoodsInspection.findById(inspection.id);
+   const confirmed = await receiving.confirmInspection(worker, inspection.id, {
+     ...input(), expectedVersion: inspection.version, expectedPoVersion: rescheduled.body.data.version,
+     destinations: [{ inspectionItemId: String(inspectionDoc.items[0]._id), locationId: String(receivingLocation._id) }],
+   });
+   const receiptId = confirmed.resultRefs.find(ref => ref.documentType === 'goods_receipts').documentId;
+   const beforePosting = await m.PurchaseOrder.findById(id);
+   const draftReceipt = await m.PurchaseReceipt.findById(receiptId);
+   await receiving.postReceipt(worker, receiptId, {
+     ...input(), expectedVersion: draftReceipt.version, expectedPoVersion: beforePosting.version,
+     packaging: [{ lineId: String(draftReceipt.items[0]._id), portions: [{ packagingState: 'OPEN', quantityBase: '2', measuredVolumeMm3: '7688000' }] }],
+   });
+   const partial = await m.PurchaseOrder.findById(id);
+   const rescheduledPartial = await api('POST', expectedOnPath, {
+     ...reschedule(partial.version), expectedOn: '2026-12-04T02:00:00.000Z',
+   });
+   assert.equal(rescheduledPartial.status, 200, rescheduledPartial.body.message);
+   assert.equal(rescheduledPartial.body.data.workflowStatus, 'PARTIAL');
+
+   const receivedSummary = await api('GET', path + '/receiving-summary', undefined, worker);
+   assert.equal(receivedSummary.status, 200);
+   const { documents, quantities } = receivedSummary.body.data;
+   assert.equal(quantities[0].receivedQtyBase, '2');
+   assert.equal(quantities[0].outstandingQtyBase, '2');
+   assert.ok(!Object.hasOwn(quantities[0].snapshot, 'unitPurchasePrice'));
+   assert.deepEqual(documents.map(({ kind, id, workflowStatus, lines }) => ({ kind, id, workflowStatus, lines })), [
+     { kind: 'GR_PURCHASE', id: receiptId, workflowStatus: 'POSTED', lines: [{ poLineId, qtyBase: '2' }] },
+     { kind: 'INSPECTION', id: inspection.id, workflowStatus: 'CONFIRMED', lines: [{ poLineId, qtyBase: '2' }] },
+   ]);
+   assert.ok(documents.every(row => row.documentNo && row.createdAt));
+
+   const evidence = await m.Attachment.create({
+     ownerDocumentType: 'purchase_orders', ownerDocumentId: id, purpose: 'TEST', originalName: 'test.png',
+     mediaType: 'image/png', sizeBytes: 10, storageKey: 'local-test', checksum: 'a'.repeat(64),
+     uploadedBy: accountant._id, uploadedAt: new Date(), accessCategory: 'BUSINESS', status: 'ATTACHED',
+   });
+   const closeBody = { reason: 'Stop receiving remaining items', evidenceIds: [String(evidence._id)] };
+   const close = await api('POST', path + '/close-requests', {
+     ...closeBody, ...input(), expectedVersion: rescheduledPartial.body.data.version, lines: [{ poLineId, qtyBase: '2' }],
+   });
+   assert.equal(close.status, 200, close.body.message);
+   const audit = await m.AuditLog.findOne({ subjectId: id, action: 'REQUEST_PO_CLOSE' });
+   const approved = await api('POST', path + '/close-approvals', {
+     ...closeBody, ...input(), expectedVersion: close.body.data.version, requestId: String(audit._id),
+   }, owner);
+   assert.equal(approved.status, 200, approved.body.message);
+   const closed = await api('POST', path + '/close-executions', {
+     reason: closeBody.reason, ...input(), expectedVersion: approved.body.data.version, approvalId: approved.body.data.decisionId,
+   });
+   assert.equal(closed.status, 200, closed.body.message);
+   assert.equal(closed.body.data.workflowStatus, 'CLOSED');
+   assert.equal((await api('POST', expectedOnPath, reschedule(closed.body.data.version))).status, 400);
+   assert.deepEqual((await api('GET', path + '/receiving-summary')).body.data.documents, documents);
+
+   // Versioned writes replace the items array without retired fields.
+   const stored = await m.PurchaseOrder.collection.findOne({ _id: id });
+   assert.ok(!Object.hasOwn(stored.header, 'supplierConfirmation'));
+   for (const field of retiredFields) {
+     assert.ok(!Object.hasOwn(stored.items[0], field), field + ' should be removed after a versioned write');
+   }
+ } finally {
+   await new Promise(resolve => server.close(resolve));
+ }
+});
+
 run('HTTP catalogue contracts enforce permissions, immutable codes and concurrency tokens',async()=>{
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const root='http://127.0.0.1:'+server.address().port+'/api';
  const api=async(method,path,user,body)=>{const response=await fetch(root+path,{method,headers:{'content-type':'application/json',...(user&&{authorization:'Bearer '+jwt.sign({userId:String(user._id)},process.env.JWT_SECRET||'wmsd_default_super_secret_jwt_key_2026')})},...(body&&{body:JSON.stringify(body)})});return {status:response.status,body:await response.json()};};

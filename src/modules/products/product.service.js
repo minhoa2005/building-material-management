@@ -1,8 +1,4 @@
 import {
-  guardCommandCoverage,
-  completeReplenishmentGuards,
-} from "../../shared/utils/replenishment-guard.js";
-import {
   configureConversion,
   conversionDto,
 } from "../../shared/utils/conversions.js";
@@ -73,7 +69,6 @@ async function planningOperation(user, row, input, code, session, warehouseId) {
     resultCode: "UPDATED",
     completedAt: new Date(),
   }).save({ session });
-  await completeReplenishmentGuards(session, operation._id);
   return operation._id;
 }
 const fields = [
@@ -262,7 +257,6 @@ export async function createProduct(user, input) {
           resultCode: "CREATED",
           completedAt: new Date(),
         }).save({ session });
-        await completeReplenishmentGuards(session, operation._id);
         await appendAudit({
           operationId: operation._id,
           actorId: user._id,
@@ -299,7 +293,6 @@ export async function createProduct(user, input) {
 export async function updateProduct(user, id, input) {
   requirePermission(user, "product:update");
   return transaction(async (session) => {
-    await guardCommandCoverage(null, { productId: id }, session);
     const before = await product(id, session);
     await category(input.categoryId, session);
     if (
@@ -344,7 +337,6 @@ export async function updateProduct(user, id, input) {
 export async function changeProductStatus(user, id, input) {
   requirePermission(user, "product:update");
   return transaction(async (session) => {
-    await guardCommandCoverage(null, { productId: id }, session);
     const row = await updateCatalogue(
       Product,
       id,
@@ -408,7 +400,6 @@ export async function configurePolicy(user, id, warehouseId, input) {
   requirePermission(user, "product:update");
   requireWarehouseAccess(user, warehouseId);
   return transaction(async (session) => {
-    await guardCommandCoverage(null, { productId: id }, session);
     const wh = await Warehouse.findOne({
       _id: warehouseId,
       isActive: true,

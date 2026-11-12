@@ -48,7 +48,7 @@ Không tạo general policy editor. Danh mục quyền được định nghĩa b
 
 | Luồng | Chuỗi và mốc xác nhận |
 |---|---|
-| BF01 mua/nhập | RR → duyệt → PO → hàng đến → kiểm nhận → nhập sở hữu → xếp hàng. Hàng giữ hộ ghi chủ riêng. Nhận sở hữu hàng đã giữ hộ chuyển đúng chủ, không nhận vật lý lần hai. |
+| BF01 mua/nhập | RR → duyệt → kế toán chốt với NCC → lập và phát hành PO → hàng đến → kiểm nhận → nhập sở hữu → xếp hàng. Sửa nội dung khi PO còn nháp. Khi `OPEN`/`PARTIAL`, đổi ngày dự kiến chung cho phần chưa nhận bằng lệnh có lý do. Theo dõi các lần nhận qua phiếu kiểm và phiếu nhập. Ngừng chờ phần chưa nhận qua quy trình duyệt đóng. Hàng giữ hộ ghi chủ riêng. Nhận sở hữu hàng đã giữ hộ chuyển đúng chủ, không nhận vật lý lần hai. |
 | BF02 hàng lỗi | Phát hiện/chặn đúng lượng → đề xuất → duyệt cách xử lý → thực hiện. Chặn giữ nguyên tổng. Hủy thực tế mới giảm. Trả NCC đi BF08. |
 | BF03 chuyển ô | Create TO → Confirm TO. Người tạo sửa/hủy trước confirm và tự confirm. Mỗi TO xác nhận trọn lệnh một lần. Chuyển hai ô cùng kho giữ tổng, lô, chủ và liên kết giữ hàng. |
 | BF04 liên kho | TR → Owner duyệt/từ chối có lý do → phiếu xuất theo TR → yêu cầu lấy hàng sinh TO → confirm PICK đồng thời xuất đi → nhận tại kho đích → yêu cầu xếp hàng sinh TO → confirm PUTAWAY → đóng TR đủ điều kiện. |
@@ -103,8 +103,6 @@ Người dùng duyệt 5 nhóm sau tham khảo Gạch Tốt. Mỗi product có m
 
 The user confirmed Accountant verification with uploaded evidence for historical customer-delivery sources. This scope is implemented in [the native return contract](docs/08_api/RETURN_WORKFLOWS_NATIVE.md). It does not settle broader new-SO external-source gates. Trungph return workflows now use the native registry; local automated verification and rollout limits are recorded in that contract and the PR evidence. No Atlas data or connection change.
 
-## Bổ sung 07/11/2026 — RR coverage
+## Cảnh báo bổ sung hàng — 11/11/2026
 
-[Hợp đồng chống trùng](docs/08_api/REPLENISHMENT_COVERAGE.md): RR đã lưu chiếm lượng theo nguồn; SO/WIR dùng cùng nghĩa vụ gốc, ngưỡng/kiểm kê cùng nhu cầu dự trữ. Nhu cầu thủ công tương tự cần cảnh báo và giải trình độc lập. Ghi chứng từ và đổi ngưỡng tham gia cùng khóa đồng thời.
-
-Theo quyết định ngày 10/11/2026, API tạo và sửa RR cho phép bỏ lý do từng dòng. Lý do chung của phiếu và các giải trình do quy tắc coverage yêu cầu vẫn bắt buộc.
+[Hợp đồng RR](docs/08_api/REPLENISHMENT_COVERAGE.md) quy định cảnh báo RR đang mở, PO chưa nhận đủ và tồn khả dụng. Người lập quyết định lượng, xác nhận và giải trình khi có cảnh báo. SO/WIR và kiểm kê là tham chiếu truy vết. Lý do từng dòng tùy chọn. Người duyệt độc lập xét lượng, còn PO dựa trên lượng RR đã duyệt.

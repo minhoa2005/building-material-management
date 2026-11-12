@@ -1,4 +1,4 @@
-import { PurchaseOrder, PurchaseReceipt, GoodsArrival, GoodsInspection, AuditLog, ApprovalHistory } from '../../models/runtime.js';
+import { PurchaseOrder, PurchaseReceipt, GoodsArrival, GoodsInspection, AuditLog, ApprovalHistory, Warehouse, ReplenishmentRequest } from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
@@ -17,6 +17,17 @@ export async function purchaseOrderQuantities(po,session){
       outstandingQtyBase:outstanding.toFixed(),openDraftCommitmentQtyBase:draft.toFixed(),acceptanceHeadroomQtyBase:outstanding.minus(draft).toFixed(),quantityState:'KNOWN'};
   });
 }
+// PO status follows posted stock only; this flags drafts still being received.
+export async function openReceivingWorkIds(orders){
+  const poIds=orders.filter(o=>['OPEN','PARTIAL'].includes(o.workflowStatus)).map(o=>String(o._id??o.id));
+  if(!poIds.length)return new Set();
+  const [receipts,arrivals]=await Promise.all([
+    PurchaseReceipt.find({'header.purchaseOrderId':{$in:poIds},workflowStatus:'DRAFT'}).select('header.purchaseOrderId').lean(),
+    GoodsArrival.find({'header.purchaseOrderId':{$in:poIds}}).select('header.purchaseOrderId').lean()]);
+  const owner=new Map(arrivals.map(a=>[String(a._id),String(a.header.purchaseOrderId)]));
+  const drafts=owner.size?await GoodsInspection.find({'header.arrivalId':{$in:[...owner.keys()]},workflowStatus:'DRAFT'}).select('header.arrivalId').lean():[];
+  return new Set([...receipts.map(r=>String(r.header.purchaseOrderId)),...drafts.map(d=>owner.get(String(d.header.arrivalId)))]);
+}
 const financial=user=>['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code);
 export async function getPurchaseOrder(user,id){
   requirePermission(user,'purchase_order:read');const po=await findPurchase(id,user,null,{kind:'PO',readOnly:true});
@@ -25,7 +36,44 @@ export async function getPurchaseOrder(user,id){
   const receipts=await PurchaseReceipt.find({'header.purchaseOrderId':id}).lean();
   const history=await AuditLog.find({subjectType:'purchase_orders',subjectId:id}).sort({occurredAt:-1}).lean();
   const approvals=await ApprovalHistory.find({subjectType:'purchase_orders',subjectId:id}).lean();
-  const result={...dto(po),quantities,arrivals:arrivals.map(dto),receipts:receipts.map(dto),
+
+  const warehouse = po.header?.warehouseId ? await Warehouse.findById(po.header.warehouseId).lean() : null;
+  const mappedWarehouse = warehouse
+    ? { id: String(warehouse._id), code: warehouse.code, name: warehouse.name }
+    : null;
+
+  let draftEdit = null;
+  if (po.workflowStatus === 'DRAFT') {
+    let approvalId = null;
+    if (po.replenishmentRequestId) {
+      const rr = await ReplenishmentRequest.findById(po.replenishmentRequestId).lean();
+      if (rr?.header?.latestDecisionId) {
+        approvalId = String(rr.header.latestDecisionId);
+      } else {
+        const appr = await ApprovalHistory.findOne({
+          subjectType: 'replenishment_requests',
+          subjectId: po.replenishmentRequestId,
+          decision: 'APPROVE',
+        }).lean();
+        if (appr) approvalId = String(appr._id);
+      }
+    }
+    draftEdit = {
+      lines: (po.items || []).map((item) => ({
+        id: String(item._id),
+        rrLineId: item.requestItemId
+          ? String(item.requestItemId)
+          : item.sources?.[0]?.itemId
+          ? String(item.sources[0].itemId)
+          : String(item._id),
+        approvalId,
+        enteredQty: String(item.enteredQty ?? item.qtyBase ?? '0'),
+        enteredUomCode: item.enteredUnit || item.baseUnitSnapshot || null,
+      })),
+    };
+  }
+
+  const result={...dto(po),warehouse:mappedWarehouse,draftEdit,hasOpenReceivingWork:(await openReceivingWorkIds([po])).has(String(po._id)),quantities,arrivals:arrivals.map(dto),receipts:receipts.map(dto),
     ...(financial(user)&&{history:history.map(dto),approvals:approvals.map(dto)})};
   return financial(user)?result:redactPrices(result);
 }
@@ -59,13 +107,20 @@ export async function listPurchaseOrders(user,query){
   if(query.search)filter.documentNo=new RegExp(escapeRegex(query.search),'i');
   const date=calendarDateRange(query.createdFrom,query.createdTo);if(date)filter.createdAt=date;
   const orders=await PurchaseOrder.find(filter).sort({createdAt:-1,_id:-1});
+  const warehouseIds = [...new Set(orders.map((o) => String(o.header?.warehouseId)).filter(Boolean))];
+  const warehouses = await Warehouse.find({ _id: { $in: warehouseIds } }).lean();
+  const warehouseMap = new Map(
+    warehouses.map((w) => [String(w._id), { id: String(w._id), code: w.code, name: w.name }]),
+  );
   const items=[];
   for(const order of orders){
     const quantities=await purchaseOrderQuantities(order);
     const outstanding=quantities.some(row=>exact(row.outstandingQtyBase).gt(0));
     if(query.outstanding==='UNKNOWN'||(query.outstanding==='YES'&&!outstanding)||(query.outstanding==='NO'&&outstanding))continue;
-    const value={...dto(order),quantities};items.push(financial(user)?value:redactPrices(value));
+    const value={...dto(order),warehouse:warehouseMap.get(String(order.header?.warehouseId))||null,quantities};items.push(financial(user)?value:redactPrices(value));
   }
-  return {items:items.slice((query.page-1)*query.limit,query.page*query.limit),total:items.length,page:query.page,limit:query.limit};
+  const pageItems=items.slice((query.page-1)*query.limit,query.page*query.limit);
+  const working=await openReceivingWorkIds(pageItems);
+  return {items:pageItems.map(row=>({...row,hasOpenReceivingWork:working.has(String(row.id))})),total:items.length,page:query.page,limit:query.limit};
 }
 
