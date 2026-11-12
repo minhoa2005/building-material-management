@@ -280,6 +280,7 @@ run('native RR → PO → inspection → receipt → partial putaway preserves s
  assert.equal(detail.items[0].inspectionResult.qualityCode, 'GOOD');
  assert.equal(detail.items[0].lotLabelSnapshot, batch.manufacturerLot);
  const task=await putaway.createPutaway(worker,receipt._id,{creationKey:key(),expectedVersion:receipt.version,lines:[{receiptLineId:String(receipt.items[0]._id),expectedSourceVersion:context.items[0].sourceBalanceVersion,qtyBase:'8',toLocationId:String(storageLocation._id)}]});
+ const taskDetail=await putaway.getPutaway(worker,task.id);assert.equal(taskDetail.header.receiptId,String(receipt._id));assert.deepEqual([taskDetail.items[0].actualQtyBase,taskDetail.items[0].remainingQtyBase],['0','8']);
  let taskDoc=await m.TransferOrder.findById(task.id);await putaway.confirmPutaway(worker,task.id,{...input(),expectedVersion:taskDoc.version,lines:[{taskLineId:String(taskDoc.items[0]._id),actualQtyBase:'4'}]});
  const taskList = await putaway.listPutaway(worker, { page: 1, limit: 10, status: 'PARTIAL', purchaseOrderId: String(receipt.header.purchaseOrderId) });
  assert.equal(taskList.total, 1);
