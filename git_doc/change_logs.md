@@ -1,3 +1,13 @@
+## 12/11/2026 — Ghép main vào FE minhtd
+
+Gộp ghi chú kho, điều chuyển và nhập kho trong context FE. RTM giữ minh chứng của hai nhánh cho các UC tương ứng. Luồng điều chuyển dùng form lập phiếu nhập tập trung và giữ các thao tác xử lý chênh lệch.
+
+## 12/11/2026 — Bỏ dấu cách quanh dấu nối mã chứng từ
+
+Theo yêu cầu người dùng, `document-number.js` cấp `_id = documentNo` theo mẫu `ĐBH-K-GACH-01-261112-000001`. Bộ cấp số tính cả mã có dấu cách và mã liền trong chứng từ và lịch sử thao tác. Mongoose và API tra cứu bằng giá trị đã lưu. Dữ liệu hiện có giữ nguyên, không cần migration. Cập nhật hợp đồng định danh, bản đồ model và từ điển dữ liệu.
+
+Kiểm thử định danh và cấp số đạt 5/5 trên replica set loopback, gồm đọc mã lịch sử, tiếp tục số từ lịch sử thao tác, cấp đồng thời và rollback. Bộ test backend đạt 128 ca và bỏ qua 77 ca theo cấu hình. Chạy riêng trên replica set, API native đạt 18/18 và retry transaction đạt 2/2.
+
 ## 12/11/2026 — Luồng nhập kho tập trung và chứng từ liên kết
 
 - Theo kế hoạch phân hệ Nhập kho, bổ sung API danh sách gộp năm loại phiếu, chi tiết theo ID, sửa nháp phiếu khác, danh sách tạm giữ/lệnh cất và bộ lọc chứng từ đủ điều kiện. Xem [GoodsReceipt](docs/08_api/GOODS_RECEIPTS.md), [trả hàng](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) và [điều chuyển](docs/08_api/transfers/BF04_API.md).

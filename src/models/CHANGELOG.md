@@ -1,3 +1,7 @@
+## 12/11/2026 — Mã chứng từ nối bằng dấu gạch ngang
+
+`DocumentIdentity` nhận mã mới nối bằng `-` liền, mã đã lưu có dấu cách quanh dấu nối và ObjectId lịch sử. Mỗi chứng từ đã lưu giữ nguyên giá trị định danh. [Hợp đồng định danh](../../git_doc/docs/08_api/DOCUMENT_IDENTITIES.md).
+
 ## 12/11/2026 — Bãi tiếp nhận trên dòng kiểm hàng
 
 `inspection-details.schema.js` nhận `receivingLocationId` tùy chọn. Khi lưu nháp hoặc chốt kiểm nhận mua, backend kiểm vị trí `RECEIVING` cùng kho và chỉ lưu cho dòng nhận mua. Dữ liệu cũ vẫn hợp lệ. Không có collection, index hoặc migration mới.

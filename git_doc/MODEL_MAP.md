@@ -10,6 +10,8 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 
 [Hợp đồng API hiện hành](docs/08_api/GOODS_RECEIPTS.md). Các bản v8/Atlas trước đây là bằng chứng triển khai có ngày; lượt đồng bộ này không ghi lên Atlas.
 
+Các model có `documentNo` dùng `DocumentIdentity` cho `_id`. Kiểu này hỗ trợ mã mới nối bằng `-`, mã đã lưu có dấu cách quanh dấu nối và ObjectId lịch sử. [Hợp đồng định danh](docs/08_api/DOCUMENT_IDENTITIES.md).
+
 ## Toàn bộ collection
 
 BF04 (07/11/2026): `internal_transfer_requirements.header.sourceDocumentId` có

@@ -48,7 +48,32 @@ async function custodyMetadata(document, value) {
 }
 async function enriched(user,document){
   const value=dto(document),kind=document.documentKind;
-  const writeWarehouse = canAccessWarehouse(user, document.header.warehouseId);
+  let warehouseId = document.header?.warehouseId;
+  if(kind==='INSPECTION'){
+    const arrivalId = document.header?.arrivalId ?? document.sources?.find(s => s.subjectCollection === 'goods_arrivals')?.documentId;
+    const arrival = arrivalId ? await GoodsArrival.findById(arrivalId) : null;
+    if (arrival) {
+      const poId = arrival.header?.purchaseOrderId ?? arrival.sources?.find(s => s.subjectCollection === 'purchase_orders')?.documentId;
+      if (poId && !arrival.header?.purchaseOrderId) {
+        arrival.header.purchaseOrderId = poId;
+      }
+    }
+    value.arrival = arrival ? dto(arrival) : null;
+    value.header = value.header || {};
+    if (value.arrival) {
+      if (!value.header.arrivalId) value.header.arrivalId = String(value.arrival._id ?? value.arrival.id);
+      if (!value.header.warehouseId && value.arrival.header?.warehouseId) {
+        value.header.warehouseId = String(value.arrival.header.warehouseId);
+      }
+      if (!value.header.purchaseOrderId && value.arrival.header?.purchaseOrderId) {
+        value.header.purchaseOrderId = String(value.arrival.header.purchaseOrderId);
+      }
+    }
+    warehouseId = warehouseId ?? value.arrival?.header?.warehouseId;
+    value.receipts=(await PurchaseReceipt.find({'items.inspectionId':document._id})).map(dto).filter(Boolean);
+    value.custodyReceipts=(await CustodyReceipt.find({sources:{$elemMatch:{subjectCollection:'goods_inspections',documentId:document._id}}})).map(dto).filter(Boolean);
+  }
+  const writeWarehouse = canAccessWarehouse(user, warehouseId);
   const draft = document.workflowStatus === 'DRAFT';
   const posted = document.workflowStatus === 'POSTED';
   const canUpdate = writeWarehouse && hasPermission(user, 'goods_receipt_inspection:update');
@@ -59,20 +84,15 @@ async function enriched(user,document){
     confirm: kind === 'INSPECTION' && draft && canUpdate,
     post: draft && canPost && (kind === 'PURCHASE'
       ? (!document.custodyDecisionId || hasPermission(user, 'purchase_custody:execute'))
-      : kind === 'CUSTODY_RECEIPT' && document.header.ownerType === 'SUPPLIER'),
+      : kind === 'CUSTODY_RECEIPT' && document.header?.ownerType === 'SUPPLIER'),
     cancel: draft && canUpdate,
     reversePreflight: kind === 'PURCHASE' && posted && canPost && hasPermission(user, 'goods_receipt_inspection:reverse'),
     planPutaway: kind === 'PURCHASE' && posted && writeWarehouse && hasPermission(user, 'putaway_task:create'),
   };
-  if(kind==='INSPECTION'){
-    value.arrival=dto(await GoodsArrival.findById(document.header.arrivalId));
-    value.receipts=(await PurchaseReceipt.find({'items.inspectionId':document._id})).map(dto);
-    value.custodyReceipts=(await CustodyReceipt.find({sources:{$elemMatch:{subjectCollection:'goods_inspections',documentId:document._id}}})).map(dto);
-  }
   if(['PURCHASE','CUSTODY_RECEIPT'].includes(kind)){
     for(const item of value.items){
       const ref=item.sources?.find(r=>r.subjectCollection==='goods_inspections');
-      const inspection=await GoodsInspection.findOne({_id:item.inspectionId??ref?.documentId,'header.warehouseId':document.header.warehouseId});
+      const inspection=await GoodsInspection.findOne({_id:item.inspectionId??ref?.documentId,'header.warehouseId':document.header?.warehouseId});
       const source=inspection?.items.id(item.inspectionResultId??ref?.itemId);
       if(source)item.inspectionResult={...serialize(source.details),handlingNote:source.note};
     }
@@ -122,8 +142,19 @@ export async function listDocuments(user,kind,query){
   if (query.purchaseOrderId) {
     if (['INSPECTION', 'CUSTODY_RECEIPT'].includes(kind)) {
       const scope = warehouseFilter(user, query.warehouseId);
-      const arrivals = await GoodsArrival.find({ ...scope, 'header.purchaseOrderId': query.purchaseOrderId }).distinct('_id');
-      const byArrival = { 'header.arrivalId': { $in: arrivals } };
+      const arrivals = await GoodsArrival.find({
+        ...scope,
+        $or: [
+          { 'header.purchaseOrderId': query.purchaseOrderId },
+          { sources: { $elemMatch: { subjectCollection: 'purchase_orders', documentId: query.purchaseOrderId } } },
+        ],
+      }).distinct('_id');
+      const byArrival = {
+        $or: [
+          { 'header.arrivalId': { $in: arrivals } },
+          { sources: { $elemMatch: { subjectCollection: 'goods_arrivals', documentId: { $in: arrivals } } } },
+        ],
+      };
       if (kind === 'INSPECTION') Object.assign(filter, byArrival);
       else Object.assign(filter, fromInspections(await GoodsInspection.find({ ...scope, ...byArrival }).distinct('_id')));
     } else filter['header.purchaseOrderId'] = query.purchaseOrderId;
