@@ -38,6 +38,8 @@ export function closeStocktake(user, id, input) {
         if (input.planId && !plan)
             throw validationError('Không có phương án thuộc đợt');
         const selected = plan?.selectedCounts || input.selectedCounts;
+        if (!document.header.lastReconciledAt || document.header.selectedCounts?.length !== snapshots.length || !selected || selected.length !== document.header.selectedCounts.length || selected.some(row => !document.header.selectedCounts.some(current => same(row.snapshotId, current.snapshotId) && same(row.countId, current.countId))))
+            throw validationError('Kết quả đếm chưa được đối chiếu hoặc đã thay đổi');
         if (!selected || new Set(selected.map(s => String(s.snapshotId))).size !== snapshots.length || selected.length !== snapshots.length)
             throw validationError('Phải chọn đủ kết quả từng dòng mốc');
         const selectedCounts = new Map();

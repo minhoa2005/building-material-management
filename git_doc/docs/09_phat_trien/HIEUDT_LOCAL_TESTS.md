@@ -1,3 +1,20 @@
+## Kiểm thử vòng đời kiểm kê BF-05 — 13/11/2026
+
+Test `stocktake-lifecycle.integration.test.js` bật bằng `RUN_STOCKTAKE_LIFECYCLE_TESTS=1`, dùng cùng replica set `127.0.0.1:27018/hieudt-test` và DB tạm `stocktake_lc_test_<ObjectId>` (teardown kiểm prefix rồi drop). Chạy tuần tự với các suite integration khác (`--test-concurrency=1`); chạy song song nhiều file tạo/xóa DB cùng lúc rất dễ làm Mongo cạn file descriptor.
+
+Dựng replica set bằng Docker trên macOS khi chưa có instance 27018 (mỗi lần chạy tạo ~59 collection kèm index nên cần nâng giới hạn file; mặc định container sẽ sập với `Too many open files`):
+
+```sh
+docker run -d --name hieudt-mongo --ulimit nofile=64000:64000 -p 27018:27018 mongo:8.0 --replSet hieudt-test --port 27018 --bind_ip_all
+docker exec hieudt-mongo mongosh --quiet --port 27018 --eval 'rs.initiate({_id:"hieudt-test",members:[{_id:0,host:"127.0.0.1:27018"}]})'
+```
+
+```sh
+RUN_STOCKTAKE_LIFECYCLE_TESTS=1 RUN_HIEUDT_TESTS=1 node --test --test-concurrency=1 test/stocktake-lifecycle.integration.test.js test/hieudt-iterations.integration.test.js
+```
+
+Kết quả 13/11/2026: 5/5 và 11/11 đạt. E2E trình duyệt dùng DB tạm `wmsd_demo_bf05_e2e` (seed chuẩn `src/seeds` vào replica set cô lập, backend `PORT=3011`, frontend Vite `VITE_API_PROXY_TARGET=http://127.0.0.1:3011`); không dùng cổng 3001 vì có thể đang bị tunnel SSH chiếm.
+
 ## Migration Atlas receipts — 12/11/2026
 
 Migration được thực hiện bằng scripts/migrate-receipts-to-goods-receipts.mjs. Dry-run phát hiện 7 phiếu và 21 liên kết legacy. Apply đã đổi documentKind, giữ _id/documentNo, chuyển sourceType/subjectType/subjectCollection/documentType sang goods_receipts, tạo goods_receipts/uoms/conversions và index, xác minh referencesAfter=0 rồi drop 4 collection legacy. Kết quả Atlas wmsd_database: 58 collections; goods_receipts gồm PURCHASE=1, CUSTOMER_RETURN=1, FAILED_DELIVERY=1, TRANSFER=4; purchase_receipts/customer_return_receipts/failed_delivery_receipts/transfer_receipts không còn. Script yêu cầu đúng database name và cờ --allow-atlas; chạy lại idempotent.

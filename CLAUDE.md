@@ -7,7 +7,7 @@ This file must be byte-for-byte identical to AGENTS.md, CLAUDE.md and GEMINI.md 
 1. Read [context.md](context.md) and [git_doc/PROJECT_GUIDE.md](git_doc/PROJECT_GUIDE.md).
 2. Read [git_doc/MODEL_MAP.md](git_doc/MODEL_MAP.md), the relevant approved review sheets and the exact source/test files for the task.
 3. Read [git_doc/DOCUMENTATION_RULES.md](git_doc/DOCUMENTATION_RULES.md). The documentation index is [git_doc/README.md](git_doc/README.md).
-4. When changing an API/DTO/permission contract consumed by the frontend, inspect its context and consumer too. The paired local checkout is `../fe`; on another machine locate the actual FE checkout rather than assuming a broken path.
+4. When changing an API/DTO/permission contract consumed by the frontend, inspect its context and consumer too. The paired local checkout in this workspace is `../frontend`; on another machine locate the actual frontend checkout rather than assuming a broken path.
 
 ## Authority and scope
 

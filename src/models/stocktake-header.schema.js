@@ -9,6 +9,7 @@ import {
 import { id, opt, revision, warehouse } from "./schema-helpers.js";
 
 import { createStocktakeHeaderScopeSchema } from "./stocktake-header-scope.schema.js";
+import { createStocktakeResolutionPlanSelectedCountsSchema } from "./stocktake-resolution-plan-selected-counts.schema.js";
 
 // Embedded schema; no standalone collection.
 export function createStocktakeHeaderSchema() {
@@ -28,6 +29,9 @@ export function createStocktakeHeaderSchema() {
     scopeVersion: revision(),
     scope: createStocktakeHeaderScopeSchema(),
     assignedCounterIds: refs("User"),
+    selectedCounts: [createStocktakeResolutionPlanSelectedCountsSchema()],
+    lastReconciledBy: ref("User", false),
+    lastReconciledAt: date(false),
     activatedBy: ref("User", false),
     activatedAt: date(false),
     closedBy: ref("User", false),

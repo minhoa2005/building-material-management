@@ -1,3 +1,4 @@
+> 13/11/2026: [Vòng đời kiểm kê BF-05](docs/08_api/STOCKTAKE_LIFECYCLE.md) là hợp đồng hiện hành cho các lệnh kiểm kê trước bước chốt UC-93.
 > 12/11/2026: [Phạm vi HieuDT 20 UC mới](docs/08_api/HIEUDT_WAREHOUSE_SCOPE.md) theo bảng người dùng: kho/vị trí, tồn, BF03, BF04, đối soát và nhật ký. Đây là nguồn đối chiếu phạm vi hiện tại; các khả năng 18 UC trước vẫn được giữ. Native warehouse-stock thay route demo, không fallback dữ liệu mẫu.
 
 > 11/11/2026: BF03 dùng bảng chọn hàng theo kho/vị trí, chỉ số nguyên thùng/viên; không tự mở thùng. Luồng tạo/sửa kiểm quy cách ngay trước lưu. Thử đơn vị/quy đổi trên DB local riêng và chờ người dùng kiểm tra trước triển khai lên wmsd_database.

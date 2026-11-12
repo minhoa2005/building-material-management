@@ -1,0 +1,12 @@
+{
+  "$schema": "https://pi.dev/schemas/settings.schema.json",
+  "extensions": [
+    "../../.pi/extensions/project-rules.ts"
+  ],
+  "skills": [
+    "../../.agents/skills"
+  ],
+  "prompts": [
+    "../../.pi/prompts"
+  ]
+}

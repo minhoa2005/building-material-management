@@ -4266,6 +4266,11 @@ Model: [stocktake.model.js](../../../../src/models/stocktake.model.js).
 | `header.scope.productIds` | Array | false |  |
 | `header.scope.areaCodes` | Array | false |  |
 | `header.assignedCounterIds` | Array | false |  |
+| `header.selectedCounts` | Array | false | Cặp snapshot/lần đếm được chọn khi đối chiếu (13/11/2026) |
+| `header.selectedCounts[].snapshotId` | ObjectId | true | StocktakeSnapshot |
+| `header.selectedCounts[].countId` | ObjectId | true | StocktakeCount |
+| `header.lastReconciledBy` | ObjectId | false | User |
+| `header.lastReconciledAt` | Date | false | Xóa khi có lần đếm mới; chốt yêu cầu đã đối chiếu |
 | `header.activatedBy` | ObjectId | false | User |
 | `header.activatedAt` | Date | false |  |
 | `header.closedBy` | ObjectId | false | User |
