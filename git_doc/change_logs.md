@@ -1,4 +1,10 @@
 
+## 12/11/2026 - Bật kiểm thử tích hợp trả hàng trong CI backend
+
+Thêm `RUN_RETURNS_NATIVE_TESTS=1` vào bước coverage và cập nhật [hướng dẫn chạy CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Suite trả hàng dùng database `returns_test_*` tạm trên replica set loopback `rs0`.
+
+Chạy local `npm run test:coverage` với cấu hình mới cho kết quả 192 đạt, 0 lỗi và 32 bỏ qua. `diff-cover` đạt 87% trên các dòng `src/**` thay đổi so với `origin/main`, tăng từ 78% với cấu hình cũ. Kết quả đo trên Windows với MongoDB 8.3.11. Cần lượt chạy GitHub Actions để xác nhận trên Ubuntu với MongoDB 8.0.
+
 ## 12/11/2026 — Ghép main vào FE minhtd
 
 Gộp ghi chú kho, điều chuyển và nhập kho trong context FE. RTM giữ minh chứng của hai nhánh cho các UC tương ứng. Luồng điều chuyển dùng form lập phiếu nhập tập trung và giữ các thao tác xử lý chênh lệch.
