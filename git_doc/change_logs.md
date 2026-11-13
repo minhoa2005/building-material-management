@@ -1,3 +1,9 @@
+## 14/11/2026 - Việt hóa mã và tên đơn vị tính
+
+- Seed mẫu v11 dùng `Viên`, `Thùng` và `Mét vuông` cho cả mã và tên. `Mét vuông` có `areaMm2` Decimal128 bằng 1000000.
+- Đồng bộ riêng 5 mục UOM trên MongoDB local `wmsd_demo_tile_shop_v9`. Hai mục trùng được ngừng sử dụng và giữ ID. Đọc lại danh mục và kiểm tra đủ 81 tham chiếu quy đổi sau khi ghi.
+- Kiểm tra 29 ca seed, quy đổi diện tích và backfill. Xem [hướng dẫn seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md).
+
 ## 14/11/2026 - Độ đậm tiêu đề kiểm hàng
 
 - Quy tắc typography FE cho phép độ đậm 700; tiêu đề “Theo dõi tình trạng” trên trang tạo và chi tiết kiểm hàng dùng độ đậm này.

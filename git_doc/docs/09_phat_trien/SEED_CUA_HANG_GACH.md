@@ -1,6 +1,6 @@
 # Dữ liệu mô phỏng cửa hàng gạch ốp lát
 
-Bản seed BE `wmsd-tile-shop-20261109-v10` dựng 58 collection và 702 bản ghi mẫu. Người dùng sẽ tự chạy seed trên DB test sau khi đợt BE hoàn tất. Các tên, giá và số đo là dữ liệu tổng hợp. Bằng chứng là PNG test và SMTP không gửi thật. [Sản phẩm, lô và thùng](../03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md).
+Bản seed BE `wmsd-tile-shop-20261114-v11` dựng 58 collection dữ liệu mẫu. Các tên, giá và số đo là dữ liệu tổng hợp. Bằng chứng là PNG test và SMTP không gửi thật. [Sản phẩm, lô và thùng](../03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md).
 
 ## Mở trong Compass
 
@@ -58,5 +58,9 @@ npm run docs:check
 ```
 
 Lệnh xem trước không cần MongoDB. Lệnh seed tạo target mới hoặc xác minh đúng target đã seed cùng version. Khi bộ đã seed bị sửa, công cụ từ chối ghi đè. Khi thay nội dung seed, tăng version và chọn một target local mới hoặc chuẩn bị kế hoạch chuyển rõ ràng. Không drop DB để làm test pass.
+
+### Đồng bộ danh mục UOM trên DB local hiện có
+
+Ngày 14/11/2026, DB `mongodb://localhost:27017/wmsd_demo_tile_shop_v9` được đồng bộ riêng collection `uoms` trong một transaction. Ba mục đang dùng là `Viên`, `Thùng` và `Mét vuông`. Các mục trùng từ `PIECE` và `BOX` được đổi mã và tên thành `Viên (cũ)`, `Thùng (cũ)` rồi ngừng sử dụng. Kiểm tra trước khi ghi không thấy mã cũ được lưu dưới dạng chuỗi ở các collection khác. Việc giữ nguyên ID bảo toàn cả 81 tham chiếu từ `conversions`, đã kiểm tra lại sau khi ghi. `npm run seed` chỉ seed toàn bộ khi DB trống.
 
 Đã bổ sung test category và kiểm liên kết. [Seed local v8](../../outputs/categories_v8_local_seed_2026-11-06.json); [Atlas v8](../../outputs/categories_v8_atlas_deployed_2026-11-06.json); [hướng dẫn category](CATEGORIES_V8.md). Các test này kiểm dữ liệu/model, không phải chứng nhận API/FE đã chuyển hoàn tất.
