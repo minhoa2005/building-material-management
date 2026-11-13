@@ -7,8 +7,10 @@ import { dto, serialize } from '../../shared/utils/persistence.js';
 import { escapeRegex } from '../../shared/utils/domain.js';
 import { command, checkVersion, saveVersion, same } from '../../shared/utils/document-command.js';
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
-import { sourceContext, locationAt, guardLocations, pendingTaskQuantity, beginStock, balanceAt, moveStock, verifyCapacity } from '../../shared/utils/stock.js';
+import { sourceContext, locationAt, guardLocations, pendingTaskQuantity, beginStock, balanceAt, moveStock, verifyCapacity, splitPortions } from '../../shared/utils/stock.js';
 import { findPurchase, newDocument, replayPurchase } from './purchase-core.js';
+
+const looseOf=portions=>portions.filter(p=>p.packagingState!=='SEALED').reduce((n,p)=>n.plus(String(p.quantityBase)),exact('0')).toFixed();
 
 export function purchaseWarehouseFilter(user, id) {
   const all = isOwner(user) || currentRole(user)?.code === 'ACCOUNTANT';
@@ -90,13 +92,16 @@ const lotLabels=async items=>new Map((await ProductBatch.find({_id:{$in:items.ma
 export async function putawayContext(user,id){
   requirePermission(user,'putaway_task:read');const gr=await receipt(id,user);const quantities=await placementQuantities(gr);
   const balances=await InventoryBalance.find({_id:{$in:quantities.map(q=>q.sourceBalanceId).filter(Boolean)}}).lean(),labels=await lotLabels(gr.items);
+  const cartons=new Map((await ProductBatch.find({_id:{$in:gr.items.map(i=>i.lotId).filter(Boolean)}}).select('piecesPerCarton').lean()).map(b=>[String(b._id),b.piecesPerCarton]));
   return serialize({receiptId:id,receiptVersion:gr.version,locations:await WarehouseLocation.find({warehouseId:gr.header.warehouseId,locationType:'STORAGE',isActive:true}).lean(),
     tasks:await TransferOrder.find({'sources.subjectCollection':'goods_receipts','sources.documentId':gr._id}).lean(),
-    items:gr.items.map(i=>({...dto(i),lotLabelSnapshot:i.lotLabelSnapshot??labels.get(String(i.lotId)),...quantities.find(q=>same(q.lineId,i._id)),sourceBalanceVersion:balances.find(b=>same(b._id,quantities.find(q=>same(q.lineId,i._id))?.sourceBalanceId))?.version}))});
+    items:gr.items.map(i=>{const q=quantities.find(q=>same(q.lineId,i._id)),balance=balances.find(b=>same(b._id,q?.sourceBalanceId));
+      return {...dto(i),lotLabelSnapshot:i.lotLabelSnapshot??labels.get(String(i.lotId)),...q,sourceBalanceVersion:balance?.version,
+        piecesPerCarton:cartons.get(String(i.lotId)),looseQtyBase:looseOf(balance?.packagingPortions??[])};})});
 }
 export function createPutaway(user,id,input){return command(user,'CREATE_PURCHASE_PUTAWAY','putaway_task:create',id,input,replayPurchase,async(session,actor)=>{
   const gr=await findPurchase(id,actor,session,{kind:'GR_PURCHASE'});checkVersion(gr,input.expectedVersion);if(gr.workflowStatus!=='POSTED')throw validationError('Phiếu nhập chưa ghi tồn');
-  const quantities=await placementQuantities(gr,session),items=[],used=new Map(),totals=new Map();
+  const quantities=await placementQuantities(gr,session),items=[],used=new Map(),totals=new Map(),portions=new Map();
   for(const [index,row] of input.lines.entries()){
     const item=gr.items.id(row.receiptLineId),q=quantities.find(q=>same(q.lineId,row.receiptLineId));if(!item||!q?.sourceBalanceId)throw validationError('Không có nguồn dòng nhập');
     if (row.expectedPlacementVersion != null && q.placementVersion !== row.expectedPlacementVersion) throw versionConflict('Kế hoạch cất đã thay đổi');
@@ -104,7 +109,13 @@ export function createPutaway(user,id,input){return command(user,'CREATE_PURCHAS
     const qty=exact(row.qtyBase);if(!qty.gt(0)||(ctx.product.wholeBaseUnits&&!qty.isInteger()))throw validationError('Lượng cất không hợp lệ');
     const sum=(used.get(row.receiptLineId)||exact('0')).plus(qty);used.set(row.receiptLineId,sum);if(sum.gt(q.unplannedQtyBase))throw validationError('Kế hoạch vượt nguồn nhập còn lại');
     const total=(totals.get(String(ctx.balance._id))||exact('0')).plus(qty);totals.set(String(ctx.balance._id),total);
-    if(total.plus(await pendingTaskQuantity(ctx.balance._id,session)).gt(String(ctx.balance.quantityBase)))throw validationError('Tồn đã được lệnh khác giữ');
+    const pending=await pendingTaskQuantity(ctx.balance._id,session);
+    if(total.plus(pending).gt(String(ctx.balance.quantityBase)))throw validationError('Tồn đã được lệnh khác giữ');
+    // Fail at planning what confirm would reject (no carton opening, loose lot moves whole).
+    // shortcut: skipped while other tasks hold this balance (their split order is unknown), confirm stays authoritative.
+    if(pending.isZero()){const key=String(ctx.balance._id);
+      try{portions.set(key,splitPortions(portions.get(key)??ctx.balance.packagingPortions,qty,actor._id).kept);}
+      catch(error){throw validationError(`${error.message} (${ctx.batch.piecesPerCarton} viên/thùng, phần lẻ còn ${looseOf(portions.get(key)??ctx.balance.packagingPortions)} viên chỉ cất trọn sau các thùng nguyên)`);}}
     items.push(copyItem(item,qty.toFixed(),{lineNo:index+1,lineKind:'WAREHOUSE_TASK',sources:[sourceLink(gr,item,qty.toFixed(),'PURCHASE_PUTAWAY')],
       details:{fromLocationId:ctx.location._id,toLocationId:row.toLocationId,sourceBalanceId:ctx.balance._id,sourceBalanceVersion:ctx.balance.version,qualityCode:ctx.balance.qualityStatus,ownerType:ctx.balance.ownerType,ownerId:ctx.balance.ownerId}}));
   }

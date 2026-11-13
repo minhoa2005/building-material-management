@@ -1,3 +1,11 @@
+## 13/11/2026 - Lệnh cất hàng kiểm quy tắc nguyên thùng ngay khi lập lệnh
+
+- **Lý do**: trước đây chỉ `confirmPutaway` (qua `splitPortions`) mới từ chối lượng cắt thùng, nên lệnh như 540 + 510 (100 viên/thùng, lẻ 50) lập được rồi lỗi lúc xác nhận.
+- **BE**: `purchase-putaway.service.js` — `createPutaway` mô phỏng `splitPortions` trên quy cách tồn nguồn cho từng dòng và trả lỗi kèm viên/thùng và phần lẻ còn lại; bỏ qua khi tồn nguồn còn lệnh cất khác đang mở (thứ tự tách chưa biết, `confirm` vẫn kiểm cuối). `putawayContext` thêm `piecesPerCarton`, `looseQtyBase`. Không đổi model, không cần migration.
+- **FE**: `PutawayTaskDetailPage` thêm cột "Quy cách" và kiểm bội số thùng (hoặc cộng trọn phần lẻ) trước khi gửi; hàm `cartonSplitError` ở `return-workflows/quantity.ts`. FE không biết thứ tự thùng/lẻ nên vẫn có ca chỉ BE từ chối (ví dụ chỉ cất phần lẻ khi còn thùng nguyên).
+- Cập nhật [NATIVE_MODEL_RUNTIME.md](docs/08_api/NATIVE_MODEL_RUNTIME.md).
+- Chưa chạy test tích hợp BE (cần MongoDB replica set).
+
 ## 13/11/2026 - Bỏ "Người bàn giao" khỏi phiếu tạm giữ, gộp chứng từ nguồn
 
 - **Quyết định**: theo yêu cầu người dùng, `header.handedOverBy` chưa rõ nghiệp vụ nên tạm không bắt buộc; không đổi model (trường vẫn là chuỗi tùy chọn tối đa 160 ký tự).
