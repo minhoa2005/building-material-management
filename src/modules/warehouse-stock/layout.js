@@ -9,7 +9,8 @@ import { rectanglesOverlap, applicationIssues } from './layout-geometry.js';
 const point = z.object({ x: z.number().finite().min(0).max(1000), y: z.number().finite().min(0).max(1000) }).strict();
 const id=z.string().trim().min(1).max(80),name=z.string().trim().min(1).max(120),size=z.number().finite().min(0.01).max(1000);
 const palletPlan=z.object({rows:z.number().int().min(1).max(100),columns:z.number().int().min(1).max(100),palletWidth:size,palletLength:size,gap:z.number().min(0).max(100),margin:z.number().min(0).max(100)}).strict();
-const slotSchema=z.object({id,name,x:z.number().finite().min(0).max(1000),y:z.number().finite().min(0).max(1000),width:size,length:size,palletPlan:palletPlan.optional()}).strict();
+const palletSchema=z.object({id:id,code:name,x:z.number().finite().min(0).max(1000),y:z.number().finite().min(0).max(1000),width:size,length:size,baseHeight:size,stackHeight:z.number().min(0).max(100),actualHeight:z.number().min(0).max(100).optional(),planned:z.boolean().optional()}).strict();
+const slotSchema=z.object({id,name,x:z.number().finite().min(0).max(1000),y:z.number().finite().min(0).max(1000),width:size,length:size,palletPlan:palletPlan.optional(),pallets:z.array(palletSchema).max(100).optional()}).strict();
 const zoneSchema=z.object({id,name,x:z.number().finite().min(-1000).max(1000),y:z.number().finite().min(-1000).max(1000),width:size,length:size,rotation:z.number().finite().min(-360).max(360),color:z.string().regex(/^#[0-9a-fA-F]{6}$/),functionId:z.union([id,z.literal('')]),maxHeight:z.number().positive().max(100).optional(),slots:z.array(slotSchema).max(500)}).strict();
 export const layoutSchema = z.object({
   points: z.array(point).min(3).max(100),
@@ -32,6 +33,9 @@ export const layoutSchema = z.object({
   if(new Set(functions.map(f=>f.id)).size!==functions.length||new Set(functions.map(f=>f.name.toLocaleLowerCase('vi'))).size!==functions.length)fail('Chức năng bị trùng mã hoặc tên');
   if(new Set(zones.map(zone=>zone.id)).size!==zones.length)fail('Mã khu vực bị trùng');
   const allSlots=zones.flatMap(zone=>zone.slots);
+  const allPallets=allSlots.flatMap(slot=>slot.pallets||[]);
+  if(new Set(allPallets.map(pallet=>pallet.id)).size!==allPallets.length||new Set(allPallets.map(pallet=>pallet.code.toLocaleLowerCase('vi'))).size!==allPallets.length)fail('Mã pallet bị trùng');
+  allSlots.forEach(slot=>{(slot.pallets||[]).forEach(pallet=>{if(pallet.x<0||pallet.y<0||pallet.x+pallet.width>slot.width+1e-7||pallet.y+pallet.length>slot.length+1e-7)fail(`Pallet ${pallet.code} nằm ngoài ô ${slot.name}`);if((pallet.actualHeight??pallet.baseHeight+pallet.stackHeight)>100)fail(`Chiều cao pallet ${pallet.code} không hợp lệ`);});});
   if(allSlots.length>2000||new Set(allSlots.map(slot=>slot.id)).size!==allSlots.length)fail('Ô bị trùng mã hoặc vượt giới hạn 2000 ô');
   zones.forEach((zone,index)=>{
     if(zone.functionId&&!functions.some(f=>f.id===zone.functionId))fail(`Chức năng của khu vực ${zone.name} không tồn tại`);
@@ -59,7 +63,7 @@ export async function saveLayout(user,id,input) {
   return transaction(async session => {
     const previous=await Warehouse.findOne({_id:id,updatedAt:new Date(input.expectedUpdatedAt)}).session(session);
     if(!previous)throw validationError('Kho đã thay đổi hoặc không tồn tại. Hãy tải lại trước khi lưu.');
-    if(JSON.stringify(previous.layout3d?.functions||[])!==JSON.stringify(input.layout.functions||[]))requirePermission(user,'access_control:update');
+    if(JSON.stringify(previous.layout3d?.functions||[])!==JSON.stringify(input.layout.functions||[]))requirePermission(user,'warehouse_layout_function:update');
     const issues=applicationIssues(input.layout);
     if(input.apply&&issues.length)throw validationError(issues.join(' '));
     const timestamp=new Date(Math.max(Date.now(),Date.parse(input.expectedUpdatedAt)+1));

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## 13/11/2026 - Lệnh cất hàng kiểm quy tắc nguyên thùng ngay khi lập lệnh
 
 - **Lý do**: trước đây chỉ `confirmPutaway` (qua `splitPortions`) mới từ chối lượng cắt thùng, nên lệnh như 540 + 510 (100 viên/thùng, lẻ 50) lập được rồi lỗi lúc xác nhận.
@@ -7,114 +8,11 @@
 - Chưa chạy test tích hợp BE (cần MongoDB replica set).
 
 ## 13/11/2026 - Bỏ "Người bàn giao" khỏi phiếu tạm giữ, gộp chứng từ nguồn
+=======
+12/11/2026: Kho 3D chặng pallet thêm pallets[] trong ô, nhập mã/kích thước/đế/chiều cao hàng, màu cảnh báo khi vượt giới hạn khu vực/kho trên 2D/3D; BE kiểm pallet nằm trong ô, mã không trùng và height vượt limit chặn apply nhưng cho lưu draft. Chưa liên kết sản phẩm/lô hoặc tồn. Thêm test warehouse-pallets. FE typecheck/lint và test pallet đang kiểm; chưa browser trực quan.
+>>>>>>> b8d456a4c74150b40913f82d56e95db2c6b37106
 
-- **Quyết định**: theo yêu cầu người dùng, `header.handedOverBy` chưa rõ nghiệp vụ nên tạm không bắt buộc; không đổi model (trường vẫn là chuỗi tùy chọn tối đa 160 ký tự).
-- **BE**: `po-receiving.routes.js` — `handedOverBy` của `POST /custody-receipts/:id/post` là `nullish`, tối đa 160 ký tự; `po-receiving.service.js` lưu `undefined` khi trống. Phiếu cũ đã có giá trị giữ nguyên.
-- **FE**: `CustodyDetailPage` bỏ ô nhập/hiển thị "Người bàn giao", nút ghi nhận không còn phụ thuộc trường này; `custodyApi.ts` bỏ `handedOverBy` khỏi body. Hai mục "Đơn mua hàng" và "Biên bản kiểm nguồn" gộp thành một mục "Chứng từ nguồn" gồm hai liên kết (đơn mua nay cũng bấm được).
-- Cập nhật [GOODS_RECEIPTS.md](docs/08_api/GOODS_RECEIPTS.md) và [NATIVE_MODEL_RUNTIME.md](docs/08_api/NATIVE_MODEL_RUNTIME.md).
-- Kiểm tra: `node --check` hai file BE, vitest `features/custody` (5 ca) và `tsc --noEmit` không lỗi ở `custody`. Chưa chạy test tích hợp BE; chưa kiểm tra trên giao diện thật.
-
-## 13/11/2026 - Biên bản kiểm hàng hiển thị số lô thay vì id lô
-
-- **BE**: `purchase-read.service.js` — `enriched` bổ sung `lotLabelSnapshot` (tra `product_batches.manufacturerLot`) cho dòng chứng từ có `lotId` nhưng chưa có nhãn; dòng của `goods_inspections` không lưu nhãn này nên trước đây FE rơi về `lotId`. Chỉ thêm trường đọc, không đổi model, không cần migration; áp dụng cho chi tiết kiểm hàng, phiếu nhập mua và phiếu giữ hộ.
-- Kiểm tra: `node --check`. Chưa chạy test tích hợp BE hay kiểm tra trên giao diện.
-
-## 13/11/2026 - Đồng bộ trang tạo lô `/lots/create` với API `POST /api/lots`
-
-- **BE**: `lot.service.js` — `createLot` ánh xạ lỗi trùng chỉ mục `productId + manufacturerLot` (E11000) sang 409 `ERR-CORE-409-002` thay vì để lọt thành lỗi 500. Không đổi model, DTO hay quyền; không cần migration.
-- **FE**: `lotsApi.ts` — `CreateLotInput` khớp `createLotSchema` (strict): bỏ `tone`, `calibre`, `verificationReference`, `notes` (BE không có và sẽ từ chối); bắt buộc `piecesPerCarton`, `cartonLengthMm`, `cartonWidthMm`, `cartonHeightMm`; bỏ các giá trị mặc định ngầm (1 viên, 100 mm). `LotCreatePage.tsx` thêm khối "Quy cách thùng", bỏ các ô không có ở BE.
-- Kiểm tra: `node --check lot.service.js`, vitest `LotCreatePage.test.tsx` (4 ca) và `tsc --noEmit` không báo lỗi ở `features/lots`. Chưa chạy test tích hợp BE (cần MongoDB replica set).
-- Còn lại: trang chi tiết/sửa/danh sách lô vẫn hiển thị `tone`, `calibre`, `product` mà BE chưa trả; chưa xử lý trong lần này.
-
-## 13/11/2026 - Lệnh cất hàng hiển thị tên kho và số lô thay vì _id
-
-- **BE**: `purchase-putaway.service.js` — `getPutaway` trả `header.warehouseName`; `getPutaway` và `putawayContext` trả `lotLabelSnapshot` (ưu tiên giá trị trên dòng, nếu thiếu lấy `product_batches.manufacturerLot`). Chỉ thêm trường đọc, không đổi model, không cần migration.
-- **FE**: `PutawayTaskDetailPage` hiển thị `warehouseName` ở "Kho thực hiện" và `lotLabelSnapshot` ở "Số lô"; bỏ fallback về `lotId`.
-- Kiểm tra: truy vấn read-only trên DB thật cho lệnh cất hiện có (tên kho và mã lô tra ra đúng), `node --check`, `tsc --noEmit` và vitest `putaway-tasks` đạt. Chưa chạy test tích hợp BE.
-
-## 13/11/2026 - Tìm kiếm lệnh cất và phiếu chờ cất
-
-- Theo yêu cầu bổ sung tìm kiếm ở BE, các route danh sách trong `po-receiving` nhận `q` và lọc theo đoạn mã chứng từ trước phân trang. Quyền đọc và phạm vi kho áp dụng như trước.
-- Cập nhật [hợp đồng GoodsReceipt](docs/08_api/GOODS_RECEIPTS.md) để FE tích hợp. Không cần migration.
-- Ca tích hợp nhập mua và cất một phần đã chạy trên replica set local, kiểm tra kết quả tìm kiếm ở cả hai danh sách. `npm run docs:check` đã đạt.
-
-## 13/11/2026 - Tinh chỉnh UI nhập kho và sửa lỗi tra cứu lệnh cất hàng
-
-- **FE**:
-  - Sửa lỗi UI tab đơn mua hàng chi tiết (`/purchase-orders/:id`): chuyển sang dùng `Tabs` từ `@shared/ui` và khôi phục viền dưới/padding trong `@shared/components/Tabs.tsx`.
-  - Thiết kế lại bộ lọc trạng thái `/inspections` từ `Radio.Group` sang `Tabs` có gạch chân active theo mẫu thiết kế, tách thanh tìm kiếm và bộ đếm tổng số, căn chỉnh khoảng cách các cột bảng.
-  - Xóa nền trắng thanh nút lưu/chốt tại `/inspections/create`; tăng cỡ chữ và bỏ làm mờ nhãn theo dõi tình trạng.
-  - Bọc bảng danh sách và phân trang tại `/receipts` và `/putaway-tasks` vào container trắng (`rounded-lg border border-slate-200 bg-white p-4 space-y-4`).
-  - Sửa lỗi 404 "Không tìm thấy dữ liệu" tại `/putaway-tasks/:id` bằng cách bỏ gọi `useGetPutawayContextQuery` khi ở chế độ xem và dùng `useGetWarehouseLocationsQuery`.
-  - Chuẩn hóa khoảng cách giữa các khối (`PageContainer` `space-y-6 p-6`, `gap-6`, `gap-4`, `gap-2` theo `DESIGN.md`) và giữ margin `.space-y-*` trong `fe/src/index.css` trên toàn bộ các trang `/purchase-orders`, `/replenishments`, `/inspections`, `/receipts`, `/putaway-tasks`, `/custody-receipts` và các trang con.
-  - Đưa `<Tabs>` lọc trạng thái tại `/inspections` xuống dưới thanh tìm kiếm; bỏ nền trắng khỏi vùng filter tại `/custody-receipts`, `/receipts`, `/inspections`, `/purchase-orders`.
-  - Đồng bộ vị trí các nút hành động xuống dưới `PageHeader`: nút quay lại (`variant="outline"`) nằm bên trái, các nút hành động còn lại nằm bên phải.
-- **BE**:
-  - `purchase-core.js`: Cập nhật `findPurchase` hỗ trợ tra cứu chứng từ bằng cả `_id` và `documentNo`, tránh CastError khi client truyền mã dạng `TO-202610-001`.
-  - `purchase-putaway.service.js`: Hỗ trợ lệnh cất hàng liên kết từ yêu cầu điều chuyển nội bộ (`internal_transfer_requirements`) bên cạnh `goods_receipts`, giải quyết `receiptId` mà không bị chặn 404.
-- Cập nhật `ai-log.md` và `rtm.md` ở cả frontend và backend.
-
-## 12/11/2026 - Bổ sung quy tắc cỡ chữ, màu và khoảng cách cho frontend
-
-[DESIGN.md](../../fe/DESIGN.md) thêm bảng khoảng cách, chiều cao control, bo góc, type scale theo vai trò, quy tắc vai trò màu chữ, màu trạng thái và ngưỡng contrast WCAG 2.2 AA. Mục phạm vi liệt kê các vi phạm hiện có để công việc mới không làm tăng thêm. [AGENTS.md](../../fe/AGENTS.md) yêu cầu đọc và tuân thủ DESIGN.md trước khi làm giao diện.
-
-Chỉ thay đổi tài liệu. Tỉ lệ contrast tính từ mã hex trong `colors.ts`, chưa đo trên giao diện chạy thật.
-
-
-## 12/11/2026 - Đồng bộ đơn vị tính trong dữ liệu mẫu
-
-Seed cửa hàng gạch và BF03 dùng Viên, Thùng và Mét vuông (mã `M2`). Seed mới tạo một quy đổi thùng trên mỗi lô đã xác minh. Các form sản phẩm và bổ sung hàng nhận diện đơn vị thùng bằng `isCarton`. Snapshot đóng gói mặc định dùng “Thùng”. [Seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md) và [hợp đồng quy đổi](docs/08_api/CONVERSIONS.md).
-
-Nạp và đọc lại seed trên DB replica set loopback tạm xác nhận 58 collection, 702 bản ghi, 38 quy đổi thùng và đầy đủ tham chiếu UOM. Bộ kiểm thử seed, catalogue và API native đạt 44/44. DB đang dùng chưa được cập nhật.
-
-## 12/11/2026 - Sửa lỗi lịch sử quy đổi trên chi tiết sản phẩm
-
-Theo yêu cầu sửa lỗi đọc `_id`, bộ chuyển đổi response giữ dòng lịch sử khi không tìm thấy đơn vị tính. [Hợp đồng quy đổi](docs/08_api/CONVERSIONS.md) mô tả `uom: null` và nhãn hiển thị tương ứng. Bản sửa chỉ đổi cách đọc và hiển thị dữ liệu.
-
-Kiểm thử tích hợp API native đạt 18/18 trên replica set loopback, gồm trường hợp quy đổi còn lưu tham chiếu đơn vị bị thiếu. Kiểm tra HTTP chỉ đọc trên backend đang chạy trả 200 cho chi tiết và lịch sử của 18 sản phẩm. Hai ca kiểm thử giao diện Product Detail đạt, gồm hiển thị dòng quy đổi có `uom: null`.
-
-## 12/11/2026 - Bật kiểm thử tích hợp trả hàng trong CI backend
-
-Thêm `RUN_RETURNS_NATIVE_TESTS=1` vào bước coverage và cập nhật [hướng dẫn chạy CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md). Suite trả hàng dùng database `returns_test_*` tạm trên replica set loopback `rs0`.
-
-Chạy local `npm run test:coverage` với cấu hình mới cho kết quả 192 đạt, 0 lỗi và 32 bỏ qua. `diff-cover` đạt 87% trên các dòng `src/**` thay đổi so với `origin/main`, tăng từ 78% với cấu hình cũ. Kết quả đo trên Windows với MongoDB 8.3.11. Cần lượt chạy GitHub Actions để xác nhận trên Ubuntu với MongoDB 8.0.
-
-## 12/11/2026 — Ghép main vào FE minhtd
-
-Gộp ghi chú kho, điều chuyển và nhập kho trong context FE. RTM giữ minh chứng của hai nhánh cho các UC tương ứng. Luồng điều chuyển dùng form lập phiếu nhập tập trung và giữ các thao tác xử lý chênh lệch.
-
-## 12/11/2026 — Bỏ dấu cách quanh dấu nối mã chứng từ
-
-Theo yêu cầu người dùng, `document-number.js` cấp `_id = documentNo` theo mẫu `ĐBH-K-GACH-01-261112-000001`. Bộ cấp số tính cả mã có dấu cách và mã liền trong chứng từ và lịch sử thao tác. Mongoose và API tra cứu bằng giá trị đã lưu. Dữ liệu hiện có giữ nguyên, không cần migration. Cập nhật hợp đồng định danh, bản đồ model và từ điển dữ liệu.
-
-Kiểm thử định danh và cấp số đạt 5/5 trên replica set loopback, gồm đọc mã lịch sử, tiếp tục số từ lịch sử thao tác, cấp đồng thời và rollback. Bộ test backend đạt 128 ca và bỏ qua 77 ca theo cấu hình. Chạy riêng trên replica set, API native đạt 18/18 và retry transaction đạt 2/2.
-
-## 12/11/2026 — Luồng nhập kho tập trung và chứng từ liên kết
-
-- Theo kế hoạch phân hệ Nhập kho, bổ sung API danh sách gộp năm loại phiếu, chi tiết theo ID, sửa nháp phiếu khác, danh sách tạm giữ/lệnh cất và bộ lọc chứng từ đủ điều kiện. Xem [GoodsReceipt](docs/08_api/GOODS_RECEIPTS.md), [trả hàng](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) và [điều chuyển](docs/08_api/transfers/BF04_API.md).
-- FE nối bốn màn hình nhập kho với DTO và mã lệnh native. Nhập hàng khách trả, giao thất bại và điều chuyển chuyển về form phiếu nhập tập trung. Đơn mua liên kết biên bản kiểm, phiếu nhập, phiếu tạm giữ và lệnh cất.
-- Bổ sung bãi tiếp nhận tùy chọn trong dữ liệu dòng kiểm. Không có migration. Kiểm thử giao dịch dùng MongoDB loopback riêng và minh chứng tổng hợp.
-- Cập nhật AI log và RTM của BE và FE, bổ sung bằng chứng cho UC-16 tạo phiếu nhập mua và UC-46 xác nhận cất hàng. Ghi rõ phạm vi kiểm thử local và việc dùng kho minh chứng mô phỏng.
-
-## 12/11/2026 — Thông tin ghi sổ trên chi tiết phiếu nhập mua
-
-- [API chi tiết phiếu nhập mua](docs/08_api/GOODS_RECEIPTS.md#chi-tiết-phiếu-nhập-mua) bổ sung tên NCC, kho và người ghi sổ sau khi kiểm phạm vi đọc. `header.postedAt` và `header.postedBy` lấy từ dữ liệu ghi sổ đã lưu cùng giao dịch tồn. Phiếu cũ dùng dữ liệu hiện có, không cần migration.
-- Receipt Detail hiển thị tên NCC, kho, giờ ghi sổ theo giờ Việt Nam và họ tên người ghi sổ từ API chi tiết. Các giá trị thiếu hiển thị `—`.
-- Hai suite tích hợp BE trên MongoDB loopback đạt 19/19, gồm kiểm tra dữ liệu trả về sau ghi sổ thực. Các suite FE liên quan đạt 19/19, gồm hiển thị dữ liệu với quyền đọc phiếu.
-- Bổ sung thông tin hàng đến từ chứng từ nguồn và nhãn lô từ dòng nguồn khớp lô. FE tách tên và SĐT từ giá trị đã lưu trong `deliveredBy`, ghép chất lượng kiểm nhận và nhãn lô với tiến độ theo ID dòng phiếu. Kiểm tra HTTP chỉ đọc trên phiếu gặp lỗi xác nhận đủ dữ liệu giao hàng, chất lượng `GOOD`, nhãn lô và lượng đã xếp `5`.
-
-12/11/2026: hoàn thành thiết kế lại trang chi tiết phiếu nhập kho /receipts/:id theo kế hoạch:
-- Gom thao tác vào PageHeader (tiêu đề hiển thị số phiếu và Tag trạng thái; breadcrumb về /receipts; nút chính Xác nhận nhập kho cho DRAFT hoặc Lập phiếu xếp kệ cho POSTED; nút phụ Mở đơn mua; menu ⋯ ActionDropdown gồm Làm mới, Hủy phiếu/Đảo phiếu).
-- Hủy phiếu nháp chuyển sang Modal yêu cầu nhập lý do bắt buộc với validation không gửi lệnh rỗng.
-- Thông tin chung dùng Descriptions (Đơn mua có link, Hàng đến định dạng ngày giờ, Người giao, SĐT giao, Số phiếu giao). Bỏ phiên bản và số dòng mặt hàng khỏi thẻ thông tin.
-- Gom toàn bộ thông báo vào vùng duy nhất dưới thông tin chung theo thứ tự ưu tiên (uncertain kết quả chưa xác định -> lỗi thao tác -> lỗi tải PO -> thông báo CANCELLED / REVERSED).
-- Thống nhất token màu giao diện theo DESIGN.md (text-text-main, text-text-secondary, text-text-muted, border-border-divider, bg-bg-card). Bảng dòng hàng gộp cột số lượng (qtyBase in đậm, enteredQty dòng phụ nếu khác).
-- Tách ReceiptPutawayWorkspace thành hook useReceiptPutaway và 3 component con (PutawayProgressTable, PutawayCreateForm, PutawayTaskWorkspace), giữ nguyên giao diện và hành vi khi nhúng trong đơn mua (TripReceiptTab và ReceivingTripDetail).
-- Khi phiếu POSTED và có quyền putaway_task:read, hiển thị Tabs: tab "Mặt hàng" với bảng gộp duy nhất và tab "Phiếu xếp kệ"; đồng bộ query ?tab=items|tasks; mở form lập phiếu xếp kệ trong Drawer 720px.
-- Kiểm tra đã thực hiện: TypeScript typecheck đạt (tsc --noEmit); ESLint đạt 0 lỗi trên các file sửa/tạo mới; Vitest 4/4 suites (21/21 tests pass) bao gồm toàn bộ test receipts và ReceivingStepperTabs.test.tsx không cần sửa đổi; kiểm tra giao diện responsive không cuộn ngang.
-- Chưa kiểm tra: chưa triển khai môi trường live production; chưa bổ sung tên nhà cung cấp, tên kho, ngày ghi sổ và người ghi sổ (chờ BE bổ sung hợp đồng DTO ReceivingDocument.header).
-
-12/11/2026: thêm kế hoạch thiết kế lại trang chi tiết phiếu nhập kho /receipts/:id tại fe/docs/po-receiving/ui/receipt-detail-redesign-plan.md (gom thao tác vào tiêu đề, hủy phiếu qua modal, gộp bảng dòng hàng với tiến độ xếp kệ, tách ReceiptPutawayWorkspace và tab cho phiếu đã nhập kho). Chỉ là tài liệu kế hoạch; chưa đổi code, API hay dữ liệu.
+12/11/2026: thêm permission warehouse_layout_function:update vào catalogue và role ADMIN; seed sync tự bổ sung permission còn thiếu trong DB rồi đồng bộ role. BE layout thay kiểm access_control:update bằng quyền riêng khi functions thay đổi. FE Kho 3D dùng quyền riêng để thêm/xóa chức năng khu vực; quyền sửa kho vẫn giữ warehouse_location:update. Không đổi quyền phân quyền role chung.
 
 12/11/2026: chuẩn bị commit/push theo lệnh người dùng: mỗi file một commit trên HieuDT, push HieuDT, gộp main vào HieuDT rồi gộp HieuDT vào main ở cả FE/BE. Rà diff gồm cấu hình mẫu PORT=3333 không chứa secret. Kiểm trước phát hành: FE 56 test liên quan và build đạt; BE suite mặc định 123 pass/91 skip/2 lỗi EACCES loopback trong sandbox, chạy lại đúng 2 test HTTP ngoài sandbox đạt 2/2. docs:check đạt. Các test tích hợp DB opt-in chưa chạy và chưa xác minh trực tiếp GPU/browser. Không triển khai/seed hoặc migration DB trong luồng Git này.
 
@@ -127,7 +25,6 @@ Kiểm thử định danh và cấp số đạt 5/5 trên replica set loopback, 
 12/11/2026: sửa UX bộ vẽ Kho 3D theo phản hồi: hướng dẫn 4 bước, zoom tại chuột và nút, pan pointer, kéo đỉnh (commit một bước hoàn tác), bấm điểm đầu khép kín; kiểm hình học/cửa trước bật Lưu và 3D, trạng thái lưu chưa có thiết kế chính xác, chữ/nút tương phản và nút Lưu xám khi disabled. Cập nhật IMPLEMENTATION và context FE. 7 test Kho 3D đạt; build/lint đạt; typecheck cuối và docs:check đạt. Không đổi API/DB. Chưa kiểm browser trực tiếp.
 
 12/11/2026: Kho 3D chặng 1 thêm warehouses.layout3d tùy chọn cho mặt bằng/tường/cửa; lưu qua PUT warehouse-catalogue/:id/layout với optimistic updatedAt, scope, transaction và audit. Không đổi collection/index hoặc tồn, không backfill/rollout DB. FE thêm Three.js, vẽ 2D theo kích thước và góc, dựng 3D có cửa, lưu/mở theo kho. Thực hiện gộp main BE với backup stash theo lựa chọn người dùng; giữ cả hai phía changelog. Hợp đồng và sơ đồ field: git_doc/docs/10_Kho3D/IMPLEMENTATION.md. FE build/lint và 9 test, BE 3 test hình học đạt; chưa kiểm DB transaction hoặc browser GPU. Các phần khu vực/ô/pallet còn tiếp theo.
-
 
 12/11/2026: gộp origin/main (định danh chứng từ _id=documentNo) vào nhánh minhtd (RR theo cảnh báo, bỏ replenishment guard). Giải quyết xung đột: xóa src/shared/utils/replenishment-guard.js theo minhtd; persistence.transaction giữ transactionContext, session.documentNumbers và retry tối đa 20 lần khi trùng mã chứng từ (lý do observability document_number_collision), bỏ retry warehouseId_1_productId_1 của guard; document-command bỏ retry document_sequences; createPurchaseOrder giữ cập nhật updatedAt của RR và await newDocument; replenishmentOptionsSchema dùng documentIdentifier cho requestId kèm thông báo lỗi tiếng Việt. Sửa test HTTP PO lifecycle (native-api) không ép _id PO sang ObjectId. Kiểm tra: RUN_NATIVE_API_TESTS=1 RUN_GOODS_RECEIPT_TESTS=1 npm test trên MongoDB local đạt 155 ca, 47 skip, 0 lỗi; npm run docs:check đạt.
 12/11/2026: theo yêu cầu người dùng, FE /warehouses chỉ hiển thị các kho; thêm /warehouses/:id xem thông tin và vị trí riêng của kho. Danh sách vị trí có warehouseId cố định từ URL, lọc và phân trang tại BE, không tải toàn bộ kho rồi lọc ở FE. Thêm vị trí chọn sẵn kho; chi tiết vị trí quay lại kho cha. Cập nhật context FE và HIEUDT_WAREHOUSE_SCOPE. Test pages kho 6/6 đạt, build, lint file liên quan và docs:check đạt. Chưa kiểm trực quan trên trình duyệt. Không đổi BE hoặc DB.
@@ -1220,6 +1117,3 @@ Bổ sung kiểm tra UX cùng lượt: đơn chuyển kho COMPLETED không hiể
 - Đổi config branding, header/logo, auth, nội dung trang, biểu mẫu in, tiêu đề email và CSV. index.html có title Tân Thương, meta description/application-name/Open Graph/Twitter, lang vi và viewport; public/erd.html đổi tên trang. README/context FE ghi vị trí cấu hình và phạm vi tương thích.
 - Không đổi API, model, email/tên đăng nhập hoặc các khóa localStorage; không migrate dữ liệu/ghi remote. Các định danh kỹ thuật lịch sử trong tài liệu vẫn giữ vai trò truy vết.
 - Kiểm chứng: build FE đạt, 11 tests auth/layout/logout/responsive đạt, diff check đạt; title tab và header đã hiển thị Tân Thương trong trình duyệt local.
-12/11/2026: fix native return stock consumption to preserve retained packaging subdocument IDs and immutable creation timestamps when earlier custody arrivals are consumed. Keep schema validation, transaction and version guards; add a multi-arrival receipt regression. The focused return-workflow contract and integration tests passed (23/23).
-
-12/11/2026: align Trung workflow list/detail components with minhtd's layout conventions: separate containers, shared search/filter drawer, status tabs, supporting-document tabs and responsive actions. API and permissions are unchanged. Focused workflow tests passed (26/26); changed-file lint, Vite build and local desktop/phone checks passed. See FE `docs/ai-log.md` for validation limits.

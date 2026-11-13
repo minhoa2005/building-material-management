@@ -4,8 +4,8 @@ import { exact } from '../../models/model-utils.js';
 import { freeQuantity } from '../../shared/utils/stock.js';
 import mongoose from 'mongoose';
 import { movementList } from '../../shared/utils/movement-list.js';
-import { WarehouseTransferRequest, TransferDispatch, TransferReceipt, InternalTransferRequirement, TransferOrder, ApprovalHistory, SalesOrder, WarehouseIssueRequest, SupplyAllocation, Warehouse, WarehouseLocation, StockHoldingPoint, InventoryBalance, ProductBatch, Product, StockDiscrepancy } from '../../models/runtime.js';
-import { requirePermission, requireWarehouseAccess, isOwner, hasPermission } from '../../shared/utils/access.js';
+import { WarehouseTransferRequest, TransferDispatch, TransferReceipt, InternalTransferRequirement, TransferOrder, ApprovalHistory, SalesOrder, WarehouseIssueRequest, SupplyAllocation, Warehouse, WarehouseLocation, StockHoldingPoint, InventoryBalance, ProductBatch, Product, Uom, StockDiscrepancy } from '../../models/runtime.js';
+import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto } from '../../shared/utils/persistence.js';
 import { notFoundError } from '../../shared/utils/ApiError.js';
@@ -32,57 +32,6 @@ export async function listTransfers(user,query){
   const result = await movementList(WarehouseTransferRequest, await scope(user), castQuery, ['header.sourceWarehouseId', 'header.destinationWarehouseId'], 'COMPLETED');
   return { ...result, items: await transferWarehouseDisplay(result.items) };
 }
-const dispatchWarehouseFields = ['header.sourceWarehouseId', 'header.destinationWarehouseId'];
-
-async function dispatchScope(user) {
-  const requestScope = await scope(user);
-  const requestIds = await WarehouseTransferRequest.find(requestScope).distinct('_id');
-  return { 'header.requestId': { $in: requestIds } };
-}
-
-export async function listDispatches(user, query) {
-  requirePermission(user, 'stock_transfer:read');
-  const receivable = query.receivable === 'true';
-  const sales = currentRole(user)?.code === 'SALES';
-  if (receivable) requirePermission(user, 'stock_transfer:receive');
-  const filter = await dispatchScope(user);
-  if (receivable) {
-    const requestIds = await WarehouseTransferRequest.find({
-      _id: filter['header.requestId'],
-      workflowStatus: 'APPROVED',
-      ...(!isOwner(user) && { 'header.destinationWarehouseId': { $in: user.warehouseIds ?? [] } }),
-    }).distinct('_id');
-    const dispatchFilter = { 'header.requestId': { $in: requestIds }, workflowStatus: 'POSTED', 'header.dispatchedBy': { $ne: user._id } };
-    const lineIds = await TransferDispatch.find(dispatchFilter).distinct('items._id');
-    const points = await StockHoldingPoint.find({ dispatchLineId: { $in: lineIds }, type: 'IN_TRANSIT' }).select('dispatchLineId').lean();
-    const balances = await InventoryBalance.find({ holdingPointId: { $in: points.map(point => point._id) },
-      ownerType: 'STORE', qualityStatus: 'GOOD', quantityBase: { $gt: 0 } }).distinct('holdingPointId');
-    const remainingPoints = new Set(balances.map(String));
-    const remainingLines = points.filter(point => remainingPoints.has(String(point._id))).map(point => point.dispatchLineId);
-    Object.assign(filter, dispatchFilter, { 'items._id': { $in: remainingLines } });
-  }
-  const castQuery = { ...query };
-  for (const key of ['sourceWarehouseId', 'destinationWarehouseId']) if (query[key]) castQuery[key] = databaseId(query[key]);
-  const result = await movementList(TransferDispatch, filter, castQuery, dispatchWarehouseFields, 'POSTED');
-  return { ...result, items: sales ? result.items.map(row => ({
-    _id: row._id, documentNo: row.documentNo, workflowStatus: row.workflowStatus,
-  })) : await transferWarehouseDisplay(result.items) };
-}
-
-export async function getDispatch(user, id) {
-  requirePermission(user, 'stock_transfer:read');
-  const dispatch = await TransferDispatch.findOne({ ...await dispatchScope(user), _id: id }).lean();
-  if (!dispatch || currentRole(user)?.code === 'SALES') throw notFoundError();
-  const transfer = await getTransfer(user, dispatch.header.requestId);
-  const canReceive = hasPermission(user, 'stock_transfer:receive') && dispatch.workflowStatus === 'POSTED'
-    && transfer.workflowStatus === 'APPROVED' && String(dispatch.header.dispatchedBy) !== String(user._id)
-    && (isOwner(user) || (user.warehouseIds ?? []).some(id => String(id) === String(transfer.header.destinationWarehouseId)));
-  const value = dto(dispatch);
-  return { ...value, header: { ...value.header, destinationWarehouseId: transfer.header.destinationWarehouseId },
-    sourceWarehouse: transfer.sourceWarehouse, destinationWarehouse: transfer.destinationWarehouse,
-    receivableLines: canReceive ? transfer.progress.find(row => row.dispatchId === String(dispatch._id))?.lines ?? [] : [] };
-}
-
 export async function getTransfer(user,id){
   requirePermission(user,'stock_transfer:read');
   const request=await WarehouseTransferRequest.findOne({$and:[await scope(user),{_id:id}]}).lean();if(!request)throw notFoundError();
@@ -117,5 +66,6 @@ export async function transferOptions(user, warehouseId) {
   const balances=await InventoryBalance.find({holdingPointId:{$in:holdingPoints.map(row=>row._id)},quantityBase:{$gt:0}}).lean();
   const batches=await ProductBatch.find({_id:{$in:balances.map(row=>row.batchId)},identificationStatus:'VERIFIED'}).lean();
   const products=await Product.find({isActive:true}).lean();
-  return {warehouses:warehouses.map(dto),sourceWarehouseIds,locations:locations.map(dto),holdingPoints:holdingPoints.map(dto),balances:await Promise.all(balances.map(async b=>({...dto(b),availableQtyBase:(await freeQuantity(b)).toFixed()}))),batches:batches.map(dto),products:products.map(dto)};
+  const units=await Uom.find({isActive:true}).select('code name isCarton').lean();
+  return {warehouses:warehouses.map(dto),sourceWarehouseIds,locations:locations.map(dto),holdingPoints:holdingPoints.map(dto),balances:await Promise.all(balances.map(async b=>({...dto(b),availableQtyBase:(await freeQuantity(b)).toFixed()}))),batches:batches.map(dto),products:products.map(dto),units:units.map(dto)};
 }

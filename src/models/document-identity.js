@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
-// Match the compact separator or the legacy spaced separator throughout the code.
-export const DOCUMENT_ID_PATTERN = /^[\p{L}\p{N}_]+(-| - )[^/\\\r\n]+\1\d{6}\1\d{6,}$/u;
+// Catalogue IDs and embedded item IDs remain ObjectIds. Business document refs
+// also accept historical ObjectIds so existing immutable records keep working.
+export const DOCUMENT_ID_PATTERN = /^[\p{L}\p{N}_]+(?: - |-)[^/\\\r\n]+(?: - |-)\d{6}(?: - |-)\d{6,}$/u;
 export const isDocumentId = value => typeof value === 'string' && value.length <= 160 && DOCUMENT_ID_PATTERN.test(value);
 export function databaseId(value) {
   if (value instanceof mongoose.Types.ObjectId) return value;
