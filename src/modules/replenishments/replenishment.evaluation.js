@@ -3,7 +3,7 @@ import { exact } from "../../models/model-utils.js";
 import { requirePermission, requireWarehouseAccess } from "../../shared/utils/access.js";
 import { ApiError, validationError, forbiddenError, notFoundError } from "../../shared/utils/ApiError.js";
 import { same } from "../../shared/utils/document-command.js";
-import { resolveConversion } from "../../shared/utils/conversions.js";
+import { resolveConversion, toBaseQuantity } from "../../shared/utils/conversions.js";
 import { freeQuantity } from "../../shared/utils/stock.js";
 import { canReadRelated, canAccessWarehouse } from "./replenishment.access.js";
 import { currentRole } from "../../shared/utils/userRole.js";
@@ -275,7 +275,8 @@ async function previewQuantity(line, product, previous, session) {
   const factor = reuseSnapshot
     ? number(previous.baseUnitsPerUnit)
     : await resolveConversion(product, batch, enteredUnit, session);
-  return exact(line.enteredQty).mul(factor);
+  const uom = await m.Uom.findOne({ code: enteredUnit }).session(session);
+  return toBaseQuantity(line.enteredQty, factor, product, uom);
 }
 
 export async function evaluateLines(user, input, session, options = {}) {

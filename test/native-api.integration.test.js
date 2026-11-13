@@ -42,9 +42,10 @@ test.before(async()=>{
  product=await m.Product.create({sku:'TEST',name:'Test tile',manufacturerCode:'TEST',categoryId:category._id,color:'White',baseUnit:'PIECE',wholeBaseUnits:true,lengthMm:'600',widthMm:'600',heightMm:'10'});
  batch=await m.ProductBatch.create({productId:product._id,manufacturerLot:'B1',identificationStatus:'VERIFIED',piecesPerCarton:4,cartonLengthMm:'620',cartonWidthMm:'620',cartonHeightMm:'50'});
  const dryRun=await backfillConversions(m.models);
- assert.equal(dryRun.pending,1);
+ assert.equal(dryRun.pending,2); // BOX lot conversion + M2 area conversion (600x600 is no longer skipped)
  assert.equal(await m.Conversion.countDocuments(),0);
- assert.equal((await backfillConversions(m.models,{apply:true})).inserted,1);
+ assert.equal((await backfillConversions(m.models,{apply:true})).inserted,2);
+ await m.Uom.create({code:'ROLL',name:'Cuộn'});
  assert.equal((await backfillConversions(m.models,{apply:true})).inserted,0);
  supplier=await m.Supplier.create({code:'SUP',name:'Supplier',status:'ACTIVE'});
  receivingLocation=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:'IN',locationType:'RECEIVING',usableLengthMm:'5000',usableWidthMm:'5000'});
@@ -63,7 +64,7 @@ run('conversion versions use the right scope and preserve document snapshots', a
  const pid = String(product._id);
  const lotId = String(batch._id);
  const baseOnly = await rr.getReplenishmentOptions(worker, 'CREATE');
- assert.deepEqual(baseOnly.products.find(row => row.id === pid).units.map(row => row.code), ['PIECE']);
+ assert.deepEqual(baseOnly.products.find(row => row.id === pid).units.map(row => row.code).sort(), ['M2', 'PIECE']);
  const payload = { uomId: String(box._id), basePerUnit: '6', validFrom: '2020-01-01', verificationReference: 'Supplier' };
  await productService.createConversion(owner, pid, payload);
  const withoutRef = await productService.createConversion(owner, pid, { uomId: String(box._id), basePerUnit: '9', validFrom: '2099-01-01' });
@@ -92,7 +93,7 @@ run('conversion versions use the right scope and preserve document snapshots', a
    const options = await rr.getReplenishmentOptions(worker, mode);
    const option = options.products.find(row => row.id === pid);
    assert.deepEqual(Object.fromEntries(option.units.map(row => [row.code, row.basePerUnit])), {
-     PIECE: '1', BOX: '6', PACK: '3',
+     PIECE: '1', M2: '2.777777777778', BOX: '6', PACK: '3',
    });
    assert.equal(option.units.find(row => row.code === 'BOX').name, 'Thùng');
    assert.equal(option.units.find(row => row.code === 'BOX').isCarton, true);
@@ -111,7 +112,7 @@ run('conversion versions use the right scope and preserve document snapshots', a
    productId: product._id, manufacturerLot: 'DETAIL-NO-CONVERSION', identificationStatus: 'VERIFIED',
    piecesPerCarton: 8, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50',
  });
- assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit).sort(), ['3', '6']);
+ assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit).sort(), ['2.777777777778', '3', '6']);
  const concurrent = { ...payload, uomId: String(custom._id), validFrom: '2025-01-01' };
  const writes = await Promise.allSettled([
    productService.createConversion(owner, pid, concurrent),
@@ -122,11 +123,35 @@ run('conversion versions use the right scope and preserve document snapshots', a
  const original = await make('PACK');
  await m.Uom.updateOne({ _id: custom._id }, { $set: { isActive: false } });
  const activeOptions = await rr.getReplenishmentOptions(worker, 'CREATE');
- assert.deepEqual(activeOptions.products.find(row => row.id === pid).units.map(row => row.code), ['PIECE', 'BOX']);
- assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit), ['6']);
+ assert.deepEqual(activeOptions.products.find(row => row.id === pid).units.map(row => row.code).sort(), ['BOX', 'M2', 'PIECE']);
+ assert.deepEqual((await productService.getProduct(owner, pid)).currentConversions.map(row => row.basePerUnit).sort(), ['2.777777777778', '6']);
  await assert.rejects(make('PACK'), /ngừng hoạt động/);
  assert.equal((await make('PACK', undefined, original)).qtyBase, original.qtyBase);
- await assert.rejects(make('M2'), /Thiếu quy đổi/);
+ assert.equal((await make('M2')).qtyBase, '6'); // 2 m2 of 600x600 = 5.56 pieces, rounded up
+ await assert.rejects(make('ROLL'), /Thiếu quy đổi/);
+});
+
+run('area units auto-generate conversions and round up to whole pieces', async () => {
+ const sqm = await m.Uom.create({ code: 'SQM', name: 'Mét vuông test', areaMm2: '1000000' });
+ try {
+  const base = { name: 'Area tile', manufacturerCode: 'TEST', categoryId: String(product.categoryId), baseUnit: 'PIECE',
+    wholeBaseUnits: true, heightMm: '10', lengthMm: '600', widthMm: '600' };
+  const created = await productService.createProduct(owner, { ...base, sku: `AREA-${key().slice(0, 8)}`, color: 'Area' });
+  assert.equal(created.conversions.find(row => row.uom.code === 'SQM').basePerUnit, '2.777777777778');
+  const make = (enteredQty, enteredUnit = 'SQM') => transaction(session =>
+    makeItem({ productId: created.id, enteredUnit, enteredQty }, 1, session));
+  assert.equal((await make('100')).qtyBase, '278');
+  assert.equal((await make('0.36')).qtyBase, '1');
+  await assert.rejects(make('1.5', 'BOX'), /Thiếu quy đổi/);
+  const latest = await productService.getProduct(owner, created.id);
+  await productService.updateProduct(owner, created.id, { ...base, categoryId: String(product.categoryId), expectedUpdatedAt: latest.updatedAt,
+    lengthMm: '500', widthMm: '500', color: 'Area' });
+  const rows = await productService.listConversions(owner, created.id, { uomId: String(sqm._id), productBatchId: 'null', limit: 10 });
+  assert.deepEqual(rows.items.map(row => row.basePerUnit).sort(), ['2.777777777778', '4']);
+  assert.equal((await make('10.1')).qtyBase, '41');
+ } finally {
+  await m.Uom.updateOne({ _id: sqm._id }, { $set: { isActive: false } }); // keep later tests' conversion lists unchanged
+ }
 });
 
 run('lot list, detail and movement queries apply filters and expose stock history', async () => {
@@ -445,77 +470,40 @@ run('RR replay enforces current warehouse scope and payload hash',async()=>{
 
 import jwt from 'jsonwebtoken';
 import app from '../src/app.js';
-import { getPurchaseOrder, listPurchaseOrders, purchaseOrderQuantities } from '../src/modules/purchase-orders/purchase-order.service.js';
+import { getPurchaseOrder, listPurchaseOrders } from '../src/modules/purchase-orders/purchase-order.service.js';
 
-run('PO splits one approved RR line into multiple supplier lot lines', async () => {
+run('PO keeps one line per RR line; area-unit lines round up to whole pieces', async () => {
  const requestBody = {
    creationKey: key(), action: 'SUBMIT', warehouseId: String(warehouse._id), neededOn: '2026-12-01',
-   triggerReason: 'Split purchase order',
-   lines: [{ productId: String(product._id), lotId: String(batch._id), enteredUnit: 'BOX', enteredQty: '2', reasonNote: 'Fixture' }],
+   triggerReason: 'Area purchase order',
+   lines: [{ productId: String(product._id), enteredUnit: 'M2', enteredQty: '100', reasonNote: 'Fixture' }],
  };
  await acknowledgeIndependentNeed(requestBody);
  const createdRequest = await rr.createReplenishment(worker, requestBody);
  const request = await m.ReplenishmentRequest.findById(createdRequest.id);
+ assert.equal(request.items[0].qtyBase.toString(), '278');
  const rrLineId = String(request.items[0]._id);
  const approval = await rr.reviewReplenishment(owner, createdRequest.id, {
    ...input(), expectedVersion: request.version, decision: 'APPROVE', reason: 'Approved',
-   lines: [{ lineId: rrLineId, approvedQtyBase: '8' }],
+   lines: [{ lineId: rrLineId, approvedQtyBase: '278' }],
  });
  const form = { warehouseId: String(warehouse._id), supplierId: String(supplier._id), currency: 'VND' };
- const source = { rrLineId, approvalId: approval.decisionId };
- const lines = [
-   { ...source, enteredQty: '0.5', unitPurchasePrice: '1000', note: 'Lô A' },
-   { ...source, enteredQty: '1.5', unitPurchasePrice: '1200', note: 'Lô B' },
- ];
- const created = await po.createPurchaseOrder(accountant, { ...form, creationKey: key(), lines });
+ const source = { rrLineId, approvalId: approval.decisionId, unitPurchasePrice: '1000' };
+ // Lots are split at inspection and receipt, not on the PO.
+ await assert.rejects(po.createPurchaseOrder(accountant, { ...form, creationKey: key(),
+   lines: [{ ...source, enteredQty: '50' }, { ...source, enteredQty: '50' }] }), /Gộp lượng của cùng dòng RR/);
+ // 100.09 m2 rounds up to 279 pieces > 278 approved.
+ await assert.rejects(po.createPurchaseOrder(accountant, { ...form, creationKey: key(),
+   lines: [{ ...source, enteredQty: '100.09' }] }), /vượt nguồn được duyệt/);
+ const created = await po.createPurchaseOrder(accountant, { ...form, creationKey: key(),
+   lines: [{ ...source, enteredQty: '100.08', note: 'Lô NCC báo giao' }] });
  const detail = await getPurchaseOrder(accountant, created.id);
- assert.equal(detail.items.length, 2);
- assert.deepEqual(detail.items.map(item => item.requestItemId), [rrLineId, rrLineId]);
- assert.deepEqual(detail.items.map(item => item.note), ['Lô A', 'Lô B']);
- assert.deepEqual(detail.items.map(item => item.lineAmount), ['500', '1800']);
- assert.equal(detail.totalAmount, '2300');
-
- const excessiveLines = [{ ...lines[0], enteredQty: '1' }, lines[1]];
- await assert.rejects(po.createPurchaseOrder(accountant, { ...form, creationKey: key(), lines: excessiveLines }), /vượt nguồn được duyệt/);
-
- const itemIds = detail.items.map(item => item._id);
- assert.equal(new Set(itemIds).size, 2);
- const editedLines = [
-   { ...lines[0], id: itemIds[0], enteredQty: '1.5', note: 'Lô A mới' },
-   { ...lines[1], id: itemIds[1], enteredQty: '0.5', note: 'Lô B mới' },
- ];
- const edit = { ...form, expectedVersion: created.version };
- await assert.rejects(po.updatePurchaseOrder(accountant, created.id, {
-   ...edit, ...input(), lines: [editedLines[0], { ...editedLines[1], id: itemIds[0] }],
- }), /ID dòng PO bị trùng/);
- const updated = await po.updatePurchaseOrder(accountant, created.id, { ...edit, ...input(), lines: editedLines });
- const updatedDetail = await getPurchaseOrder(accountant, created.id);
- assert.deepEqual(updatedDetail.items.map(item => item._id), itemIds);
- assert.deepEqual(updatedDetail.items.map(item => item.qtyBase), ['6', '2']);
- assert.deepEqual(updatedDetail.draftEdit.lines.map(item => item.note), ['Lô A mới', 'Lô B mới']);
-
- // Each line alone (6) fits the approval of 8; only the per-RR-line sum (12) must block confirmation.
- await m.PurchaseOrder.updateOne({ _id: created.id }, { $set: { 'items.1.qtyBase': '6', 'items.1.enteredQty': '1.5' } });
- await assert.rejects(po.confirmPurchaseOrder(accountant, created.id, { ...input(), expectedVersion: updated.version }), /Nguồn duyệt PO không còn hợp lệ/);
- await m.PurchaseOrder.updateOne({ _id: created.id }, { $set: { 'items.1.qtyBase': '2', 'items.1.enteredQty': '0.5' } });
- const confirmed = await po.confirmPurchaseOrder(accountant, created.id, { ...input(), expectedVersion: updated.version });
+ assert.deepEqual(detail.items.map(item => [item.enteredQty, item.qtyBase, item.lineAmount, item.note]),
+   [['100.08', '278', '100080', 'Lô NCC báo giao']]);
+ const confirmed = await po.confirmPurchaseOrder(accountant, created.id, { ...input(), expectedVersion: created.version });
  assert.equal(confirmed.workflowStatus, 'OPEN');
- const inspection = await receiving.createInspection(worker, created.id, {
-   creationKey: key(), expectedPoVersion: confirmed.version, arrivedAt: new Date().toISOString(),
-   lines: editedLines.map(line => ({
-     poLineId: line.id, lotId: String(batch._id), enteredQty: line.enteredQty,
-     qualityCode: 'GOOD', ownershipDecision: 'ACCEPT', packagingCondition: 'SEALED',
-   })),
- });
- const inspectionDoc = await m.GoodsInspection.findById(inspection.id);
- const arrival = await m.GoodsArrival.findById(inspectionDoc.header.arrivalId);
- assert.equal(inspectionDoc.items.length, 2);
- assert.deepEqual(arrival.items.map(item => String(item.purchaseOrderItemId)), itemIds);
- assert.deepEqual(inspectionDoc.items.map(item => String(item.lotId)), [String(batch._id), String(batch._id)]);
- const order = await m.PurchaseOrder.findById(created.id);
- const quantities = await purchaseOrderQuantities(order);
- assert.deepEqual(quantities.map(row => [row.lineId, row.orderedQtyBase]), [[itemIds[0], '6'], [itemIds[1], '2']]);
 });
+
 
 run('HTTP PO lifecycle supports draft edits, expected-date changes, receiving history and closure', async () => {
  const requestBody = {
@@ -700,6 +688,10 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  assert.equal((await api('GET','/uoms')).status,401);assert.equal((await api('POST','/uoms',worker,{code:'TEST',name:'Test'})).status,403);
  const created=await api('POST','/uoms',owner,{code:'CUSTOM',name:'Custom'});assert.equal(created.status,200);const unit=created.body.data;
  assert.equal((await api('POST','/uoms',owner,{code:'CUSTOM',name:'Duplicate'})).status,409);
+ const areaUnit=await api('POST','/uoms',owner,{code:'AREA2',name:'Area 2',areaMm2:'1000000'});assert.equal(areaUnit.status,200);assert.equal(areaUnit.body.data.areaMm2,'1000000');
+ assert.equal((await api('POST','/uoms',owner,{code:'AREA3',name:'Area 3',areaMm2:'0'})).status,400);
+ assert.equal((await api('PUT','/uoms/'+areaUnit.body.data.id,owner,{expectedUpdatedAt:areaUnit.body.data.updatedAt,name:'Area',areaMm2:'5'})).status,400);
+ await m.Uom.updateOne({_id:areaUnit.body.data.id},{$set:{isActive:false}}); // keep later conversion lists unchanged
  assert.equal((await api('PUT','/uoms/'+unit.id,owner,{expectedUpdatedAt:unit.updatedAt,name:'Changed',code:'NEW'})).status,400);
  assert.equal((await api('PATCH','/uoms/'+unit.id+'/status',owner,{expectedUpdatedAt:unit.updatedAt,isActive:false,reason:'Stop'})).status,200);
  assert.equal((await api('PUT','/uoms/'+unit.id,owner,{expectedUpdatedAt:unit.updatedAt,name:'Stale'})).status,409);
@@ -722,7 +714,7 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  });
  const workerDetail = await api('GET',detailPath,worker);
  assert.equal(workerDetail.status,200);
- assert.equal(workerDetail.body.data.currentConversions[0].basePerUnit,'6');
+ assert.equal(workerDetail.body.data.currentConversions.find(row=>row.uom.code==='BOX').basePerUnit,'6');
  const verifiedBatch = await m.ProductBatch.create({
    productId, manufacturerLot: key(), identificationStatus: 'VERIFIED',
    piecesPerCarton: 8, cartonLengthMm: '600', cartonWidthMm: '600', cartonHeightMm: '10',
@@ -734,14 +726,15 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
    ...body, sku:key(), name:'No conversion product',
  });
  assert.equal(noConversionProduct.status,201);
- assert.deepEqual((await api('GET','/products/'+noConversionProduct.body.data.id,owner)).body.data.currentConversions,[]);
+ // Only the auto-generated M2 factor (1e6 / (600.125 x 600)); nothing user-declared.
+ assert.deepEqual((await api('GET','/products/'+noConversionProduct.body.data.id,owner)).body.data.currentConversions.map(row=>[row.uom.code,row.basePerUnit,row.verificationReference]),[['M2','2.777199194612','Tự tính từ kích thước sản phẩm']]);
  const orphanedConversion = await m.Conversion.create({
    productId, productBatchId: verifiedBatch._id, uomId: new mongoose.Types.ObjectId(), basePerUnit: '4',
    version: 1, validFrom: new Date('2020-02-01'), verificationReference: 'Legacy unit',
  });
  const historyWithMissingUnit = await api('GET', conversionPath, worker);
  assert.equal(historyWithMissingUnit.status, 200, historyWithMissingUnit.body.message);
- assert.equal(historyWithMissingUnit.body.data.total, 2);
+ assert.equal(historyWithMissingUnit.body.data.total, 3) // BOX, auto M2 and the orphan;
  const orphanedItem = historyWithMissingUnit.body.data.items.find(row => row.id === String(orphanedConversion._id));
  assert.equal(orphanedItem.uom, null);
  assert.equal(orphanedItem.basePerUnit, '4');
@@ -766,7 +759,7 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
  assert.equal(lotConversion.status, 201);
  assert.equal(lotConversion.body.data.verificationReference, 'Quy cách gắn theo lô');
  const history=await api('GET',conversionPath+'?limit=1&productBatchId=null',owner);
- assert.equal(history.status,200);assert.equal(history.body.data.total,6);assert.equal(history.body.data.items[0].isCurrent,false);
+ assert.equal(history.status,200);assert.equal(history.body.data.total,7);assert.equal(history.body.data.items[0].isCurrent,false);
  assert.equal((await api('POST','/products',owner,{...body,sku:key(),baseUnit:'CUSTOM'})).status,400);
  const sup=await api('POST','/suppliers',accountant,{code:key(),name:'NCC',contactName:'Contact',taxCode:'TAX',notes:'Note'});assert.equal(sup.status,201);assert.equal(sup.body.data.status,'ACTIVE');
  assert.equal((await api('PATCH','/suppliers/'+sup.body.data.id+'/status',owner,{expectedUpdatedAt:sup.body.data.updatedAt,status:'SUSPENDED',reason:'Pause'})).status,200);

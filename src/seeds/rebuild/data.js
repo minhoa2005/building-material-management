@@ -163,7 +163,7 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
   for(const rows of Object.values(categorized))for(const row of rows)for(const item of row.items||[])if(item.enteredUnit)codes.add(item.enteredUnit);
   categorized.uoms=[...codes].map(code=>({
     _id:fixtureId('uom:'+code),code,name:code==='M2'?'Mét vuông':code,
-    isActive:true,isCarton:code==='Thùng',createdAt:demoDate(1),updatedAt:demoDate(1),
+    isActive:true,isCarton:code==='Thùng',...(code==='M2'&&{areaMm2:'1000000'}),createdAt:demoDate(1),updatedAt:demoDate(1),
   }));
   for(const supplier of categorized.suppliers){if(supplier.status!=='ACTIVE')supplier.status='SUSPENDED';}
 

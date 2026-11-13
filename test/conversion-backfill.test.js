@@ -9,7 +9,8 @@ test('backfill derives exact factors and separates ambiguous legacy scopes', () 
   ];
   const uoms = [
     { _id: 'box', code: 'BOX', name: 'Thùng' },
-    { _id: 'area', code: 'M2', name: 'Mét vuông' },
+    { _id: 'piece', code: 'PIECE', name: 'Viên' },
+    { _id: 'area', code: 'M2', name: 'Mét vuông', areaMm2: '1000000' },
     { _id: 'other', code: 'PACK', name: 'Pack' },
   ];
   const batches = [
@@ -29,10 +30,10 @@ test('backfill derives exact factors and separates ambiguous legacy scopes', () 
 
   assert.deepEqual(plan.cartonUomIds, ['box']);
   assert.deepEqual(plan.candidates.map(row => [row.productBatchId, row.uomId, row.basePerUnit]), [
-    ['a', 'box', '8'], ['b', 'box', '6'], [null, 'area', '4'], [null, 'box', '4'],
+    ['a', 'box', '8'], ['b', 'box', '6'], [null, 'area', '4'], [null, 'area', '2.777777777778'], [null, 'box', '4'],
   ]);
   assert.deepEqual(plan.reports.map(report => report.reason), [
-    'REVIEW_SYNTHETIC_LOT', 'AREA_FACTOR_NOT_EXACT', 'UNRESOLVED_LEGACY_CONVERSION',
+    'REVIEW_SYNTHETIC_LOT', 'UNRESOLVED_LEGACY_CONVERSION',
     'DUPLICATE_LEGACY_FACTOR', 'LEGACY_EFFECTIVE_DATE_FROM_OPERATION', 'AMBIGUOUS_LEGACY_FACTORS',
   ]);
 });

@@ -12,6 +12,7 @@ Model: [uom.model.js](../../../../src/models/uom.model.js).
 | `name` | String | true |  |
 | `isActive` | Boolean | true |  |
 | `isCarton` | Boolean | true |  |
+| `areaMm2` | Decimal128 | false |  |
 | `_id` | ObjectId | false |  |
 | `createdAt` | Date | false |  |
 | `updatedAt` | Date | false |  |
