@@ -1,7 +1,8 @@
-import { GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLog, StockTransaction, Supplier, User, Warehouse, PurchaseOrder, TransferOrder, InventoryBalance, StockHoldingPoint, WarehouseLocation } from '../../models/runtime.js';
+import { ProductBatch, GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLog, StockTransaction, Supplier, User, Warehouse, PurchaseOrder, TransferOrder, InventoryBalance, StockHoldingPoint, WarehouseLocation } from '../../models/runtime.js';
 import { requirePermission, hasPermission, canAccessWarehouse } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
+import { escapeRegex } from '../../shared/utils/domain.js';
 import { exact } from '../../models/model-utils.js';
 import { same } from '../../shared/utils/document-command.js';
 import { findPurchase, purchaseModels } from './purchase-core.js';
@@ -46,8 +47,17 @@ async function custodyMetadata(document, value) {
     item.holdingLocationCode = locations.find(row => same(row._id, location))?.code;
   }
 }
+// Inspection items do not snapshot the lot label; resolve it so the UI never shows a raw lot id.
+async function addLotLabels(items = []) {
+  const missing = items.filter(item => item?.lotId && !item.lotLabelSnapshot);
+  if (!missing.length) return;
+  const lots = await ProductBatch.find({ _id: { $in: [...new Set(missing.map(item => item.lotId))] } }).select('manufacturerLot').lean();
+  const labels = new Map(lots.map(lot => [String(lot._id), lot.manufacturerLot]));
+  for (const item of missing) item.lotLabelSnapshot = labels.get(String(item.lotId));
+}
 async function enriched(user,document){
   const value=dto(document),kind=document.documentKind;
+  await addLotLabels(value.items);
   let warehouseId = document.header?.warehouseId;
   if(kind==='INSPECTION'){
     const arrivalId = document.header?.arrivalId ?? document.sources?.find(s => s.subjectCollection === 'goods_arrivals')?.documentId;
@@ -138,6 +148,7 @@ export async function getDocument(user, id, kind) {
 }
 export async function listDocuments(user,kind,query){
   requirePermission(user,'goods_receipt_inspection:read');const filter={...warehouseFilter(user,query.warehouseId),...(query.status&&{workflowStatus:query.status})};
+  if (query.q) filter.documentNo = { $regex: escapeRegex(query.q), $options: 'i' };
   if (kind === 'CUSTODY_RECEIPT') filter['header.ownerType'] = 'SUPPLIER';
   if (query.purchaseOrderId) {
     if (['INSPECTION', 'CUSTODY_RECEIPT'].includes(kind)) {

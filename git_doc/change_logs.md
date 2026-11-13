@@ -1,3 +1,35 @@
+## 13/11/2026 - Bỏ "Người bàn giao" khỏi phiếu tạm giữ, gộp chứng từ nguồn
+
+- **Quyết định**: theo yêu cầu người dùng, `header.handedOverBy` chưa rõ nghiệp vụ nên tạm không bắt buộc; không đổi model (trường vẫn là chuỗi tùy chọn tối đa 160 ký tự).
+- **BE**: `po-receiving.routes.js` — `handedOverBy` của `POST /custody-receipts/:id/post` là `nullish`, tối đa 160 ký tự; `po-receiving.service.js` lưu `undefined` khi trống. Phiếu cũ đã có giá trị giữ nguyên.
+- **FE**: `CustodyDetailPage` bỏ ô nhập/hiển thị "Người bàn giao", nút ghi nhận không còn phụ thuộc trường này; `custodyApi.ts` bỏ `handedOverBy` khỏi body. Hai mục "Đơn mua hàng" và "Biên bản kiểm nguồn" gộp thành một mục "Chứng từ nguồn" gồm hai liên kết (đơn mua nay cũng bấm được).
+- Cập nhật [GOODS_RECEIPTS.md](docs/08_api/GOODS_RECEIPTS.md) và [NATIVE_MODEL_RUNTIME.md](docs/08_api/NATIVE_MODEL_RUNTIME.md).
+- Kiểm tra: `node --check` hai file BE, vitest `features/custody` (5 ca) và `tsc --noEmit` không lỗi ở `custody`. Chưa chạy test tích hợp BE; chưa kiểm tra trên giao diện thật.
+
+## 13/11/2026 - Biên bản kiểm hàng hiển thị số lô thay vì id lô
+
+- **BE**: `purchase-read.service.js` — `enriched` bổ sung `lotLabelSnapshot` (tra `product_batches.manufacturerLot`) cho dòng chứng từ có `lotId` nhưng chưa có nhãn; dòng của `goods_inspections` không lưu nhãn này nên trước đây FE rơi về `lotId`. Chỉ thêm trường đọc, không đổi model, không cần migration; áp dụng cho chi tiết kiểm hàng, phiếu nhập mua và phiếu giữ hộ.
+- Kiểm tra: `node --check`. Chưa chạy test tích hợp BE hay kiểm tra trên giao diện.
+
+## 13/11/2026 - Đồng bộ trang tạo lô `/lots/create` với API `POST /api/lots`
+
+- **BE**: `lot.service.js` — `createLot` ánh xạ lỗi trùng chỉ mục `productId + manufacturerLot` (E11000) sang 409 `ERR-CORE-409-002` thay vì để lọt thành lỗi 500. Không đổi model, DTO hay quyền; không cần migration.
+- **FE**: `lotsApi.ts` — `CreateLotInput` khớp `createLotSchema` (strict): bỏ `tone`, `calibre`, `verificationReference`, `notes` (BE không có và sẽ từ chối); bắt buộc `piecesPerCarton`, `cartonLengthMm`, `cartonWidthMm`, `cartonHeightMm`; bỏ các giá trị mặc định ngầm (1 viên, 100 mm). `LotCreatePage.tsx` thêm khối "Quy cách thùng", bỏ các ô không có ở BE.
+- Kiểm tra: `node --check lot.service.js`, vitest `LotCreatePage.test.tsx` (4 ca) và `tsc --noEmit` không báo lỗi ở `features/lots`. Chưa chạy test tích hợp BE (cần MongoDB replica set).
+- Còn lại: trang chi tiết/sửa/danh sách lô vẫn hiển thị `tone`, `calibre`, `product` mà BE chưa trả; chưa xử lý trong lần này.
+
+## 13/11/2026 - Lệnh cất hàng hiển thị tên kho và số lô thay vì _id
+
+- **BE**: `purchase-putaway.service.js` — `getPutaway` trả `header.warehouseName`; `getPutaway` và `putawayContext` trả `lotLabelSnapshot` (ưu tiên giá trị trên dòng, nếu thiếu lấy `product_batches.manufacturerLot`). Chỉ thêm trường đọc, không đổi model, không cần migration.
+- **FE**: `PutawayTaskDetailPage` hiển thị `warehouseName` ở "Kho thực hiện" và `lotLabelSnapshot` ở "Số lô"; bỏ fallback về `lotId`.
+- Kiểm tra: truy vấn read-only trên DB thật cho lệnh cất hiện có (tên kho và mã lô tra ra đúng), `node --check`, `tsc --noEmit` và vitest `putaway-tasks` đạt. Chưa chạy test tích hợp BE.
+
+## 13/11/2026 - Tìm kiếm lệnh cất và phiếu chờ cất
+
+- Theo yêu cầu bổ sung tìm kiếm ở BE, các route danh sách trong `po-receiving` nhận `q` và lọc theo đoạn mã chứng từ trước phân trang. Quyền đọc và phạm vi kho áp dụng như trước.
+- Cập nhật [hợp đồng GoodsReceipt](docs/08_api/GOODS_RECEIPTS.md) để FE tích hợp. Không cần migration.
+- Ca tích hợp nhập mua và cất một phần đã chạy trên replica set local, kiểm tra kết quả tìm kiếm ở cả hai danh sách. `npm run docs:check` đã đạt.
+
 ## 13/11/2026 - Tinh chỉnh UI nhập kho và sửa lỗi tra cứu lệnh cất hàng
 
 - **FE**:
@@ -6,6 +38,9 @@
   - Xóa nền trắng thanh nút lưu/chốt tại `/inspections/create`; tăng cỡ chữ và bỏ làm mờ nhãn theo dõi tình trạng.
   - Bọc bảng danh sách và phân trang tại `/receipts` và `/putaway-tasks` vào container trắng (`rounded-lg border border-slate-200 bg-white p-4 space-y-4`).
   - Sửa lỗi 404 "Không tìm thấy dữ liệu" tại `/putaway-tasks/:id` bằng cách bỏ gọi `useGetPutawayContextQuery` khi ở chế độ xem và dùng `useGetWarehouseLocationsQuery`.
+  - Chuẩn hóa khoảng cách giữa các khối (`PageContainer` `space-y-6 p-6`, `gap-6`, `gap-4`, `gap-2` theo `DESIGN.md`) và giữ margin `.space-y-*` trong `fe/src/index.css` trên toàn bộ các trang `/purchase-orders`, `/replenishments`, `/inspections`, `/receipts`, `/putaway-tasks`, `/custody-receipts` và các trang con.
+  - Đưa `<Tabs>` lọc trạng thái tại `/inspections` xuống dưới thanh tìm kiếm; bỏ nền trắng khỏi vùng filter tại `/custody-receipts`, `/receipts`, `/inspections`, `/purchase-orders`.
+  - Đồng bộ vị trí các nút hành động xuống dưới `PageHeader`: nút quay lại (`variant="outline"`) nằm bên trái, các nút hành động còn lại nằm bên phải.
 - **BE**:
   - `purchase-core.js`: Cập nhật `findPurchase` hỗ trợ tra cứu chứng từ bằng cả `_id` và `documentNo`, tránh CastError khi client truyền mã dạng `TO-202610-001`.
   - `purchase-putaway.service.js`: Hỗ trợ lệnh cất hàng liên kết từ yêu cầu điều chuyển nội bộ (`internal_transfer_requirements`) bên cạnh `goods_receipts`, giải quyết `receiptId` mà không bị chặn 404.

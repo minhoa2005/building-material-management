@@ -6,7 +6,7 @@ import { PERMISSION_CATALOGUE, ROLE_PERMISSIONS } from '../src/seeds/data/permis
 import * as rr from '../src/modules/replenishments/replenishment.commands.js';
 import * as po from '../src/modules/purchase-orders/purchase-order.commands.js';
 import * as receiving from '../src/modules/po-receiving/po-receiving.service.js';
-import { getDocument, listDocuments, receivingSummary } from '../src/modules/po-receiving/purchase-read.service.js';
+import { getDocument, listDocuments, receivingQueue, receivingSummary } from '../src/modules/po-receiving/purchase-read.service.js';
 import * as putaway from '../src/modules/po-receiving/purchase-putaway.service.js';
 import * as correction from '../src/modules/po-receiving/purchase-correction.service.js';
 import * as productService from '../src/modules/products/product.service.js';
@@ -282,10 +282,17 @@ run('native RR → PO → inspection → receipt → partial putaway preserves s
  const task=await putaway.createPutaway(worker,receipt._id,{creationKey:key(),expectedVersion:receipt.version,lines:[{receiptLineId:String(receipt.items[0]._id),expectedSourceVersion:context.items[0].sourceBalanceVersion,qtyBase:'8',toLocationId:String(storageLocation._id)}]});
  const taskDetail=await putaway.getPutaway(worker,task.id);assert.equal(taskDetail.header.receiptId,String(receipt._id));assert.deepEqual([taskDetail.items[0].actualQtyBase,taskDetail.items[0].remainingQtyBase],['0','8']);
  let taskDoc=await m.TransferOrder.findById(task.id);await putaway.confirmPutaway(worker,task.id,{...input(),expectedVersion:taskDoc.version,lines:[{taskLineId:String(taskDoc.items[0]._id),actualQtyBase:'4'}]});
- const taskList = await putaway.listPutaway(worker, { page: 1, limit: 10, status: 'PARTIAL', purchaseOrderId: String(receipt.header.purchaseOrderId) });
+ const taskQuery = { page: 1, limit: 1, status: 'PARTIAL', purchaseOrderId: String(receipt.header.purchaseOrderId) };
+ const taskList = await putaway.listPutaway(worker, { ...taskQuery, q: taskDoc.documentNo.slice(0, -1).toLowerCase() });
  assert.equal(taskList.total, 1);
  assert.deepEqual([taskList.items[0].plannedQtyBase, taskList.items[0].actualQtyBase, taskList.items[0].remainingQtyBase], ['8','4','4']);
  assert.equal(taskList.items[0].sourceReceipt.id, String(receipt._id));
+ assert.equal((await putaway.listPutaway(worker, { ...taskQuery, q: '.*' })).total, 0);
+ const queueQuery = { page: 1, limit: 1, stage: 'AWAITING_PUTAWAY', purchaseOrderId: taskQuery.purchaseOrderId };
+ const queue = await receivingQueue(worker, { ...queueQuery, q: receipt.documentNo.slice(0, -1).toLowerCase() });
+ assert.equal(queue.total, 1);
+ assert.equal(queue.items[0]._id, String(receipt._id));
+ assert.equal((await receivingQueue(worker, { ...queueQuery, q: '.*' })).total, 0);
  assert.ok((await receivingSummary(worker, String(receipt.header.purchaseOrderId))).documents.some(row => row.kind === 'PUTAWAY' && row.id === task.id));
  taskDoc=await m.TransferOrder.findById(task.id);assert.equal(taskDoc.workflowStatus,'PARTIAL');await putaway.confirmPutaway(worker,task.id,{...input(),expectedVersion:taskDoc.version,lines:[{taskLineId:String(taskDoc.items[0]._id),actualQtyBase:'4'}]});
  assert.equal((await m.TransferOrder.findById(task.id)).workflowStatus,'CONFIRMED');assert.equal((await putaway.placementQuantities(receipt))[0].unplacedQtyBase,'0');const report=await reconcilePurchasing();assert.deepEqual(report.issues,[]);

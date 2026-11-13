@@ -13,7 +13,11 @@ import {
   requireWarehouseAccess,
   isOwner,
 } from "../../shared/utils/access.js";
-import { notFoundError, validationError } from "../../shared/utils/ApiError.js";
+import {
+  duplicateError,
+  notFoundError,
+  validationError,
+} from "../../shared/utils/ApiError.js";
 import { escapeRegex } from "../../shared/utils/domain.js";
 import {
   dto,
@@ -77,23 +81,30 @@ export async function getLot(user, id) {
 }
 export async function createLot(user, input) {
   requirePermission(user, "product_lot:create");
-  return transaction(async (session) => {
-    const product = await Product.findOne({
-      _id: input.productId,
-      isActive: true,
-    }).session(session);
-    if (!product) throw validationError("Sản phẩm không hợp lệ");
-    const row = await new ProductBatch(input).save({ session });
-    await syncLotConversions(row, product, user, session);
-    await appendAudit({
-      actorId: user._id,
-      action: "CREATE_PRODUCT_BATCH",
-      entityType: "product_batches",
-      entityId: row._id,
-      session,
+  try {
+    return await transaction(async (session) => {
+      const product = await Product.findOne({
+        _id: input.productId,
+        isActive: true,
+      }).session(session);
+      if (!product) throw validationError("Sản phẩm không hợp lệ");
+      const row = await new ProductBatch(input).save({ session });
+      await syncLotConversions(row, product, user, session);
+      await appendAudit({
+        actorId: user._id,
+        action: "CREATE_PRODUCT_BATCH",
+        entityType: "product_batches",
+        entityId: row._id,
+        session,
+      });
+      return dto(row);
     });
-    return dto(row);
-  });
+  } catch (error) {
+    // Unique index: productId + manufacturerLot.
+    if (error.code === 11000)
+      throw duplicateError("Lô nhà máy này đã tồn tại cho sản phẩm");
+    throw error;
+  }
 }
 export async function updateLot(user, id, input) {
   requirePermission(user, "product_lot:update");

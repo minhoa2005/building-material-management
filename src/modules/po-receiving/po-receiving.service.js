@@ -619,7 +619,8 @@ export function postCustodyReceipt(user, id, input) {
       receipt.postedAt = new Date();
       receipt.header.receivedAt = new Date();
       receipt.header.receivedBy = actor._id;
-      receipt.header.handedOverBy = input.handedOverBy;
+      // Optional until the business meaning of "người bàn giao" is confirmed.
+      receipt.header.handedOverBy = input.handedOverBy || undefined;
       return {
         document: await saveVersion(receipt, input.expectedVersion, session),
         versionBefore: input.expectedVersion,
