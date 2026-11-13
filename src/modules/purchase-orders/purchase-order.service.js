@@ -69,6 +69,7 @@ export async function getPurchaseOrder(user,id){
         approvalId,
         enteredQty: String(item.enteredQty ?? item.qtyBase ?? '0'),
         enteredUomCode: item.enteredUnit || item.baseUnitSnapshot || null,
+        note: item.note ?? null,
       })),
     };
   }

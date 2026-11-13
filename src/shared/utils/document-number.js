@@ -10,15 +10,14 @@ export const modelDocumentTypes=Object.freeze({SalesOrder:'SO',WarehouseIssueReq
 export function numberPeriod(now=new Date()) {
  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',year:'2-digit',month:'2-digit',day:'2-digit'}).formatToParts(now).map(v=>[v.type,v.value]));return p.year+p.month+p.day;
 }
-const compactTypes = new Set(['TR', 'TD', 'ITR', 'MWTR', 'TO', 'DISC', 'YCĐC', 'PXĐC', 'YCNB', 'PNĐC', 'LCV', 'CLCK']);
+const shortWarehouseCodeTypes = new Set(['TR', 'TD', 'ITR', 'MWTR', 'TO', 'DISC', 'YCĐC', 'PXĐC', 'YCNB', 'PNĐC', 'LCV', 'CLCK']);
 function compactUnit(unit) {
  const match=String(unit).trim().toUpperCase().match(/^K-GACH-0?(\d+)$/);
  return match ? `KG${match[1]}` : String(unit).trim().replace(/\s+/g,'');
 }
 function numberParts(type,unit,period) {
- const compact=compactTypes.has(type), normalizedUnit=compact?compactUnit(unit):unit;
- const separator=compact?'-':' - ';
- return { compact, unit:normalizedUnit, prefix:[type,normalizedUnit,period,''].join(separator) };
+ const normalizedUnit = shortWarehouseCodeTypes.has(type) ? compactUnit(unit) : unit;
+ return { unit:normalizedUnit, prefix:[type,normalizedUnit,period,''].join('-') };
 }
 export function formatDocumentNumber(type,unit,period,sequence) {
  if(!Number.isSafeInteger(sequence)||sequence<1)throw validationError('Số thứ tự phiếu vượt giới hạn');
@@ -35,14 +34,32 @@ export async function nextDocumentFields(Model,type,warehouseId,session=currentT
  if(!warehouse&&!['SO','POD','PAY','CANCEL','INVOICE'].includes(type))throw validationError('Chứng từ phải có kho cấp mã');
  const unit=warehouse?warehouse.code:'KD';
  const period=numberPeriod(now),parts=numberParts(config[0],unit,period),prefix=parts.prefix,path=embeddedPath??(type==='HO'?'handovers':null);
- const regex=new RegExp('^'+escapeRegex(prefix)+'[0-9]+$');
+ // Earlier versions used spaced separators and the original warehouse code.
+ const patterns = [...new Set([unit, parts.unit])].flatMap(codeUnit =>
+   ['-', ' - '].map(separator => {
+     const historicalPrefix = [config[0], codeUnit, period, ''].join(separator);
+     return new RegExp(`^${escapeRegex(historicalPrefix)}([0-9]+)$`);
+   }),
+ );
+ const numberFilter = { $in: patterns };
  const field=path?path+'._id':'_id',projection=path?{[path+'._id']:1}:{_id:1};
- const rows=await Model.collection.find({[field]:regex},{session,projection}).toArray();
+ const rows=await Model.collection.find({[field]:numberFilter},{session,projection}).toArray();
  const codes=path?rows.flatMap(r=>(r[path]??[]).map(v=>v._id)):rows.map(r=>r._id);
  // Retained operation receipts prevent reusing a deleted root document number.
  const operations=Model.db.collection('operation_records');
- const history=await operations.find({subjectId:regex},{session,projection:{subjectId:1}}).toArray();codes.push(...history.map(r=>r.subjectId));
- const last=codes.filter(v=>typeof v==='string'&&v.startsWith(prefix)).reduce((max,v)=>Math.max(max,Number(v.slice(prefix.length))),0);
+ const history=await operations.find({subjectId:numberFilter},{session,projection:{subjectId:1}}).toArray();
+ codes.push(...history.map(r=>r.subjectId));
+ let last = 0;
+ for (const code of codes) {
+   if (typeof code !== 'string') continue;
+   for (const pattern of patterns) {
+     const match = pattern.exec(code);
+     if (match) {
+       last = Math.max(last, Number(match[1]));
+       break;
+     }
+   }
+ }
  if(!Number.isSafeInteger(last))throw validationError('Mã phiếu cuối vượt giới hạn');
  session.documentNumbers??=new Map();const scope=Model.collection.name+':'+prefix;const sequence=Math.max(last,session.documentNumbers.get(scope)??0)+1;
  if(!Number.isSafeInteger(sequence))throw validationError('Số thứ tự phiếu vượt giới hạn');session.documentNumbers.set(scope,sequence);

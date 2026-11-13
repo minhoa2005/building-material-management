@@ -6,6 +6,8 @@ import {
   CustodyReceipt,
   WarehouseLocation,
   ProductBatch,
+  Product,
+  Uom,
   OperationRecord,
   TransferOrder,
 } from "../../models/runtime.js";
@@ -78,7 +80,8 @@ export async function prepare(po, input, actor, session, arrival, inspection) {
     }
     const item = await makeItem({
       productId: source.productId, lotId: row.lotId,
-      enteredUnit: source.enteredUnit, enteredQty: row.enteredQty,
+      // Staff count in the unit they physically handle (carton/base); default stays the PO unit.
+      enteredUnit: row.enteredUnit ?? source.enteredUnit, enteredQty: row.enteredQty,
     }, i + 1, session, { previous: oldArrival, includeLotLabel: true, allowInactiveUom: true });
     const arrived = {
       ...item,
@@ -502,11 +505,24 @@ export async function inspectionContext(user, id) {
     productId: { $in: po.items.map((row) => row.productId) },
     identificationStatus: "VERIFIED",
   }).lean();
+  const products = await Product.find(
+    { _id: { $in: po.items.map((row) => row.productId) } },
+    "baseUnit lengthMm widthMm",
+  ).lean();
+  const cartonUnits = await Uom.find({ isCarton: true, isActive: true }, "code").lean();
   return {
     purchaseOrder: redactPrices(dto(po)),
     quantities: await purchaseOrderQuantities(po),
     locations: locations.map(dto),
     batches: batches.map(dto),
+    // Lets the UI convert counted units to base units and m² without hardcoding ratios.
+    products: products.map((row) => ({
+      id: String(row._id),
+      baseUnit: row.baseUnit,
+      lengthMm: row.lengthMm == null ? null : exact(row.lengthMm).toFixed(),
+      widthMm: row.widthMm == null ? null : exact(row.widthMm).toFixed(),
+    })),
+    cartonUnits: cartonUnits.map((row) => row.code),
   };
 }
 export async function receivingOperation(user, id, key) {

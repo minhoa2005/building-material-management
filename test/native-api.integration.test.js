@@ -445,7 +445,77 @@ run('RR replay enforces current warehouse scope and payload hash',async()=>{
 
 import jwt from 'jsonwebtoken';
 import app from '../src/app.js';
-import { getPurchaseOrder, listPurchaseOrders } from '../src/modules/purchase-orders/purchase-order.service.js';
+import { getPurchaseOrder, listPurchaseOrders, purchaseOrderQuantities } from '../src/modules/purchase-orders/purchase-order.service.js';
+
+run('PO splits one approved RR line into multiple supplier lot lines', async () => {
+ const requestBody = {
+   creationKey: key(), action: 'SUBMIT', warehouseId: String(warehouse._id), neededOn: '2026-12-01',
+   triggerReason: 'Split purchase order',
+   lines: [{ productId: String(product._id), lotId: String(batch._id), enteredUnit: 'BOX', enteredQty: '2', reasonNote: 'Fixture' }],
+ };
+ await acknowledgeIndependentNeed(requestBody);
+ const createdRequest = await rr.createReplenishment(worker, requestBody);
+ const request = await m.ReplenishmentRequest.findById(createdRequest.id);
+ const rrLineId = String(request.items[0]._id);
+ const approval = await rr.reviewReplenishment(owner, createdRequest.id, {
+   ...input(), expectedVersion: request.version, decision: 'APPROVE', reason: 'Approved',
+   lines: [{ lineId: rrLineId, approvedQtyBase: '8' }],
+ });
+ const form = { warehouseId: String(warehouse._id), supplierId: String(supplier._id), currency: 'VND' };
+ const source = { rrLineId, approvalId: approval.decisionId };
+ const lines = [
+   { ...source, enteredQty: '0.5', unitPurchasePrice: '1000', note: 'Lô A' },
+   { ...source, enteredQty: '1.5', unitPurchasePrice: '1200', note: 'Lô B' },
+ ];
+ const created = await po.createPurchaseOrder(accountant, { ...form, creationKey: key(), lines });
+ const detail = await getPurchaseOrder(accountant, created.id);
+ assert.equal(detail.items.length, 2);
+ assert.deepEqual(detail.items.map(item => item.requestItemId), [rrLineId, rrLineId]);
+ assert.deepEqual(detail.items.map(item => item.note), ['Lô A', 'Lô B']);
+ assert.deepEqual(detail.items.map(item => item.lineAmount), ['500', '1800']);
+ assert.equal(detail.totalAmount, '2300');
+
+ const excessiveLines = [{ ...lines[0], enteredQty: '1' }, lines[1]];
+ await assert.rejects(po.createPurchaseOrder(accountant, { ...form, creationKey: key(), lines: excessiveLines }), /vượt nguồn được duyệt/);
+
+ const itemIds = detail.items.map(item => item._id);
+ assert.equal(new Set(itemIds).size, 2);
+ const editedLines = [
+   { ...lines[0], id: itemIds[0], enteredQty: '1.5', note: 'Lô A mới' },
+   { ...lines[1], id: itemIds[1], enteredQty: '0.5', note: 'Lô B mới' },
+ ];
+ const edit = { ...form, expectedVersion: created.version };
+ await assert.rejects(po.updatePurchaseOrder(accountant, created.id, {
+   ...edit, ...input(), lines: [editedLines[0], { ...editedLines[1], id: itemIds[0] }],
+ }), /ID dòng PO bị trùng/);
+ const updated = await po.updatePurchaseOrder(accountant, created.id, { ...edit, ...input(), lines: editedLines });
+ const updatedDetail = await getPurchaseOrder(accountant, created.id);
+ assert.deepEqual(updatedDetail.items.map(item => item._id), itemIds);
+ assert.deepEqual(updatedDetail.items.map(item => item.qtyBase), ['6', '2']);
+ assert.deepEqual(updatedDetail.draftEdit.lines.map(item => item.note), ['Lô A mới', 'Lô B mới']);
+
+ // Each line alone (6) fits the approval of 8; only the per-RR-line sum (12) must block confirmation.
+ await m.PurchaseOrder.updateOne({ _id: created.id }, { $set: { 'items.1.qtyBase': '6', 'items.1.enteredQty': '1.5' } });
+ await assert.rejects(po.confirmPurchaseOrder(accountant, created.id, { ...input(), expectedVersion: updated.version }), /Nguồn duyệt PO không còn hợp lệ/);
+ await m.PurchaseOrder.updateOne({ _id: created.id }, { $set: { 'items.1.qtyBase': '2', 'items.1.enteredQty': '0.5' } });
+ const confirmed = await po.confirmPurchaseOrder(accountant, created.id, { ...input(), expectedVersion: updated.version });
+ assert.equal(confirmed.workflowStatus, 'OPEN');
+ const inspection = await receiving.createInspection(worker, created.id, {
+   creationKey: key(), expectedPoVersion: confirmed.version, arrivedAt: new Date().toISOString(),
+   lines: editedLines.map(line => ({
+     poLineId: line.id, lotId: String(batch._id), enteredQty: line.enteredQty,
+     qualityCode: 'GOOD', ownershipDecision: 'ACCEPT', packagingCondition: 'SEALED',
+   })),
+ });
+ const inspectionDoc = await m.GoodsInspection.findById(inspection.id);
+ const arrival = await m.GoodsArrival.findById(inspectionDoc.header.arrivalId);
+ assert.equal(inspectionDoc.items.length, 2);
+ assert.deepEqual(arrival.items.map(item => String(item.purchaseOrderItemId)), itemIds);
+ assert.deepEqual(inspectionDoc.items.map(item => String(item.lotId)), [String(batch._id), String(batch._id)]);
+ const order = await m.PurchaseOrder.findById(created.id);
+ const quantities = await purchaseOrderQuantities(order);
+ assert.deepEqual(quantities.map(row => [row.lineId, row.orderedQtyBase]), [[itemIds[0], '6'], [itemIds[1], '2']]);
+});
 
 run('HTTP PO lifecycle supports draft edits, expected-date changes, receiving history and closure', async () => {
  const requestBody = {
@@ -473,9 +543,10 @@ run('HTTP PO lifecycle supports draft edits, expected-date changes, receiving hi
      });
      return { status: response.status, body: await response.json() };
    };
-   const line = { rrLineId, approvalId: approval.decisionId, enteredQty: '8', unitPurchasePrice: '1000' };
+   const line = { rrLineId, approvalId: approval.decisionId, enteredQty: '8', unitPurchasePrice: '1000', note: '  Lô NCC  ' };
    const expectedOn = '2026-11-30T00:00:00.000Z';
    const form = { warehouseId: String(warehouse._id), supplierId: String(supplier._id), currency: 'VND', expectedOn };
+   assert.equal((await api('POST', '', { ...form, creationKey: key(), lines: [{ ...line, note: '' }] })).status, 400);
    const created = await api('POST', '', { ...form, creationKey: key(), lines: [line] });
    assert.equal(created.status, 200, created.body.message);
    assert.equal(created.body.data.workflowStatus, 'DRAFT');
@@ -487,6 +558,7 @@ run('HTTP PO lifecycle supports draft edits, expected-date changes, receiving hi
    });
    assert.equal((await api('POST', expectedOnPath, reschedule(version))).status, 400);
    const detail = await api('GET', path);
+   assert.equal(detail.body.data.items[0].note, 'Lô NCC');
    const poLineId = detail.body.data.items[0]._id;
    const edit = expectedVersion => ({
      ...form, ...input(), expectedVersion, lines: [{ ...line, id: poLineId, enteredQty: '4' }],
