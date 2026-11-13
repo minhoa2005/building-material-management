@@ -53,4 +53,4 @@ vars.accessToken = (await send('Login Admin', 200)).accessToken;
 await send('11 OD list', 403);
 await writeFile(new URL('verified-demo-result.json', root), JSON.stringify({ testedAt: new Date().toISOString(),
   database: 'wmsd_fe06_thunder', baseUrl, createdSalesOrderId: created.id, evidenceId: vars.evidenceId, sourceReferenceNo: `PAPER-${vars.runId}`,
-  quantity: '2 BOX = 8 PIECE', result: 'All collection smoke checks passed; no tokens persisted.' }, null, 2));
+  quantity: '2 Thùng = 8 Viên', result: 'All collection smoke checks passed; no tokens persisted.' }, null, 2));

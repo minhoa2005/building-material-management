@@ -9,6 +9,7 @@ export function createInspectionDetailsSchema() {
       inspectedSourceLineId: ref("DocumentLine"),
       qualityCode: quality(),
       ownershipDecision: code(["ACCEPT", "CUSTODY", "REJECT"]),
+      receivingLocationId: ref("WarehouseLocation", false),
       inspectedBy: ref("User"),
       inspectedAt: date(),
       packagingCondition: code(PACKAGING_CONDITIONS, { default: "UNKNOWN" }),

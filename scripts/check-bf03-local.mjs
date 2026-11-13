@@ -25,7 +25,10 @@ try {
   if(!destination)destination=await Location.create({warehouseId,code:'BF03-LOCAL-DEST',name:'Vị trí đích kiểm thử local',locationType:'STORAGE',isPickable:true,usableLengthMm:'2000',usableWidthMm:'2000'});
   const batch=data.batches.find(b=>b.id===balance.batchId), product=data.products.find(p=>p.id===batch.productId);
   const key=()=>new mongoose.Types.ObjectId().toString();
-  const body={warehouseId,reason:'Kiểm thử bảng BF03 trên local',lines:[{sourceBalanceId:balance.id,sourceBalanceVersion:balance.version,toLocationId:String(destination._id),enteredUnit:'BOX',enteredQty:'1'}]};
+  const cartonUnit=data.units.find(unit=>unit.isCarton && data.conversions.some(conversion=>
+    conversion.uomId===unit.id && conversion.productBatchId===batch.id));
+  assert.ok(cartonUnit,'Lô kiểm thử phải có quy đổi thùng');
+  const body={warehouseId,reason:'Kiểm thử bảng BF03 trên local',lines:[{sourceBalanceId:balance.id,sourceBalanceVersion:balance.version,toLocationId:String(destination._id),enteredUnit:cartonUnit.code,enteredQty:'1'}]};
   assert.equal((await api('/location-movements',{...body,idempotencyKey:key(),lines:[{...body.lines[0],enteredQty:'1.5'}]})).status,400);
   assert.equal((await api('/location-movements',{...body,idempotencyKey:key(),lines:[{...body.lines[0],enteredUnit:product.baseUnit,enteredQty:'1'}]})).status,400);
   const created=await api('/location-movements',{...body,idempotencyKey:key()});

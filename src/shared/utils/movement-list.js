@@ -10,13 +10,13 @@ export const movementListFields = {
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 };
 export const validDateRange = value => !value.from || !value.to || new Date(value.from) <= new Date(value.to);
-const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export function movementListPipeline(scope, query, warehouseFields, warehouseCollection) {
   const filters = {};
   if(query.searchFilter)Object.assign(filters,query.searchFilter);
   else if (query.q) filters.documentNo = { $regex: escapeRegex(query.q), $options: 'i' };
-  if (query.status) filters.workflowStatus = query.status;
+  if (query.status) filters.workflowStatus = Array.isArray(query.status) ? { $in: query.status } : query.status;
   for (const field of warehouseFields) {
     const key = field.split('.').at(-1);
     if (query[key]) filters[field] = query[key];

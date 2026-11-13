@@ -1,5 +1,7 @@
 # Trungph return workflows on native models
 
+12 November 2026: stock consumption preserves retained packaging subdocument identities and creation timestamps when earlier custody arrivals are removed. Balance validation, version guards, ledger and transaction boundaries remain enforced. The multiple-arrival custody regression reproduces the former immutable-timestamp failure and verifies the later portion remains unchanged after receipt.
+
 Updated 7 November 2026. Scope: Trungph's three iterations, carried forward by function name through the [UC crosswalk](../07_ra_soat/UC_RENUMBER_2026-10-30.md). This implementation uses the single 59-collection registry and does not restore BusinessDocument, DocumentLine, UOM, separate holds/plans/ACKs or standalone movements.
 
 ## Scope and routes
@@ -27,11 +29,17 @@ All routes below are under `/api`, require active authentication, and recheck th
 
 The older 19-UC assignment is covered by these functions; split UCs are shown separately. Retired supplier Owner approval is not restored.
 
+## Nhập kho từ chứng từ nguồn
+
+Kho dùng **Lập phiếu nhập** trên hồ sơ khách trả hoặc giao thất bại, hoặc tìm nguồn từ **Phiếu nhập kho**. API danh sách nhận `status` phân tách bằng dấu phẩy và `receivable=true`. Khách trả lọc `ACCEPTED,PARTIAL` và có tham chiếu quyết định. Giao thất bại lọc `INSPECTED,PARTIAL`. Chi tiết trả `receivableLines` theo dòng gốc, gồm lượng còn được nhập và phẩm cấp hợp lệ. Giao thất bại có thêm tình trạng bao bì đã kiểm.
+
+Form gọi lệnh `/receipt` của nguồn với `expectedVersion`, `idempotencyKey`, minh chứng đã đính kèm và các dòng có lượng thực nhận. ĐVT là đơn vị gốc. Giao thất bại gửi quy cách và thể tích đo nếu thùng mở hoặc hàng lẻ. Lệnh thành công trả ID phiếu nhập trong `resultRefs` và cập nhật tồn trong cùng giao dịch. Kiểm hàng, ra quyết định và bàn giao lại khách thực hiện ở hồ sơ nguồn.
+
 ## Payload and response rules
 
 Quantities are exact decimal strings, never JS floating-point numbers. IDs identify a native parent document and stable embedded item. `items[].sources[]` identifies the source collection/document/item and linked quantity. Client DTO adapters may call display rows `lines`; storage remains `items[]`.
 
-All business creations use a stable `idempotencyKey`; commands also require `expectedVersion` on the parent. Reuse the original payload/key after a lost response. Changing payload requires a new key. Operation records bind actor, operation, target and payload hash. Replays recheck permission and scope. Command results are `{id, version, workflowStatus, operationId, resultRefs, replayed}` in the usual `data` envelope. Lists use array `data` with `meta.total/page/limit`; detail responses include `relatedDocuments`, scoped attachment metadata and audit history.
+All business creations use a stable `idempotencyKey`; commands also require `expectedVersion` on the parent. Reuse the original payload/key after a lost response. Changing payload requires a new key. Operation records bind actor, operation, target and payload hash. Replays recheck permission and scope. Command results are `{id, version, workflowStatus, operationId, resultRefs, replayed}` in the usual `data` envelope. Lists use `data.items` with `data.total/page/limit`; detail responses include `relatedDocuments`, scoped attachment metadata and audit history.
 
 - Defect creation: `warehouseId, balanceId, quantity, sourceKind, reason`, optional matching source item and optional initial disposition. `sourceKind=STOCKTAKE` requires the actual locked session and forbids ordinary disposition. Source-free inspection is MANUAL. Detection may be followed later by `/proposals` with `lines[{lineId,qtyBase,outcome,targetQuality?}]`, evidence and note.
 - Decisions: `expectedVersion, idempotencyKey, decision, reason`, optional per-item `lines[{lineId,qtyBase}]`. Defect approval binds the plan and approved quantity; CR approval binds the actual current inspection snapshot. Installed/customer-damaged/verified-overdue or unknown facts cannot be approved as an eligible return.

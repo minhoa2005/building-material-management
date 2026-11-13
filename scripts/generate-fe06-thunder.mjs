@@ -47,7 +47,7 @@ const collection = { info: { name: 'WMSD FE06 Iteration 1', schema: 'https://sch
     { name: '00 Login', item: [login('Sales', 'sales@ceratile.vn', 'Sales@123'), login('Owner', 'owner@ceratile.vn', 'Owner@123'),
       login('Accountant', 'accountant@ceratile.vn', 'KeToan@123'), login('Warehouse', 'warehouse@ceratile.vn', 'Kho@12345678'), login('Admin', 'admin@ceratile.vn', 'Admin@123')] },
     { name: 'UC47 Create source and SO', item: [upload,
-      request('02 Create copied SO', 'POST', '/sales-orders', '201 first request. Copy data.id to createdSalesOrderId. Example: 2 BOX = 8 PIECE for this seeded product.', body),
+      request('02 Create copied SO', 'POST', '/sales-orders', '201 first request. Copy data.id to createdSalesOrderId. Dữ liệu mẫu quy đổi 2 Thùng = 8 Viên.', body),
       request('03 Retry identical creation', 'POST', '/sales-orders', '200 replayed=true and SAME ID. Do not change body or evidenceReceipt between retries.', body),
       request('04 Same source with another key', 'POST', '/sales-orders', '409 duplicate source. Run after 02.', { ...body, idempotencyKey: 'other-{{runId}}' }),
       request('05 Same key with changed payload', 'POST', '/sales-orders', '409 key conflict. Run after 02.', { ...body, deliveryAddress: 'Changed address' }),

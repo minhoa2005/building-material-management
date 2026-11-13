@@ -29,7 +29,7 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
   const warehouse = await m.Warehouse.findById(worker.warehouseIds[0]);
   const category = await m.Category.findOne();
   const product = await m.Product.create({ sku: key(), name: 'Test receipt tile', manufacturerCode: 'TEST', categoryId: category._id,
-    color: 'White', baseUnit: 'PIECE', wholeBaseUnits: true, lengthMm: '600', widthMm: '600', heightMm: '10' });
+    color: 'White', baseUnit: 'Viên', wholeBaseUnits: true, lengthMm: '600', widthMm: '600', heightMm: '10' });
   const batch = await m.ProductBatch.create({ productId: product._id, manufacturerLot: key(), identificationStatus: 'VERIFIED',
     piecesPerCarton: 4, cartonLengthMm: '620', cartonWidthMm: '620', cartonHeightMm: '50' });
   const location = await m.WarehouseLocation.create({ warehouseId: warehouse._id, code: 'GR-' + key().slice(0, 8),
@@ -44,6 +44,9 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
       ...(body && { body: JSON.stringify(body) }) });
     return { status: response.status, body: await response.json() };
   };
+  const unified = await api('GET', '/goods-receipts?limit=100', owner);
+  assert.equal(unified.status, 200, JSON.stringify(unified.body));
+  assert.deepEqual(new Set(unified.body.data.items.map(row => row.documentKind)), new Set(['PURCHASE', 'CUSTOMER_RETURN', 'FAILED_DELIVERY', 'TRANSFER']));
   const paths = ['purchase', 'customer-return', 'failed-delivery', 'transfer', 'other'];
   for (const path of paths) assert.equal((await api('GET', `/goods-receipts/${path}`, owner)).status, 200, path);
   assert.equal((await api('GET', '/purchase-receipts', owner)).status, 404);
@@ -75,36 +78,61 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
     createdBy: worker._id, header: { warehouseId: warehouse._id, returnId: id() }, items: [] }).validate(), /header/);
   assert.equal((await api('GET', `/goods-receipts/customer-return/${purchase._id}`, owner)).status, 404);
   assert.equal((await api('GET', `/goods-receipts/purchase/${purchase._id}`, owner)).status, 200);
+  const genericPurchase = await api('GET', '/goods-receipts/' + encodeURIComponent(purchase._id), owner);
+  assert.equal(genericPurchase.status, 200, JSON.stringify(genericPurchase.body));
+  assert.equal(genericPurchase.body.data.documentKind, 'PURCHASE');
+  const purchaseSearch = await api('GET', '/goods-receipts?kind=PURCHASE&q=' + encodeURIComponent(purchase.documentNo), owner);
+  assert.equal(purchaseSearch.body.data.items[0]._id, String(purchase._id));
   const narrowRole = await m.Role.create({ code: 'GR-RETURN-ONLY', name: 'Return only',
     permissionIds: [(await m.Permission.findOne({ code: 'customer_return:read' }))._id], isSystemRole: false });
   const narrow = await m.User.create({ username: 'return-' + key(), fullName: 'Return only', passwordHash: 'unused',
     roleId: narrowRole._id, warehouseIds: [warehouse._id] });
   assert.equal((await api('GET', '/goods-receipts/customer-return', narrow)).status, 200);
   assert.equal((await api('GET', '/goods-receipts/failed-delivery', narrow)).status, 403);
+  const narrowReceipts = await api('GET', '/goods-receipts?limit=100', narrow);
+  assert.equal(narrowReceipts.status, 200);
+  assert.ok(narrowReceipts.body.data.items.every(row => row.documentKind === 'CUSTOMER_RETURN'));
+  assert.equal((await api('GET', '/goods-receipts?kind=FAILED_DELIVERY', narrow)).body.data.total, 0);
+  assert.equal((await api('GET', '/goods-receipts/' + encodeURIComponent(purchase._id), narrow)).status, 403);
   const outsider = await m.User.create({ username: 'outsider-' + key(), fullName: 'Outsider', passwordHash: 'unused',
     roleId: worker.roleId, warehouseIds: [] });
   assert.equal((await api('GET', `/goods-receipts/purchase/${purchase._id}`, outsider)).status, 403);
 
   const createBody = { operationKey: key(), warehouseId: String(warehouse._id), reason: 'Bổ sung tồn có chứng cứ',
-    lines: [{ productId: String(product._id), lotId: String(batch._id), enteredUnit: 'PIECE', enteredQty: '4',
+    lines: [{ productId: String(product._id), lotId: String(batch._id), enteredUnit: 'Viên', enteredQty: '4',
       destinationLocationId: String(location._id), qualityCode: 'GOOD' }] };
   const created = await api('POST', '/goods-receipts/other', worker, createBody);
   assert.equal(created.status, 200, JSON.stringify(created.body));
   let receipt = await m.OtherGoodsReceipt.findById(created.body.data.id);
   assert.equal(receipt.documentKind, 'OTHER');
+  const editPath = '/goods-receipts/other/' + encodeURIComponent(receipt._id);
+  const draft = { expectedVersion: 1, operationKey: key(), reason: 'Lý do cập nhật', note: 'Ghi chú mới', originalReceiptId: null, lines: createBody.lines };
+  const edited = await api('PUT', editPath, worker, draft);
+  assert.equal(edited.status, 200, JSON.stringify(edited.body));
+  assert.equal(edited.body.data.version, 2);
+  assert.equal((await api('PUT', editPath, worker, draft)).body.data.replayed, true);
+  assert.equal((await api('PUT', editPath, worker, { ...draft, operationKey: key() })).status, 409);
+  assert.equal((await api('PUT', editPath, outsider, { ...draft, expectedVersion: 2, operationKey: key() })).status, 403);
+  const generic = await api('GET', '/goods-receipts/' + encodeURIComponent(receipt._id), worker);
+  assert.equal(generic.status, 200, JSON.stringify(generic.body));
+  assert.equal(generic.body.data.header.reason, draft.reason);
+  assert.equal(generic.body.data.items[0]._id, String(receipt.items[0]._id));
+  assert.equal((await api('GET', '/goods-receipts?kind=OTHER&warehouseId=' + warehouse._id, worker)).body.data.items[0].totalQtyBase, '4');
+  receipt = await m.OtherGoodsReceipt.findById(receipt._id);
   const attachment = await m.Attachment.create({ ownerDocumentType: 'goods_receipts', ownerDocumentId: receipt._id,
     purpose: 'TEST_EVIDENCE', originalName: 'proof.png', mediaType: 'image/png', sizeBytes: 100,
     storageKey: 'isolated-test/' + key(), checksum: 'a'.repeat(64), uploadedBy: worker._id, uploadedAt: new Date(),
     accessCategory: 'BUSINESS', status: 'ATTACHED' });
   receipt.evidenceIds.addToSet(attachment._id); await receipt.save();
-  const submit = await api('POST', `/goods-receipts/other/${receipt._id}/submit`, worker, { expectedVersion: 1, operationKey: key() });
+  const submit = await api('POST', `/goods-receipts/other/${receipt._id}/submit`, worker, { expectedVersion: 2, operationKey: key() });
   assert.equal(submit.status, 200, JSON.stringify(submit.body));
+  assert.equal((await api('PUT', editPath, worker, { ...draft, expectedVersion: 3, operationKey: key() })).status, 400);
   assert.equal((await api('POST', `/goods-receipts/other/${receipt._id}/approve`, worker,
-    { expectedVersion: 2, operationKey: key(), decision: 'APPROVE', reason: 'Duyệt' })).status, 403);
+    { expectedVersion: 3, operationKey: key(), decision: 'APPROVE', reason: 'Duyệt' })).status, 403);
   const approved = await api('POST', `/goods-receipts/other/${receipt._id}/approve`, owner,
-    { expectedVersion: 2, operationKey: key(), decision: 'APPROVE', reason: 'Duyệt' });
+    { expectedVersion: 3, operationKey: key(), decision: 'APPROVE', reason: 'Duyệt' });
   assert.equal(approved.status, 200, JSON.stringify(approved.body));
-  const postBody = { expectedVersion: 3, operationKey: key() };
+  const postBody = { expectedVersion: 4, operationKey: key() };
   const posted = await api('POST', `/goods-receipts/other/${receipt._id}/post`, worker, postBody);
   assert.equal(posted.status, 200, JSON.stringify(posted.body));
   assert.equal((await api('POST', `/goods-receipts/other/${receipt._id}/post`, worker, postBody)).body.data.replayed, true);
@@ -120,7 +148,7 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
   assert.match(blocked.body.data.reason, /chứng từ phụ thuộc/);
   await m.TransferOrder.collection.deleteOne({ _id: dependencyId });
   const reversed = await api('POST', `/goods-receipts/other/${receipt._id}/reverse`, worker,
-    { expectedVersion: 4, operationKey: key(), reason: 'Ghi nhầm', evidenceIds: [String(attachment._id)] });
+    { expectedVersion: 5, operationKey: key(), reason: 'Ghi nhầm', evidenceIds: [String(attachment._id)] });
   assert.equal(reversed.status, 200, JSON.stringify(reversed.body));
   assert.equal(String((await m.InventoryBalance.findById(targetId)).quantityBase), '0');
   assert.equal((await m.OtherGoodsReceipt.findById(receipt._id)).workflowStatus, 'REVERSED');
