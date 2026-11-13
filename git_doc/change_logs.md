@@ -1,3 +1,16 @@
+## 13/11/2026 - Bỏ "Người bàn giao" khỏi phiếu tạm giữ, gộp chứng từ nguồn
+
+- **Quyết định**: theo yêu cầu người dùng, `header.handedOverBy` chưa rõ nghiệp vụ nên tạm không bắt buộc; không đổi model (trường vẫn là chuỗi tùy chọn tối đa 160 ký tự).
+- **BE**: `po-receiving.routes.js` — `handedOverBy` của `POST /custody-receipts/:id/post` là `nullish`, tối đa 160 ký tự; `po-receiving.service.js` lưu `undefined` khi trống. Phiếu cũ đã có giá trị giữ nguyên.
+- **FE**: `CustodyDetailPage` bỏ ô nhập/hiển thị "Người bàn giao", nút ghi nhận không còn phụ thuộc trường này; `custodyApi.ts` bỏ `handedOverBy` khỏi body. Hai mục "Đơn mua hàng" và "Biên bản kiểm nguồn" gộp thành một mục "Chứng từ nguồn" gồm hai liên kết (đơn mua nay cũng bấm được).
+- Cập nhật [GOODS_RECEIPTS.md](docs/08_api/GOODS_RECEIPTS.md) và [NATIVE_MODEL_RUNTIME.md](docs/08_api/NATIVE_MODEL_RUNTIME.md).
+- Kiểm tra: `node --check` hai file BE, vitest `features/custody` (5 ca) và `tsc --noEmit` không lỗi ở `custody`. Chưa chạy test tích hợp BE; chưa kiểm tra trên giao diện thật.
+
+## 13/11/2026 - Biên bản kiểm hàng hiển thị số lô thay vì id lô
+
+- **BE**: `purchase-read.service.js` — `enriched` bổ sung `lotLabelSnapshot` (tra `product_batches.manufacturerLot`) cho dòng chứng từ có `lotId` nhưng chưa có nhãn; dòng của `goods_inspections` không lưu nhãn này nên trước đây FE rơi về `lotId`. Chỉ thêm trường đọc, không đổi model, không cần migration; áp dụng cho chi tiết kiểm hàng, phiếu nhập mua và phiếu giữ hộ.
+- Kiểm tra: `node --check`. Chưa chạy test tích hợp BE hay kiểm tra trên giao diện.
+
 ## 13/11/2026 - Đồng bộ trang tạo lô `/lots/create` với API `POST /api/lots`
 
 - **BE**: `lot.service.js` — `createLot` ánh xạ lỗi trùng chỉ mục `productId + manufacturerLot` (E11000) sang 409 `ERR-CORE-409-002` thay vì để lọt thành lỗi 500. Không đổi model, DTO hay quyền; không cần migration.

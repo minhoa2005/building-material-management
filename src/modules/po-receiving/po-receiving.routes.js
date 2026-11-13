@@ -89,7 +89,7 @@ export const custodyRouter=Router();custodyRouter.use(authenticate);
 custodyRouter.get('/', validate(schema(empty, empty, query(['DRAFT', 'POSTED', 'CLOSED']))),
   handle((u, v) => reads.listDocuments(u, 'CUSTODY_RECEIPT', v.query)));
 custodyRouter.get('/:id',validate(schema()),handle((u,v)=>reads.getDocument(u,v.params.id,'CUSTODY_RECEIPT')));
-custodyRouter.post('/:id/post',validate(schema(z.object({...commandBody,handedOverBy:z.string().trim().min(1).max(160),destinations:z.array(z.object({lineId:oid,locationId:oid}).strict()).min(1).max(100),packaging}).strict())),handle((u,v)=>service.postCustodyReceipt(u,v.params.id,v.body)));
+custodyRouter.post('/:id/post',validate(schema(z.object({...commandBody,handedOverBy:z.string().trim().max(160).nullish(),destinations:z.array(z.object({lineId:oid,locationId:oid}).strict()).min(1).max(100),packaging}).strict())),handle((u,v)=>service.postCustodyReceipt(u,v.params.id,v.body)));
 
 
 
