@@ -21,7 +21,7 @@ Sau reset test, database trên phải chưa tồn tại cho đến khi người 
 | Lô | 39 lô theo sản phẩm + mã hãng, số viên/thùng cố định và một lô chờ xác minh |
 | Đối tác | 20 khách, 3 NCC; không có danh mục đội xe, biển số ghi trên bàn giao |
 | Tồn | 51 nhóm số dư theo ô/lô/chất lượng/chủ hàng, 32 giao dịch tồn và 70 dòng biến động |
-| Đơn vị và quy đổi | Viên, Thùng (`isCarton: true`) và Mét vuông (mã `M2`). Có 38 quy đổi thùng theo lô và 5 quy đổi mét vuông cấp sản phẩm |
+| Đơn vị và quy đổi | Mã và tên lần lượt là Viên, Thùng (`isCarton: true`) và Mét vuông (`areaMm2: 1000000` kiểu Decimal128). Viên và Thùng có `areaMm2: null`. |
 | Tổng | 58 collection nghiệp vụ, 702 bản ghi cấp bảng. 81 hồ sơ nghiệp vụ tính cả bàn giao nhúng, 115 dòng nhúng. Không có collection marker kỹ thuật |
 
 ## Nên xem

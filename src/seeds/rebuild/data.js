@@ -159,11 +159,12 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
   addStorageExamples(dataContext(data),warehouse);
   buildTileShopScenario(data);
   const categorized=addTileCategories(data);
-  const codes=new Set(['Viên','Thùng','M2',...categorized.products.map(p=>p.baseUnit)]);
+  const areaCode='Mét vuông';
+  const codes=new Set(['Viên','Thùng',areaCode,...categorized.products.map(p=>p.baseUnit)]);
   for(const rows of Object.values(categorized))for(const row of rows)for(const item of row.items||[])if(item.enteredUnit)codes.add(item.enteredUnit);
   categorized.uoms=[...codes].map(code=>({
-    _id:fixtureId('uom:'+code),code,name:code==='M2'?'Mét vuông':code,
-    isActive:true,isCarton:code==='Thùng',...(code==='M2'&&{areaMm2:'1000000'}),createdAt:demoDate(1),updatedAt:demoDate(1),
+    _id:fixtureId('uom:'+(code===areaCode?'M2':code)),code,name:code,
+    isActive:true,isCarton:code==='Thùng',areaMm2:code===areaCode?decimalValue('1000000'):null,createdAt:demoDate(1),updatedAt:demoDate(1),
   }));
   for(const supplier of categorized.suppliers){if(supplier.status!=='ACTIVE')supplier.status='SUSPENDED';}
 
