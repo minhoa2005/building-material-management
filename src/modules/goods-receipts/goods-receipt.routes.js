@@ -9,7 +9,7 @@ import { requirePermission, requireWarehouseAccess, isOwner, hasPermission } fro
 import { currentRole } from '../../shared/utils/userRole.js';
 import { notFoundError } from '../../shared/utils/ApiError.js';
 import { dto } from '../../shared/utils/persistence.js';
-import { PurchaseReceipt, CustomerReturnReceipt, FailedDeliveryReceipt, TransferReceipt, OtherGoodsReceipt, CustomerReturn } from '../../models/runtime.js';
+import { PurchaseReceipt, CustomerReturnReceipt, FailedDeliveryReceipt, TransferReceipt, OtherGoodsReceipt, CustomerReturn, TransferDispatch, WarehouseTransferRequest } from '../../models/runtime.js';
 import { receiptRouter as purchaseRouter, empty, schema, pagination, ver, key, qty, reason, evidenceIds, handle } from '../po-receiving/po-receiving.routes.js';
 import * as other from './other-receipt.service.js';
 
@@ -42,6 +42,32 @@ router.use(authenticate);
 
 for (const [path, Model, permission] of definitions) {
   if (path === 'purchase') { router.use('/purchase', purchaseRouter); continue; }
+  if (path === 'transfer') {
+    const scoped = Router();
+    scoped.get('/', validate(schema(empty, empty, query)), catchAsync(async (req, res) => {
+      requirePermission(req.user, permission);
+      const { page, limit, warehouseId, status } = req.validated.query;
+      if (warehouseId) requireWarehouseAccess(req.user, warehouseId);
+      const filter = { 'header.warehouseId': warehouseId ?? { $in: req.user.warehouseIds ?? [] }, ...(status && { workflowStatus: status }) };
+      if (isOwner(req.user) && !warehouseId) delete filter['header.warehouseId'];
+      const [rows, total] = await Promise.all([
+        Model.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit),
+        Model.countDocuments(filter),
+      ]);
+      const dispatches = await TransferDispatch.find({ _id: { $in: rows.map(row => row.header.dispatchId).filter(Boolean) } }).select('_id header.requestId').lean();
+      const requests = await WarehouseTransferRequest.find({ _id: { $in: dispatches.map(row => row.header.requestId).filter(Boolean) } }).select('_id documentNo header').lean();
+      const dispatchById = new Map(dispatches.map(row => [String(row._id), row]));
+      const requestById = new Map(requests.map(row => [String(row._id), row]));
+      const items = rows.map(row => {
+        const dispatch = dispatchById.get(String(row.header.dispatchId));
+        const request = dispatch && requestById.get(String(dispatch.header.requestId));
+        return { ...response(row, req.user), transferId: request ? String(request._id) : undefined, transferDocumentNo: request?.documentNo, dispatchId: String(row.header.dispatchId) };
+      });
+      formatApiResponse(res, { data: { items, total, page, limit } });
+    }));
+    router.use('/transfer', scoped);
+    continue;
+  }
   const scoped = Router();
   if (path === 'other') {
     const command = { expectedVersion: ver, operationKey: key };

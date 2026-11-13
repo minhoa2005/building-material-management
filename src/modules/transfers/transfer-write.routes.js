@@ -26,4 +26,6 @@ router.post('/dispatches/:id/receipts', handle(validation.receiptBody, service.r
 router.post('/dispatches/:id/differences', handle(difference.proposalBody, difference.proposeDifference));
 router.post('/differences/:id/review', handle(difference.reviewBody, difference.reviewDifference));
 router.post('/:id/close', handle(validation.commandBody, service.closeRequest));
+router.post('/:id/close-partial', handle(validation.partialCloseBody, service.closePartialRequest));
+router.post('/:id/cancel', handle(validation.cancelRequestBody, service.cancelRequest));
 export default router;
