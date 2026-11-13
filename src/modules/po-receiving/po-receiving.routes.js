@@ -22,6 +22,7 @@ export const qty = decimalStringSchema({ positive: true });
 export const reason = z.string().trim().min(1).max(2000);
 export const evidenceIds = z.array(oid).min(1).max(20).refine(a => new Set(a).size === a.length);
 const optionalText = max => z.string().trim().min(1).max(max).optional();
+const searchText = optionalText(100);
 const iso = z.string().datetime({ offset: true }).refine(v => Date.parse(v) <= Date.now(), 'Thời điểm đến không được ở tương lai');
 const line = z.object({ id: oid.optional(), poLineId: oid, lotId: oid, enteredQty: qty, qualityCode: z.enum(['GOOD','DAMAGED','PENDING','BLOCKED']), ownershipDecision: z.enum(['ACCEPT','CUSTODY','REJECT']), packagingCondition: z.enum(['SEALED','OPENED','TORN','UNKNOWN']), handlingNote: optionalText(2000), receivingLocationId: oid.optional() }).strict();
 const form = { expectedPoVersion: ver, arrivedAt: iso, deliveryReference: optionalText(100), deliveredBy: optionalText(160), lines: z.array(line).max(100) };
@@ -60,6 +61,7 @@ purchaseReceivingRouter.get('/:id/inspection-context', validate(schema()), handl
 purchaseReceivingRouter.post('/:id/inspections', validate(schema(z.object({ ...form, creationKey: key }).strict())), handle((u,v) => service.createInspection(u,v.params.id,v.body)));
 export const putawayRouter = Router(); putawayRouter.use(authenticate);
 putawayRouter.get('/', validate(schema(empty, empty, paged({
+  q: searchText,
   status: z.enum(['OPEN', 'PARTIAL', 'CONFIRMED', 'CANCELLED']).optional(),
   warehouseId: oid.optional(), receiptId: documentIdentifier.optional(), purchaseOrderId: documentIdentifier.optional(),
 }))), handle((u, v) => tasks.listPutaway(u, v.query)));
@@ -67,7 +69,12 @@ putawayRouter.get('/:id', validate(schema()), handle((u,v) => tasks.getPutaway(u
 putawayRouter.post('/:id/confirm', validate(schema(z.object({ ...commandBody, lines: z.array(z.object({ taskLineId: oid, actualQtyBase: qty }).strict()).min(1).max(100) }).strict())), handle((u,v) => tasks.confirmPutaway(u,v.params.id,v.body)));
 putawayRouter.post('/:id/cancel-remainder', validate(schema(z.object({ ...commandBody, reason }).strict())), handle((u,v) => tasks.cancelPutaway(u,v.params.id,v.body)));
 export const queueRouter = Router(); queueRouter.use(authenticate);
-queueRouter.get('/', validate(schema(empty,empty,paged({ warehouseId: oid.optional(), purchaseOrderId: documentIdentifier.optional(), stage: z.enum(['DRAFT_INSPECTION','AWAITING_POST','AWAITING_PUTAWAY','CORRECTION']) }))), handle((u,v) => reads.receivingQueue(u,v.query)));
+queueRouter.get('/', validate(schema(empty, empty, paged({
+  q: searchText,
+  warehouseId: oid.optional(),
+  purchaseOrderId: documentIdentifier.optional(),
+  stage: z.enum(['DRAFT_INSPECTION', 'AWAITING_POST', 'AWAITING_PUTAWAY', 'CORRECTION']),
+}))), handle((u, v) => reads.receivingQueue(u, v.query)));
 export const purchaseDocumentRouter = Router(); purchaseDocumentRouter.use(authenticate);
 purchaseDocumentRouter.get('/:id/history', validate(schema(empty,undefined,paged({}))), handle((u,v) => reads.receivingHistory(u,v.params.id,v.query)));
 purchaseDocumentRouter.get('/:id/evidence', validate(schema()), handle((u,v) => evidence.listEvidence(u,v.params.id)));

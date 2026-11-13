@@ -1,9 +1,10 @@
-import { PurchaseReceipt, TransferOrder, StockTransaction, WarehouseLocation, InventoryBalance, InternalTransferRequirement } from '../../models/runtime.js';
+import { PurchaseReceipt, Warehouse, ProductBatch, TransferOrder, StockTransaction, WarehouseLocation, InventoryBalance, InternalTransferRequirement } from '../../models/runtime.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { exact } from '../../models/model-utils.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
 import { validationError, notFoundError, versionConflict } from '../../shared/utils/ApiError.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
+import { escapeRegex } from '../../shared/utils/domain.js';
 import { command, checkVersion, saveVersion, same } from '../../shared/utils/document-command.js';
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
 import { sourceContext, locationAt, guardLocations, pendingTaskQuantity, beginStock, balanceAt, moveStock, verifyCapacity } from '../../shared/utils/stock.js';
@@ -18,7 +19,7 @@ export function purchaseWarehouseFilter(user, id) {
   return all ? {} : { 'header.warehouseId': { $in: user.warehouseIds ?? [] } };
 }
 
-export async function listPutaway(user, { page, limit, status, warehouseId, receiptId, purchaseOrderId }) {
+export async function listPutaway(user, { page, limit, status, warehouseId, receiptId, purchaseOrderId, q }) {
   requirePermission(user, 'putaway_task:read');
   const scope = purchaseWarehouseFilter(user, warehouseId);
   const receiptFilter = { ...scope, ...(receiptId && { _id: receiptId }),
@@ -26,6 +27,7 @@ export async function listPutaway(user, { page, limit, status, warehouseId, rece
   const source = { subjectCollection: 'goods_receipts' };
   if (receiptId || purchaseOrderId) source.documentId = { $in: await PurchaseReceipt.find(receiptFilter).distinct('_id') };
   const filter = { ...scope, 'header.taskKind': 'PUTAWAY', sources: { $elemMatch: source },
+    ...(q && { documentNo: { $regex: escapeRegex(q), $options: 'i' } }),
     ...(status && { workflowStatus: status }) };
   const [rows, total] = await Promise.all([
     TransferOrder.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit),
@@ -83,12 +85,14 @@ async function source(gr,item,balanceId,toLocationId,session){
   if(!same(ctx.batch._id,item.lotId)||ctx.balance.ownerType!=='STORE'||ctx.balance.qualityStatus!=='GOOD'||!ctx.product.isActive||ctx.batch.identificationStatus!=='VERIFIED'||!same(ctx.location?._id,item.destinationLocationId))throw validationError('Nguồn nhập không còn hợp lệ');
   await locationAt(ctx.location._id,gr.header.warehouseId,['RECEIVING'],session);await locationAt(toLocationId,gr.header.warehouseId,['STORAGE'],session);return ctx;
 }
+// Lines may hold only the batch _id; show the manufacturer lot instead.
+const lotLabels=async items=>new Map((await ProductBatch.find({_id:{$in:items.map(i=>i.lotId).filter(Boolean)}}).select('manufacturerLot').lean()).map(b=>[String(b._id),b.manufacturerLot]));
 export async function putawayContext(user,id){
   requirePermission(user,'putaway_task:read');const gr=await receipt(id,user);const quantities=await placementQuantities(gr);
-  const balances=await InventoryBalance.find({_id:{$in:quantities.map(q=>q.sourceBalanceId).filter(Boolean)}}).lean();
+  const balances=await InventoryBalance.find({_id:{$in:quantities.map(q=>q.sourceBalanceId).filter(Boolean)}}).lean(),labels=await lotLabels(gr.items);
   return serialize({receiptId:id,receiptVersion:gr.version,locations:await WarehouseLocation.find({warehouseId:gr.header.warehouseId,locationType:'STORAGE',isActive:true}).lean(),
     tasks:await TransferOrder.find({'sources.subjectCollection':'goods_receipts','sources.documentId':gr._id}).lean(),
-    items:gr.items.map(i=>({...dto(i),...quantities.find(q=>same(q.lineId,i._id)),sourceBalanceVersion:balances.find(b=>same(b._id,quantities.find(q=>same(q.lineId,i._id))?.sourceBalanceId))?.version}))});
+    items:gr.items.map(i=>({...dto(i),lotLabelSnapshot:i.lotLabelSnapshot??labels.get(String(i.lotId)),...quantities.find(q=>same(q.lineId,i._id)),sourceBalanceVersion:balances.find(b=>same(b._id,quantities.find(q=>same(q.lineId,i._id))?.sourceBalanceId))?.version}))});
 }
 export function createPutaway(user,id,input){return command(user,'CREATE_PURCHASE_PUTAWAY','putaway_task:create',id,input,replayPurchase,async(session,actor)=>{
   const gr=await findPurchase(id,actor,session,{kind:'GR_PURCHASE'});checkVersion(gr,input.expectedVersion);if(gr.workflowStatus!=='POSTED')throw validationError('Phiếu nhập chưa ghi tồn');
@@ -111,6 +115,7 @@ export function createPutaway(user,id,input){return command(user,'CREATE_PURCHAS
 export async function getPutaway(user,id){
   requirePermission(user,'putaway_task:read');
   const d=await task(id,user),done=await actual(d);
+  const [warehouse,labels]=await Promise.all([Warehouse.findById(d.header?.warehouseId).select('name').lean(),lotLabels(d.items)]);
   let receiptId=d.sources?.find(ref=>ref.subjectCollection==='goods_receipts')?.documentId;
   if(!receiptId&&d.header?.requirementId){
     const itr=await InternalTransferRequirement.findById(d.header.requirementId).lean();
@@ -120,10 +125,12 @@ export async function getPutaway(user,id){
     ...dto(d),
     header:{
       ...dto(d.header),
+      warehouseName:warehouse?.name,
       receiptId:receiptId?String(receiptId):''
     },
     items:d.items.map(i=>({
       ...dto(i),
+      lotLabelSnapshot:i.lotLabelSnapshot??labels.get(String(i.lotId)),
       actualQtyBase:done.get(String(i._id)).toFixed(),
       remainingQtyBase:exact(i.qtyBase).minus(done.get(String(i._id))).toFixed()
     }))

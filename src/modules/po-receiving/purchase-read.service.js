@@ -2,6 +2,7 @@ import { GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLo
 import { requirePermission, hasPermission, canAccessWarehouse } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
+import { escapeRegex } from '../../shared/utils/domain.js';
 import { exact } from '../../models/model-utils.js';
 import { same } from '../../shared/utils/document-command.js';
 import { findPurchase, purchaseModels } from './purchase-core.js';
@@ -138,6 +139,7 @@ export async function getDocument(user, id, kind) {
 }
 export async function listDocuments(user,kind,query){
   requirePermission(user,'goods_receipt_inspection:read');const filter={...warehouseFilter(user,query.warehouseId),...(query.status&&{workflowStatus:query.status})};
+  if (query.q) filter.documentNo = { $regex: escapeRegex(query.q), $options: 'i' };
   if (kind === 'CUSTODY_RECEIPT') filter['header.ownerType'] = 'SUPPLIER';
   if (query.purchaseOrderId) {
     if (['INSPECTION', 'CUSTODY_RECEIPT'].includes(kind)) {
