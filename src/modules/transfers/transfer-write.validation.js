@@ -31,3 +31,5 @@ export const params = z.object({ id: documentIdentifier }).strict();
 export const updateRequestBody = createRequestBody.safeExtend({ expectedVersion: version });
 
 export const cancelDispatchBody=z.object({idempotencyKey:key,expectedVersion:version,reason}).strict();
+export const partialCloseBody=z.object({idempotencyKey:key,expectedVersion:version,reason}).strict();
+export const cancelRequestBody=z.object({idempotencyKey:key,expectedVersion:version,reason}).strict();

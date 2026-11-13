@@ -105,6 +105,12 @@ export async function buildCompleteSeedData(connection = mongoose.connection) {
 export async function syncExistingRolePermissions() {
   const Permission = mongoose.connection.model('Permission');
   const Role = mongoose.connection.model('Role');
+  const catalogueByCode = new Map(PERMISSION_CATALOGUE.map(permission => [permission.code, permission]));
+  const existing = await Permission.find({}).lean();
+  const missing = PERMISSION_CODES.filter(code => !existing.some(permission => permission.code === code));
+  if (missing.length) {
+    await Permission.insertMany(missing.map(code => ({ code, name: catalogueByCode.get(code).description, description: catalogueByCode.get(code).description, isActive: true })));
+  }
   const permissions = await Permission.find({}).lean();
   const permissionMap = new Map(permissions.map(({ code, _id }) => [code, _id]));
   const roles = await Role.find({ code: { $in: Object.keys(ROLE_PERMISSIONS) } });

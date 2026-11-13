@@ -10,9 +10,19 @@ export const modelDocumentTypes=Object.freeze({SalesOrder:'SO',WarehouseIssueReq
 export function numberPeriod(now=new Date()) {
  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',year:'2-digit',month:'2-digit',day:'2-digit'}).formatToParts(now).map(v=>[v.type,v.value]));return p.year+p.month+p.day;
 }
+const compactTypes = new Set(['TR', 'TD', 'ITR', 'MWTR', 'TO', 'DISC', 'YCĐC', 'PXĐC', 'YCNB', 'PNĐC', 'LCV', 'CLCK']);
+function compactUnit(unit) {
+ const match=String(unit).trim().toUpperCase().match(/^K-GACH-0?(\d+)$/);
+ return match ? `KG${match[1]}` : String(unit).trim().replace(/\s+/g,'');
+}
+function numberParts(type,unit,period) {
+ const compact=compactTypes.has(type), normalizedUnit=compact?compactUnit(unit):unit;
+ const separator=compact?'-':' - ';
+ return { compact, unit:normalizedUnit, prefix:[type,normalizedUnit,period,''].join(separator) };
+}
 export function formatDocumentNumber(type,unit,period,sequence) {
  if(!Number.isSafeInteger(sequence)||sequence<1)throw validationError('Số thứ tự phiếu vượt giới hạn');
- return [type,unit,period,String(sequence).padStart(6,'0')].join(' - ');
+ return numberParts(type,unit,period).prefix+String(sequence).padStart(6,'0');
 }
 // No counter collection. The immutable unique document _id arbitrates concurrent
 // allocations. The complete transaction is retried on a duplicate coded ID.
@@ -24,7 +34,7 @@ export async function nextDocumentFields(Model,type,warehouseId,session=currentT
  if(warehouseId&&!warehouse)throw validationError('Không tìm thấy kho cấp mã');
  if(!warehouse&&!['SO','POD','PAY','CANCEL','INVOICE'].includes(type))throw validationError('Chứng từ phải có kho cấp mã');
  const unit=warehouse?warehouse.code:'KD';
- const period=numberPeriod(now),prefix=[config[0],unit,period,''].join(' - '),path=embeddedPath??(type==='HO'?'handovers':null);
+ const period=numberPeriod(now),parts=numberParts(config[0],unit,period),prefix=parts.prefix,path=embeddedPath??(type==='HO'?'handovers':null);
  const regex=new RegExp('^'+escapeRegex(prefix)+'[0-9]+$');
  const field=path?path+'._id':'_id',projection=path?{[path+'._id']:1}:{_id:1};
  const rows=await Model.collection.find({[field]:regex},{session,projection}).toArray();
@@ -37,7 +47,7 @@ export async function nextDocumentFields(Model,type,warehouseId,session=currentT
  session.documentNumbers??=new Map();const scope=Model.collection.name+':'+prefix;const sequence=Math.max(last,session.documentNumbers.get(scope)??0)+1;
  if(!Number.isSafeInteger(sequence))throw validationError('Số thứ tự phiếu vượt giới hạn');session.documentNumbers.set(scope,sequence);
  const id=formatDocumentNumber(config[0],unit,period,sequence);
- return {_id:id,documentNo:id,tenLoaiPhieu:config[1],maDonVi:unit,kyDanhSo:period,soThuTu:sequence};
+ return {_id:id,documentNo:id,tenLoaiPhieu:config[1],maDonVi:parts.unit,kyDanhSo:period,soThuTu:sequence};
 }
 export async function newBusinessDocument(Model,user,header,items=[],status='DRAFT',note,type) {
  const warehouseId=header.warehouseId??header.sourceWarehouseId??header.requestedWarehouseId??header.warehouseIds?.[0];

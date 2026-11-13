@@ -8,6 +8,8 @@ test('document IDs use the Vietnamese local day and preserve numbers above six d
   assert.equal(numberPeriod(new Date('2026-11-30T18:00:00Z')), '261201');
   assert.equal(formatDocumentNumber('ĐBH','KD','261112',1),'ĐBH - KD - 261112 - 000001');
   assert.equal(formatDocumentNumber('ĐBH','KD','261112',1000000),'ĐBH - KD - 261112 - 1000000');
+  assert.equal(formatDocumentNumber('YCĐC','K-GACH-01','261113',1),'YCĐC-KG1-261113-000001');
+  assert.equal(formatDocumentNumber('PNĐC','K-GACH-02','261113',1),'PNĐC-KG2-261113-000001');
   assert.throws(()=>formatDocumentNumber('ĐBH','KD','261112',Number.MAX_SAFE_INTEGER+1));
 });
 

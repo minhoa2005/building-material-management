@@ -206,6 +206,37 @@ export function closeRequest(user,id,input) {
   });
 }
 
+export function closePartialRequest(user,id,input) {
+  return command(user,'CLOSE_TRANSFER_REQUEST_PARTIAL','stock_transfer:receive',id,input,requestReplay,async(session,actor)=>{
+    const request=await find(Request,id,session);checkVersion(request,input.expectedVersion);requireWarehouseAccess(actor,request.header.destinationWarehouseId);
+    if(request.workflowStatus!=='APPROVED')throw validationError('Yêu cầu không còn mở');
+    const dispatches=await Dispatch.find({'header.requestId':id,workflowStatus:{$ne:'CANCELLED'}}).session(session);
+    if(!dispatches.length||dispatches.some(row=>row.workflowStatus!=='POSTED'))throw validationError('Còn phiếu xuất chưa hoàn tất');
+    const points=await StockHoldingPoint.find({dispatchLineId:{$in:dispatches.flatMap(row=>row.items.map(item=>item._id))}}).session(session);
+    if(await InventoryBalance.exists({holdingPointId:{$in:points.map(row=>row._id)},quantityBase:{$gt:0}}).session(session))throw validationError('Còn hàng đang chuyển hoặc chênh lệch chưa giải quyết');
+    if(await StockDiscrepancy.exists({'header.sourceRef.documentId':{$in:dispatches.map(d=>d._id)},workflowStatus:{$ne:'RESOLVED'}}).session(session))throw validationError('Còn hồ sơ chênh lệch chưa giải quyết');
+    const receipts=await Receipt.find({'header.dispatchId':{$in:dispatches.map(row=>row._id)},workflowStatus:'POSTED'}).session(session);
+    if(!receipts.length)throw validationError('Chưa nhận hàng tại kho đích');
+    for(const receipt of receipts)if(receipt.items.some(i=>i.details.qualityCode!=='DAMAGED')&&!await Requirement.exists({'header.sourceDocumentId':receipt._id,workflowStatus:'COMPLETED'}).session(session))throw validationError('Chưa cất xong mọi phiếu nhận');
+    const shipped=request.items.map(item=>{const dispatched=dispatches.flatMap(row=>row.items).filter(row=>same(row.details.requestLineId,item._id)).reduce((sum,row)=>sum.plus(String(row.qtyBase)),exact('0'));return {itemId:item._id,approvedQtyBase:String(item.approvedQtyBase),dispatchedQtyBase:dispatched.toFixed(),shortfallQtyBase:exact(String(item.approvedQtyBase)).minus(dispatched).toFixed()};});
+    if(!shipped.some(row=>exact(row.shortfallQtyBase).gt(0)))throw validationError('Đơn đã đủ lượng duyệt; hãy dùng thao tác hoàn tất thông thường');
+    request.workflowStatus='COMPLETED';request.header.closedBy=actor._id;request.header.closedAt=new Date();request.header.closureMode='PARTIAL';request.header.closureReason=input.reason;
+    return{document:await saveVersion(request,input.expectedVersion,session),versionBefore:input.expectedVersion,shipped};
+  });
+}
+
+export function cancelRequest(user,id,input) {
+  return command(user,'CANCEL_TRANSFER_REQUEST','stock_transfer:update',id,input,requestReplay,async(session,actor)=>{
+    const request=await find(Request,id,session);checkVersion(request,input.expectedVersion);requireWarehouseAccess(actor,request.header.sourceWarehouseId);
+    if(!same(request.createdBy,actor._id))throw forbiddenError('Chỉ người lập yêu cầu mới được hủy');
+    if(!['PENDING_APPROVAL','REVISION_REQUIRED','APPROVED'].includes(request.workflowStatus))throw validationError('Đơn không còn ở trạng thái có thể hủy');
+    const dispatches=await Dispatch.find({'header.requestId':id,workflowStatus:{$ne:'CANCELLED'}}).session(session);
+    if(dispatches.length)throw validationError('Đơn đã phát sinh phiếu xuất; hãy hủy phiếu xuất nháp hoặc dùng dừng chuyển tiếp');
+    request.workflowStatus='CANCELLED';request.cancelledBy=actor._id;request.cancelledAt=new Date();request.cancelReason=input.reason;request.header.approvalStatus='CANCELLED';
+    return{document:await saveVersion(request,input.expectedVersion,session),versionBefore:input.expectedVersion};
+  });
+}
+
 export function updateRequest(user,id,input) {
  return command(user,'UPDATE_TRANSFER_REQUEST','stock_transfer:update',id,input,requestReplay,async(session,actor)=>{
   const request=await requestReplay(id,actor,session);checkVersion(request,input.expectedVersion);requireWarehouseAccess(actor,request.header.sourceWarehouseId);

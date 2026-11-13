@@ -4,7 +4,7 @@ import { exact } from '../../models/model-utils.js';
 import { freeQuantity } from '../../shared/utils/stock.js';
 import mongoose from 'mongoose';
 import { movementList } from '../../shared/utils/movement-list.js';
-import { WarehouseTransferRequest, TransferDispatch, TransferReceipt, InternalTransferRequirement, TransferOrder, ApprovalHistory, SalesOrder, WarehouseIssueRequest, SupplyAllocation, Warehouse, WarehouseLocation, StockHoldingPoint, InventoryBalance, ProductBatch, Product, StockDiscrepancy } from '../../models/runtime.js';
+import { WarehouseTransferRequest, TransferDispatch, TransferReceipt, InternalTransferRequirement, TransferOrder, ApprovalHistory, SalesOrder, WarehouseIssueRequest, SupplyAllocation, Warehouse, WarehouseLocation, StockHoldingPoint, InventoryBalance, ProductBatch, Product, Uom, StockDiscrepancy } from '../../models/runtime.js';
 import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto } from '../../shared/utils/persistence.js';
@@ -66,5 +66,6 @@ export async function transferOptions(user, warehouseId) {
   const balances=await InventoryBalance.find({holdingPointId:{$in:holdingPoints.map(row=>row._id)},quantityBase:{$gt:0}}).lean();
   const batches=await ProductBatch.find({_id:{$in:balances.map(row=>row.batchId)},identificationStatus:'VERIFIED'}).lean();
   const products=await Product.find({isActive:true}).lean();
-  return {warehouses:warehouses.map(dto),sourceWarehouseIds,locations:locations.map(dto),holdingPoints:holdingPoints.map(dto),balances:await Promise.all(balances.map(async b=>({...dto(b),availableQtyBase:(await freeQuantity(b)).toFixed()}))),batches:batches.map(dto),products:products.map(dto)};
+  const units=await Uom.find({isActive:true}).select('code name isCarton').lean();
+  return {warehouses:warehouses.map(dto),sourceWarehouseIds,locations:locations.map(dto),holdingPoints:holdingPoints.map(dto),balances:await Promise.all(balances.map(async b=>({...dto(b),availableQtyBase:(await freeQuantity(b)).toFixed()}))),batches:batches.map(dto),products:products.map(dto),units:units.map(dto)};
 }
