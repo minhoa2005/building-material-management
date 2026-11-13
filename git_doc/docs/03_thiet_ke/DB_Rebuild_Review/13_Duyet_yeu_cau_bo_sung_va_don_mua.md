@@ -142,6 +142,7 @@ Một PO được Accountant lập từ **một RR đã duyệt**, cho **một n
 | `orderedQty`, `orderedQtyBase` | Decimal128 > 0 | Lượng đặt ở đơn vị nhập và đơn vị gốc; không vượt trần RR được duyệt |
 | `unitPurchasePrice` | Decimal128 ≥ 0 | Giá mua đã chốt cho **một đơn vị đặt** của dòng, chẳng hạn một thùng; không tự hiểu là giá một viên |
 | `lineAmount` | Decimal128 ≥ 0, phần mềm tính | `orderedQty × unitPurchasePrice`. Tính thập phân chính xác, không nhân theo đơn vị gốc nếu giá nhập theo thùng |
+| `note` | Chuỗi tùy chọn, tối đa 2000 ký tự | Ghi chú dòng, ví dụ lô NCC báo giao. Kho chọn lô thực nhận độc lập với ghi chú. Quyết định của người dùng ngày 13/11/2026, phương án A. |
 | `requiredBatchId`, `requiredTone`, `requiredCalibre` | Theo yêu cầu được duyệt, khi có | Điều kiện hàng nhà cung cấp cần đáp ứng; lô thực nhập xác định tại kiểm nhận |
 | `cancelledRemainderQtyBase`, `cancellationDecisionRef` | Decimal128 ≥ 0 và quyết định liên quan | Phần chưa nhận được phép ngừng chờ; không nhập số lượng đã hủy thành hàng nhận |
 
@@ -155,8 +156,8 @@ Bộ lọc quyền áp dụng cả chi tiết, danh sách, xuất file, thông b
 
 ### Đặt, nhận, sửa và đóng PO
 
-1. Accountant tạo DRAFT từ bản RR APPROVED còn hiệu lực, chọn một NCC ACTIVE và kho đúng RR. Một dòng RR có thể được chia thành các dòng PO theo quy cách khi cần, nhưng tổng lượng gốc của mọi dòng tham chiếu nó không vượt lượng được duyệt. Quy cách khi nhận có thể khác quy cách đặt, phải đối chiếu bằng đơn vị gốc.
-2. Accountant phát hành nháp sang OPEN và ghi thời điểm phát hành. Việc lập hoặc phát hành PO chỉ ghi chứng từ đặt mua. PO dùng kết quả đã duyệt của RR làm căn cứ số lượng.
+1. Accountant tạo DRAFT từ bản RR APPROVED còn hiệu lực, chọn một NCC ACTIVE và kho đúng RR. Có thể chia một dòng RR thành nhiều dòng PO theo lô NCC báo giao hoặc theo quy cách. Trong cùng PO, tổng lượng gốc của các dòng tham chiếu cùng một dòng RR phải nằm trong lượng được duyệt. Đối chiếu lượng khi đặt và khi nhận bằng đơn vị gốc.
+2. Accountant phát hành nháp sang OPEN và ghi thời điểm phát hành. BE kiểm lại tổng lượng gốc theo từng dòng RR trước khi phát hành. Việc lập hoặc phát hành PO chỉ ghi chứng từ đặt mua.
 3. Mỗi lần hàng đến ghi phiếu nhận theo đúng dòng PO. Tiến độ phải phân biệt lượng mang đến, lượng chấp nhận sở hữu, lượng chờ/giữ hộ và từ chối. Lượng đã nhận lấy từ chứng từ đã ghi hợp lệ, không nhập tay ở PO. Cảnh báo RR hiển thị ngày dự kiến chung và phần PO chưa nhận, kể cả khi ngày dự kiến sau hạn cần của RR. Chi tiết nhận hàng H03–H05 được trình riêng.
 4. `còn phải nhận = lượng đặt − lượng đã chấp nhận theo phiếu nhập hợp lệ − phần chưa nhận được duyệt hủy`. Các lượng quy về đơn vị gốc, không âm. Hàng thừa/sai không tự cộng vào lượng đã hoàn thành PO. Hàng đã nhận rồi trả NCC giữ lịch sử nhập gốc; việc NCC giao bù phải có nguồn liên kết và trần nhận riêng được duyệt ở luồng trả, không tự mở lại trần vô hạn.
 5. Sửa nội dung khi còn DRAFT, trong phạm vi RR đã duyệt. Khi PO `OPEN` hoặc `PARTIAL`, Accountant có thể đổi ngày dự kiến chung và phải ghi lý do. Sau phát hành, nếu ngừng chờ một phần hàng, Accountant đề nghị, người có thẩm quyền duyệt độc lập, rồi Accountant thực hiện đóng lượng chưa nhận đủ điều kiện. Lượng đặt, giá mua và chứng từ nhập đã ghi được giữ để đối chiếu.

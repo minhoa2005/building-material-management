@@ -24,7 +24,7 @@ export const evidenceIds = z.array(oid).min(1).max(20).refine(a => new Set(a).si
 const optionalText = max => z.string().trim().min(1).max(max).optional();
 const searchText = optionalText(100);
 const iso = z.string().datetime({ offset: true }).refine(v => Date.parse(v) <= Date.now(), 'Thời điểm đến không được ở tương lai');
-const line = z.object({ id: oid.optional(), poLineId: oid, lotId: oid, enteredQty: qty, qualityCode: z.enum(['GOOD','DAMAGED','PENDING','BLOCKED']), ownershipDecision: z.enum(['ACCEPT','CUSTODY','REJECT']), packagingCondition: z.enum(['SEALED','OPENED','TORN','UNKNOWN']), handlingNote: optionalText(2000), receivingLocationId: oid.optional() }).strict();
+const line = z.object({ id: oid.optional(), poLineId: oid, lotId: oid, enteredQty: qty, enteredUnit: z.string().trim().min(1).max(60).optional(), qualityCode: z.enum(['GOOD','DAMAGED','PENDING','BLOCKED']), ownershipDecision: z.enum(['ACCEPT','CUSTODY','REJECT']), packagingCondition: z.enum(['SEALED','OPENED','TORN','UNKNOWN']), handlingNote: optionalText(2000), receivingLocationId: oid.optional() }).strict();
 const form = { expectedPoVersion: ver, arrivedAt: iso, deliveryReference: optionalText(100), deliveredBy: optionalText(160), lines: z.array(line).max(100) };
 const pager = z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().safe());
 export const pagination = { page: pager.default(1), limit: pager.pipe(z.number().max(100)).default(10) };

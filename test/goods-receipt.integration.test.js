@@ -117,7 +117,9 @@ test('five receipt APIs, per-kind rights and OTHER correction flow', { skip: !en
   assert.equal(generic.status, 200, JSON.stringify(generic.body));
   assert.equal(generic.body.data.header.reason, draft.reason);
   assert.equal(generic.body.data.items[0]._id, String(receipt.items[0]._id));
-  assert.equal((await api('GET', '/goods-receipts?kind=OTHER&warehouseId=' + warehouse._id, worker)).body.data.items[0].totalQtyBase, '4');
+  const listedOther = (await api('GET', '/goods-receipts?kind=OTHER&warehouseId=' + warehouse._id, worker)).body.data.items[0];
+  assert.equal(listedOther.totalQtyBase, '4');
+  assert.deepEqual(listedOther.totalsByBaseUnit, [{ unit: 'Viên', quantity: '4' }]);
   receipt = await m.OtherGoodsReceipt.findById(receipt._id);
   const attachment = await m.Attachment.create({ ownerDocumentType: 'goods_receipts', ownerDocumentId: receipt._id,
     purpose: 'TEST_EVIDENCE', originalName: 'proof.png', mediaType: 'image/png', sizeBytes: 100,

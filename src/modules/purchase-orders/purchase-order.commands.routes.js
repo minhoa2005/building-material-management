@@ -11,7 +11,7 @@ import * as c from './purchase-order.commands.js';
 // Deprecated. Accepted for older clients and unused by PO commands.
 const evaluations = z.array(z.object({ lineId: oid, evaluationKey: z.string().min(1).max(200) }).strict()).max(100).optional();
 const form = { evaluations, warehouseId: oid, supplierId: oid, currency: z.string().regex(/^[A-Z]{3}$/), expectedOn: z.string().datetime({ offset: true }).optional(),
-  lines: z.array(z.object({ id: oid.optional(), rrLineId: oid, approvalId: oid, enteredQty: qty, unitPurchasePrice: decimalStringSchema() }).strict()).min(1).max(100) };
+  lines: z.array(z.object({ id: oid.optional(), rrLineId: oid, approvalId: oid, enteredQty: qty, unitPurchasePrice: decimalStringSchema(), note: z.string().trim().min(1).max(2000).optional() }).strict()).min(1).max(100) };
 const action = fields => z.object({ ...commandBody, evaluations, ...fields }).strict();
 const closeLines = z.array(z.object({ poLineId: oid, qtyBase: qty }).strict()).min(1).max(100);
 const router = Router(); router.use(authenticate);
