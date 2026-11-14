@@ -52,5 +52,7 @@ export function arrangementSize(plan) {
   return {width:plan.columns*plan.palletWidth+(plan.columns-1)*plan.gap+2*plan.margin,length:plan.rows*plan.palletLength+(plan.rows-1)*plan.gap+2*plan.margin};
 }
 export function applicationIssues(layout) {
-  return [...containmentIssues(layout),...(layout.zones||[]).filter(zone=>!zone.functionId).map(zone=>`Khu vực ${zone.name} chưa được gán chức năng.`)];
+  const issues=[...containmentIssues(layout),...(layout.zones||[]).filter(zone=>!zone.functionId).map(zone=>`Khu vực ${zone.name} chưa được gán chức năng.`)];
+  for(const zone of layout.zones||[])for(const slot of zone.slots||[])for(const pallet of slot.pallets||[]){const height=pallet.actualHeight??pallet.baseHeight+pallet.stackHeight,limit=zone.maxHeight??layout.maxStackHeight??layout.height;if(height>limit)issues.push(`Pallet ${pallet.code} vượt giới hạn chiều cao ${limit} m.`);}
+  return issues;
 }

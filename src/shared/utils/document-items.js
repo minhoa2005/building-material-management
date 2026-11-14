@@ -1,5 +1,5 @@
-import { Product, ProductBatch } from '../../models/runtime.js';
-import { resolveConversion } from './conversions.js';
+import { Product, ProductBatch, Uom } from '../../models/runtime.js';
+import { resolveConversion, toBaseQuantity } from './conversions.js';
 import { exact } from '../../models/model-utils.js';
 import { validationError } from './ApiError.js';
 import { newId } from './document-command.js';
@@ -18,7 +18,7 @@ export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', 
     batch = await ProductBatch.findOne({ _id: input.lotId, productId: product._id, identificationStatus: 'VERIFIED' }).session(session);
     if (!batch) throw validationError('Lô chưa xác minh hoặc không thuộc sản phẩm');
     await lockLotIdentity(batch._id, session);
-    packagingSnapshot = { packageUnit: 'BOX', baseUnitsPerPackage: String(batch.piecesPerCarton),
+    packagingSnapshot = { packageUnit: 'Thùng', baseUnitsPerPackage: String(batch.piecesPerCarton),
       outerLengthMm: batch.cartonLengthMm, outerWidthMm: batch.cartonWidthMm, outerHeightMm: batch.cartonHeightMm };
   }
   if (reuseSnapshot) {
@@ -27,7 +27,8 @@ export async function makeItem(input, lineNo, session, { lineKind = 'STANDARD', 
   } else {
     factor = await resolveConversion(product, batch, enteredUnit, session, { allowInactiveUom });
   }
-  const quantity = exact(input.enteredQty).mul(factor);
+  const enteredUom = await Uom.findOne({ code: enteredUnit }).session(session);
+  const quantity = toBaseQuantity(input.enteredQty, factor, product, enteredUom);
   if (!quantity.gt(0) || quantity.decimalPlaces() > 6 || quantity.gte('100000000000000') || (product.wholeBaseUnits && !quantity.isInteger())) throw validationError('Số lượng phải quy đổi chính xác sang đơn vị gốc');
   return { _id: previous?._id ?? newId(), lineNo, lineKind, productId: product._id, lotId: batch?._id,
     enteredUnit, baseUnitSnapshot: reuseSnapshot ? previous.baseUnitSnapshot : product.baseUnit,

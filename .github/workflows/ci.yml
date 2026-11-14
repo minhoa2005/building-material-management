@@ -54,6 +54,7 @@ jobs:
         env:
           RUN_NATIVE_API_TESTS: "1"
           RUN_GOODS_RECEIPT_TESTS: "1"
+          RUN_RETURNS_NATIVE_TESTS: "1"
 
       - name: Install diff-cover
         if: ${{ github.event_name == 'pull_request' }}

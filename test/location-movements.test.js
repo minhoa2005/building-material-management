@@ -33,3 +33,13 @@ test('sealed portions split exactly and loose packaging requires measurement',()
   assert.throws(()=>splitPortions(portions,'3',id),/nguyên thùng/);
   assert.throws(()=>splitPortions([{packagingState:'LOOSE',quantityBase:'4'}],'2',id),/đo và tách/);
 });
+
+test('1050 pieces at 100/carton: whole cartons then the whole loose lot, never a cut carton or loose lot',()=>{
+  const sealed=(count)=>({packagingState:'SEALED',sealedPackCount:count,quantityBase:String(count*100),packagingSnapshot:{baseUnitsPerPackage:'100'}});
+  const stock=()=>[sealed(10),{packagingState:'LOOSE',quantityBase:'50'}];
+  const afterFirst=splitPortions(stock(),'500',id).kept;
+  assert.deepEqual(splitPortions(afterFirst,'550',id).kept,[]);
+  assert.throws(()=>splitPortions(stock(),'540',id),/nguyên thùng/);
+  assert.throws(()=>splitPortions(stock(),'1030',id),/đo và tách/);
+  assert.throws(()=>splitPortions(stock(),'50',id),/nguyên thùng/);
+});

@@ -29,6 +29,12 @@
         "target": ""
       },
       {
+        "path": "areaMm2",
+        "type": "Decimal128",
+        "required": false,
+        "target": ""
+      },
+      {
         "path": "_id",
         "type": "ObjectId",
         "required": false,

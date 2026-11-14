@@ -17,7 +17,7 @@ The runtime uses one registry: `src/models/index.js` exports `registerModels(con
 
 [Hợp đồng runtime mới](docs/08_api/NATIVE_MODEL_RUNTIME.md) phân biệt API đã chuyển và phạm vi kiểm chứng. Việc có schema cho một nghiệp vụ không có nghĩa mọi màn hình demo đã thành chức năng vận hành.
 
-[Hợp đồng GoodsReceipt BE](docs/08_api/GOODS_RECEIPTS.md) là nguồn hiện hành cho năm loại phiếu nhập, quyền tách riêng khách trả/giao thất bại, phiếu `OTHER`, Bỏ ghi và API đã gỡ. FE sẽ được chuyển ở đợt riêng.
+[Hợp đồng GoodsReceipt BE](docs/08_api/GOODS_RECEIPTS.md) là nguồn hiện hành cho năm loại phiếu nhập, quyền tách riêng khách trả/giao thất bại, phiếu `OTHER`, Bỏ ghi và API đã gỡ. FE dùng danh sách phiếu nhập gộp, chi tiết theo loại và form ghi tồn từ chứng từ nguồn. Kiểm hàng, tạm giữ và cất hàng có màn hình riêng.
 
 ## 2. Thứ tự dùng nguồn
 
@@ -112,6 +112,6 @@ The user confirmed Accountant verification with uploaded evidence for historical
 
 Kho 3D chặng 1 đã có code vẽ nền/tường/cửa, dùng warehouses.layout3d và quyền kho hiện có; không áp bố trí vào tồn. Hợp đồng: [Kho 3D](docs/10_Kho3D/IMPLEMENTATION.md).
 
-Kho 3D chặng 2: vùng chữ nhật xoay, ô local, danh mục chức năng riêng từng kho do người có access_control:update quản lý; lưu bản nháp và snapshot áp dụng tách biệt, kiểm phạm vi/updatedAt. Không đồng nhất chức năng tự tạo với enum vị trí nghiệp vụ, không tự ghi tồn. [Hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md).
+Kho 3D chặng 2: vùng chữ nhật xoay, ô local, danh mục chức năng riêng từng kho do người có warehouse_layout_function:update quản lý; lưu bản nháp và snapshot áp dụng tách biệt, kiểm phạm vi/updatedAt. Không đồng nhất chức năng tự tạo với enum vị trí nghiệp vụ, không tự ghi tồn. [Hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md).
 
-Kho 3D 12/11: cho phép vẽ và lưu nháp khu vực chưa gán chức năng (functionId rỗng); áp dụng cần gán đầy đủ. Danh mục chức năng vẫn cần access_control:update. Xem STAGE2_ZONES.md.
+Kho 3D 12/11: cho phép vẽ và lưu nháp khu vực chưa gán chức năng (functionId rỗng); áp dụng cần gán đầy đủ. Danh mục chức năng vẫn cần warehouse_layout_function:update. Xem STAGE2_ZONES.md.

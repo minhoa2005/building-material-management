@@ -61,6 +61,46 @@ async function scoped(id, actor, session) {
 }
 const replay = (id, actor, session) => scoped(id, actor, session);
 
+async function replacementSource(id, warehouseId, actor, session, draftId) {
+  const original = await scoped(id, actor, session);
+  if (original.workflowStatus !== 'REVERSED' || !original.approvedStockHash
+    || !same(original.header.warehouseId, warehouseId)) {
+    throw validationError('Phiếu gốc chưa được bỏ ghi và duyệt trong cùng kho');
+  }
+  if (await OtherGoodsReceipt.exists({
+    'header.originalReceiptId': original._id,
+    ...(draftId && { _id: { $ne: draftId } }),
+    workflowStatus: { $nin: ['CANCELLED', 'REVERSED'] },
+  }).session(session)) throw validationError('Phiếu gốc đã có phiếu thay thế còn hiệu lực');
+  // Claims for the same reversed receipt contend on the same row, including
+  // edits of separate draft receipts that otherwise write different documents.
+  const updatedAt = new Date(Math.max(Date.now(), (original.updatedAt?.getTime() ?? 0) + 1));
+  await OtherGoodsReceipt.updateOne({ _id: original._id }, { $set: { updatedAt } }, { session, timestamps: false });
+  return original;
+}
+
+const replacementLink = original => [{
+  subjectCollection: 'goods_receipts', documentId: original._id, relationCode: 'REPLACES',
+}];
+
+async function buildLines(receipt, lines, session, original) {
+  const items = [];
+  const existing = [...receipt.items];
+  for (const [index, line] of lines.entries()) {
+    await locationAt(line.destinationLocationId, receipt.header.warehouseId,
+      line.qualityCode === 'GOOD' ? ['RECEIVING', 'STORAGE'] : ['QUARANTINE'], session);
+    const previousIndex = existing.findIndex(row => same(row.productId, line.productId) && same(row.lotId, line.lotId));
+    const previous = previousIndex < 0 ? undefined : existing.splice(previousIndex, 1)[0];
+    const item = original ? original.items[index].toObject() : await makeItem(line, index + 1, session, { previous });
+    items.push({
+      ...item, _id: previous?._id ?? newId(), lineNo: index + 1, lineKind: 'STANDARD',
+      destinationLocationId: line.destinationLocationId, qualityCode: line.qualityCode,
+      ...(previous && { note: previous.note, evidenceIds: previous.evidenceIds }),
+    });
+  }
+  return items;
+}
+
 export function createOtherReceipt(user, input) {
   return command(
     user,
@@ -72,25 +112,7 @@ export function createOtherReceipt(user, input) {
     async (session, actor) => {
       staff(actor);
       requireWarehouseAccess(actor, input.warehouseId);
-      let original;
-      if (input.originalReceiptId) {
-        original = await scoped(input.originalReceiptId, actor, session);
-        if (
-          original.workflowStatus !== "REVERSED" ||
-          !original.approvedStockHash ||
-          !same(original.header.warehouseId, input.warehouseId)
-        )
-          throw validationError(
-            "Phiếu gốc chưa được bỏ ghi và duyệt trong cùng kho",
-          );
-        if (
-          await OtherGoodsReceipt.exists({
-            "header.originalReceiptId": original._id,
-            workflowStatus: { $nin: ["CANCELLED", "REVERSED"] },
-          }).session(session)
-        )
-          throw validationError("Phiếu gốc đã có phiếu thay thế còn hiệu lực");
-      }
+      const original = input.originalReceiptId && await replacementSource(input.originalReceiptId, input.warehouseId, actor, session);
       const lines =
         input.lines ??
         original?.items.map((item) => ({
@@ -116,40 +138,34 @@ export function createOtherReceipt(user, input) {
         },
         items: [],
       });
-      for (const [index, line] of lines.entries()) {
-        await locationAt(
-          line.destinationLocationId,
-          input.warehouseId,
-          line.qualityCode === "GOOD"
-            ? ["RECEIVING", "STORAGE"]
-            : ["QUARANTINE"],
-          session,
-        );
-        const item =
-          original && !input.lines
-            ? original.items[index].toObject()
-            : await makeItem(line, index + 1, session);
-        receipt.items.push({
-          ...item,
-          _id: newId(),
-          lineNo: index + 1,
-          lineKind: "STANDARD",
-          destinationLocationId: line.destinationLocationId,
-          qualityCode: line.qualityCode,
-        });
-      }
-      if (original)
-        receipt.sources = [
-          {
-            subjectCollection: "goods_receipts",
-            documentId: original._id,
-            relationCode: "REPLACES",
-          },
-        ];
+      receipt.items = await buildLines(receipt, lines, session, input.lines ? undefined : original);
+      if (original) receipt.sources = replacementLink(original);
       await receipt.save({ session });
       return { document: receipt };
     },
   );
+}
+
+export function updateOtherReceipt(user, id, input) {
+  return command(user, 'UPDATE_OTHER_RECEIPT', 'goods_receipt_other:create', id, input, replay, async (session, actor) => {
+    staff(actor);
+    const doc = await scoped(id, actor, session);
+    checkVersion(doc, input.expectedVersion);
+    if (doc.workflowStatus !== 'DRAFT') throw validationError('Phiếu không còn nháp');
+    if (input.originalReceiptId === null) {
+      doc.header.originalReceiptId = null;
+      doc.sources = doc.sources?.filter(source => source.relationCode !== 'REPLACES');
+    } else if (input.originalReceiptId && !same(input.originalReceiptId, doc.header.originalReceiptId)) {
+      const original = await replacementSource(input.originalReceiptId, doc.header.warehouseId, actor, session, doc._id);
+      doc.header.originalReceiptId = original._id;
+      doc.sources = replacementLink(original);
+    }
+    doc.header.reason = input.reason;
+    if (input.note !== undefined) doc.note = input.note;
+    doc.items = await buildLines(doc, input.lines, session);
+    doc.updatedBy = actor._id;
+    return { document: await saveVersion(doc, input.expectedVersion, session), versionBefore: input.expectedVersion };
+  });
 }
 
 export function submitOtherReceipt(user, id, input) {

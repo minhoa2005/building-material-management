@@ -40,6 +40,8 @@ export function createWarehouseTransferRequestHeaderSchema() {
     rejectionReason: opt(2000),
     closedBy: ref("User", false),
     closedAt: date(false),
+    closureMode: opt(20),
+    closureReason: opt(2000),
   });
   return schema;
 }

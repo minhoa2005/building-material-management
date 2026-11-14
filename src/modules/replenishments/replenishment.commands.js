@@ -287,9 +287,9 @@ export async function getReplenishmentOptions(user, mode, requestId) {
       .select("_id code name")
       .lean(),
     Product.find({ isActive: true })
-      .select("_id sku name baseUnit lengthMm widthMm imageUrls")
+      .select("_id sku name baseUnit wholeBaseUnits lengthMm widthMm imageUrls")
       .lean(),
-    Uom.find({ isActive: true }).select("_id code name").lean(),
+    Uom.find({ isActive: true }).select("_id code name isCarton areaMm2").lean(),
   ]);
   const conversions = await Conversion.aggregate([
     {

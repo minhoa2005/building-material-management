@@ -1,6 +1,6 @@
 # Từ điển dữ liệu hiện hành — 12/11/2026
 
-58 collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. Native return workflow additions and compatibility are documented in [RETURN_WORKFLOWS_NATIVE](../../08_api/RETURN_WORKFLOWS_NATIVE.md). DocumentIdentity = String mã phiếu mới hoặc ObjectId lịch sử; xem [quy tắc ID](../../08_api/DOCUMENT_IDENTITIES.md).
+58 collection. Dòng nhúng có ID ổn định; không phải collection độc lập. Mongoose ref là liên kết ứng dụng, không phải foreign key do MongoDB kiểm. Native return workflow additions and compatibility are documented in [RETURN_WORKFLOWS_NATIVE](../../08_api/RETURN_WORKFLOWS_NATIVE.md). `DocumentIdentity` nhận mã liền dạng String, mã String đã lưu có dấu cách quanh dấu nối và ObjectId lịch sử. [Quy tắc định danh](../../08_api/DOCUMENT_IDENTITIES.md).
 
 ## uoms
 
@@ -12,6 +12,7 @@ Model: [uom.model.js](../../../../src/models/uom.model.js).
 | `name` | String | true |  |
 | `isActive` | Boolean | true |  |
 | `isCarton` | Boolean | true |  |
+| `areaMm2` | Decimal128 | false |  |
 | `_id` | ObjectId | false |  |
 | `createdAt` | Date | false |  |
 | `updatedAt` | Date | false |  |
@@ -1900,6 +1901,8 @@ Indexes:
 ## goods_inspections
 
 Model: [goods-inspection.model.js](../../../../src/models/goods-inspection.model.js).
+
+`items[].details.receivingLocationId` là ObjectId tùy chọn tham chiếu `WarehouseLocation`, khai báo trong [inspection-details.schema.js](../../../../src/models/inspection-details.schema.js). Lệnh kiểm nhận mua xác thực vị trí đang hoạt động, thuộc kho nhận và có loại `RECEIVING`. Bản ghi cũ có thể thiếu trường này.
 
 | Trường | Kiểu | Bắt buộc | Liên kết |
 |---|---|---|---|

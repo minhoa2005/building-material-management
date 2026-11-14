@@ -1,5 +1,5 @@
 import { Conversion, OperationRecord, ProductBatch, Uom } from '../../models/runtime.js';
-import { exact, sameId } from '../../models/model-utils.js';
+import { exact, ExactDecimal, sameId } from '../../models/model-utils.js';
 import { duplicateError, validationError, versionConflict } from './ApiError.js';
 import { appendAudit } from './audit.js';
 import { hash } from './document-command.js';
@@ -23,6 +23,44 @@ export async function resolveConversion(product, batch, enteredUnit, session, { 
   return exact(conversion.basePerUnit);
 }
 
+export const AREA_REFERENCE = 'Tự tính từ kích thước sản phẩm';
+
+// Pieces per 1 area unit. Null when the product has no size or its base unit is a carton/area unit.
+export async function areaFactor(uom, product, session) {
+  if (uom.areaMm2 == null || !product.lengthMm || !product.widthMm || uom.code === product.baseUnit) return null;
+  const base = await Uom.findOne({ code: product.baseUnit }).session(session);
+  if (!base || base.isCarton || base.areaMm2 != null) return null;
+  return exact(uom.areaMm2).div(exact(product.lengthMm).mul(exact(product.widthMm)))
+    .toDecimalPlaces(12, ExactDecimal.ROUND_HALF_UP);
+}
+
+// Area units on whole-piece products round up to the next whole piece; everything else is exact.
+export function toBaseQuantity(enteredQty, factor, product, uom) {
+  const quantity = exact(enteredQty).mul(factor);
+  return uom?.areaMm2 != null && uom.code !== product.baseUnit && product.wholeBaseUnits
+    ? quantity.toDecimalPlaces(6).ceil() : quantity;
+}
+
+// Appends a new auto-generated area conversion when none exists, or when the latest one is auto-generated and stale.
+export async function syncAreaConversions(product, user, session, { declared = new Set() } = {}) {
+  const uoms = await Uom.find({ areaMm2: { $ne: null }, isActive: true }).session(session);
+  const created = [];
+  for (const uom of uoms) {
+    if (declared.has(String(uom._id))) continue;
+    const factor = await areaFactor(uom, product, session);
+    if (!factor) continue;
+    const scope = { productId: product._id, productBatchId: null, uomId: uom._id };
+    const latest = await Conversion.findOne(scope).sort({ version: -1 }).session(session);
+    if (latest && (latest.verificationReference !== AREA_REFERENCE || exact(latest.basePerUnit).eq(factor))) continue;
+    const row = await appendConversion(scope, {
+      basePerUnit: factor.toFixed(), verificationReference: AREA_REFERENCE,
+      validFrom: new Date(Math.max(Date.now(), (latest?.validFrom.getTime() ?? 0) + 1)),
+    }, latest, user, session);
+    created.push(conversionDto(row, uom, user, true));
+  }
+  return created;
+}
+
 export function conversionDto(row, uom, creator, isCurrent) {
   return {
     id: String(row._id),
@@ -30,7 +68,7 @@ export function conversionDto(row, uom, creator, isCurrent) {
     productBatchId: row.productBatchId ? String(row.productBatchId) : null,
     version: row.version,
     productVersion: 1,
-    uom: { id: String(uom._id), code: uom.code, name: uom.name },
+    uom: uom ? { id: String(uom._id), code: uom.code, name: uom.name } : null,
     basePerUnit: exact(row.basePerUnit).toFixed(),
     validFrom: row.validFrom.toISOString(),
     verificationReference: row.verificationReference,

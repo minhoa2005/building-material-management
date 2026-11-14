@@ -5,7 +5,7 @@ Ngày 12/11/2026. Chặng này mở rộng bản vẽ nền/tường/cửa; chư
 ## Luồng sử dụng
 
 1. Mở thiết kế kho, khép kín mặt bằng, chọn **Khu vực & ô**.
-2. Người được cấp `access_control:update` cấu hình chức năng khu vực trong thiết kế kho (tên tự tạo, không trùng). Danh mục trống không khóa việc vẽ/lưu nháp; vùng chưa gán chức năng chưa được áp dụng. Người này vẫn cần `warehouse_location:update` và phạm vi kho hợp lệ để lưu. Admin không tự có quyền sửa mọi kho nếu chưa được cấp. Danh mục hiện thuộc từng kho, chưa dùng chung toàn hệ thống.
+2. Người được cấp `warehouse_layout_function:update` cấu hình chức năng khu vực trong thiết kế kho (tên tự tạo, không trùng). Danh mục trống không khóa việc vẽ/lưu nháp; vùng chưa gán chức năng chưa được áp dụng. Người này vẫn cần `warehouse_location:update` và phạm vi kho hợp lệ để lưu. Admin không tự có quyền sửa mọi kho nếu chưa được cấp. Danh mục hiện thuộc từng kho, chưa dùng chung toàn hệ thống.
 3. Bấm **Vẽ khu vực trên mặt bằng**, kéo từ một góc sang góc đối diện, nhập tên/chức năng/màu rồi thêm; hoặc bấm **Nhập khu vực** để nhập kích thước trực tiếp.
 4. Chọn khu vực từ bản vẽ hoặc danh sách. Chỉnh tọa độ, rộng/dài, góc xoay và giới hạn chiều cao trong form. Kéo khu vực trên mặt bằng để di chuyển; các ô bên trong di chuyển theo.
 5. Chọn khu vực rồi bấm **Vẽ ô pallet** ngay trên canvas để kéo vẽ ô, hoặc nhập tọa độ tương đối và rộng/dài, hoặc mở **Tính kích thước ô theo pallet**: nhập số hàng/cột, dài/rộng pallet, khoảng hở, khoảng cách tới mép rồi tính. Vẫn sửa kích thước trực tiếp được.
@@ -77,7 +77,7 @@ Giữ `PUT /api/warehouse-catalogue/:id/layout` và thêm body `apply?: boolean`
 - true: kiểm containment, không đạt thì từ chối toàn bộ; đạt thì ghi bản nháp và snapshot áp dụng cùng transaction/audit.
 - Response thêm `data.appliedAt` nếu đã từng áp dụng và `data.issues`.
 - Đọc kho trả các field thiết kế qua DTO chi tiết hiện có.
-- Mọi ghi kiểm `warehouse_location:update`, phạm vi kho và `expectedUpdatedAt`. Đổi `functions[]` kiểm thêm `access_control:update` bên trong transaction, so với bản đã lưu; người thiếu quyền này vẫn sửa vùng/ô với danh mục hiện có được.
+- Mọi ghi kiểm `warehouse_location:update`, phạm vi kho và `expectedUpdatedAt`. Đổi `functions[]` kiểm thêm `warehouse_layout_function:update` bên trong transaction, so với bản đã lưu; người thiếu quyền này vẫn sửa vùng/ô với danh mục hiện có được.
 - Audit áp dụng dùng `APPLY_WAREHOUSE_LAYOUT`; lưu nháp giữ `SAVE_WAREHOUSE_LAYOUT`. Hai lệnh hiện dùng cùng quyền sửa kho; quyền riêng cho áp dụng sẽ cần thiết kế nếu muốn tách sau.
 
 Áp dụng hiện chỉ xác lập snapshot thiết kế hình học, không tạo/chuyển/xóa balance, WarehouseLocation hay phiếu nghiệp vụ. Không coi snapshot này là đã tự bố trí hàng tồn.
@@ -94,3 +94,7 @@ Chưa kiểm giao diện WebGL trực tiếp hoặc transaction DB qua API trong
 Bỏ điều kiện functions rỗng làm vô hiệu nút vẽ khu vực. `zone.functionId` có thể là chuỗi rỗng trong bản nháp; mã không rỗng vẫn phải thuộc danh mục, và áp dụng vẫn bắt buộc mọi vùng được gán chức năng. Không mở quyền tạo danh mục cho người thiếu quyền quản trị.
 
 Canvas có nút Vẽ khu vực và Vẽ ô pallet. Ô cần chọn khu vực trước, tọa độ kéo được đổi về hệ local của vùng (kể cả vùng xoay). Lấy kích thước từ tọa độ sự kiện thả chuột, tránh phụ thuộc frame preview chưa render. Sau thả giữ preview vùng/ô và hiện nút xác nhận liên kết tới form thuộc tính; có nút hủy. Pan/zoom không tạo hình.
+
+## Chặng pallet và cảnh báo chiều cao — 12/11/2026
+
+Mỗi ô có thể có `pallets[]`. FE cho nhập mã pallet, vị trí local trong ô, rộng/dài, chiều cao đế và chiều cao hàng dự kiến. Chiều cao hiệu lực là `actualHeight` nếu có, nếu không là `baseHeight + stackHeight`. Pallet vượt giới hạn khu vực/kho hiện màu đỏ trên 2D/3D và hiện cảnh báo; bản nháp vẫn lưu, áp dụng bị chặn. Pallet vượt mép ô bị chặn ngay. Chưa có danh sách sản phẩm/lô trên pallet, chưa ghi tồn hoặc tự tạo pallet nghiệp vụ.

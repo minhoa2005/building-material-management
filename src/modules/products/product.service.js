@@ -1,6 +1,7 @@
 import {
   configureConversion,
   conversionDto,
+  syncAreaConversions,
 } from "../../shared/utils/conversions.js";
 import { hash } from "../../shared/utils/document-command.js";
 import {
@@ -130,6 +131,7 @@ async function currentConversions(productId, productBatchId, asOf) {
       },
     },
     { $replaceRoot: { newRoot: "$conversion" } },
+    { $sort: { uomId: 1 } }, // $group order is unspecified; keep the list stable
   ]);
   if (!rows.length) return [];
 
@@ -274,6 +276,11 @@ export async function createProduct(user, input) {
           await configureConversion(row, conversion, user, session),
         );
       }
+      createdConversions.push(
+        ...(await syncAreaConversions(row, user, session, {
+          declared: new Set(conversions.map((c) => String(c.uomId))),
+        })),
+      );
 
       await appendAudit({
         actorId: user._id,
@@ -315,6 +322,10 @@ export async function updateProduct(user, id, input) {
       changes,
       session,
     );
+    const sizeChanged = ["lengthMm", "widthMm"].some(
+      (f) => String(before[f] ?? "") !== String(row[f] ?? ""),
+    );
+    if (sizeChanged) await syncAreaConversions(row, user, session);
     const operationId = await planningOperation(
       user,
       row,

@@ -183,6 +183,7 @@ export const PERMISSION_CATALOGUE = [
   { code: 'access_control:read', description: 'Xem vai trò và quyền', uc: ['UC-98'], roles: [ADMIN] },
   { code: 'access_control:create', description: 'Gán vai trò/kho cho tài khoản', uc: ['UC-98'], roles: [ADMIN] },
   { code: 'access_control:update', description: 'Cập nhật quyền của vai trò', uc: ['UC-98'], roles: [ADMIN] },
+  { code: 'warehouse_layout_function:update', description: 'Thêm/sửa/xóa chức năng khu vực Kho 3D', uc: [], roles: [ADMIN] },
 ];
 
 export const PERMISSION_CODES = PERMISSION_CATALOGUE.map((p) => p.code);

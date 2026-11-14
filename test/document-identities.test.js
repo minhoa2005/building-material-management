@@ -17,7 +17,7 @@ test('document models and references accept immutable codes while catalogue and 
  const query=m.StockReservation.find({'demandRef.documentId':coded});query.cast();assert.equal(query.getFilter()['demandRef.documentId'],coded);
 });
 test('historical document IDs retain ObjectId identity and mixed document lookups cast correctly',()=>{
- const old=new mongoose.Types.ObjectId();assert.equal(String(databaseId(String(old))),String(old));
+ const compact='YCĐC-KG1-261113-000001';const old=new mongoose.Types.ObjectId();assert.equal(String(databaseId(String(old))),String(old));assert.equal(databaseId(compact),compact);assert.equal(isDocumentId(compact),true);
  assert.equal(databaseId(coded),coded);assert.equal(isDocumentId(coded),true);
  const query=m.SalesOrder.find({_id:{$in:[String(old),coded]}});query.cast();assert.ok(query.getFilter()._id.$in[0] instanceof mongoose.Types.ObjectId);assert.equal(query.getFilter()._id.$in[1],coded);
  for(const value of ['$where','../bad','ĐBH - KD - yesterday - 1',{},23])assert.equal(documentIdentifier.safeParse(value).success,false);

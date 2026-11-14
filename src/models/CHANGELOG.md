@@ -1,3 +1,19 @@
+## 14/11/2026 — Ràng buộc qtyBase của dòng chứng từ
+
+`document-item.schema.js` chấp nhận `qtyBase` bằng `enteredQty × baseUnitsPerUnit` hoặc bằng `ceil(round(tích, 6))` (số nguyên) để lưu được dòng theo đơn vị diện tích. Không đổi field, index hay dữ liệu cũ. Xem [CONVERSIONS](../../git_doc/docs/08_api/CONVERSIONS.md).
+
+## 14/11/2026 — uoms.areaMm2
+
+`uoms` thêm `areaMm2` (Decimal128 dương, tùy chọn, mặc định null, bất biến): mm² của một đơn vị, M2 = 1000000. Dữ liệu cũ hợp lệ (null); `backfillConversions --apply` gán 1000000 cho UOM M2/M². Không thêm collection hay index. Quy tắc tự sinh quy đổi và làm tròn tới viên: [CONVERSIONS](../../git_doc/docs/08_api/CONVERSIONS.md).
+
+## 12/11/2026 — Mã chứng từ nối bằng dấu gạch ngang
+
+`DocumentIdentity` nhận mã mới nối bằng `-` liền, mã đã lưu có dấu cách quanh dấu nối và ObjectId lịch sử. Mỗi chứng từ đã lưu giữ nguyên giá trị định danh. [Hợp đồng định danh](../../git_doc/docs/08_api/DOCUMENT_IDENTITIES.md).
+
+## 12/11/2026 — Bãi tiếp nhận trên dòng kiểm hàng
+
+`inspection-details.schema.js` nhận `receivingLocationId` tùy chọn. Khi lưu nháp hoặc chốt kiểm nhận mua, backend kiểm vị trí `RECEIVING` cùng kho và chỉ lưu cho dòng nhận mua. Dữ liệu cũ vẫn hợp lệ. Không có collection, index hoặc migration mới.
+
 13/11/2026: `stocktake-header.schema.js` (header của `stocktakes`) thêm `selectedCounts[]` (`snapshotId`, `countId`), `lastReconciledBy`, `lastReconciledAt` để ghi kết quả đối chiếu BF-05; chốt UC-93 yêu cầu đã đối chiếu và `selectedCounts` khớp. Trường nhúng tùy chọn, không đổi collection/index, không cần migration; đợt cũ chưa đối chiếu phải đối chiếu lại trước khi chốt. Snapshot `origin: DISCOVERED` (đã có trong model) nay được tạo bởi lệnh đếm hàng phát hiện ngoài sổ. Chi tiết [vòng đời kiểm kê](../../git_doc/docs/08_api/STOCKTAKE_LIFECYCLE.md).
 
 12/11/2026: Kho 3D chặng 2 thêm danh mục chức năng theo kho, vùng chữ nhật xoay, ô local có tính kích thước theo lưới pallet; vẽ/kéo khu vực và kéo ô trong 2D, phản ánh màu/vạch trên 3D. Schema layout3d mở rộng; warehouses thêm layout3dApplied/layout3dAppliedAt. API lưu nháp giữ snapshot áp dụng, apply:true kiểm containment và ghi snapshot/audit nguyên tử với optimistic updatedAt; đổi functions cần access_control:update. Chặn chồng vùng/ô, kiểm vùng trong kho lõm theo cả cạnh; vùng ngoài do sửa đường bao lưu nháp được nhưng chặn apply. Catalogue kho loại field layout nặng khỏi response danh sách. Cập nhật MODEL_MAP, Data Dictionary, sơ đồ nhúng STAGE2_ZONES, PROJECT_GUIDE, context FE/BE và model log. Không migration/seed/ghi DB chung, không đổi tồn hoặc enum vị trí nghiệp vụ. FE 13 test Kho 3D và 6 test trang kho đạt; BE 8 test hình học/schema đạt; build (kèm typecheck), lint module và docs:check đạt. Chưa kiểm WebGL trực tiếp hoặc tích hợp ghi DB.
@@ -7,6 +23,7 @@
 # 12/11/2026 — User.lockReason
 
 Thêm `users.lockReason` tùy chọn, tối đa 2000 ký tự, lưu lý do khoá hiện tại; dữ liệu cũ không cần backfill. API khoá ghi lý do và mở khoá xoá lý do. Không đổi collection hoặc index. Chi tiết tại [hợp đồng trạng thái tài khoản](../../git_doc/docs/08_api/USER_ACCESS_STATUS.md).
+
 
 12/11/2026: bỏ document_sequences và đổi định danh chứng từ mới: mọi model có documentNo dùng _id DocumentIdentity = mã phiếu [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự]. Các ref documentId/sourceId/subjectId và hậu tố liên kết chứng từ chấp nhận mã mới hoặc ObjectId lịch sử; warehouse/product/lot/location và embedded item vẫn ObjectId. Registry còn 58 collection. Chứng từ cũ không migration/đổi _id; kiểm thử concurrency và rollback chạy DB loopback riêng. Xem git_doc/docs/08_api/DOCUMENT_IDENTITIES.md.
 

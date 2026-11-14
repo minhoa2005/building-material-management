@@ -13,9 +13,10 @@ import { consolidateData } from '../../models/consolidation.js';
 import { addTileCategories } from './categories.js';
 import { planConversionBackfill } from '../../migrations/conversions.js';
 
-export const SEED_VERSION = 'wmsd-tile-shop-20261109-v10';
+const FIXTURE_ID_NAMESPACE = 'wmsd-tile-shop-20261109-v10';
+export const SEED_VERSION = 'wmsd-tile-shop-20261114-v11';
 export const hash = value => createHash('sha256').update(value).digest('hex');
-export const fixtureId = key => new mongoose.Types.ObjectId(hash(SEED_VERSION + ':' + key).slice(0,24));
+export const fixtureId = key => new mongoose.Types.ObjectId(hash(FIXTURE_ID_NAMESPACE + ':' + key).slice(0,24));
 export const demoDate = (day, hour = 8) => new Date(Date.UTC(2026,9,day,hour));
 export const decimalValue = value => mongoose.Types.Decimal128.fromString(String(value));
 // Real local PNG bytes. These are synthetic evidence for exercising file metadata.
@@ -159,9 +160,14 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
   addStorageExamples(dataContext(data),warehouse);
   buildTileShopScenario(data);
   const categorized=addTileCategories(data);
-  const codes=new Set(['PIECE','BOX','M2',...categorized.products.map(p=>p.baseUnit)]);
+  const areaCode='Mét vuông';
+  const codes=new Set(['Viên','Thùng',areaCode,...categorized.products.map(p=>p.baseUnit)]);
   for(const rows of Object.values(categorized))for(const row of rows)for(const item of row.items||[])if(item.enteredUnit)codes.add(item.enteredUnit);
-  categorized.uoms=[...codes].map(code=>({_id:fixtureId('uom:'+code),code,name:code,isActive:true,createdAt:demoDate(1),updatedAt:demoDate(1)}));
+  categorized.uoms=[...codes].map(code=>({
+    // Keep the existing area UOM ID so conversion references stay valid.
+    _id:fixtureId('uom:'+(code===areaCode?'M2':code)),code,name:code,
+    isActive:true,isCarton:code==='Thùng',areaMm2:code===areaCode?decimalValue('1000000'):null,createdAt:demoDate(1),updatedAt:demoDate(1),
+  }));
   for(const supplier of categorized.suppliers){if(supplier.status!=='ACTIVE')supplier.status='SUSPENDED';}
 
   if (!consolidate) return categorized;
@@ -214,8 +220,6 @@ export async function buildReviewedDemo({ consolidate = true } = {}) {
   const conversionPlan = planConversionBackfill({
     products: result.products, batches: result.product_batches, uoms: result.uoms,
   });
-  const cartonIds = new Set(conversionPlan.cartonUomIds.map(String));
-  for (const uom of result.uoms) uom.isCarton = cartonIds.has(String(uom._id));
   result.conversions = conversionPlan.candidates.map(row => ({
     ...row,
     _id: fixtureId(`conversion:${row.productId}:${row.productBatchId}:${row.uomId}`),

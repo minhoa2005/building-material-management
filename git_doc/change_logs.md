@@ -1,3 +1,67 @@
+## 14/11/2026 - Đồng bộ Report 3 theo code và lập bản nháp Report 4
+
+- Theo yêu cầu người dùng, đối chiếu [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) với template SEP490 trên Drive và code BE/FE hiện hành, ưu tiên code. Sửa trong các mục có sẵn, không thêm dòng vào Change Log của report.
+- Nội dung chính đã sửa: BF-01 (cảnh báo RR thay guard, PO chỉ sửa khi nháp, đổi ngày dự kiến, đóng phần còn lại qua đề nghị–duyệt–thực hiện, kiểm nhận theo lô/thùng/viên, GR/hàng giữ hộ nháp, cất hàng nguyên thùng, Warehouse đảo nhập trực tiếp); BF-03 (số nguyên thùng/viên, xác nhận trọn lệnh một lần); BF-04 (giữ hàng khi lập phiếu xuất nháp, PICK + bàn giao, nhận GOOD/DAMAGED, hồ sơ chênh lệch, đóng/đóng một phần); BF-06 (giá bán trên SO, OD giữ hàng, picking tạo GI nháp → PICKED); bỏ tone/calibre; UOM/Conversion; role tùy chỉnh và lockReason; định danh chứng từ (BR-34); MSG-18; UC-11 RETIRED (129 active), UC-10 đổi thành đổi ngày dự kiến PO, UC-12 có Owner duyệt.
+- Không sửa quyết định chưa có trong code: PGI/POD/PAY-CFM, lập/kích hoạt/đếm kiểm kê và gửi SMTP vẫn giữ là yêu cầu; trạng thái chưa có API ghi ở Report 4 mục IV.6.
+- Thêm [Report 4 bản nháp](docs/01_bao_cao/WMSD_Report4_Draft.md) theo template SDS: kiến trúc, package, ERD, danh mục 58 collection và bảng trường 34 collection sinh từ schema Mongoose hiện hành, sequence/class diagram cho BF-01–BF-08 (tách nhỏ), thiết kế bảo mật/RBAC/hiệu năng theo code.
+- Kiểm tra: 35 sơ đồ Mermaid (31 Report 4, 4 Report 3) parse đạt bằng mermaid 11.4.1. Không đổi code, model, API hay dữ liệu DB. Bản Word trên Drive chưa được cập nhật.
+
+## 14/11/2026 - Việt hóa mã và tên đơn vị tính
+
+- Seed mẫu v11 dùng `Viên`, `Thùng` và `Mét vuông` cho cả mã và tên. `Mét vuông` có `areaMm2` Decimal128 bằng 1000000.
+- Đồng bộ riêng 5 mục UOM trên MongoDB local `wmsd_demo_tile_shop_v9`. Hai mục trùng được ngừng sử dụng và giữ ID. Đọc lại danh mục và kiểm tra đủ 81 tham chiếu quy đổi sau khi ghi.
+- Kiểm tra 29 ca seed, quy đổi diện tích và backfill. Xem [hướng dẫn seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md).
+
+## 14/11/2026 - Độ đậm tiêu đề kiểm hàng
+
+- Quy tắc typography FE cho phép độ đậm 700; tiêu đề “Theo dõi tình trạng” trên trang tạo và chi tiết kiểm hàng dùng độ đậm này.
+
+## 13/11/2026 - Tổng số lượng phiếu nhập theo đơn vị gốc
+
+- Danh sách gộp phiếu nhập trả thêm `totalsByBaseUnit`, cộng riêng theo đơn vị gốc; màn danh sách hiển thị từng tổng kèm đơn vị. Chi tiết tại [GoodsReceipt API](docs/08_api/GOODS_RECEIPTS.md).
+
+## 13/11/2026 - Dùng chung dấu nối trong mã chứng từ
+
+- Theo yêu cầu ngày 13/11, `src/shared/utils/document-number.js` dùng `-` liền cho mọi loại chứng từ mới. Nhóm điều chuyển vẫn dùng mã kho rút gọn như `KG1`.
+- Bộ cấp số tính cả mã liền và mã có dấu cách trong dữ liệu chứng từ và `operation_records`. Với mã kho rút gọn, bộ cấp số tính thêm mã kho gốc. Các chứng từ đã lưu giữ nguyên ID và mã phiếu.
+- Cập nhật [hợp đồng định danh](docs/08_api/DOCUMENT_IDENTITIES.md) và dẫn chiếu từ `context.md` của FE.
+- Trên MongoDB replica set local, 9 ca định danh, cấp số và thử lại giao dịch đạt, cùng 19 ca API native. Bộ test mặc định có một ca đếm bản ghi seed demo sai lệch `703` so với `702`, tái hiện với bộ cấp mã trước khi sửa.
+
+## 13/11/2026 - Kiểm hàng: đếm theo Thùng/Viên và tự quy đổi ra m²
+
+- **Lý do**: ô "SL thực nhận" luôn theo ĐVT lúc đặt PO (`prepare` ép `enteredUnit = source.enteredUnit`), cột "Còn phải giao" lại hiển thị theo đơn vị gốc và tổng cộng cộng lẫn nhiều đơn vị. Kho đếm thực tế theo Thùng (kèm Viên cho hàng lẻ/vỡ).
+- **BE**: `po-receiving.routes.js` nhận `lines[].enteredUnit?`; `po-receiving.service.js` dùng `row.enteredUnit ?? source.enteredUnit` khi gọi `makeItem` và `inspectionContext` trả thêm `products[]`, `cartonUnits[]`. Hạn mức vẫn đối chiếu theo `qtyBase`. Không đổi model, không cần migration.
+- **FE**: `InspectionLinesGrid` thêm cột chọn ĐVT đếm và cột "Quy đổi" (Thùng + Viên lẻ theo quy cách lô, đơn vị gốc, m²), "Còn phải giao" theo ĐVT của PO, tổng theo đơn vị gốc/m²; bảng có thanh cuộn ngang (`visible-table-scroll`). Hàm quy đổi ở `inspectionQuantities.ts`.
+- **Kiểm thử**: `tsc`, eslint và vitest `features/inspections` đạt; `node --check` BE đạt. Chưa chạy test tích hợp BE (cần MongoDB replica set) và chưa kiểm trên trình duyệt.
+
+## 13/11/2026 - Khôi phục API gộp phiếu nhập `/api/goods-receipts`
+
+- **Lý do**: FE `/receipts` báo "Route not found" và thiếu dữ liệu. Commit `abffe20` (complete transfer receipt and warehouse workflow) ghi đè `goods-receipt.routes.js` bằng bản cũ hơn `137930c`, làm mất `GET /api/goods-receipts`, `GET /api/goods-receipts/:id`, `scopedDetail` (tên kho, mã vị trí, nhãn lô, kho điều chuyển), route sửa nháp `PUT /other/:id` và quyền `capabilities.edit`. Các merge sau không khôi phục.
+- **BE**: `goods-receipt.routes.js` lấy lại toàn bộ logic của `137930c` (danh sách gộp lọc `kind`, `status`, `warehouseId`, `purchaseOrderId`, `q`, `from`/`to`; chi tiết chung, phiếu mua đi qua `getDocument`) và giữ danh sách `/transfer` mới của `abffe20` (`transferId`, `transferDocumentNo`, `dispatchId`).
+- **BE (bổ sung)**: `transfer-read.service.js` mất `listDispatches` và `getDispatch` (cùng `dispatchScope`, import `hasPermission`) dù `transfer-read.routes.js` và test `native-api` vẫn gọi, nên endpoint dispatch sẽ lỗi. Đã lấy lại từ `137930c`.
+- **Kiểm thử**: `node --check` và nạp module đạt; `goods-receipt.integration.test.js` chưa chạy vì không có MongoDB replica set local. Cần khởi động lại BE.
+
+## 13/11/2026 - Tách dòng RR thành nhiều dòng PO theo lô NCC báo giao
+
+- Accountant có thể ghi riêng từng lô NCC báo giao khi nhiều dòng PO dùng chung một dòng RR. `purchase-order.commands.js` kiểm tổng lượng gốc theo dòng RR khi tạo, sửa và phát hành PO. ID của từng dòng PO đã lưu được giữ khi sửa và chỉ được gửi một lần trong payload.
+- `purchase-order.commands.routes.js` nhận `lines[].note` tùy chọn, tối đa 2000 ký tự. `purchase-order.service.js` trả ghi chú trong `draftEdit.lines[]`. Kho chọn lô thực nhận khi kiểm hàng và PO dùng chung ngày dự kiến giao. Thực hiện theo phương án A người dùng chọn ngày 13/11/2026.
+- Đã cập nhật hợp đồng API native và phiếu duyệt H01/H02. Dữ liệu hiện có tiếp tục dùng schema và index hiện hành. FE chưa triển khai tách dòng và ghi chú.
+- MongoDB replica set local: `native-api.integration.test.js` đạt 18/19, gồm ca tách dòng mới (tạo, vượt lượng duyệt, sửa giữ ID, trùng ID, phát hành chặn khi tổng các dòng vượt duyệt dù từng dòng không vượt, kiểm nhận 2 dòng) và vòng đời PO qua HTTP có `note`. Ca điều chuyển `native transfer dispatch…` lỗi `Cannot read properties of null (reading '_id')` tại dòng 380 (không có điểm giữ hàng ở vị trí lưu trữ); lỗi này cũng xảy ra trên worktree `HEAD` chưa có thay đổi, nên có sẵn từ trước. Hai suite hồi quy RR đạt 21/21. `npm run docs:check` đạt.
+
+## 13/11/2026 - Lệnh cất hàng kiểm quy tắc nguyên thùng ngay khi lập lệnh
+
+- **Lý do**: trước đây chỉ `confirmPutaway` (qua `splitPortions`) mới từ chối lượng cắt thùng, nên lệnh như 540 + 510 (100 viên/thùng, lẻ 50) lập được rồi lỗi lúc xác nhận.
+- **BE**: `purchase-putaway.service.js` — `createPutaway` mô phỏng `splitPortions` trên quy cách tồn nguồn cho từng dòng và trả lỗi kèm viên/thùng và phần lẻ còn lại; bỏ qua khi tồn nguồn còn lệnh cất khác đang mở (thứ tự tách chưa biết, `confirm` vẫn kiểm cuối). `putawayContext` thêm `piecesPerCarton`, `looseQtyBase`. Không đổi model, không cần migration.
+- **FE**: `PutawayTaskDetailPage` thêm cột "Quy cách" và kiểm bội số thùng (hoặc cộng trọn phần lẻ) trước khi gửi; hàm `cartonSplitError` ở `return-workflows/quantity.ts`. FE không biết thứ tự thùng/lẻ nên vẫn có ca chỉ BE từ chối (ví dụ chỉ cất phần lẻ khi còn thùng nguyên).
+- Cập nhật [NATIVE_MODEL_RUNTIME.md](docs/08_api/NATIVE_MODEL_RUNTIME.md).
+- Chưa chạy test tích hợp BE (cần MongoDB replica set).
+
+## 13/11/2026 - Bỏ "Người bàn giao" khỏi phiếu tạm giữ, gộp chứng từ nguồn
+
+12/11/2026: Kho 3D chặng pallet thêm pallets[] trong ô, nhập mã/kích thước/đế/chiều cao hàng, màu cảnh báo khi vượt giới hạn khu vực/kho trên 2D/3D; BE kiểm pallet nằm trong ô, mã không trùng và height vượt limit chặn apply nhưng cho lưu draft. Chưa liên kết sản phẩm/lô hoặc tồn. Thêm test warehouse-pallets. FE typecheck/lint và test pallet đang kiểm; chưa browser trực quan.
+
+12/11/2026: thêm permission warehouse_layout_function:update vào catalogue và role ADMIN; seed sync tự bổ sung permission còn thiếu trong DB rồi đồng bộ role. BE layout thay kiểm access_control:update bằng quyền riêng khi functions thay đổi. FE Kho 3D dùng quyền riêng để thêm/xóa chức năng khu vực; quyền sửa kho vẫn giữ warehouse_location:update. Không đổi quyền phân quyền role chung.
+
 13/11/2026: hoàn thiện vòng đời kiểm kê BF-05 theo luồng To-Be của người dùng và quyết định đưa **hàng phát hiện ngoài sổ** vào phạm vi. Backend `stocktake-commands.service.js` và routes `/stocktakes` (options, tạo, sửa, kích hoạt, đếm, đối chiếu, phương án, duyệt, thực hiện); đếm hàng phát hiện tạo snapshot `DISCOVERED` (sổ 0) cùng balance số lượng 0 nên chốt UC-93 giữ nguyên logic ghi sổ. Sửa lỗi trong bản làm dở: `resultRefs` không đúng schema `SourceReference` nên mọi lệnh đếm/đối chiếu/phương án sẽ lỗi khi lưu; đối chiếu không còn trả danh sách chênh lệch (bên đọc tính từ GET). Fixture chốt kiểm kê của `hieudt-iterations` cập nhật theo điều kiện "đã đối chiếu". Hợp đồng: [STOCKTAKE_LIFECYCLE.md](docs/08_api/STOCKTAKE_LIFECYCLE.md). Model: header `stocktakes` thêm `selectedCounts`, `lastReconciledBy/At` (không migration). Không đổi collection/index, không ghi DB chung.
 
 Kiểm chứng 13/11/2026 trên replica set cô lập 27018: `stocktake-lifecycle.integration.test.js` 5/5 và `hieudt-iterations.integration.test.js` 11/11 đạt (chạy tuần tự). E2E trình duyệt qua giao diện thật với tài khoản demo Owner/Warehouse trên DB tạm `wmsd_demo_bf05_e2e`: luồng không lệch (lập kế hoạch → kích hoạt → đếm → xác nhận vị trí trống → đối chiếu → chốt) và luồng có lệch kèm hàng phát hiện (thiếu 4, phát hiện 8 → phương án → Owner duyệt → ghi thực hiện → chốt: tồn 128→124 và balance mới 8, 1 phiếu điều chỉnh, 1 giao dịch kho, khóa mở). Bước ghi hàng phát hiện được gọi qua API với đúng payload của form vì dropdown antd không thao tác ổn định trong trình duyệt headless; bằng chứng (`Attachment`) tạo trực tiếp trong DB tạm vì chưa có API tải bằng chứng cho kiểm kê. Chưa kiểm: mobile cho từng bước nhập (chỉ trang chi tiết), DB chung/Atlas, đếm mù ở máy chủ.
@@ -14,7 +78,7 @@ Kiểm chứng 13/11/2026 trên replica set cô lập 27018: `stocktake-lifecycl
 
 12/11/2026: Kho 3D chặng 1 thêm warehouses.layout3d tùy chọn cho mặt bằng/tường/cửa; lưu qua PUT warehouse-catalogue/:id/layout với optimistic updatedAt, scope, transaction và audit. Không đổi collection/index hoặc tồn, không backfill/rollout DB. FE thêm Three.js, vẽ 2D theo kích thước và góc, dựng 3D có cửa, lưu/mở theo kho. Thực hiện gộp main BE với backup stash theo lựa chọn người dùng; giữ cả hai phía changelog. Hợp đồng và sơ đồ field: git_doc/docs/10_Kho3D/IMPLEMENTATION.md. FE build/lint và 9 test, BE 3 test hình học đạt; chưa kiểm DB transaction hoặc browser GPU. Các phần khu vực/ô/pallet còn tiếp theo.
 
-12/11/2026: gộp origin/main (định danh chứng từ _id=documentNo) vào nhánh minhtd (RR theo cảnh báo, bỏ replenishment guard). Giải quyết xung đột: xóa src/shared/utils/replenishment-guard.js theo minhtd; persistence.transaction giữ transactionContext, session.documentNumbers và retry tối đa 20 lần khi trùng mã chứng từ (lý do observability document_number_collision), bỏ retry warehouseId_1_productId_1 của guard; document-command bỏ retry document_sequences; createPurchaseOrder giữ cập nhật updatedAt của RR và await newDocument; replenishmentOptionsSchema dùng documentIdentifier cho requestId kèm thông báo lỗi tiếng Việt. Sửa test HTTP PO lifecycle (native-api) không ép _id PO sang ObjectId. Kiểm tra: RUN_NATIVE_API_TESTS=1 RUN_GOODS_RECEIPT_TESTS=1 npm test trên MongoDB local đạt 155 ca, 47 skip, 0 lỗi; npm run docs:check đạt.
+12/11/2026: gộp origin/main (định danh chứng từ \_id=documentNo) vào nhánh minhtd (RR theo cảnh báo, bỏ replenishment guard). Giải quyết xung đột: xóa src/shared/utils/replenishment-guard.js theo minhtd; persistence.transaction giữ transactionContext, session.documentNumbers và retry tối đa 20 lần khi trùng mã chứng từ (lý do observability document_number_collision), bỏ retry warehouseId_1_productId_1 của guard; document-command bỏ retry document_sequences; createPurchaseOrder giữ cập nhật updatedAt của RR và await newDocument; replenishmentOptionsSchema dùng documentIdentifier cho requestId kèm thông báo lỗi tiếng Việt. Sửa test HTTP PO lifecycle (native-api) không ép \_id PO sang ObjectId. Kiểm tra: RUN_NATIVE_API_TESTS=1 RUN_GOODS_RECEIPT_TESTS=1 npm test trên MongoDB local đạt 155 ca, 47 skip, 0 lỗi; npm run docs:check đạt.
 12/11/2026: theo yêu cầu người dùng, FE /warehouses chỉ hiển thị các kho; thêm /warehouses/:id xem thông tin và vị trí riêng của kho. Danh sách vị trí có warehouseId cố định từ URL, lọc và phân trang tại BE, không tải toàn bộ kho rồi lọc ở FE. Thêm vị trí chọn sẵn kho; chi tiết vị trí quay lại kho cha. Cập nhật context FE và HIEUDT_WAREHOUSE_SCOPE. Test pages kho 6/6 đạt, build, lint file liên quan và docs:check đạt. Chưa kiểm trực quan trên trình duyệt. Không đổi BE hoặc DB.
 
 12/11/2026: thiết kế lại trang role/quyền theo yêu cầu người dùng thành một bảng tick: chọn role phía trên, hiển thị ngay quyền đang gán, mỗi hàng một chức năng, cột Xem/Tạo/Sửa/Quyền khác và chọn cả nhóm. Bỏ tab và danh sách accordion; không hiển thị mã quyền kỹ thuật. Chuyển gán tài khoản vào modal mở riêng. Giữ draft từng role khi đổi lựa chọn, lọc không làm mất quyền. Cập nhật USER_ACCESS_STATUS và context FE. Build và lint accounts đạt; 14 test accounts đạt trước bổ sung test đổi role, bộ role sau bổ sung 7/7 đạt. Chưa kiểm hình trực tiếp qua browser.
@@ -29,9 +93,9 @@ Kiểm chứng 13/11/2026 trên replica set cô lập 27018: `stocktake-lifecycl
 
 12/11/2026: bổ sung quản lý danh mục kho cửa hàng cho màn /warehouses: GET catalogue/chi tiết, tạo và cập nhật kho qua warehouse_location:create/update; mã kho bất biến, kiểm optimistic updatedAt/idempotency, chặn tắt kho khi còn tồn/reservation/nhiệm vụ và kiểm sức chứa khi đổi kích thước. FE thêm trang tạo/sửa kho và hiển thị số vị trí thực. Test validation warehouse master đạt, FE typecheck/build đạt.
 
-12/11/2026: đã chạy migration Atlas wmsd_database bằng scripts/migrate-receipts-to-goods-receipts.mjs --apply --allow-atlas sau dry-run: chuyển 7 phiếu từ purchase_receipts(1), customer_return_receipts(1), failed_delivery_receipts(1), transfer_receipts(4) vào goods_receipts với documentKind PURCHASE/CUSTOMER_RETURN/FAILED_DELIVERY/TRANSFER; cập nhật 21 bản ghi chứa subject/source collection legacy; tạo index goods_receipts; tạo uoms và conversions với index native; xác minh targetCount=7, referencesAfter=0 rồi xóa 4 collection legacy. Đối soát cuối Atlas: 58 collections, goods_receipts 4 kinds, không còn 4 collection legacy. Không xóa dữ liệu nghiệp vụ, giữ _id/source links; không ghi DB local trong migration.
+12/11/2026: đã chạy migration Atlas wmsd_database bằng scripts/migrate-receipts-to-goods-receipts.mjs --apply --allow-atlas sau dry-run: chuyển 7 phiếu từ purchase_receipts(1), customer_return_receipts(1), failed_delivery_receipts(1), transfer_receipts(4) vào goods_receipts với documentKind PURCHASE/CUSTOMER_RETURN/FAILED_DELIVERY/TRANSFER; cập nhật 21 bản ghi chứa subject/source collection legacy; tạo index goods_receipts; tạo uoms và conversions với index native; xác minh targetCount=7, referencesAfter=0 rồi xóa 4 collection legacy. Đối soát cuối Atlas: 58 collections, goods_receipts 4 kinds, không còn 4 collection legacy. Không xóa dữ liệu nghiệp vụ, giữ \_id/source links; không ghi DB local trong migration.
 
-12/11/2026: theo yêu cầu mới, loại bỏ document_sequences khỏi registry và DB model set; mọi chứng từ mới dùng _id=documentNo theo mẫu [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự tăng dần]. Số cấp trực tiếp từ các mã _id/operation_records trong transaction, retry va chạm; chứng từ cũ giữ ObjectId. Thêm DocumentIdentity/cast mixed ref, validation mã chứng từ, cập nhật mọi source/subject/order/request/receipt tham chiếu, route cho phép mã mới; catalogue và item IDs vẫn ObjectId. Cập nhật document-number, schemas/references, registry/collections, Data Dictionary 58 collection và ERD 12/11, MODEL_MAP, PROJECT_GUIDE, context, AGENTS/CLAUDE/GEMINI và hợp đồng DOCUMENT_IDENTITIES. Test document identity 4/4, allocator 2/2; HieuDT scope/native đang xác nhận lại trên DB loopback riêng. Không ghi Atlas; migration dữ liệu cũ chưa chạy.
+12/11/2026: theo yêu cầu mới, loại bỏ document_sequences khỏi registry và DB model set; mọi chứng từ mới dùng \_id=documentNo theo mẫu [Loại Phiếu] - [Mã kho/Bộ phận] - [YYMMDD] - [Số thứ tự tăng dần]. Số cấp trực tiếp từ các mã \_id/operation_records trong transaction, retry va chạm; chứng từ cũ giữ ObjectId. Thêm DocumentIdentity/cast mixed ref, validation mã chứng từ, cập nhật mọi source/subject/order/request/receipt tham chiếu, route cho phép mã mới; catalogue và item IDs vẫn ObjectId. Cập nhật document-number, schemas/references, registry/collections, Data Dictionary 58 collection và ERD 12/11, MODEL_MAP, PROJECT_GUIDE, context, AGENTS/CLAUDE/GEMINI và hợp đồng DOCUMENT_IDENTITIES. Test document identity 4/4, allocator 2/2; HieuDT scope/native đang xác nhận lại trên DB loopback riêng. Không ghi Atlas; migration dữ liệu cũ chưa chạy.
 
 12/11/2026: hoàn thiện phạm vi 20 UC HieuDT theo bảng người dùng mới (38–44,47–56,114–115,120). Thêm native warehouse-stock API cho catalogue kho/vị trí, tạo/sửa/trạng thái vị trí với permission+warehouse+version+idempotency, freeze/capacity/stock/reservation/task guards; đọc tồn physical/usable/available/reserved/held/pending/custody/transit có Sales redaction; nhật ký lọc server theo product/lot/location/operation/time, trước/sau và nguồn theo quyền. FE thay các route demo kho/tồn/nhật ký bằng API thật, danh sách kho/filter nhanh, form riêng, bảng responsive và error không fallback mẫu. BF03 tìm sản phẩm/lô; BF04 trả sửa/gửi lại, giữ hàng từ dispatch draft, hủy draft giải phóng giữ hàng/task/hạn mức, nhận hỗn hợp/từng phần, tiến độ theo dòng và hồ sơ chênh lệch linked receipt qua StockDiscrepancy/ApprovalHistory hiện có. Phiếu nhận toàn hàng lỗi không sinh TO rỗng theo H08 đã duyệt. Scope/API chi tiết: docs/08_api/HIEUDT_WAREHOUSE_SCOPE.md; sửa BF04_API, PROJECT_GUIDE, hai context và tài liệu scope cũ; kiểm chứng ở HIEUDT_LOCAL_TESTS. Không đổi model/collection hoặc ghi DB nhóm; DB test mới đều loopback27018 và tự xóa theo prefix. Kiểm tra đã chạy: BE unit110 đạt/80 integration mặc định skip; FE targeted41/41, lint file liên quan, typecheck/build đạt; scope integration2/2 đạt (bao gồm hủy nháp, mixed receive và linked review). Full FE lần rà đầu437 đạt/24 lỗi ở prototype cũ và module ngoài phạm vi; sau sửa session test, targeted hiện hành41/41. Lint toàn FE còn59 lỗi có sẵn ở lots/products/purchase/replenishments/suppliers, không ghi là toàn suite sạch. Native hồi quy15/15 pass,0 fail,0 skip sau sửa assertion toàn hàng lỗi theo H08; Sales transfer options đã kiểm chỉ đọc local không lộ balances hoặc nguồn tác nghiệp. Browser đã xem kho/vị trí, tồn, nhật ký trên desktop/390px và chi tiết transfer với số thực, brand Tân Thương. Chưa commit/push/deploy.
 
@@ -100,7 +164,6 @@ Kiểm chứng 13/11/2026 trên replica set cô lập 27018: `stocktake-lifecycl
 - Bổ sung kịch bản kiểm thử tự động hóa end-to-end `scripts/demo-return-workflows.mjs` chạy qua toàn bộ 6 quy trình trả hàng của trungph (BF02 báo cáo phế phẩm, BF07 trả hàng khách, trả hàng giao không thành công, BF08 trả nhà cung cấp, truy vết lô đa cấp qua 58 collection và chứng từ ngoài/lịch sử).
 - Thêm lệnh `npm run demo:returns` vào `package.json`. Kịch bản thực thi trực tiếp trên in-memory dataset 58 schema đã chuẩn hóa và tự động kiểm tra kết nối cơ sở dữ liệu trực tiếp khi có biến môi trường.
 - Bảo toàn định dạng hợp đồng API trả hàng, kiểm soát phiên bản và tính lũy kế trong [hợp đồng return workflows](docs/08_api/RETURN_WORKFLOWS_NATIVE.md).
-
 
 ## 10/11/2026 — API tra cứu chứng từ nguồn cho RR
 
@@ -1111,3 +1174,21 @@ Bổ sung kiểm tra UX cùng lượt: đơn chuyển kho COMPLETED không hiể
 - Đổi config branding, header/logo, auth, nội dung trang, biểu mẫu in, tiêu đề email và CSV. index.html có title Tân Thương, meta description/application-name/Open Graph/Twitter, lang vi và viewport; public/erd.html đổi tên trang. README/context FE ghi vị trí cấu hình và phạm vi tương thích.
 - Không đổi API, model, email/tên đăng nhập hoặc các khóa localStorage; không migrate dữ liệu/ghi remote. Các định danh kỹ thuật lịch sử trong tài liệu vẫn giữ vai trò truy vết.
 - Kiểm chứng: build FE đạt, 11 tests auth/layout/logout/responsive đạt, diff check đạt; title tab và header đã hiển thị Tân Thương trong trình duyệt local.
+
+## 14/11/2026 - Đơn vị diện tích (M2) tự quy đổi và làm tròn tới viên
+
+- **Lý do**: gạch 600×600 có hệ số `2.777777777778` nên mọi lượng nhập theo M2 bị từ chối (quá 6 số lẻ) và backfill bỏ qua cỡ này. Thực hiện theo kế hoạch người dùng chốt ngày 14/11/2026.
+- **Model/BE**: `uoms.areaMm2` (bất biến, tùy chọn); `POST /api/uoms` nhận, `PUT` từ chối. `areaFactor`, `toBaseQuantity`, `syncAreaConversions` trong `shared/utils/conversions.js`; `makeItem` và `previewQuantity` làm tròn `ceil(round(qty × factor, 6))` khi đơn vị nhập là đơn vị diện tích và sản phẩm `wholeBaseUnits`. `createProduct`/`updateProduct` tự sinh quy đổi diện tích (không ghi đè bản nhập tay). Options RR và chi tiết RR trả `areaMm2`/`wholeBaseUnits`. `currentConversions` sắp xếp ổn định theo `uomId`.
+- **Migration**: `src/migrations/conversions.js` dùng `uoms.areaMm2`, bỏ `areaCodes`/`pieceCodes`; `--apply` gán `areaMm2 = 1000000` cho M2/M². Seed rebuild: UOM `M2` có `areaMm2`.
+- **FE**: form/danh sách UOM có "Diện tích (mm²)" (chỉ đọc khi sửa); duyệt RR, tổng duyệt và gợi ý "≈ N Viên" làm tròn giống BE. Modal tạo/sửa PO quy đổi ngược từ `qtyBase` bằng `enteredFromBase`, không để lượng nhập làm tròn lên khiến BE nâng `qtyBase` quá số đã duyệt (ví dụ cỡ 600,125×600).
+- **Tài liệu**: MODEL_MAP, Data Dictionary/schema.json 2026-11-12_58, CONVERSIONS, CONVERSION_BACKFILL, CHANGELOG model.
+- **Chưa làm**: làm tròn tới thùng, sửa tay số viên, bảng cấu hình, `--apply` trên DB thật.
+
+## 14/11/2026 - Bỏ tách dòng PO; dòng PO theo M2
+
+- **Quyết định người dùng 14/11/2026**: bỏ việc tách một dòng RR thành nhiều dòng PO (phương án ngày 13/11). Việc tách theo lô diễn ra khi kiểm hàng và nhập kho, đã có sẵn. Giữ ghi chú dòng PO (`lines[].note`).
+- **BE**: `draftItems` trả 400 "Gộp lượng của cùng dòng RR" khi một dòng RR xuất hiện hai lần (quy tắc trước 13/11), bỏ kiểm tổng theo nhóm và kiểm trùng ID dòng. Dòng PO dùng `toBaseQuantity` nên M2 được làm tròn tới viên và so với `approvedQtyBase`. Phát hành PO giữ kiểm tổng lượng gốc theo dòng RR cho PO nháp cũ. `copyItem` và `document-item.schema.js` chấp nhận `qtyBase` đã làm tròn tới viên (cần cho mọi chứng từ M2).
+- **FE**: modal tạo PO bỏ nút "Tách dòng"/"Xóa dòng", nhãn "Dòng n/m" và tổng nhóm; dòng M2 tính "còn được đặt" với 6 chữ số. Modal sửa PO bỏ nút "Tách dòng"; PO nháp cũ có nhiều dòng cùng dòng RR bị chặn khi lưu cho tới khi xóa dòng thừa. Bỏ `suggestRemainingQtyForSplit`.
+- **Tài liệu**: phiếu duyệt 13 (mục đặt PO, `note`), NATIVE_MODEL_RUNTIME, CONVERSIONS.
+- **Dữ liệu**: không migration. PO nháp đã tách dòng phải gộp lại trước khi lưu; PO đã phát hành giữ nguyên.
+- **Kiểm thử**: BE `RUN_NATIVE_API_TESTS=1 npm test`; FE test PO. Chưa kiểm trực quan trình duyệt.

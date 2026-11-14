@@ -48,7 +48,7 @@ export const SEED_ACCOUNTS = [
     fullName: 'Thủ kho & Điều phối',
     password: 'Kho@12345678',
     phone: '0901234570',
-    warehouseCodes: ['WH01', 'WH02'],
+    warehouseCodes: ['WH01'],
   },
   {
     roleCode: 'WAREHOUSE',
@@ -56,7 +56,23 @@ export const SEED_ACCOUNTS = [
     fullName: 'Thủ kho số 2',
     password: 'Kho2@12345678',
     phone: '0901234572',
-    warehouseCodes: ['WH02', 'WH03'],
+    warehouseCodes: ['WH02'],
+  },
+  {
+    roleCode: 'WAREHOUSE',
+    username: 'warehouse1@creatile.vn',
+    fullName: 'Thủ kho Kho 1',
+    password: 'Kho1@12345678',
+    phone: '0901234573',
+    warehouseCodes: ['WH01'],
+  },
+  {
+    roleCode: 'WAREHOUSE',
+    username: 'warehouse2@creatile.vn',
+    fullName: 'Thủ kho Kho 2',
+    password: 'Kho2@12345678',
+    phone: '0901234574',
+    warehouseCodes: ['WH02'],
   },
   {
     roleCode: 'ACCOUNTANT',

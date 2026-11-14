@@ -35,6 +35,73 @@ Validation performed / not performed:
 
 ## Log entries
 
+### 2026-11-14 — Area-unit (M2) conversion, rounding to whole pieces, and one PO line per RR line (UC-02–UC-05, UC-09, UC-19, UC-20, UC-22)
+
+- **Work item:** Make an area unit (M2) convert itself and round up to whole pieces. Before this change a 600×600 tile (factor 2.777777777778) rejected every M2 quantity, even 0.36 m² (one piece), and the backfill skipped that size (`AREA_FACTOR_NOT_EXACT`):
+  - **`uoms.areaMm2`**: new optional, immutable decimal (M2 = `1000000`; null = not an area unit). `POST /api/uoms` accepts it, `PUT` rejects it. The seed M2 carries it.
+  - **Shared functions (`shared/utils/conversions.js`)**: `areaFactor` (`areaMm2 / (length × width)`, 12 places, `ROUND_HALF_UP`), `toBaseQuantity` (`ceil(round(enteredQty × factor, 6))` only for an area entered unit on a `wholeBaseUnits` product; carton and other units keep the exact rule) and `syncAreaConversions`.
+  - **Auto-generated conversions**: `createProduct` creates the M2 conversion (`Tự tính từ kích thước sản phẩm`) and returns it; `updateProduct` appends a new version when length or width changes, but never overwrites a conversion entered by hand. `currentConversions` is sorted by `uomId`.
+  - **Quantities**: `makeItem` and the RR `previewQuantity` use `toBaseQuantity`; the RR options and detail DTOs return `areaMm2`, `wholeBaseUnits`, `enteredUomAreaMm2` and `productWholeBaseUnits`.
+  - **Document invariants found while testing**: `document-item.schema.js` rejected any `qtyBase ≠ enteredQty × factor`, so no M2 document could be saved; it now also accepts the whole-piece rounding result. `copyItem` (about 15 downstream copies) divided `qtyBase` by the factor and failed beyond 6 decimals; it now keeps `qtyBase` canonical when the source line is already rounded and stays strict otherwise.
+  - **PO**: `draftItems` uses `toBaseQuantity` and keeps the user's `enteredQty`. Each RR line has at most one PO line; a repeated `rrLineId` returns "Gộp lượng của cùng dòng RR". The 13/11 split-line PO rule was removed on the user's decision (lots are split at inspection and receipt). The optional line `note` stays.
+  - **Backfill (`migrations/conversions.js`)**: recognises area units by `areaMm2` instead of the hard-coded code list, uses the rounded 12-place factor and the same base-unit rule as `areaFactor`; `--apply` sets `areaMm2 = 1000000` on M2/M² rows.
+- **Tool and model:** Claude Code (Claude Sonnet 5.5 and Opus 5.5).
+- **Prompt summary:** Implement the approved plan for M2 auto-conversion and rounding up to whole pieces; then, in follow-up requests, handle the PO split of one RR line, compare PO lines in the RR entered unit with a not-exceed (≤) rule, and finally remove PO line splitting altogether.
+- **Result used:** BE code, tests and documentation as listed under Files affected. The first PO-split design (checking the group in pieces) was reverted at the user's request.
+- **Intervention:** Edited.
+- **Human changes:** The user fixed the six design decisions in the plan; chose "not above the approved quantity, measured in the RR entered unit"; then decided that PO lines are not split because lots are split at inspection and receipt, and asked for the PO split code to be reverted. The user also asked that this log and the RTM be updated.
+- **Files affected:** `be/src/models/uom.model.js`, `be/src/models/document-item.schema.js`, `be/src/shared/utils/conversions.js`, `be/src/shared/utils/document-items.js`, `be/src/shared/utils/document-copy.js`, `be/src/modules/uoms/uom.routes.js`, `be/src/modules/products/product.service.js`, `be/src/modules/purchase-orders/purchase-order.commands.js`, `be/src/modules/replenishments/{replenishment.commands,replenishment.evaluation,replenishment.service}.js`, `be/src/migrations/conversions.js`, `be/src/seeds/rebuild/data.js`, `be/test/{area-conversion,conversion-backfill,native-api.integration}.test.js`, `be/git_doc/**` (MODEL_MAP, Data Dictionary and `schema.json` of DB_Current_2026-11-12_58, CONVERSIONS, CONVERSION_BACKFILL, NATIVE_MODEL_RUNTIME, review sheet 13, change logs), `be/docs/ai-log.md`, `be/docs/rtm.md`.
+- **Validation:** `RUN_NATIVE_API_TESTS=1 npm test` passed 183 tests (0 failed, 50 skipped by environment conditions) on a local MongoDB replica set; `npm run docs:check` passed. Evidence: 100 m² of a 600×600 tile saves `qtyBase` 278, 0.36 m² saves 1, 10.1 m² of a 500×500 tile saves 41, a carton still rejects a fractional result, and an RR line of 100 m² accepts a PO line of 100.08 m² but rejects 100.09 m². `backfill-conversions.mjs --dry-run` was run only on the local databases `wmsd_demo_tile_shop_v9` (13 pending) and `sep491` (14 pending), both with no review reports. Not performed: `--apply` on any database, any run against the Atlas database in `.env`, and browser or end-to-end checks.
+
+### 2026-11-13 — Putaway Task Lookup by Code & Support for Transfer Requirement Sources (UC-45, UC-46)
+
+- **Work item:** Fix putaway task detail query failures and 404 "Không tìm thấy dữ liệu" errors when querying putaway tasks (`GET /api/goods-receipts/purchase/putaway-tasks/:id`) by document number (e.g., `TO-202610-001`) or when tasks originate from internal transfer requirements (`internal_transfer_requirements`):
+  - **Document Lookup by _id or documentNo (`purchase-core.js`)**: Updated `findPurchase` helper to detect 24-character hexadecimal strings; query `{ $or: [{ _id: id }, { documentNo: id }] }` for hex candidates or `{ documentNo: id }` otherwise, eliminating Mongoose `CastError: Cast to DocumentIdentity failed` when clients pass document numbers instead of ObjectIds.
+  - **Internal Transfer Requirement Support (`purchase-putaway.service.js`)**: In `task(id)`, expanded source document filtering to permit tasks referencing `internal_transfer_requirements` alongside `goods_receipts`. In `getPutaway(id)`, resolved `receiptId` through the linked transfer requirement when the task source references an internal transfer, ensuring both purchase and transfer putaway tasks return complete task and receipt details without 404 errors.
+- **Tool and model:** Antigravity AI (Gemini 3.8 Flash High).
+- **Prompt summary:** Fix putaway task lookup returning 404 "Không tìm thấy dữ liệu" when opening putaway tasks by ID / document number or transfer-linked tasks; update ai-log and rtm.
+- **Result used:** Updated `be/src/modules/po-receiving/purchase-core.js` and `be/src/modules/po-receiving/purchase-putaway.service.js`.
+- **Intervention:** Adopted.
+- **Human changes:** Directed dual `_id`/`documentNo` resolution and support for transfer requirement putaway tasks.
+- **Files affected:** `be/src/modules/po-receiving/purchase-core.js`, `be/src/modules/po-receiving/purchase-putaway.service.js`, `be/docs/ai-log.md`, `be/docs/rtm.md`.
+- **Validation:** Full backend test runner: `npm test` passed 126/126 tests (0 failed). Direct Node test script verified successful lookup by ObjectId, document number (`TO-202610-001`), and ITR source reference (`TO-202610-010`).
+
+### 2026-11-12 - Vietnamese units in demo data
+
+- **Work item and prompt:** Remove duplicate English UOMs from seed data and align dependent flows.
+- **Tool and intervention:** Codex, adopted. No human edits during verification.
+- **Result:** The tile-shop and BF03 seeds use Viên and Thùng. The seed keeps code `M2` with the name Mét vuông. Replenishment options expose `isCarton`, and new default packaging snapshots use Thùng.
+- **Validation:** Seed and native API checks passed 44/44. A fresh local replica-set seed contained 702 records and no conversions with a missing UOM. The application DB was inspected read-only.
+
+### 2026-11-12 - Product conversion history with missing units
+
+- **Work item and prompt:** Fix the `_id` error on Product Detail.
+- **Tool and intervention:** Codex, adopted. No human edits during verification.
+- **Result:** `src/shared/utils/conversions.js` serializes a missing UOM as `null` in history. The API contract and regression assertions in `test/native-api.integration.test.js` record this behavior.
+- **Validation:** Native API integration passed 18/18. Read-only HTTP checks on the running backend returned 200 for detail and history across all 18 products.
+
+### 2026-11-12 — Inbound receipts and linked purchase documents
+
+- **Work item:** Implement the approved inbound plan for purchase inspection, custody placement, put-away and five receipt kinds.
+- **Tool/model:** Codex AI, GPT-6 family.
+- **Prompt summary:** Connect the separated FE pages to native models, add scoped queries and allow edits of OTHER drafts.
+- **Result used:** Added unified list and detail APIs for five receipt kinds, paginated custody and put-away lists, eligible source lookup, versioned edits to `OTHER` drafts, and an optional receiving location on purchase inspection lines. The PO receiving summary links inspections, receipts, custody receipts and put-away tasks. See the [GoodsReceipt API contract](../git_doc/docs/08_api/GOODS_RECEIPTS.md).
+- **Intervention:** Adopted.
+- **Human changes:** User supplied the plan and confirmed implementation on the existing FE checkout.
+- **Files affected:** `src/modules/goods-receipts`, `src/modules/po-receiving`, `src/modules/return-workflows`, `src/modules/transfers`, integration tests and `git_doc`.
+- **Validation:** The local MongoDB suite passed 180 tests with 32 skips. Focused purchase and receipt integration passed 19/19. The final `OTHER` draft-edit regression passed 1/1. The local browser run posted all five receipt kinds, verified stock movements, and confirmed that purchase custody stock retained supplier ownership. The browser run used simulated evidence storage. See the [BE RTM](rtm.md).
+
+### 2026-11-12 — Auto-partition loose packaging on goods receipt posting & Putaway route schema alignment (UC-37, UC-45)
+
+- **Work item:** Fix goods receipt posting rejection "Nhập quy cách và thể tích thực đo cho phần hàng mở/lẻ" when received quantity is not an exact multiple of carton pieces (`batch.piecesPerCarton`). Update `receiveStock` in `src/shared/utils/stock.js` to automatically partition quantity into whole cartons (`SEALED`) and loose items (`LOOSE`) with proportional `measuredVolumeMm3` calculated from batch carton dimensions. Fix putaway task creation failure "body.lines.0: Unrecognized key: expectedPlacementVersion" on `POST /api/goods-receipts/purchase/:id/putaway-tasks` by adding `expectedPlacementVersion: z.number().int().min(0).optional()` to line schema in `src/modules/po-receiving/po-receiving.routes.js`.
+- **Tool and model:** Antigravity AI (Gemini 3.8 Flash High).
+- **Prompt summary:** Fix error "Nhập quy cách và thể tích thực đo cho phần hàng mở/lẻ" when confirming purchase goods receipt, and fix "body.lines.0: Unrecognized key: expectedPlacementVersion" when creating putaway task; update ai-log and rtm.
+- **Result used:** Updated `src/shared/utils/stock.js` and `src/modules/po-receiving/po-receiving.routes.js`.
+- **Intervention:** Adopted.
+- **Human changes:** Directed automatic loose carton partitioning calculation and inclusion of `expectedPlacementVersion` in the putaway route Zod schema.
+- **Files affected:** `be/src/shared/utils/stock.js`, `be/src/modules/po-receiving/po-receiving.routes.js`, `be/docs/ai-log.md`, `be/docs/rtm.md`.
+- **Validation:** Tested via Node.js native test runner: `node --test test/location-movements.test.js` (2/2 passed) and `test/goods-receipt.integration.test.js`.
+
 ### 2026-11-11 — Remove PO delivery schedules and track receiving documents (UC-08, UC-10, UC-12, UC-13, UC-117)
 
 - **Work item** — Replace line-level delivery schedules with one expected date for the unreceived PO quantity.
