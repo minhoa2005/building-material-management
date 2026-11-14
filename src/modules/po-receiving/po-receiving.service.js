@@ -63,6 +63,8 @@ export async function prepare(po, input, actor, session, arrival, inspection) {
     inspectionItems = [],
     seen = new Set();
   for (const [i, row] of input.lines.entries()) {
+    if (row.qualityCode !== 'GOOD' && row.ownershipDecision !== 'CUSTODY')
+      throw validationError('Hàng chưa đạt phải tạm giữ chờ trả nhà cung cấp');
     const source = po.items.id(row.poLineId);
     if (!source) throw validationError("Dòng không thuộc PO");
     if (!row.lotId) throw validationError("Kiểm nhận cần lô thực nhận");
@@ -209,6 +211,8 @@ export function confirmInspection(user, id, input) {
       checkVersion(inspection, input.expectedVersion);
       if (inspection.workflowStatus !== "DRAFT" || !inspection.items.length)
         throw validationError("Chỉ xác nhận hồ sơ nháp có dòng hàng");
+      if (inspection.items.some(row => row.details.qualityCode !== 'GOOD' && row.details.ownershipDecision !== 'CUSTODY'))
+        throw validationError('Hàng chưa đạt phải tạm giữ chờ trả nhà cung cấp');
       const po = await activePo(
           actor,
           arrival.header.purchaseOrderId,

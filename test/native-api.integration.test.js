@@ -440,6 +440,37 @@ run('native transfer dispatch, independent receipt and putaway reconcile all mov
 run('opened cartons require measured packaging and failed posting leaves no stock transaction',async()=>{const receipt=await postedReceipt('OPENED');assert.equal(receipt.workflowStatus,'POSTED');assert.deepEqual((await reconcilePurchasing()).issues,[]);});
 
 import * as custody from '../src/modules/po-receiving/purchase-custody.service.js';
+run('damaged purchase intake starts supplier return from posted custody without a defect report',async()=>{
+ const service = await import('../src/modules/return-workflows/native.service.js');
+ const held = await postedReceipt('SEALED', true, 'DAMAGED');
+ const context = await getDocument(worker, held._id, 'CUSTODY_RECEIPT');
+ const line = context.items[0], quantity = String(line.qtyBase);
+ assert.equal(context.header.supplierId, String(supplier._id));
+ assert.equal(context.capabilities.createSupplierReturn, true);
+ assert.equal((await getDocument(accountant, held._id, 'CUSTODY_RECEIPT')).capabilities.createSupplierReturn, false);
+ assert.equal(line.returnAvailableQty, quantity);
+ const defectCount = await m.DefectReport.countDocuments();
+ const operation = () => ({ idempotencyKey: key() });
+ const created = await service.createSupplierReturn(worker, { ...operation(), warehouseId: String(warehouse._id), supplierId: String(supplier._id), note: 'Damaged on arrival', lines: [{ originLineId: String(line._id), balanceId: line.custodyBalanceId, qtyBase: quantity }] });
+ let request = await m.SupplierReturn.findById(created.id);
+ assert.equal(request.items[0].details.ownerType, 'SUPPLIER');
+ assert.equal((await getDocument(worker, held._id, 'CUSTODY_RECEIPT')).items[0].returnAvailableQty, '0');
+ const ev = await m.Attachment.create({ ownerDocumentType: 'supplier_returns', ownerDocumentId: request._id, purpose: 'TEST', originalName: 'test.png', mediaType: 'image/png', sizeBytes: 10, storageKey: 'local-test', checksum: 'a'.repeat(64), uploadedBy: accountant._id, uploadedAt: new Date(), accessCategory: 'BUSINESS', status: 'ATTACHED' });
+ await service.supplierAgreement(accountant, request.id, { ...operation(), expectedVersion: request.version, evidenceIds: [String(ev._id)], reference: 'Supplier agrees to receive damaged intake', lines: [{ lineId: String(request.items[0]._id), qtyBase: quantity }] });
+ request = await m.SupplierReturn.findById(request.id);
+ await service.dispatchSupplierReturn(worker, request.id, { ...operation(), expectedVersion: request.version, evidenceIds: [String(ev._id)], recipientName: 'Supplier representative', lines: [{ lineId: String(request.items[0]._id), qtyBase: quantity }] });
+ const release = await m.CustodyRelease.findOne({ 'sources.documentId': request._id });
+ assert.ok(release);
+ assert.equal(await m.SupplierReturnIssue.countDocuments({ 'header.supplierReturnId': request._id }), 0);
+ assert.equal(String((await m.InventoryBalance.findById(line.custodyBalanceId)).quantityBase), '0');
+ assert.equal(await m.DefectReport.countDocuments(), defectCount);
+ request = await m.SupplierReturn.findById(request.id);
+ await service.acknowledgeSupplierReturn(accountant, request.id, { ...operation(), expectedVersion: request.version, evidenceIds: [String(ev._id)], lines: [{ lineId: String(release.items[0]._id), qtyBase: quantity, outcome: 'ACCEPTED' }] });
+ request = await m.SupplierReturn.findById(request.id);
+ await service.closeSupplierReturn(accountant, request.id, { ...operation(), expectedVersion: request.version, note: 'Supplier accepted all held intake goods' });
+ assert.equal((await m.SupplierReturn.findById(request.id)).workflowStatus, 'COMPLETED');
+});
+
 run('custody acceptance, ownership reversal and return preserve physical stock and sources',async()=>{
  let held=await postedReceipt('SEALED',true);const item=held.items[0];
  const heldInspection = await m.GoodsInspection.findById(held.sources[0].documentId);
@@ -768,7 +799,7 @@ run('HTTP catalogue contracts enforce permissions, immutable codes and concurren
 });
 
 run('custody reinspection, stale decisions, wrong roles and concurrent claims are guarded',async()=>{
- await assert.rejects(postedReceipt('SEALED',false,'DAMAGED'),/GOOD/);
+ await assert.rejects(postedReceipt('SEALED',false,'DAMAGED'),/phải tạm giữ/);
  let held=await postedReceipt('SEALED',true,'DAMAGED');const row=held.items[0];const ev=await m.Attachment.create({ownerDocumentType:'custody_receipts',ownerDocumentId:held._id,purpose:'TEST',originalName:'test.png',mediaType:'image/png',sizeBytes:10,storageKey:'local-test',checksum:'a'.repeat(64),uploadedBy:worker._id,uploadedAt:new Date(),accessCategory:'BUSINESS',status:'ATTACHED'});
  const body={...input(),expectedVersion:held.version,decision:'ACCEPT',reason:'Agreed',evidenceIds:[String(ev._id)],lines:[{custodyItemId:String(row._id),qtyBase:'4'}]};
  await assert.rejects(custody.decideCustody(worker,held._id,body));await assert.rejects(custody.decideCustody(accountant,held._id,{...body,evidenceIds:[]}));await assert.rejects(custody.decideCustody(accountant,held._id,body),/GOOD/);

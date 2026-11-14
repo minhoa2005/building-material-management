@@ -1,4 +1,5 @@
-import { ProductBatch, GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, AuditLog, StockTransaction, Supplier, User, Warehouse, PurchaseOrder, TransferOrder, InventoryBalance, StockHoldingPoint, WarehouseLocation } from '../../models/runtime.js';
+import { ProductBatch, GoodsArrival, GoodsInspection, PurchaseReceipt, CustodyReceipt, SupplierReturn, AuditLog, StockTransaction, Supplier, User, Warehouse, PurchaseOrder, TransferOrder, InventoryBalance, StockHoldingPoint, WarehouseLocation } from '../../models/runtime.js';
+import { freeQuantity } from '../../shared/utils/stock.js';
 import { requirePermission, hasPermission, canAccessWarehouse } from '../../shared/utils/access.js';
 import { currentRole } from '../../shared/utils/userRole.js';
 import { dto, serialize } from '../../shared/utils/persistence.js';
@@ -29,11 +30,12 @@ async function custodyMetadata(document, value) {
   const purchaseOrderId = arrival?.header.purchaseOrderId;
   const po = purchaseOrderId && await PurchaseOrder.findById(purchaseOrderId).select('documentNo').lean();
   Object.assign(value.header, serialize({
-    purchaseOrderId, purchaseOrderNo: po?.documentNo, supplierName: supplier?.name, warehouseName: warehouse?.name,
+    purchaseOrderId, purchaseOrderNo: po?.documentNo, supplierId: ownerType === 'SUPPLIER' ? ownerId : undefined, supplierName: supplier?.name, warehouseName: warehouse?.name,
   }));
   if (inspection) value.sourceInspection = { id: String(inspection._id), documentNo: inspection.documentNo };
   if (!posting) return;
-  const balances = await InventoryBalance.find({ _id: { $in: posting.movements.map(row => row.toBalanceId).filter(Boolean) } }).select('holdingPointId').lean();
+  const balances = await InventoryBalance.find({ _id: { $in: posting.movements.map(row => row.toBalanceId).filter(Boolean) } }).lean();
+  const returns = await SupplierReturn.find({ 'items.details.originLineId': { $in: document.items.map(item => item._id) }, workflowStatus: { $nin: ['CANCELLED', 'REJECTED'] } }).lean();
   const points = await StockHoldingPoint.find({ _id: { $in: balances.map(row => row.holdingPointId) } }).select('locationId').lean();
   const locationByLine = new Map(posting.movements.map(row => {
     const balance = balances.find(balance => same(balance._id, row.toBalanceId));
@@ -41,6 +43,15 @@ async function custodyMetadata(document, value) {
   }));
   const locations = await WarehouseLocation.find({ _id: { $in: [...locationByLine.values()].filter(Boolean) }, warehouseId }).select('code').lean();
   for (const item of value.items) {
+    const movement = posting.movements.find(row => same(row.sourceLineId, item._id));
+    const balance = balances.find(row => same(row._id, movement?.toBalanceId));
+    if (balance) {
+      item.custodyBalanceId = String(balance._id);
+      const committed = returns.reduce((total, request) => request.items.filter(row => same(row.details.originLineId, item._id)).reduce((n, row) => n.plus(String(request.workflowStatus === 'COMPLETED' ? row.details.agreedQty ?? '0' : row.qtyBase)), total), exact('0'));
+      const remaining = exact(item.qtyBase).minus(committed);
+      const free = await freeQuantity(balance, null);
+      item.returnAvailableQty = remaining.gt(0) && free.gt(0) ? (remaining.lt(free) ? remaining : free).toFixed() : '0';
+    }
     const location = locationByLine.get(item._id);
     if (!location) continue;
     item.holdingLocationId = String(location);
@@ -89,6 +100,7 @@ async function enriched(user,document){
   const canUpdate = writeWarehouse && hasPermission(user, 'goods_receipt_inspection:update');
   const canPost = writeWarehouse && hasPermission(user, 'goods_receipt_inspection:post');
   value.capabilities = {
+    createSupplierReturn: kind === 'CUSTODY_RECEIPT' && posted && document.header?.ownerType === 'SUPPLIER' && writeWarehouse && hasPermission(user, 'supplier_return:create'),
     writeWarehouse,
     edit: draft && canUpdate,
     confirm: kind === 'INSPECTION' && draft && canUpdate,

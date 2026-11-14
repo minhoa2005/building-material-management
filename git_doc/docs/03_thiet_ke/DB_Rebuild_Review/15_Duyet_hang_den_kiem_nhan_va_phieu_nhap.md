@@ -12,7 +12,7 @@
 | H04 | `goods_inspections` — Kiểm nhận | Phần hàng nào đạt, lỗi, còn chờ; phần nào được nhận vào sở hữu shop? |
 | H05 | `purchase_receipts` — Phiếu nhập mua hàng | Lượng nào đã chính thức được ghi nhận vào tồn của shop từ PO? |
 
-Ví dụ NCC mang tới 100 viên: kiểm nhận xác định 90 viên tốt được nhận, 5 viên lỗi được chấp nhận vào sở hữu để xử lý, 5 viên còn chờ thỏa thuận và giữ hộ NCC. H03 ghi 100 viên đến; H04 ghi ba phần; H05 nhập sở hữu 95 viên theo hai chất lượng. Năm viên giữ hộ theo H33 riêng, không làm PO được coi là đã nhận đủ 100. Nếu giữ cả 100 viên trong kho thì sức chứa phải phản ánh cả 100.
+Quyết định người dùng ngày 14/11/2026 thay nhánh nhận lỗi lúc nhập: mọi phần chưa GOOD phải CUSTODY. Ví dụ NCC giao 100 viên, 90 GOOD được nhận mua và 10 chưa đạt được giữ hộ NCC. Chốt kiểm nhận tạo phiếu nhập mua nháp 90 và phiếu giữ hộ nháp 10; post từng phiếu mới ghi tồn STORE/SUPPLIER tương ứng. Sau post giữ hộ, Warehouse lập đề nghị trả NCC ngay từ dòng giữ hộ, Accountant xác minh thỏa thuận, Warehouse bàn giao bằng CustodyRelease, Accountant ghi ACK và đóng. Không lập thêm DefectReport cho sự cố nhập này. H05 chỉ nhận sở hữu 90; sức chứa phản ánh đủ 100 nếu cả hai phần đều ở kho.
 
 Ba hồ sơ có thể được thao tác trong cùng màn hình nhập hàng; số bảng không yêu cầu thêm ba màn hình hoặc ba lần nhập lại sản phẩm. Thiết kế tách để giữ được cả trường hợp hàng đến nhưng không chấp nhận đơn vị nào, hoặc phần đang chờ được kiểm và nhận sau. Cấu trúc ba bảng đã được duyệt; việc triển khai và các bảng phụ thuộc vẫn theo giai đoạn riêng.
 

@@ -1,3 +1,5 @@
+14 November 2026 — explicit user decision: purchase inspection lines whose quality is not GOOD must use CUSTODY. Create/update and confirmation reject ACCEPT or REJECT for these lines, including historical drafts. GOOD retains existing decisions. Confirm creates draft receipts; posting custody records supplier-owned stock. Posted custody detail offers supplier-return creation from the actual line/balance, without a defect report. See RETURN_WORKFLOWS_NATIVE.md for agreement, CustodyRelease dispatch and ACK/closure.
+
 > 10/11/2026: [18 UC HieuDT](HIEUDT_ITERATIONS_NATIVE.md) bổ sung lệnh sửa/hủy SO, WIR/OD, soạn từng phần, chốt kiểm kê và báo cáo. FE đã nối các màn tương ứng vào API. GI posting/POD/thanh toán và các UC chuẩn bị kiểm kê ngoài phạm vi không được suy là đã hoàn tất.
 
 > Quyết định 09/11/2026 bổ sung [Conversion theo sản phẩm và lô](CONVERSIONS.md). [Iteration 1 native](ITERATION1_NATIVE_2026-11-06.md) tiếp tục áp dụng cho NCC, giữ hộ và đảo nhập.
