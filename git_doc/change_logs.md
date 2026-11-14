@@ -1,3 +1,11 @@
+## 14/11/2026 - Bộ lọc danh sách kiểm kê (UC-93 / FE-08)
+
+- Lý do: màn danh sách đợt kiểm kê cần tìm theo kho, phạm vi, thời điểm cutoff và trạng thái; trước đó `GET /stocktakes` nhận `q`/`from`/`to` nhưng bỏ qua, và không có lọc theo phạm vi.
+- Thay đổi: `src/modules/stocktake-closure/stocktake-list.query.js` (schema strict `stocktakeListQuery` + `buildStocktakeListFilter`); route/service dùng chúng thay cho `outboundQuery` dùng chung. Lọc `locationId` theo `header.scopeLocationIds`, `from`/`to` theo `header.cutoffAt`, `q` theo mã đợt (escape ký tự regex). Hợp đồng ghi tại [STOCKTAKE_LIFECYCLE.md](docs/08_api/STOCKTAKE_LIFECYCLE.md).
+- Dữ liệu: không đổi schema, index, seed hay dữ liệu; quyền không đổi (`stocktake:read`, phạm vi kho).
+- Kiểm chứng: `node --test test/stocktake-list.test.js` 5/5 (hàm dựng filter + validation). Chưa chạy được kiểm chứng với Mongo vì Docker daemon không chạy lúc thực hiện.
+- Giới hạn: `cutoffAt`/`scopeLocationIds` chưa có index; xin duyệt riêng nếu danh sách chậm.
+
 ## 14/11/2026 - Đồng bộ Report 3 theo code và lập bản nháp Report 4
 
 - Theo yêu cầu người dùng, đối chiếu [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) với template SEP490 trên Drive và code BE/FE hiện hành, ưu tiên code. Sửa trong các mục có sẵn, không thêm dòng vào Change Log của report.

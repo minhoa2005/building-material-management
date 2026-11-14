@@ -10,6 +10,7 @@ Mọi endpoint nằm dưới `/api/stocktakes`, dùng `Authorization: Bearer`, b
 
 | Lệnh | Endpoint | Quyền | Hiệu lực |
 |---|---|---|---|
+| Danh sách (UC-93) | `GET /` | `stocktake:read` | Chỉ đọc. Owner thấy mọi kho, vai trò khác chỉ kho được giao. Query strict (khóa lạ, id/ngày sai hoặc `from` > `to` → 400): `warehouseId` (ngoài phạm vi → bị chặn), `status`, `locationId` (đợt có vị trí này trong `header.scopeLocationIds`), `from`/`to` (ISO, bao gồm hai đầu, lọc theo `header.cutoffAt` nên đợt `PLANNED` chưa có cutoff bị loại khi có khoảng cutoff), `q` (mã đợt, khớp nguyên văn, không phân biệt hoa thường), `page`, `limit` ≤ 100. Mặc định sắp xếp `createdAt` giảm dần; `total` khớp tập đã lọc. Không thêm index mới. |
 | Tùy chọn lập kế hoạch | `GET /options` | `stocktake:create` | Kho, vị trí, nhân viên có quyền đếm trong kho. |
 | Lập kế hoạch | `POST /` | `stocktake:create` | Tạo `PLANNED` (version 1), phạm vi ≥1 vị trí, không đổi tồn, không khóa. |
 | Sửa kế hoạch | `POST /:id/update` | `stocktake:create` | Chỉ `PLANNED`, đúng version; đổi phạm vi tăng `scopeVersion`. |

@@ -3,17 +3,14 @@ import * as m from '../../models/runtime.js';
 import { exact } from '../../models/model-utils.js';
 import { command, checkVersion, saveVersion, same, newId, hash } from '../../shared/utils/document-command.js';
 import { dto, page, serialize } from '../../shared/utils/persistence.js';
-import { requirePermission, requireWarehouseAccess, isOwner } from '../../shared/utils/access.js';
+import { requirePermission, requireWarehouseAccess } from '../../shared/utils/access.js';
 import { validationError, notFoundError } from '../../shared/utils/ApiError.js';
 import { sourceContext, beginStock, moveStock, receiveStock, splitPortions, remainingReservation, verifyCapacity, heldQuantity } from '../../shared/utils/stock.js';
 import { copyItem, sourceLink } from '../../shared/utils/document-copy.js';
+import { buildStocktakeListFilter } from './stocktake-list.query.js';
 async function scoped(user, id, session) { const document = await m.Stocktake.findById(id).session(session); if (!document)
     throw notFoundError(); requireWarehouseAccess(user, document.header.warehouseId); return document; }
-export async function listStocktakes(user, query) { requirePermission(user, 'stocktake:read'); const filter = isOwner(user) ? {} : { 'header.warehouseId': { $in: user.warehouseIds || [] } }; if (query.warehouseId) {
-    requireWarehouseAccess(user, query.warehouseId);
-    filter['header.warehouseId'] = query.warehouseId;
-} if (query.status)
-    filter.workflowStatus = query.status; return page(m.Stocktake, filter, query); }
+export async function listStocktakes(user, query) { requirePermission(user, 'stocktake:read'); return page(m.Stocktake, buildStocktakeListFilter(user, query), query); }
 export async function getStocktake(user, id) { requirePermission(user, 'stocktake:read'); const document = await scoped(user, id); const scope = { stocktakeId: document._id, scopeVersion: document.header.scopeVersion }; return { ...dto(document), snapshots: (await m.StocktakeSnapshot.find(scope)).map(dto), counts: (await m.StocktakeCount.find(scope).sort({ attemptNo: -1 })).map(dto), locks: (await m.StocktakeLocationLock.find(scope)).map(dto) }; }
 export const approvalContent = plan => serialize({ planId: plan._id, planVersion: plan.version, scopeVersion: plan.header.scopeVersion, items: plan.items, selectedCounts: plan.selectedCounts });
 export function closeStocktake(user, id, input) {
