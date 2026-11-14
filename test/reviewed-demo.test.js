@@ -18,8 +18,9 @@ test('complete reviewed demo validates all schemas, links, balances and approved
   assert.deepEqual(data.uoms.map(({ code, name, isCarton }) => ({ code, name, isCarton })), [
     { code: 'Viên', name: 'Viên', isCarton: false },
     { code: 'Thùng', name: 'Thùng', isCarton: true },
-    { code: 'M2', name: 'Mét vuông', isCarton: false },
+    { code: 'Mét vuông', name: 'Mét vuông', isCarton: false },
   ]);
+  assert.equal(String(data.uoms[2].areaMm2), '1000000');
   const cartons = data.conversions.filter(row => row.productBatchId);
   assert.equal(cartons.length, data.product_batches.filter(batch => batch.identificationStatus === 'VERIFIED').length);
   assert.ok(cartons.every(row => String(row.uomId) === String(data.uoms[1]._id)));

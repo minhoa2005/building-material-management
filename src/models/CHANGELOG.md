@@ -1,4 +1,12 @@
 
+## 14/11/2026 — Ràng buộc qtyBase của dòng chứng từ
+
+`document-item.schema.js` chấp nhận `qtyBase` bằng `enteredQty × baseUnitsPerUnit` hoặc bằng `ceil(round(tích, 6))` (số nguyên) để lưu được dòng theo đơn vị diện tích. Không đổi field, index hay dữ liệu cũ. Xem [CONVERSIONS](../../git_doc/docs/08_api/CONVERSIONS.md).
+
+## 14/11/2026 — uoms.areaMm2
+
+`uoms` thêm `areaMm2` (Decimal128 dương, tùy chọn, mặc định null, bất biến): mm² của một đơn vị, M2 = 1000000. Dữ liệu cũ hợp lệ (null); `backfillConversions --apply` gán 1000000 cho UOM M2/M². Không thêm collection hay index. Quy tắc tự sinh quy đổi và làm tròn tới viên: [CONVERSIONS](../../git_doc/docs/08_api/CONVERSIONS.md).
+
 ## 12/11/2026 — Mã chứng từ nối bằng dấu gạch ngang
 
 `DocumentIdentity` nhận mã mới nối bằng `-` liền, mã đã lưu có dấu cách quanh dấu nối và ObjectId lịch sử. Mỗi chứng từ đã lưu giữ nguyên giá trị định danh. [Hợp đồng định danh](../../git_doc/docs/08_api/DOCUMENT_IDENTITIES.md).

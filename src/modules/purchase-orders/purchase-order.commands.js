@@ -4,10 +4,12 @@ import {
   Supplier,
   Warehouse,
   Product,
+  Uom,
   ApprovalHistory,
   AuditLog,
 } from "../../models/runtime.js";
 import { exact } from "../../models/model-utils.js";
+import { toBaseQuantity } from "../../shared/utils/conversions.js";
 import { requireWarehouseAccess } from "../../shared/utils/access.js";
 import { currentRole } from "../../shared/utils/userRole.js";
 import { validationError } from "../../shared/utils/ApiError.js";
@@ -42,12 +44,14 @@ async function draftItems(actor, input, session, previous = []) {
     }).session(session))
   )
     throw validationError("Kho hoặc nhà cung cấp không hoạt động");
-  // One RR line may be split into several PO lines (e.g. one per supplier lot); their sum stays within the approval.
+  // One PO line per RR line: lots are split later, at inspection and receipt.
   let request;
   const items = [],
-    totals = new Map();
-  const usedItemIds = new Set();
+    seen = new Set();
   for (const [index, line] of input.lines.entries()) {
+    if (seen.has(String(line.rrLineId)))
+      throw validationError("Gộp lượng của cùng dòng RR");
+    seen.add(String(line.rrLineId));
     const rr = await ReplenishmentRequest.findOne({
       "items._id": line.rrLineId,
       workflowStatus: "APPROVED",
@@ -72,17 +76,19 @@ async function draftItems(actor, input, session, previous = []) {
       decision = approval.itemDecisions.find((row) =>
         same(row.itemId, source._id),
       );
-    const amount = exact(line.enteredQty).mul(String(source.baseUnitsPerUnit));
-    const total = (totals.get(String(source._id)) ?? exact("0")).plus(amount);
-    totals.set(String(source._id), total);
     const product = await Product.findOne({
       _id: source.productId,
       isActive: true,
     }).session(session);
+    if (!product || !decision)
+      throw validationError("Sản phẩm hoặc lượng PO vượt nguồn được duyệt");
+    const enteredUom = await Uom.findOne({ code: source.enteredUnit }).session(session);
+    // Area units round up to whole pieces, same rule as makeItem.
+    const factor = String(source.baseUnitsPerUnit);
+    const amount = toBaseQuantity(line.enteredQty, factor, product, enteredUom);
+    const rounded = !amount.eq(exact(line.enteredQty).mul(factor));
     if (
-      !product ||
-      !decision ||
-      total.gt(String(decision.approvedQtyBase)) ||
+      amount.gt(String(decision.approvedQtyBase)) ||
       amount.lte(0) ||
       (product.wholeBaseUnits && !amount.isInteger()) ||
       amount.decimalPlaces() > 6
@@ -91,11 +97,6 @@ async function draftItems(actor, input, session, previous = []) {
     const old = line.id ? previous.find((row) => same(row._id, line.id)) : null;
     if (line.id && (!old || !same(old.requestItemId, source._id)))
       throw validationError("Không đổi nguồn của dòng đã lưu");
-    if (old) {
-      const itemId = String(old._id);
-      if (usedItemIds.has(itemId)) throw validationError("ID dòng PO bị trùng");
-      usedItemIds.add(itemId);
-    }
     const value = exact(line.unitPurchasePrice).mul(line.enteredQty);
     items.push(
       copyItem(source, amount.toFixed(), {
@@ -104,6 +105,7 @@ async function draftItems(actor, input, session, previous = []) {
         requestItemId: source._id,
         unitPurchasePrice: line.unitPurchasePrice,
         lineAmount: value.toFixed(),
+        ...(rounded && { enteredQty: exact(line.enteredQty).toFixed() }),
         ...(line.note && { note: line.note }),
         sources: [
           sourceLink(rr, source, amount.toFixed(), "REPLENISHMENT_PURCHASE"),

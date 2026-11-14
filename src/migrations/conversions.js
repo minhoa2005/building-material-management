@@ -1,8 +1,9 @@
-import { exact } from '../models/model-utils.js';
+import mongoose from 'mongoose';
+import { exact, ExactDecimal } from '../models/model-utils.js';
 
 const cartonCodes = new Set(['BOX', 'THÙNG', 'HOP', 'HỘP']);
-const areaCodes = new Set(['M2', 'M²']);
-const pieceCodes = new Set(['PIECE', 'VIÊN']);
+// Legacy area unit codes: only used by backfillConversions(apply) to set uoms.areaMm2 = 1000000 once.
+const legacyAreaCodes = new Set(['M2', 'M²']);
 const codeOf = uom => uom.code.trim().toUpperCase();
 const byId = rows => new Map(rows.map(row => [String(row._id), row]));
 const scopeKey = row => [row.productId, row.productBatchId, row.uomId].join(':');
@@ -25,7 +26,8 @@ export function planConversionBackfill({ products, batches, uoms, operations = [
   const uomById = byId(uoms);
   const cartons = uoms.filter(uom => uom.isCarton || cartonCodes.has(codeOf(uom)));
   const cartonIds = new Set(cartons.map(row => String(row._id)));
-  const areas = uoms.filter(uom => areaCodes.has(codeOf(uom)));
+  const areas = uoms.filter(uom => uom.areaMm2 != null);
+  const uomByCode = new Map(uoms.map(uom => [uom.code, uom]));
   if (!cartons.length) reports.push({ reason: 'NO_CARTON_UOM' });
   for (const uom of uoms) {
     if (!cartonIds.has(String(uom._id)) && cartonCodes.has(uom.name.trim().toUpperCase())) {
@@ -58,16 +60,22 @@ export function planConversionBackfill({ products, batches, uoms, operations = [
     }
   }
 
+  // Same rule as areaFactor() in shared/utils/conversions.js: the base unit must not be a carton or an area unit
+  // (pieceCodes was dropped: it hard-coded two codes and skipped other whole-piece base units).
   for (const product of products) {
-    if (!pieceCodes.has(product.baseUnit.toUpperCase())) continue;
-    const area = product.lengthMm != null && product.widthMm != null
-      ? exact(product.lengthMm).mul(String(product.widthMm)) : exact(0);
-    const factor = validFactor(exact('1000000').div(area));
-    if (!factor && areas.length) reports.push({ reason: 'AREA_FACTOR_NOT_EXACT', productId: product._id });
-    if (!factor) continue;
+    const baseUom = uomByCode.get(product.baseUnit);
+    if (!areas.length || !baseUom || cartonIds.has(String(baseUom._id)) || baseUom.areaMm2 != null) continue;
+    if (product.lengthMm == null || product.widthMm == null) {
+      reports.push({ reason: 'AREA_FACTOR_NO_SIZE', productId: product._id });
+      continue;
+    }
+    const size = exact(product.lengthMm).mul(exact(product.widthMm));
     for (const uom of areas) {
+      if (uom.code === product.baseUnit) continue;
+      const factor = size.gt(0) ? validFactor(exact(uom.areaMm2).div(size).toDecimalPlaces(12, ExactDecimal.ROUND_HALF_UP)) : null;
+      if (!factor) { reports.push({ reason: 'AREA_FACTOR_NOT_VALID', productId: product._id, uomId: uom._id }); continue; }
       add(product, uom, null, { basePerUnit: factor.toFixed(), validFrom: baselineDate(product),
-        verificationReference: 'Kích thước sản phẩm và công thức diện tích trước migration' });
+        verificationReference: 'Tự tính từ kích thước sản phẩm' });
     }
   }
 
@@ -113,7 +121,8 @@ export async function backfillConversions(models, { apply = false } = {}) {
     const plan = planConversionBackfill({
       products: await read('products', {}, session),
       batches: await read('product_batches', {}, session),
-      uoms: await read('uoms', {}, session),
+      // Legacy M2 rows get areaMm2 in memory too, so one dry-run/apply pass plans their conversions.
+      uoms: (await read('uoms', {}, session)).map(uom => uom.areaMm2 == null && legacyAreaCodes.has(codeOf(uom)) ? { ...uom, areaMm2: '1000000' } : uom),
       operations: await read('operation_records', { subjectType: 'products', operationCode: 'CREATE_PRODUCT_CONVERSION' }, session),
     });
     const existing = new Map();
@@ -131,6 +140,8 @@ export async function backfillConversions(models, { apply = false } = {}) {
       }
     }
     if (apply) {
+      await Uom.collection.updateMany({ code: { $in: [...legacyAreaCodes] }, areaMm2: null },
+        { $set: { areaMm2: mongoose.Types.Decimal128.fromString('1000000') } }, { session });
       await Uom.updateMany({ _id: { $in: plan.cartonUomIds }, isCarton: { $ne: true } }, { $set: { isCarton: true } }, { session });
       if (pending.length) await Conversion.insertMany(pending, { session });
     }

@@ -1,3 +1,21 @@
+## 14/11/2026 - Đồng bộ Report 3 theo code và lập bản nháp Report 4
+
+- Theo yêu cầu người dùng, đối chiếu [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) với template SEP490 trên Drive và code BE/FE hiện hành, ưu tiên code. Sửa trong các mục có sẵn, không thêm dòng vào Change Log của report.
+- Nội dung chính đã sửa: BF-01 (cảnh báo RR thay guard, PO chỉ sửa khi nháp, đổi ngày dự kiến, đóng phần còn lại qua đề nghị–duyệt–thực hiện, kiểm nhận theo lô/thùng/viên, GR/hàng giữ hộ nháp, cất hàng nguyên thùng, Warehouse đảo nhập trực tiếp); BF-03 (số nguyên thùng/viên, xác nhận trọn lệnh một lần); BF-04 (giữ hàng khi lập phiếu xuất nháp, PICK + bàn giao, nhận GOOD/DAMAGED, hồ sơ chênh lệch, đóng/đóng một phần); BF-06 (giá bán trên SO, OD giữ hàng, picking tạo GI nháp → PICKED); bỏ tone/calibre; UOM/Conversion; role tùy chỉnh và lockReason; định danh chứng từ (BR-34); MSG-18; UC-11 RETIRED (129 active), UC-10 đổi thành đổi ngày dự kiến PO, UC-12 có Owner duyệt.
+- Không sửa quyết định chưa có trong code: PGI/POD/PAY-CFM, lập/kích hoạt/đếm kiểm kê và gửi SMTP vẫn giữ là yêu cầu; trạng thái chưa có API ghi ở Report 4 mục IV.6.
+- Thêm [Report 4 bản nháp](docs/01_bao_cao/WMSD_Report4_Draft.md) theo template SDS: kiến trúc, package, ERD, danh mục 58 collection và bảng trường 34 collection sinh từ schema Mongoose hiện hành, sequence/class diagram cho BF-01–BF-08 (tách nhỏ), thiết kế bảo mật/RBAC/hiệu năng theo code.
+- Kiểm tra: 35 sơ đồ Mermaid (31 Report 4, 4 Report 3) parse đạt bằng mermaid 11.4.1. Không đổi code, model, API hay dữ liệu DB. Bản Word trên Drive chưa được cập nhật.
+
+## 14/11/2026 - Việt hóa mã và tên đơn vị tính
+
+- Seed mẫu v11 dùng `Viên`, `Thùng` và `Mét vuông` cho cả mã và tên. `Mét vuông` có `areaMm2` Decimal128 bằng 1000000.
+- Đồng bộ riêng 5 mục UOM trên MongoDB local `wmsd_demo_tile_shop_v9`. Hai mục trùng được ngừng sử dụng và giữ ID. Đọc lại danh mục và kiểm tra đủ 81 tham chiếu quy đổi sau khi ghi.
+- Kiểm tra 29 ca seed, quy đổi diện tích và backfill. Xem [hướng dẫn seed cửa hàng gạch](docs/09_phat_trien/SEED_CUA_HANG_GACH.md).
+
+## 14/11/2026 - Độ đậm tiêu đề kiểm hàng
+
+- Quy tắc typography FE cho phép độ đậm 700; tiêu đề “Theo dõi tình trạng” trên trang tạo và chi tiết kiểm hàng dùng độ đậm này.
+
 ## 13/11/2026 - Tổng số lượng phiếu nhập theo đơn vị gốc
 
 - Danh sách gộp phiếu nhập trả thêm `totalsByBaseUnit`, cộng riêng theo đơn vị gốc; màn danh sách hiển thị từng tổng kèm đơn vị. Chi tiết tại [GoodsReceipt API](docs/08_api/GOODS_RECEIPTS.md).
@@ -1146,3 +1164,21 @@ Bổ sung kiểm tra UX cùng lượt: đơn chuyển kho COMPLETED không hiể
 - Đổi config branding, header/logo, auth, nội dung trang, biểu mẫu in, tiêu đề email và CSV. index.html có title Tân Thương, meta description/application-name/Open Graph/Twitter, lang vi và viewport; public/erd.html đổi tên trang. README/context FE ghi vị trí cấu hình và phạm vi tương thích.
 - Không đổi API, model, email/tên đăng nhập hoặc các khóa localStorage; không migrate dữ liệu/ghi remote. Các định danh kỹ thuật lịch sử trong tài liệu vẫn giữ vai trò truy vết.
 - Kiểm chứng: build FE đạt, 11 tests auth/layout/logout/responsive đạt, diff check đạt; title tab và header đã hiển thị Tân Thương trong trình duyệt local.
+
+## 14/11/2026 - Đơn vị diện tích (M2) tự quy đổi và làm tròn tới viên
+
+- **Lý do**: gạch 600×600 có hệ số `2.777777777778` nên mọi lượng nhập theo M2 bị từ chối (quá 6 số lẻ) và backfill bỏ qua cỡ này. Thực hiện theo kế hoạch người dùng chốt ngày 14/11/2026.
+- **Model/BE**: `uoms.areaMm2` (bất biến, tùy chọn); `POST /api/uoms` nhận, `PUT` từ chối. `areaFactor`, `toBaseQuantity`, `syncAreaConversions` trong `shared/utils/conversions.js`; `makeItem` và `previewQuantity` làm tròn `ceil(round(qty × factor, 6))` khi đơn vị nhập là đơn vị diện tích và sản phẩm `wholeBaseUnits`. `createProduct`/`updateProduct` tự sinh quy đổi diện tích (không ghi đè bản nhập tay). Options RR và chi tiết RR trả `areaMm2`/`wholeBaseUnits`. `currentConversions` sắp xếp ổn định theo `uomId`.
+- **Migration**: `src/migrations/conversions.js` dùng `uoms.areaMm2`, bỏ `areaCodes`/`pieceCodes`; `--apply` gán `areaMm2 = 1000000` cho M2/M². Seed rebuild: UOM `M2` có `areaMm2`.
+- **FE**: form/danh sách UOM có "Diện tích (mm²)" (chỉ đọc khi sửa); duyệt RR, tổng duyệt và gợi ý "≈ N Viên" làm tròn giống BE. Modal tạo/sửa PO quy đổi ngược từ `qtyBase` bằng `enteredFromBase`, không để lượng nhập làm tròn lên khiến BE nâng `qtyBase` quá số đã duyệt (ví dụ cỡ 600,125×600).
+- **Tài liệu**: MODEL_MAP, Data Dictionary/schema.json 2026-11-12_58, CONVERSIONS, CONVERSION_BACKFILL, CHANGELOG model.
+- **Chưa làm**: làm tròn tới thùng, sửa tay số viên, bảng cấu hình, `--apply` trên DB thật.
+
+## 14/11/2026 - Bỏ tách dòng PO; dòng PO theo M2
+
+- **Quyết định người dùng 14/11/2026**: bỏ việc tách một dòng RR thành nhiều dòng PO (phương án ngày 13/11). Việc tách theo lô diễn ra khi kiểm hàng và nhập kho, đã có sẵn. Giữ ghi chú dòng PO (`lines[].note`).
+- **BE**: `draftItems` trả 400 "Gộp lượng của cùng dòng RR" khi một dòng RR xuất hiện hai lần (quy tắc trước 13/11), bỏ kiểm tổng theo nhóm và kiểm trùng ID dòng. Dòng PO dùng `toBaseQuantity` nên M2 được làm tròn tới viên và so với `approvedQtyBase`. Phát hành PO giữ kiểm tổng lượng gốc theo dòng RR cho PO nháp cũ. `copyItem` và `document-item.schema.js` chấp nhận `qtyBase` đã làm tròn tới viên (cần cho mọi chứng từ M2).
+- **FE**: modal tạo PO bỏ nút "Tách dòng"/"Xóa dòng", nhãn "Dòng n/m" và tổng nhóm; dòng M2 tính "còn được đặt" với 6 chữ số. Modal sửa PO bỏ nút "Tách dòng"; PO nháp cũ có nhiều dòng cùng dòng RR bị chặn khi lưu cho tới khi xóa dòng thừa. Bỏ `suggestRemainingQtyForSplit`.
+- **Tài liệu**: phiếu duyệt 13 (mục đặt PO, `note`), NATIVE_MODEL_RUNTIME, CONVERSIONS.
+- **Dữ liệu**: không migration. PO nháp đã tách dòng phải gộp lại trước khi lưu; PO đã phát hành giữ nguyên.
+- **Kiểm thử**: BE `RUN_NATIVE_API_TESTS=1 npm test`; FE test PO. Chưa kiểm trực quan trình duyệt.

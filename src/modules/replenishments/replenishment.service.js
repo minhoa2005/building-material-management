@@ -5,6 +5,7 @@ import {
   Warehouse,
   User,
   Product,
+  Uom,
   SalesOrder,
   Stocktake,
 } from "../../models/runtime.js";
@@ -150,7 +151,7 @@ export async function getReplenishment(user, id) {
       .lean(),
     productIds.length
       ? Product.find({ _id: { $in: productIds } })
-          .select("_id sku name isActive imageUrls")
+          .select("_id sku name isActive imageUrls wholeBaseUnits")
           .lean()
       : [],
     sourceDocIds.length
@@ -208,6 +209,10 @@ export async function getReplenishment(user, id) {
   });
 
   const baseDoc = dto(document);
+  const areaByCode = new Map(
+    (await Uom.find({ areaMm2: { $ne: null } }).select("code areaMm2").lean())
+      .map((u) => [u.code, String(u.areaMm2)]),
+  );
   if (baseDoc.items) {
     baseDoc.items = baseDoc.items.map((item) => {
       const prod = productMap.get(String(item.productId));
@@ -235,6 +240,8 @@ export async function getReplenishment(user, id) {
         productNameSnapshot: item.productNameSnapshot || prod?.name,
         productIsActive: prod?.isActive,
         productImageUrl: prod?.imageUrls?.[0] || null,
+        productWholeBaseUnits: prod?.wholeBaseUnits,
+        enteredUomAreaMm2: areaByCode.get(item.enteredUnit) ?? null,
         details,
       };
     });

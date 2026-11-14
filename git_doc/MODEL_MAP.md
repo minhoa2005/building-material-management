@@ -28,7 +28,7 @@ nguồn/requirement trùng; không tự xóa bản ghi hoặc dựng lại DB.
 | `warehouses` | Kho vật lý, kích thước; `layout3d` nháp gồm mặt bằng/khu vực/ô, `layout3dApplied` snapshot áp dụng và `layout3dAppliedAt`; [hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md). | [warehouse.model.js](../src/models/warehouse.model.js) |
 | `warehouse_locations` | Ô/vị trí thuộc một kho, loại ô và kích thước phục vụ kiểm sức chứa. | [warehouse-location.model.js](../src/models/warehouse-location.model.js) |
 | `categories` | Nhóm phân loại sản phẩm: 5 nhóm đã duyệt, mỗi sản phẩm thuộc một category. | [category.model.js](../src/models/category.model.js) |
-| `uoms` | Danh mục đơn vị. Mã bất biến và `isCarton` đánh dấu đơn vị thùng. `Product.baseUnit` tham chiếu mã qua service. | [uom.model.js](../src/models/uom.model.js) |
+| `uoms` | Danh mục đơn vị. Mã bất biến và `isCarton` đánh dấu đơn vị thùng. `areaMm2` (mm² của một đơn vị, bất biến, null = không phải đơn vị diện tích; M2 = 1000000) bật quy đổi tự sinh và làm tròn lên tới viên. `Product.baseUnit` tham chiếu mã qua service. | [uom.model.js](../src/models/uom.model.js) |
 | `conversions` | Hệ số Decimal128 có phiên bản theo sản phẩm, lô tùy chọn và UOM. Dòng chứng từ giữ hệ số tại thời điểm lập. | [conversion.model.js](../src/models/conversion.model.js) |
 | `products` | Hãng + SKU + màu; categoryId thuộc một nhóm; dài/rộng/cao từng viên (mm), đơn vị gốc lưu trực tiếp; imageUrls lưu tối đa 5 URL HTTPS theo thứ tự. | [product.model.js](../src/models/product.model.js) |
 | `customers` | Khách hàng gồm mã WMSD, tên và điện thoại; không lưu địa chỉ giao mặc định. | [customer.model.js](../src/models/customer.model.js) |

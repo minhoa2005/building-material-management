@@ -35,17 +35,16 @@ export function createDocumentItemSchema() {
     { discriminatorKey: "lineKind", strict: "throw", versionKey: false },
   );
   rules(schema, function () {
-    if (
-      this.enteredQty &&
-      this.baseUnitsPerUnit &&
-      this.qtyBase &&
-      !exact(this.enteredQty)
-        .mul(exact(this.baseUnitsPerUnit))
-        .eq(String(this.qtyBase))
-    ) {
+    if (!(this.enteredQty && this.baseUnitsPerUnit && this.qtyBase)) return;
+    const converted = exact(this.enteredQty).mul(exact(this.baseUnitsPerUnit));
+    const qtyBase = exact(this.qtyBase);
+    // Exact, or the area-unit rule of toBaseQuantity (shared/utils/conversions.js): whole pieces = ceil(round(x, 6)).
+    // Services decide when that rule applies; the schema only accepts its result.
+    const areaRounded = qtyBase.isInteger() && qtyBase.eq(converted.toDecimalPlaces(6).ceil());
+    if (!converted.eq(qtyBase) && !areaRounded) {
       this.invalidate(
         "qtyBase",
-        "Quantity must equal the historical conversion without rounding",
+        "Quantity must equal the historical conversion, or its area rounding up to whole base units",
       );
     }
   });
