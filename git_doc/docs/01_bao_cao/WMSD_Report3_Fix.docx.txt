@@ -9,7 +9,7 @@ I. Overall Requirements
 3. Conceptual Data Model and Data Rules
 4. Actors, UC Catalogue, Actor Associations and Permission Matrix
 5. Screens, Interfaces and Jobs
-II. Use Case Specifications: 130 active use cases (UC-01–UC-130)
+II. Use Case Specifications: 129 active and 1 retired use cases (UC-01–UC-130)
 III. Functional Requirements: SC-01–31 (28 active, 3 retired)
 IV. Non-Functional Requirements
 V. Requirement Appendix
@@ -27,14 +27,14 @@ Change Log
 25/10/2026 — Follow-up: update embedded Mermaid context and three ERD views, matching current process/data text. Only draw.io files excluded; no runtime change.
 
 Definition and Acronyms
-WMSD = Warehouse Management System Development; SRS = Software Requirements Specification; UC = Use Case; FE = Feature; BF = Business Flow; SO = copied external Sales Order; POD = photo Proof of Delivery; PAY-CFM = external payment-receipt confirmation; RR = Replenishment Request; PO = Purchase Order; GR = Goods Receipt; WIR = Warehouse Issue Request; OD = Outbound Delivery; PGI = Post Goods Issue; TR = Transfer Request; TD = Transfer Dispatch; MWTR = destination transfer receipt; ADJ = actual nonzero stocktake quantity adjustment; FD/GR-FD = failed-delivery case/actual return receipt; RECLASS = total-preserving quality/location reclassification at B1 closure.
+WMSD = Warehouse Management System Development; SRS = Software Requirements Specification; UC = Use Case; FE = Feature; BF = Business Flow; SO = copied external Sales Order; POD = photo Proof of Delivery; PAY-CFM = external payment-receipt confirmation; RR = Replenishment Request; PO = Purchase Order; GR = Goods Receipt; WIR = Warehouse Issue Request; OD = Outbound Delivery; PGI = Post Goods Issue; TR = Transfer Request; TD = Transfer Dispatch; MWTR = destination transfer receipt; ADJ = actual nonzero stocktake quantity adjustment; FD/GR-FD = failed-delivery case/actual return receipt; RECLASS = total-preserving quality/location reclassification at B1 closure; UOM = unit catalogue entry (code, name, carton flag, optional area mm²); Conversion = versioned base-unit factor per product and optional lot; Document ID = [document type]-[warehouse or department code]-[YYMMDD]-[sequence], stored as the document _id.
 Warehouse Staff is the canonical existing warehouse application role. Put-away/picking tasks may retain TO as a historical task abbreviation; no redundant inter-warehouse TO layer. Custody is physically held customer/supplier-owned stock. Transit is a stock-account state, not a quality grade. Available stock additionally meets verified identity, GOOD quality, eligible location, ownership, freeze and reservation conditions. N–X–T means Inbound–Outbound–Closing quantity report.
 
 I. Overall Requirements
 1. Context Diagram
-Exactly five roles, with exactly one role assigned to each user: Sales copies verified external SO, manages linked WIR/OD and customer-return demand and confirms full external payment receipt (UC-130); assigned Warehouse records physical operations and photo POD (UC-129); Accountant records approved PO, supplier agreements/ACK and external accounting references; Owner makes scoped decisions and clears differences; Administrator manages technical accounts/permissions without business-posting rights.
-MISA, Customer, Supplier and Carrier are staff-mediated business parties/systems, not direct API/login actors. Commercial selling/prices/invoices/refunds/payment execution/debt/accounting remain external. WMSD SO is a manually copied source record; POD/PAY-CFM track fulfilment without executing payment. No automatic channel/MISA integration. D2/D3 retain personal departmental entry and five roles despite survey-reported shared entry/delegation.
-API-01 SMTP sends post-commit warehouse notifications. API-02 controlled storage supports private evidence upload/retrieval; provider selection remains open, Cloudinary is not an assumed deployed dependency.
+Five default roles, plus custom roles that the Administrator builds only from the fixed permission catalogue, with exactly one role assigned to each user: Sales copies verified external SO, manages linked WIR/OD and customer-return demand and confirms full external payment receipt (UC-130); assigned Warehouse records physical operations and photo POD (UC-129); Accountant agrees PO terms with the supplier outside WMSD, then records, issues and reschedules the PO and requests/executes remainder closure, and records supplier-return agreements/ACK and external accounting references; Owner makes scoped decisions, clears differences and maintains products, UOM/conversions and the warehouse/location catalogue; Administrator manages accounts (lock with reason), custom roles and permissions without business-posting rights.
+MISA, Customer, Supplier and Carrier are staff-mediated business parties/systems, not direct API/login actors. Commercial pricing policy, invoices/refunds, payment execution, debt and accounting remain external; WMSD keeps the copied SO unit selling price only for permitted roles. WMSD SO is a manually copied source record; POD/PAY-CFM track fulfilment without executing payment. No automatic channel/MISA integration. D2/D3 retain personal departmental entry and five roles despite survey-reported shared entry/delegation.
+API-01 SMTP sends post-commit warehouse notifications. API-02 controlled storage supports private evidence upload/retrieval; the implementation stores authenticated Cloudinary assets and issues short-lived signed download URLs only after document/warehouse scope checks.
 
 Figure 1 — editable text context:
 ```mermaid
@@ -62,25 +62,25 @@ The following eight business flows define actors, source documents, alternate ou
 
 Trigger: a saved SO has uncovered quantity after checking compatible timely sources and existing requests; or availability remains below its warehouse minimum after committed stocktake closure/unlock; or Sales/Warehouse records another reasoned need.
 
-Sales Staff or Warehouse Staff may also open Create replenishment request directly from the menu for a reasoned other need, without a sales shortage, a low-stock alert or a stocktake result. An RR may consist entirely of MANUAL_OTHER lines. For each such line, select a product and enter a positive quantity and unit. The request requires a receiving warehouse, a need date and a reason at the request level. Line notes are optional on the backend API (the frontend form currently still prompts for a line reason). A duplicate manual-need warning still requires confirmation and an explanation of the independent need. Review current stock, existing requests and incoming supply to avoid duplicate purchasing. Availability at or above the minimum does not by itself block this path. Do not invent SO/stocktake references or source-specific evaluation snapshots for MANUAL_OTHER. Submit to a different Store Owner for approval; Accountant creates the PO only after approval. RR creation and approval do not change stock.
+Sales Staff or Warehouse Staff may also open Create replenishment request directly from the menu for a reasoned other need, without a sales shortage, a low-stock alert or a stocktake result. An RR may consist entirely of MANUAL_OTHER lines. For each such line, select a product and enter a positive quantity and unit. The request requires a receiving warehouse, a need date and a reason at the request level. Line reasonNote is optional (up to 2,000 characters). Whenever the server evaluation raises a warning (OPEN_REQUEST, INCOMING_PO or STOCK_SUFFICIENT), the creator must confirm the independent need and enter an explanation before Save draft/Submit. Review current stock, existing requests and incoming supply to avoid duplicate purchasing. Availability at or above the minimum does not by itself block this path. Do not invent SO/stocktake references or source-specific evaluation snapshots for MANUAL_OTHER. Submit to a different Store Owner for approval; Accountant creates the PO only after approval. RR creation and approval do not change stock.
 
 **Main flow:**
 
-1. Evaluate the saved SO line or closed-stocktake product/warehouse policy against available/reserved stock, feasible other-warehouse options, timely incoming supply and pending RRs. A SO source does not require WIR first; SO/WIR/OD releases represent one obligation. If saved SO quantity remains uncovered, ask whether to create RR for selected lines, including both no-supply and partial-supply cases. Pending/failed evaluation does not mean zero supply. Sales/Warehouse may instead open the form from the menu and enter other needs as MANUAL_OTHER with a request-level reason and optional line notes.
-2. Create request opens one prefilled form. Users may edit quantity, need date and reasons, select/remove source-backed lines and add products with their own source or other-need reason. One RR has one receiving warehouse and need date. Opening/cancelling/Later persists no RR. Before Save draft/Submit, recheck source/version/coverage; preserve entered fields and return changed values for review.
-3. Save draft records DRAFT; Submit records the actual sender and current version as SUBMITTED. A different Owner approves, rejects or returns with reasons. Actual source links and evaluation snapshots are saved for source-backed lines; MANUAL_OTHER retains its business reason without invented source evidence; approval alone has no stock effect and no PO is created before approval.
-4. Accountant creates PO and records supplier quantity/schedule confirmation. Changes beyond approval require renewed approval; do not overwrite executed documents.
-5. For every delivery, Warehouse records PO-based arrival, actual quantity, product, BOX/PIECE, lot, tone, calibre, cracks and packaging. A PO may have multiple receipts. Q8 permits Owner/Accountant co-inspection recorded in evidence; GR posting stays with Warehouse. Torn packaging alone is not a tile defect; opened cartons require actual piece counts.
+1. For each line the system evaluates, for the same receiving warehouse and product: available GOOD/STORE stock in pickable STORAGE (net of reservations, open tasks, defect holds and frozen locations), the warehouse minimum/target, open RR quantity (DRAFT, SUBMITTED or approved but not yet ordered), outstanding OPEN/PARTIAL PO quantity with its common expected date, and other-warehouse availability within the user's scope. The result is advisory: OPEN_REQUEST, INCOMING_PO and STOCK_SUFFICIENT warnings never block on their own. Line sources are MANUAL_OTHER (default), STOCK_THRESHOLD, SALES_SHORTAGE (saved SO or WIR line) or STOCKTAKE_LOW_STOCK (closed stocktake); SO/WIR and stocktake references are kept for traceability. A SO source does not require WIR first.
+2. Create request opens one form. One RR has one receiving warehouse and need date. Units come from the active UOM catalogue and the current product/lot conversion; a carton unit requires a verified lot. The creator decides the requested quantity. Opening/cancelling persists no RR. On Save draft/Submit the server re-evaluates every line inside the transaction; a warned line without independentNeedConfirmed and a reason is rejected while entered fields are preserved for review. A saved source-backed line cannot change its source document; remove it and add a new line instead.
+3. Save draft records DRAFT; Submit records the actual sender, current version and per-line warning snapshot as SUBMITTED. A different Owner approves each line in base units within the requested quantity, rejects or returns with reasons. The creator may withdraw a DRAFT/SUBMITTED RR; the Owner cancels an approved RR that has no PO. MANUAL_OTHER retains its business reason without invented source evidence; approval alone has no stock effect and no PO is created before approval.
+4. Accountant agrees quantity, price and delivery date with the supplier outside WMSD, then creates the PO from the APPROVED RR. One RR has at most one PO, for one supplier and the RR receiving warehouse; each RR line appears at most once and its base quantity cannot exceed the approved quantity. The PO is saved as DRAFT, edited only while DRAFT and issued as OPEN with one common expected date. While OPEN/PARTIAL only that expected date can be rescheduled with a reason; supplier confirmations and PO amendments are not recorded in WMSD.
+5. For every delivery, Warehouse records one goods arrival with its inspection: arrival time, deliverer and delivery reference; per PO line the actual verified lot (a PO line delivered in several lots is split here), the counted quantity in carton or piece units converted with the lot conversion, quality, packaging SEALED/OPENED/TORN/UNKNOWN and ownership decision ACCEPT/CUSTODY/REJECT. Allowance is checked in base units. A PO may have multiple arrivals. Q8 permits Owner/Accountant co-inspection recorded in evidence; GR posting stays with Warehouse. Torn packaging alone is not a tile defect; opened cartons require actual piece counts.
 6. Split quantities into accepted good, pending inspection/agreement, defective, or rejected/immediately returned. Record short/over/wrong-product/wrong-lot evidence.
-7. Receive only quantities accepted into store ownership at actual status/location. Custody/pending-supplier goods remain separate and unavailable. Owned defective goods enter BF-02; immediately rejected goods must not be fictitiously received then issued.
-8. Warehouse Staff creates or receives a put-away TO from GR, selects suggested storage and confirms actual placed quantity/location. Only accepted store-owned goods meeting quality/location checks become allocatable. Custody has separate records/holding positions; rejected goods are handed back, not processed as accepted GR/put-away stock.
-9. Update cumulative received/accepted/outstanding quantities. Accountant reconciles PO, receipt and supplier documents; follow up or obtain Owner cancellation of undelivered remainder. Warehouse completion need not await accounting.
+7. Confirming the inspection creates a draft purchase GR for ACCEPT quantities and a draft custody receipt for CUSTODY quantities; neither changes stock. Posting the GR increases STORE-owned stock once at the actual RECEIVING/quarantine location after checking PO allowance, quality, capacity and freeze; opened or loose goods require measured packaging portions. The custody receipt posts SUPPLIER-owned stock to a CUSTODY/QUARANTINE location and never increases PO received quantity; Accountant later decides ACCEPT (ownership transfer without a second physical receipt) or RETURN (custody release). Owned defective goods enter BF-02; immediately rejected goods must not be fictitiously received then issued.
+8. Warehouse Staff creates put-away tasks from the posted GR within its unplanned quantity and confirms actual placed quantity/location; partial confirmation keeps the remainder, which may be cancelled. Each put-away line moves whole cartons, optionally plus the entire loose remainder; cartons are never opened automatically and the split is validated when the task is created. Only accepted store-owned goods meeting quality/location checks become allocatable. Custody has separate records/holding positions; rejected goods are handed back, not processed as accepted GR/put-away stock.
+9. The PO becomes PARTIAL after its first posted GR and COMPLETED when fully received. To stop waiting for an unreceived remainder, Accountant requests closure, a different Owner approves it and Accountant executes it; the PO becomes CLOSED and the cancelled quantity is stored separately from the ordered quantity. A wrongly posted purchase GR is reversed directly by Warehouse with evidence when no dependent operation exists; a CLOSED PO stays CLOSED. Warehouse completion need not await accounting.
 
-Exceptions: shortage leaves remainder open; over-delivery stays separate pending acceptance; wrong tone is not substituted merely because SKU names match; zero accepted quantity still has a discrepancy case; return of previously received goods uses BF-08; replacements are new linked receipts.
+Exceptions: shortage leaves remainder open; over-delivery stays separate pending acceptance; a different manufacturer lot is not substituted merely because SKU names match; zero accepted quantity still has a discrepancy case; return of previously received goods uses BF-08; replacements are new linked receipts.
 
 Inventory effect: RR/approval/PO do not increase stock. Posted receipt increases the correct stock category. Put-away changes location/allocation readiness, not total a second time.
 
-Documents: RR, PO, arrival/inspection, GR, put-away task and discrepancy record. Reference: SAP WM I pp. 10–11, 18–22 and [MISA purchase receipt](https://helpeshop.misa.vn/kb/huong-dan-su-dung-tinh-nang-nhap-kho-tren-phan-mem-misa-eshop). Tone/calibre and permissions are WMSD-specific proposed controls.
+Documents: RR, PO, arrival/inspection, GR, put-away task and discrepancy record. Reference: SAP WM I pp. 10–11, 18–22 and [MISA purchase receipt](https://helpeshop.misa.vn/kb/huong-dan-su-dung-tinh-nang-nhap-kho-tren-phan-mem-misa-eshop). Lot identity (product + manufacturer lot with fixed pieces per carton) and permissions are WMSD-specific controls.
 
 #### 01.X — Alternate and exception flows
 
@@ -88,9 +88,9 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
-| BF-01-A1 | Demand already covered | Sales/Warehouse checks allocations, timely PO/TD supply; submit only the uncovered balance, no duplicate RR. | No stock change; return to steps 1–2. | UC-03, UC-04, UC-05, UC-117, UC-118, UC-119 |
+| BF-01-A1 | Demand already covered | Server warnings show open RR, incoming PO and sufficient stock with the related documents; the creator reduces the line or confirms the independent need with an explanation. | No stock change; return to steps 1–2. | UC-03, UC-04, UC-05, UC-117, UC-118, UC-119 |
 | BF-01-A2 | Owner rejects or requests revision | Retain reason; reject closes the proposal, revision creates a new version for review; Accountant cannot create an unapproved PO. | No stock change; step 3 or end. | UC-06 |
-| BF-01-A3 | Supplier partial fulfilment | Accountant records quantities/dates; changes beyond approval need renewed review; Owner authorizes short closure; preserve posted GRs. | Receive each delivery at step 5; no fictitious receipt for cancelled quantities. | UC-09, UC-10, UC-11, UC-12, UC-13, UC-37 |
+| BF-01-A3 | Supplier partial fulfilment | Each delivery is a new arrival/inspection; Accountant may reschedule the common expected date with a reason; the unreceived remainder closes through Accountant request → different Owner approval → Accountant execution; posted GRs are preserved. | Receive each delivery at step 5; no fictitious receipt for cancelled quantities. | UC-09, UC-10, UC-12, UC-13, UC-37 |
 | BF-01-E1 | Over or wrong delivery | Warehouse separates quantities, records discrepancy/custody if held; no automatic substitution or excess PO receipt. Accountant coordinates; Owner authorizes required changes before acceptance. | GR only eligible quantities; remainder pending or handed back. | UC-37 |
 | BF-01-E2 | Zero accepted quantity | Retain arrival/inspection, evidence and custody/handback outcome; PO outstanding and discrepancy remain open. | No zero-quantity GR; no increase in owned stock. | UC-16, UC-37 |
 | BF-01-A4 | Torn/open boxes; replacements | Count actual pieces; inspect quality independently. Supplier replacement is a new linked arrival/GR; never rewrite the original GR. | After GR, put-away at step 8; no second receipt on placement. | UC-37, UC-46 |
@@ -126,12 +126,12 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 Trigger: goods must move between locations within one physical warehouse. Warehouse Staff executes without Owner approval or an inter-warehouse Transfer Request (TR).
 
-1. Select product/lot/quality, source/destination, quantity and reason. Check both locations belong to the same warehouse, destination suitability, sufficient source quantity and absence of stocktake locks or conflicting tasks.
-2. Create a relocation task (TO-RELOCATE). Preserve reservations and demand links for already committed goods.
-3. Warehouse enters execution results and confirms TO-RELOCATE: actual moved quantity, locations, user and time. Physical movement/counting supports confirmation rather than a standalone software activity. Partial execution leaves the remainder open or traceably cancelled; do not confirm unperformed quantities.
-4. Atomically decrease source/increase destination by the same quantity, preserving warehouse, owner, lot/tone/calibre and quality. Move the reservation with the stock and retain audit history; warehouse total is unchanged.
+1. Select the warehouse and source location, then individual balances (separate product/lot/quality/owner rows, searchable by name, SKU or lot) or the whole location, enter a positive whole number of cartons/pieces, one destination location and a reason. Check both locations belong to the same warehouse and differ, the lot is verified, the source quantity is sufficient after other open tasks and no stocktake lock applies. The server simulates the packaging split: sealed cartons stay whole and loose/open portions move whole; cartons are never opened automatically.
+2. Create a relocation task (TO-RELOCATE) in OPEN state. Only its creator may edit or cancel it while OPEN. Preserve reservations and demand links for already committed goods.
+3. The creator confirms TO-RELOCATE once for the whole order: every line must be submitted and each actual quantity must equal the planned quantity. There is no partial confirmation; to change quantity or destination, edit the OPEN order first or cancel it. Physical movement/counting supports confirmation rather than a standalone software activity.
+4. Atomically decrease source/increase destination by the same quantity, preserving warehouse, owner, lot and quality and checking destination capacity. Move the reservation with the stock and retain audit history; warehouse total is unchanged.
 
-End: the task is fully confirmed or its unexecuted remainder is traceably cancelled. A physical move to another warehouse requires a separate BF-04 case.
+End: the task is CONFIRMED in full or CANCELLED before posting; a confirmed relocation is immutable. A physical move to another warehouse requires a separate BF-04 case.
 
 Documents: TO-RELOCATE and location confirmation history. This process uses UC-47–50, without TR, TD or MWTR.
 
@@ -146,15 +146,15 @@ Documents: TO-RELOCATE and location confirmation history. This process uses UC-4
 
 Trigger: stock must move between two physical warehouses for balancing or fulfilment. Warehouse requests, Owner approves, and source/destination confirm independently. Same-warehouse relocation uses BF-03 instead.
 
-1. Check compatible availability at configured warehouses. Suggest direct dispatch or transfer. Use simple warehouse priority and due date; do not claim distance optimization without distance data.
-2. Sales confirms customer fulfilment. Warehouse submits TR if physical transfer is needed. Direct dispatch from another warehouse uses BF-06 there, without a fictitious receipt at the main warehouse.
-3. Owner approves TR and reserves source stock with concurrency checks. Do not add another inter-warehouse order or Owner approval of TO; picking/put-away TOs are internal tasks with execution confirmation where applicable.
-4. Source Warehouse creates a draft TD from approved TR lines before picking, without stock effect. With staging, create/receive and confirm the picking TO using actual quantity/lot/location; without staging, record actual picking on TD without another order layer. At actual handover, confirm HO and post TD: source decreases/transit increases. TD is the transfer goods issue; do not post an additional GI for the same quantity.
-5. Independent destination staff inspect quantity, lot/tone/calibre and condition and create MWTR. Verified receipt reduces transit/increases destination by actual quality. Preserve demand allocation throughout source → transit → destination; newly received allocated stock is not free for other requests.
-6. Destination records shortage/overage/damage/wrong-lot evidence and verified quantities; unresolved amounts remain open for Owner decision. For valid receipts, create/receive and confirm put-away TO by actual location/quality without a second receipt increase. A matched release does not automatically complete the entire TR.
-7. Confirm approved additional receipt, new return-to-source documents, quarantine or evidenced loss. Continue MWTR for dispatched quantities still in transit; create another TD for approved TR demand not yet dispatched. Close TR only when unexecuted demand is fulfilled/validly cancelled, all dispatched quantity is accounted for, transit/variances are resolved and related TOs are confirmed or traceably cancelled for unexecuted portions.
+1. Check compatible availability at configured warehouses (Sales sees only the warehouse catalogue, not operational balances). Direct dispatch from another warehouse uses BF-06 there, without a fictitious receipt at the main warehouse. Warehouse Staff assigned to the source warehouse creates a TR with source and destination (the destination may be outside the creator's assignments), products, units, quantities and reason; it is saved as PENDING_APPROVAL.
+2. A different Owner approves, rejects or returns the TR (REVISE → REVISION_REQUIRED). The creator edits and resubmits a returned TR, preserving line IDs. Approval does not reserve stock. Do not add another inter-warehouse order or Owner approval of TO; picking/put-away TOs are internal tasks with execution confirmation.
+3. Source Warehouse creates a draft Transfer Dispatch (TD) from approved TR lines, choosing GOOD/STORE balances with verified lots and a source STAGING location. The draft reserves the source quantity at once and cannot exceed the approved remainder; one TR may have several TDs. Cancelling a draft TD releases its reservation, open requirement/task and TR allowance without stock posting.
+4. From the TD, Warehouse generates exactly one internal requirement and one PICK TO; the reservation moves to the task. The creator confirms the PICK together with the handover (recipient name, optional vehicle plate): one atomic posting moves source → staging → transit and sets the TD to POSTED. TD is the transfer goods issue; do not post an additional GI for the same quantity.
+5. A destination user different from the dispatcher receives against the posted TD, in one or several receipts (GoodsReceipt TRANSFER): GOOD quantities into a RECEIVING location, DAMAGED quantities into QUARANTINE with a damage reason. Each receipt reduces transit by the actual quantity; unreceived quantity stays in transit and receipts cannot exceed it. Preserve demand allocation throughout source → transit → destination.
+6. For GOOD receipt lines Warehouse generates one PUTAWAY requirement/TO and confirms receiving → STORAGE without a second receipt increase; an all-DAMAGED receipt needs no TO. Unreceived quantity is reported as a transfer difference record at the destination; a different Owner approves it against a later posted receipt of the same TD, or rejects/returns it, keeping it open. A matched release does not automatically complete the entire TR.
+7. Close the TR only when every approved quantity is dispatched, transit is zero, every required GOOD put-away is complete and no difference record is open. When the remaining approved quantity will not be dispatched, a partial close stops further TDs after everything already dispatched has been received and put away. Posted quantities are never edited.
 
-Example: A dispatches 100 boxes; B receives 98: 95 good + 3 broken. B receives 95 good and 3 quarantined; 2 remain transit/unresolved. Do not leave all 100 in transit or treat the 3 physically present damaged boxes as lost. Owner-approved loss of 2 deducts that transit quantity through one resolution.
+Example: A dispatches 100 boxes; B receives 98: 95 good + 3 broken. B receives 95 good and 3 quarantined; 2 remain transit/unresolved. Do not leave all 100 in transit or treat the 3 physically present damaged boxes as lost. The 2 boxes stay in transit under an open difference record until a later posted receipt is approved; the transfer function does not write them off automatically.
 
 **Inventory effect:** store-managed total including transit is preserved by ordinary transfer; only valid loss/destruction/external issue reduces it.
 
@@ -165,9 +165,9 @@ Documents: TR, TD, handover, MWTR, discrepancy case. SAP WM II distinguishes STO
 | ID | Condition | Responsible actor and action | Stock outcome / re-entry | UC |
 |---|---|---|---|---|
 | BF-04-A1 | Direct issue from another warehouse | Sales agrees with customer; split OD by actual warehouse and run BF-06 there, no fictitious receipt at the requested warehouse. | No transit without physical transfer. | UC-64, UC-117, UC-118, UC-119 |
-| BF-04-E1 | Rejected TR or unavailable resources | Owner records reason; Warehouse rechecks stock/freeze before dispatch. Wait or revise unexecuted quantity with authorization; absent an independent receiver, wait for staffing rather than using the dispatch user. | No posting without prerequisites; changed scope requires review. | UC-54, UC-55, UC-120 |
+| BF-04-E1 | Rejected TR or unavailable resources | Owner records reason; a returned TR is edited and resubmitted by its creator; Warehouse rechecks stock/freeze when drafting the TD. Wait or revise unexecuted quantity with authorization; absent an independent receiver, wait for staffing rather than using the dispatch user. | No posting without prerequisites; changed scope requires review. | UC-54, UC-55, UC-120 |
 | BF-04-E2 | Partial or damaged receipt | Destination posts actual quantities by quality; shortages remain transit and later MWTRs may receive them. Damaged stock physically received is quarantine, not also lost transit. | TD100, receive95GOOD+3DAMAGED → transit2. | UC-120 |
-| BF-04-E3 | Excess, wrong lot or evidenced loss | Record separate evidence; no negative transit or silent lot substitution. Owner resolves; Warehouse executes linked additional receipt, return or loss documents for authorized quantities. | Close only with accountable quantities; preserve original TD/MWTR. | UC-56, UC-55, UC-120 |
+| BF-04-E3 | Excess, wrong lot or unexplained shortage | Over-receipt beyond transit is rejected; no silent lot substitution. Destination reports the unreceived quantity; a different Owner approves it against a later posted receipt or keeps it open. No automatic loss write-off. | Close only with accountable quantities; preserve original TD/MWTR. | UC-56, UC-55, UC-120 |
 
 2.5 BF-05 — Stocktake, reconciliation and adjustment
 
@@ -177,7 +177,7 @@ Documents: TR, TD, handover, MWTR, discrepancy case. SAP WM II distinguishes STO
 2. Resolve unfinished receipt/issue/transfer tasks in scope. Separate staged, quarantined, custody and transit stock; never count both ends of a transfer.
 3. Activate an **immutable cutoff snapshot** and export/print a **count sheet** by location/lot/status. Allow newly found items. Prefer blind count sheets without book quantities.
 4. Selected MVP: lock quantity/location/status-changing transactions in the counted scope until the session is resolved. Other areas continue. This replaces the earlier Report 3 post-cutoff reconciliation model. Do not implement partial locking without reconciliation.
-5. Warehouse enters physical BOX/PIECE counts, condition, user and time. Blank means uncounted, not zero. Each Enter Recount creates a retained count attempt rather than overwriting a previous one.
+5. Warehouse enters physical carton/piece counts, condition, user and time. Blank means uncounted, not zero. Each Enter Recount creates a retained count attempt rather than overwriting a previous one.
 6. Compare complete/valid counts with snapshot across quantity, location and quality. Variance with insufficient evidence uses Start Recount → Enter Recount → compare again, repeatable; sufficient evidence proceeds to explanation/resolution in step 7 without mandatory recount. Present damaged goods are not automatically missing quantity. Under B1 immediately record defect hold/evidence without ordinary balance/quality/location posting in the frozen scope.
 7. No quantity/location/quality variance and no unresolved defect hold → close/unlock without ADJ=0. Otherwise Warehouse proposes a versioned plan: actual shortage/overage delta, total-preserving RECLASS and quarantine location with execution evidence. Book 50 good / count 48 good + 2 broken means total delta=0 and RECLASS2, never shortage -2 or ADJ=0. Unsubstantiated portions retain freeze/recount.
 8. Owner approves/returns the plan through UC-104. Warehouse records actual quarantine/placement confirmation against that plan under controlled session closure; Owner performs UC-105 to post nonzero delta if any and RECLASS/location movements in the same authorized, idempotent ledger batch. Retain freeze until every line, defect hold and quarantine task is resolved; failure rolls back the entire batch without partial unlocking. Quality-only resolution still needs a decision/RECLASS but no ADJ=0. Owner cannot approve a self-originated plan.
@@ -202,12 +202,12 @@ A denotes an alternate path and E an exception; step numbers refer to the main f
 
 Trigger: Sales Staff receives a verified external order from MISA, paper or another source. Sales records the order in WMSD before requesting warehouse issue. Store pickup and site delivery follow the same process.
 
-1. Sales creates a Sales Order (SO) with customer, need date, destination, products, quantities, units and lot/tone/calibre requirements. Keep original order/line references and source evidence. Verify phone/Zalo instructions and record a source order before entry; do not duplicate the same external order. Entry is manual, without live MISA synchronization.
-2. Sales creates a Warehouse Issue Request (WIR) from the saved SO, linked to that order and its individual lines. One SO may have several WIRs; each WIR may have several outbound releases (OD), with one warehouse per release.
+1. Sales creates a Sales Order (SO) with customer, need date, delivery address, source system (MISA/PAPER), reference number/date, an uploaded source image, and lines with source line key, product, optional lot, unit, quantity, unit selling price and currency. Keep original order/line references and source evidence. Verify phone/Zalo instructions and record a source order before entry; do not duplicate the same external order. Entry is manual, without live MISA synchronization.
+2. The SO creator creates a Warehouse Issue Request (WIR) from the saved SO with warehouse, need date and base quantities, linked to that order and its individual lines; WIR changes no stock. One SO may have several WIRs; each WIR may have several outbound releases (OD), with one warehouse per release.
 3. Check net SO/WIR/OD outstanding fulfilment, commitments/reservations and compatible availability per line. Net = valid PGI less posted GR-FD; absent goods do not reopen demand. Shortages use other supply/BF-04 or BF-01, without negative stock or duplicate demand.
-4. Sales agrees full delivery, partial delivery or waiting with the customer. Record customer consent before substituting lot/tone/calibre.
-5. Sales creates or continues a warehouse-specific OD for agreed WIR demand. Warehouse creates or reuses draft GI-S for the planned handover before picking, recording planned quantities rather than requiring actual handover. Reserve compatible stock and create/receive the picking TO; FIFO applies within compatible supply. Draft GI does not reduce stock.
-6. Warehouse enters actual picked quantity/lot/location, cartons/loose pieces and confirms the picking TO into staging. Physical picking/counting supplies the execution evidence; TO confirmation only changes location, not inventory total.
+4. Sales agrees full delivery, partial delivery or waiting with the customer. Record customer consent before substituting a lot.
+5. Sales creates a warehouse-specific OD for agreed WIR demand with planned date, recipient name/phone and delivery address, choosing eligible GOOD/STORE balances with verified lots in pickable STORAGE. The OD is RELEASED and reserves the quantity atomically after version, freeze and availability checks. Warehouse then creates the picking task from the OD reservations: the system creates a draft GI-S and a PICK TO to a STAGING location and moves the reservation to the task; FIFO applies within compatible supply. Draft GI does not reduce stock.
+6. The assigned Warehouse user enters actual picked quantities (cartons/loose pieces) and confirms the picking TO, possibly in several partial confirmations, moving storage → STAGING with the reservations; the task becomes PARTIAL then CONFIRMED and the GI-S becomes PICKED, not POSTED. Physical picking/counting supplies the execution evidence; TO confirmation only changes location, not inventory total.
 7. On shortage or damage, Warehouse records evidence, blocks suspect stock and informs Sales. Defects use BF-02; unexplained book/physical differences use BF-05. Never overwrite the balance directly.
 8. Warehouse updates draft GI-S to confirmed actual picking; retries reuse document/operation key rather than creating another issue. Distinct valid handovers may have separate GI-S within the OD's remaining fulfilment quantity. At actual handover record recipient, time, HO and PGI the actual quantity once. Before handover GI remains DRAFT and stock stays staged or is traceably unpicked. Carrier handover does not prove customer receipt.
 9. Warehouse records actual customer POD with recipient, time, quantity per posted GI-S in the same SO/WIR/OD and required photo. Enforce shared POD/GR-FD/open-FD cap below; no POD for FD quantity. Missing photo/awaiting receipt updates only POD without repeated picking/PGI. Partial delivery → PARTIALLY_DELIVERED; full active quantity > 0 with photos → DELIVERED.
@@ -226,7 +226,7 @@ Quantity and status controls:
 After PGI, failed-delivery goods returning use BF-07-FD (A1): posted GI-S + failure evidence → inspection → GR-FD. No fictitious POD or ordinary D6 return eligibility is required. Posted GR-FD reopens exactly its net-fulfilment quantity on the original SO/WIR/OD; Sales chooses waiting/redelivery/cancellation of that reopened portion. Status edits cannot restore stock or rewrite issues. Mistaken POD/PAY-CFM is traceably voided with reason/history and recalculated progress. Ordinary post-delivery CUSTOMER_RETURN uses D6, preserves original POD/PAY-CFM and does not automatically reopen sales demand.
 **Net fulfilment:** cumulative valid PGI less posted GR-FD for the same source lines. SO/WIR/OD execution caps use net fulfilment and remaining commitments, not gross physical dispatch without deducting accepted failed-delivery receipts. Redelivery uses reopened demand on the same SO/WIR; reuse an eligible OD or transfer only the reopened commitment to a linked/versioned replacement OD, without duplicate demand. Preserve all gross PGI/GR-FD ledger events. Cancel only unissued demand or received-back GR-FD quantity not yet redelivered; unresolved off-site goods cannot be cancelled to bypass controls.
 
-Inventory effect: SO/WIR creation changes no stock; reservation reduces availability; picking changes location; PGI deducts once. POD and PAY-CFM only update progress, without stock postings or payment execution.
+Inventory effect: SO/WIR creation changes no stock; the reservation made at OD release reduces availability; picking changes location; PGI deducts once. POD and PAY-CFM only update progress, without stock postings or payment execution.
 
 Documents: SO, WIR, OD, picking TO, GI-S/HO, photo-evidenced POD and PAY-CFM. SAP WM III p. 2, pp. 12–17 and pp. 21–22 inform picking and PGI, not WMSD payment scope. [MISA sales issue](https://helpsme.misa.vn/2022/kb/xuat_kho_ban_hang/) informs requests, warehouse documents and responsibilities.
 
@@ -253,7 +253,7 @@ D6: sealed boxes/unused loose pieces are assessed individually. Installed/custom
 
 1. Sales creates CR from POD/GI lines or Accountant-verified external history, recording reason/quantity without fictitious historical GI/POD.
 2. Per source line, posted ordinary receipts plus open claims cannot exceed eligible actual customer-received quantity. Verified externally delivered quantity substitutes for internal POD only for historical sources. Unknown origin waits for verification.
-3. Warehouse records customer custody pending inspection, without owned/available increase; enters actual lot/tone/calibre, quantity, packaging, use/installation, damage-cause and deadline evidence.
+3. Warehouse records customer custody pending inspection, without owned/available increase; enters actual lot, quantity, packaging, use/installation, damage-cause and deadline evidence.
 4. **C2 — Ordinary case:** verified source/quantity, sealed or unused loose tiles, good condition, verified return terms/deadline and no dispute/deviation. After inspection Sales Staff accepts/rejects each quantity and may be the CR creator. This is explicitly selected ordinary commercial acceptance authority, not self-granted Owner approval or automatic acceptance of sealed goods.
 5. **Exception:** supplier defects, disputes or agreement deviations that are not D6 exclusions go to Owner after inspection/evidence, with a different user from the exception proposer. Unknown eligibility stays PENDING; approval cannot replace verification. No Owner approval for ordinary cases and no repeated approval after GR.
 6. Warehouse posts GR-CR only for the current inspected/eligible version accepted by Sales or exception-approved by Owner: good goods use confirmed put-away TO before availability; accepted defects enter quarantine/BF-02/08. Rejected goods remain custody until actual handback. Commercial acceptance itself posts no stock. GR-CR posting/rejection/closure releases the exact CR claim so resolved quantity is not held twice.
@@ -327,8 +327,8 @@ Accept each branch by its BF-xx-A/E ID above and EX-01–05. These are implement
 
 3. Conceptual Data Model
 3.1 Entity Relationship Diagram
-Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
-The three Mermaid ERDs below show logical views for A1, B1 and C2/BF-08, including key PK/FK/attributes and selected relationships. Logical header/line relationships may pass through shared document/document_line. MongoDB may embed bounded lifecycle records rather than using one collection per concept.
+Each user, including inactive accounts, must have exactly one role: one of the five default roles OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN or an Administrator-created custom role; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions.
+The three Mermaid ERDs below show logical views for A1, B1 and C2/BF-08, including key PK/FK/attributes and selected relationships. These are logical views. The implementation uses 58 MongoDB collections: one collection per business document, embedded items[] with stable _id and source links, no generic document/document_line persistence, and five GoodsReceipt kinds sharing goods_receipts.
 
 A1 — GI/POD, GR-FD and net demand
 
@@ -524,21 +524,21 @@ erDiagram
 3.2 Entity Descriptions
 | Concept | Identity, lifecycle and attributes | UC traceability |
 |---|---|---|
-| Warehouse / Location | Configured physical warehouse and coded receiving/storage/staging/quarantine/custody position; active/scope/freeze; no nonempty deactivation. | UC-38, UC-39, UC-40, UC-41, UC-42, UC-49–56, UC-120 |
-| Product / Conversion Version / Warehouse Policy | Unique SKU, whole-piece granularity and positive versioned BOX/PIECE/m² factors. Product/warehouse policy stores minimumQty, targetQty, version and updatedBy; target >= minimum >=0 and defaults to minimum. Transaction lines retain conversion and policy/evaluation facts. | UC-17, UC-18, UC-19, UC-20, UC-21, UC-22, UC-23, UC-37, UC-68, UC-96, UC-97 |
-| Lot | Product/manufacturer lot/tone/actual calibre; VERIFIED/UNKNOWN; transacted identity immutable. | UC-24, UC-25, UC-26, UC-27, UC-37, UC-43–44 |
-| Party / User / Assignment | Business party distinct from login; personal accounts with exactly one of five roles, operation and warehouse scope. | UC-28, UC-29, UC-30, UC-31, UC-32, UC-33, UC-34, UC-35, UC-36, UC-106, UC-107, UC-108, UC-109, UC-110, UC-111, UC-112 |
-| Document / Line / Link | Versioned document/kind/status, homogeneous quantity and real source links/ceilings; posted history immutable. | UC-03, UC-04, UC-05, UC-06, UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13, UC-14, UC-15, UC-16, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-72, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-90, UC-91, UC-92, UC-93, UC-94, UC-95, UC-96, UC-97, UC-98, UC-99, UC-100, UC-101, UC-102, UC-103, UC-104, UC-105 |
+| Warehouse / Location | Owner-maintained warehouse catalogue (immutable code, name, address, dimensions including clear height, status) and coded receiving/storage/staging/quarantine/custody locations with usable length/width; active/scope/freeze; no nonempty deactivation. Optional 2D/3D layout draft and applied snapshot (zones, slots, pallets) never posts stock. | UC-38, UC-39, UC-40, UC-41, UC-42, UC-49–56, UC-120 |
+| Product / UOM / Conversion / Warehouse Policy | Product identity is manufacturer + manufacturer SKU + colour within one category, with tile length/width/height (mm), base unit (UOM code), whole-piece flag and up to 5 image URLs. UOM holds code, name, carton flag and optional area mm²; Conversion holds positive versioned factors per product and optional lot with validFrom, and m² factors derive from tile length × width. Product/warehouse policy stores minimumQty, targetQty, version and updatedBy; target >= minimum >=0 and defaults to minimum. Transaction lines retain conversion and policy/evaluation facts. | UC-17, UC-18, UC-19, UC-20, UC-21, UC-22, UC-23, UC-37, UC-68, UC-96, UC-97 |
+| Lot | Product + manufacturer lot; VERIFIED/UNKNOWN; fixed pieces per carton and measured outer carton dimensions; no tone/calibre attribute; transacted identity immutable. | UC-24, UC-25, UC-26, UC-27, UC-37, UC-43–44 |
+| Party / User / Assignment | Customer (WMSD code, name, phone) and supplier (contact, tax code, ACTIVE/SUSPENDED/TERMINATED) are business parties distinct from login; personal accounts with exactly one default or custom role, multiple assigned warehouses and lockReason while locked. | UC-28, UC-29, UC-30, UC-31, UC-32, UC-33, UC-34, UC-35, UC-36, UC-106, UC-107, UC-108, UC-109, UC-110, UC-111, UC-112 |
+| Document / Line / Link | Versioned document/kind/status, homogeneous quantity and real source links/ceilings; posted history immutable. New documents use _id = documentNo ([type]-[warehouse/department]-[YYMMDD]-[sequence]) assigned in the same transaction; historical ObjectId IDs stay readable. | UC-03, UC-04, UC-05, UC-06, UC-07, UC-08, UC-09, UC-10, UC-12, UC-13, UC-14, UC-15, UC-16, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-72, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-90, UC-91, UC-92, UC-93, UC-94, UC-95, UC-96, UC-97, UC-98, UC-99, UC-100, UC-101, UC-102, UC-103, UC-104, UC-105 |
 | Approval / Line | Typed decision/version/actor/line/quantity. Sales STANDARD_ACCEPTANCE of own ordinary inspected CR allowed; Owner exceptions and other approvals require distinct requester. No SR approval. | UC-06, UC-54, UC-77, UC-82, UC-83, UC-104 |
-| Replenishment / PO | RR header stores receiving warehouse, need date, textual reason, real creator, creationKey and sender/time when submitted. Each line stores its own reason category, SO-line/version or committed stocktake/policy version, suggested/requested quantity, coverage snapshots and adjustment explanation. Other-need products have their own reason, not an unrelated SO-line link. Saved drafts retain document/line identities; Owner decision precedes Accountant PO, partial receiving and outstanding closure. | UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13, UC-14, UC-15, UC-16, UC-117, UC-118, UC-119 |
-| Arrival / Inspection / GR | Actual delivery distinct from accepted ownership/custody; packaging/quality split; receipt once then put-away. | UC-14–16, UC-37, UC-45–46, UC-84, UC-85, UC-86, UC-87 |
+| Replenishment / PO | RR header stores receiving warehouse, need date, request-level reason, real creator, creationKey and sender/time when submitted. Each line stores product, unit/conversion snapshot, requested and approved base quantity, optional reasonNote, source type (MANUAL_OTHER, STOCK_THRESHOLD, SALES_SHORTAGE, STOCKTAKE_LOW_STOCK) with SO/WIR or stocktake reference, and the warning snapshot plus independent-need explanation captured at submission. One approved RR has at most one PO for one supplier and one warehouse; the PO stores purchase price snapshots, one common expected date, DRAFT/OPEN/PARTIAL/COMPLETED/CLOSED status and cancelled quantity separately from ordered quantity. | UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08, UC-09, UC-10, UC-12, UC-13, UC-14, UC-15, UC-16, UC-117, UC-118, UC-119 |
+| Arrival / Inspection / GR | Actual delivery distinct from accepted ownership/custody; inspection lines carry actual lot, quality, packaging and ACCEPT/CUSTODY/REJECT; confirmation creates a draft purchase GR and custody receipt; receipt once then put-away. GoodsReceipt has five kinds in one collection: PURCHASE, CUSTOMER_RETURN, FAILED_DELIVERY, TRANSFER and OTHER (OTHER needs Owner approval before Warehouse posting). | UC-14–16, UC-37, UC-45–46, UC-84, UC-85, UC-86, UC-87 |
 | Warehouse Task | Put-away/pick/relocate/quarantine/unpick; actual same-warehouse locations/quantities/reservations; no extra approval. | UC-45–50, UC-65–68 |
-| TR / TD / MWTR | Approved request, actual source dispatch and independent destination receipt; quality/transit/discrepancy. | UC-51–56, UC-120 |
-| SO / SO Line / Cancellation | One copied order/line per verified external source; versioned identity and append-only unissued cancellations. No pricing or actual payment. | UC-57, UC-58, UC-59, UC-60, UC-61, UC-124, UC-125, UC-126, UC-127, UC-128, UC-129, UC-130 |
+| TR / TD / MWTR | Approved request; draft TD reserving source; PICK TO confirmed with handover posts source→transit; independent destination receipts (GOOD to receiving, DAMAGED to quarantine); PUTAWAY TO; transfer difference records reviewed by a different Owner. | UC-51–56, UC-120 |
+| SO / SO Line / Cancellation | One copied order/line per verified external source (MISA/PAPER) with private source image; lines keep unit selling price, currency and conversion snapshots visible only to permitted roles; versioned identity and append-only unissued cancellations. No payment execution. | UC-57, UC-58, UC-59, UC-60, UC-61, UC-124, UC-125, UC-126, UC-127, UC-128, UC-129, UC-130 |
 | WIR / OD / GI | WIR and each line reference saved SO/line; OD references WIR; posted GI-S line references OD line. Preserve cumulative commitments and source ceilings. | UC-62, UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-72, UC-124, UC-125, UC-126, UC-127, UC-128 |
 | POD / PAY-CFM / Business Operation | Actual receipt per valid GI-S line with photo; Sales full external receipt bound to current delivered SO version. Immutable CONFIRMED/VOIDED history and atomic progress/audit/outbox; no stock posting. | UC-129–130 |
 | Stock Account / Balance | Physical location XOR TD-line transit; unique account/lot/quality/owner; nonnegative quantity/version. | UC-43–44, UC-55, UC-71, UC-72, UC-86, UC-87, UC-91, UC-120 |
-| Reservation / Supply Allocation | Active/consumed/released stock holds differ from assigned planned supply. Canonical sales demand is SO line; its WIR/OD releases do not multiply demand. Pending RR coverage transfers once to PO/incoming and then stock/reservation. Shared source/planning guards protect simultaneous evaluations and saves from purchasing the same shortage twice. | UC-03, UC-04, UC-05, UC-54, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-117, UC-118, UC-119 |
+| Reservation / Supply Allocation | Active/consumed/released stock holds differ from assigned planned supply. Canonical sales demand is SO line; its WIR/OD releases do not multiply demand. RR uses advisory warnings instead of a shared coverage guard (removed 11/11/2026); duplicate purchasing is controlled by the creator's confirmed explanation and the independent Owner review. OD release creates the sales reservation; a draft TD creates the transfer reservation. | UC-03, UC-04, UC-05, UC-54, UC-59, UC-60, UC-61, UC-62, UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-117, UC-118, UC-119 |
 | Posting Batch / Movement | Unique operation/idempotency keys/hash, source/actor/time/before-after; append-only linked correction. | UC-37, UC-46, UC-50, UC-55, UC-68, UC-71, UC-72, UC-78, UC-86, UC-87, UC-91, UC-105, UC-114, UC-115, UC-116, UC-117, UC-118, UC-119, UC-120 |
 | Defect / Disposition | Immediate balance-neutral hold under B1; outside freeze scoped Owner scrap/regrade/release. Supplier return uses BF-08 without Owner; no double deduction. | UC-73, UC-74, UC-75, UC-76, UC-77, UC-78, UC-90–91, UC-104–105 |
 | Customer Return / Assessment | Customer-received POD or verified historical delivery; latest D6 version/inspection, Sales ordinary or Owner eligible exception; GR-CR never reopens demand. | UC-79, UC-80, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87, UC-122, UC-123 |
@@ -553,12 +553,12 @@ erDiagram
 | Notification | Per-recipient type/title/message, source document/version, warehouse where required, eventKey, evaluatedAt, readAt and unique derived dedupKey. Source/message records the detection context; opening reevaluates current coverage. Recipients have independent read state and must retain current source/warehouse access. | UC-03, UC-04, UC-05, UC-59, UC-60, UC-61, UC-98, UC-99, UC-105, UC-117, UC-118, UC-119 |
 
 3.3 Data Business Rules
-BR-01–33 in V.1 are the single current rule catalogue. Historical DR/GB codes are aliases, not competing statements.
+BR-01–34 in V.1 are the single current rule catalogue. Historical DR/GB codes are aliases, not competing statements.
 | Historical rule | Current rule | Correct UC scope |
 |---|---|---|
 | DR-01 | BR-01 | UC-19, UC-20, UC-21, UC-22, UC-23, UC-26, UC-27, UC-37, UC-43, UC-67, UC-68, UC-84, UC-85 |
 | DR-02 | BR-02,BR-30 | UC-19, UC-20, UC-21, UC-22, UC-23, UC-37, UC-68, UC-96, UC-97 |
-| DR-03 | BR-08 | UC-09, UC-10, UC-11, UC-12, UC-13, UC-16, UC-37 |
+| DR-03 | BR-08 | UC-09, UC-10, UC-12, UC-13, UC-16, UC-37 |
 | DR-04 | BR-07,BR-18 | UC-37, UC-46, UC-75, UC-76, UC-77, UC-78, UC-86, UC-87 |
 | DR-05 | BR-24 | UC-40, UC-41, UC-42, UC-46, UC-50 |
 | DR-06 | BR-09 | UC-49–50 |
@@ -573,16 +573,16 @@ BR-01–33 in V.1 are the single current rule catalogue. Historical DR/GB codes 
 
 4. User Requirements
 4.1 Actors
-Exactly five application roles operate within their assigned permissions and record/warehouse scope. Each user, including inactive accounts, must have exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions. Warehouse Staff is the canonical name for the existing Inventory Staff role, not an additional role. Each department records and confirms its own work using personal accounts (D2). Purchasing and delivery personnel may be external business participants but receive no new application role (D3). Survey-reported delegation does not automatically confer software approval rights.
+Five default application roles operate within their assigned permissions and record/warehouse scope. The Administrator may add custom roles by selecting existing permissions; a custom role is evaluated by its permissions, never by its name. Each user, including inactive accounts, must have exactly one role: one of the five default roles OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN or an Administrator-created custom role; many users may share a role. Permissions come only from the current role, with no combined roles or session role switching. Assigned warehouses remain independent and may include multiple warehouses. Role changes affect subsequent requests and never rewrite historical actors or decisions. Warehouse Staff is the canonical name for the existing Inventory Staff role, not an additional role. Each department records and confirms its own work using personal accounts (D2). Purchasing and delivery personnel may be external business participants but receive no new application role (D3). Survey-reported delegation does not automatically confer software approval rights.
 #
 	Actor
 	Description
 	1
 	Store Owner
-	Approve replenishment, TR, scoped on-site dispositions, eligible CR exceptions and B1 resolution; plan stocktake and perform Clear Difference. Distinct requester for Owner decisions. No BF-08 dispatch/variance/closure approval.
+	Approve replenishment, TR, transfer differences, PO remainder closure, OTHER receipts, scoped on-site dispositions, eligible CR exceptions and B1 resolution; plan stocktake and perform Clear Difference; maintain products, UOM/conversions and the warehouse/location catalogue. Distinct requester for Owner decisions. No BF-08 dispatch/variance/closure approval.
 	2
 	Accountant
-	Create PO after approval; verify supplier agreements, reconcile ACK/variances and close supplier-return warehouse work via UC-92, ; record independent external Invoice/Credit Note references. No stock posting or operational demand origination.
+	Agree terms with the supplier, then create, edit (DRAFT only), issue and reschedule PO after RR approval; request and execute PO remainder closure; decide supplier custody; verify supplier-return agreements, reconcile ACK/variances and close supplier-return warehouse work via UC-92, ; record independent external Invoice/Credit Note references. No stock posting or operational demand origination.
 	3
 	Warehouse Staff
 	Receive, inspect, put away, pick, post actual dispatch/receipt, relocate, count and isolate within assigned warehouses; confirm customer receipt with mandatory photo POD (UC-129). Source and destination transfer confirmations are independent.
@@ -591,25 +591,25 @@ Exactly five application roles operate within their assigned permissions and rec
 	Copy verified external SO, manage linked WIR/OD/net reopened demand; accept/reject ordinary CR after Warehouse inspection, including own CR (C2), but no exception approval. Confirm full external payment after current DELIVERED (UC-130).
 	5
 	Administrator
-	Accounts, operation permissions and technical configuration; no implied business approval or stock-posting rights.
+	Accounts (lock/unlock with reason), custom roles from the fixed permission catalogue, role and warehouse assignment and technical configuration; no implied business approval or stock-posting rights.
 
 4.2 Use Cases (UC)
-The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. Identifiers run continuously from UC-01 to UC-130.
+The use-case inventory contains 130 identifiers: 129 ACTIVE and UC-11 RETIRED by the user decision of 11/11/2026. UC-121 remains separate. Identifiers run continuously from UC-01 to UC-130.
 | ID | Name | Feature | State | Description |
 |---|---|---|---|---|
 | UC-01 | View replenishment request list | FE-01 | ACTIVE | Sales and Warehouse Staff view their own/assigned replenishment needs; Owner and Accountant view within responsibility and warehouse scope. |
 | UC-02 | View replenishment request details | FE-01 | ACTIVE | Show requested and available quantities, source demand, pending supply allocations and versioned approval history within authorized scope. |
-| UC-03 | Create Replenishment Draft | FE-01 | ACTIVE | Open the common form and save DRAFT with warehouse/date and typed source lines. MANUAL_OTHER requires a request-level reason; line-level reasonNote is optional on the backend API without invented source refs. |
-| UC-04 | Update Replenishment Draft or Returned Request | FE-01 | ACTIVE | Select saved DRAFT or returned version and edit permitted lines with current source/coverage checks. Preserve IDs and entered fields on conflict. |
-| UC-05 | Submit Replenishment Request | FE-01 | ACTIVE | Submit a new or saved valid request atomically as SUBMITTED with actual sender/time and source snapshots. Different Owner reviews in UC-06. Opening or Later persists nothing. |
+| UC-03 | Create Replenishment Draft | FE-01 | ACTIVE | Open the common form and save DRAFT with warehouse/date and typed source lines (MANUAL_OTHER, STOCK_THRESHOLD, SALES_SHORTAGE, STOCKTAKE_LOW_STOCK). The request-level reason is mandatory and line reasonNote is optional, without invented source refs. Lines with server warnings require a confirmed independent-need explanation. |
+| UC-04 | Update Replenishment Draft or Returned Request | FE-01 | ACTIVE | Select saved DRAFT or returned version and edit permitted lines with the current warning evaluation. A source-backed line cannot change its source document. Preserve IDs and entered fields on conflict. |
+| UC-05 | Submit Replenishment Request | FE-01 | ACTIVE | Submit a new or saved valid request atomically as SUBMITTED with actual sender/time, source references and per-line warning snapshots; unconfirmed warnings are rejected. Different Owner reviews in UC-06. Opening or Later persists nothing. |
 | UC-06 | Approve or reject replenishment request | FE-01 | ACTIVE | Store Owner approves, rejects or returns the exact request version for revision. Requester and approver must be different userIds; no PO before approval. |
 | UC-07 | View purchase order list | FE-01 | ACTIVE | Filter orders by supplier, date, status, and outstanding quantity. |
-| UC-08 | View purchase order details | FE-01 | ACTIVE | Display order lines, supplier confirmations, and partial receipt history. Display ordered, confirmed, received, accepted and outstanding quantities with source receipts. This is read-only, not a separate outstanding-quantity UC. |
-| UC-09 | Create Purchase Order | FE-01 | ACTIVE | Select approved RR lines with remaining allowance and supplier/warehouse. Save PO without inventory or payment posting. |
-| UC-10 | Update Unreceived PO Remainder | FE-01 | ACTIVE | Select current PO version and unreceived quantities. Changes beyond approved authority require renewed approval and never overwrite receipts. |
-| UC-11 | Record Supplier Order Confirmation | FE-01 | ACTIVE | Record supplier confirmed quantities/dates/evidence against saved PO lines. Preserve earlier confirmations and actual receipts. |
-| UC-12 | Cancel Unreceived PO Remainder | FE-01 | ACTIVE | Cancel only eligible unreceived remainder with reason and appropriate authority after resolving linked commitments. Preserve received history. |
-| UC-13 | Close Purchase Order | FE-01 | ACTIVE | Reconcile ordered/received/outstanding quantities and external references. Short closure needs appropriate authorization. Keep unresolved quantities open. |
+| UC-08 | View purchase order details | FE-01 | ACTIVE | Display order lines with notes, the common expected date and partial receipt history (inspections, purchase GRs, custody receipts, put-away). Display ordered, received, cancelled and outstanding quantities with source documents. This is read-only, not a separate outstanding-quantity UC. |
+| UC-09 | Create Purchase Order | FE-01 | ACTIVE | After agreeing terms with the supplier outside WMSD, select an APPROVED RR without PO, one supplier and the RR warehouse; each RR line appears once with base quantity within the approved quantity, purchase price and optional note. Save DRAFT, edit only while DRAFT, then issue as OPEN with a common expected date. No inventory or payment posting. |
+| UC-10 | Reschedule Open PO Expected Date | FE-01 | ACTIVE | For an OPEN or PARTIAL PO, change the common expected date of the unreceived remainder with a mandatory reason and the current version; audit keeps before/after values. Content and quantities cannot be edited after issue and posted receipts are never overwritten. |
+| UC-11 | Record Supplier Order Confirmation | FE-01 | RETIRED | Retired 11/11/2026: Accountant agrees with the supplier before creating the PO; supplier confirmation and PO amendment commands were removed. |
+| UC-12 | Cancel Unreceived PO Remainder | FE-01 | ACTIVE | Accountant requests closure of the unreceived remainder with reason/evidence after checking posted receipts and open draft receiving work; a different Owner approves the exact request; Accountant executes it. Cancelled quantity is stored separately from ordered quantity and received history is preserved. |
+| UC-13 | Close Purchase Order | FE-01 | ACTIVE | The PO becomes COMPLETED when fully received, or CLOSED when the approved remainder closure is executed. Reversing a GR recalculates OPEN/PARTIAL except for a CLOSED PO, which stays CLOSED. Keep unresolved quantities open. |
 | UC-14 | View goods receipt list | FE-01 | ACTIVE | Search deliveries associated with purchase orders and their processing status. |
 | UC-15 | View goods receipt details | FE-01 | ACTIVE | Display delivered, accepted, pending inspection, defective, and rejected quantities. |
 | UC-16 | Create goods receipt from purchase order | FE-01 | ACTIVE | Warehouse Staff records each delivery against PO lines, including actual quantities, discrepancies and evidence; creating the draft does not post inventory. |
@@ -618,11 +618,11 @@ The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. I
 | UC-19 | Create Product | FE-02 | ACTIVE | Validate unique SKU and verified nominal specifications and save product identity. Do not create stock or assume valid conversion factors. |
 | UC-20 | Update Product Information | FE-02 | ACTIVE | Update permitted product name/material/nominal attributes on existing version. Preserve transacted identity and snapshots and exclude activation/conversion/policy fields. |
 | UC-21 | Change Product Status | FE-02 | ACTIVE | Activate or deactivate an existing product under eligibility checks. Preserve history and prevent inactive product from supplying new allocations. |
-| UC-22 | Define Packaging Conversion Version | FE-02 | ACTIVE | Save positive verified BOX/PIECE/m2 conversion version. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional and calibre is not a conversion factor. |
+| UC-22 | Define Packaging Conversion Version | FE-02 | ACTIVE | Save a positive Conversion version per product and optional lot for an active UOM with a later validFrom; a verified lot's carton factor equals its pieces per carton and m² factors derive from tile length × width. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional; area quantities round up to whole pieces. |
 | UC-23 | Configure Warehouse Stock Policy | FE-02 | ACTIVE | Select product/warehouse and save versioned minimumQty/targetQty with target >= minimum >= 0 and default target=minimum and actual updatedBy. No automatic RR/PO or inventory movement. |
-| UC-24 | View lot list | FE-02 | ACTIVE | Search lots by product, lot number, tone, and actual calibre. |
-| UC-25 | View lot details | FE-02 | ACTIVE | Display production date, tone, actual calibre, and related transaction history. |
-| UC-26 | Create Product Lot | FE-02 | ACTIVE | Create unique product/manufacturer lot/tone/calibre identity with evidence or explicit UNKNOWN. UNKNOWN is not allocatable. |
+| UC-24 | View lot list | FE-02 | ACTIVE | Search lots by product, manufacturer lot number and identification status. |
+| UC-25 | View lot details | FE-02 | ACTIVE | Display manufacturer lot, pieces per carton, outer carton dimensions, identification status and related transaction history. |
+| UC-26 | Create Product Lot | FE-02 | ACTIVE | Create unique product/manufacturer lot identity with fixed pieces per carton and measured carton dimensions, VERIFIED with evidence or explicit UNKNOWN. UNKNOWN is not allocatable; verifying the lot synchronizes its carton conversion. |
 | UC-27 | Update Product Lot Information | FE-02 | ACTIVE | Update permitted existing lot metadata with evidence/history. Never overwrite transacted identity to conceal shortages or change quantity/quality. |
 | UC-28 | View supplier list | FE-02 | ACTIVE | Search suppliers by code, name, and cooperation status. |
 | UC-29 | View supplier details | FE-02 | ACTIVE | Display contact information and related purchases, receipts, and returns. |
@@ -634,41 +634,41 @@ The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. I
 | UC-35 | Create Customer Delivery Reference | FE-02 | ACTIVE | Create unique customer contact/delivery/external identifier reference without CRM/commercial account data. |
 | UC-36 | Update Customer Delivery Reference | FE-02 | ACTIVE | Update existing delivery/contact/external matching fields with source history. Do not delete referenced records or change pricing/debt/stock. |
 | UC-37 | Inspect and Post Goods Receipt | FE-03 | ACTIVE | Warehouse Staff inspects each delivered quantity and posts only accepted ownership by quality/location once. Owner/Accountant may assist physically and be recorded in evidence; they do not inherit GR posting rights. Custody is separate; torn packaging alone is not damage. |
-| UC-38 | View warehouse and location list | FE-04 | ACTIVE | Search by warehouse, area, aisle, rack, and location code. |
+| UC-38 | View warehouse and location list | FE-04 | ACTIVE | List store warehouses with location counts, then one warehouse's locations filtered by code/name/area, type and status (no aisle/rack fields). |
 | UC-39 | View storage location details | FE-04 | ACTIVE | Display capacity, status, and lot-level quantities at a location. |
-| UC-40 | Create Storage Location | FE-04 | ACTIVE | Create unique location code/kind within existing warehouse. Only STORAGE can be allocatable. |
-| UC-41 | Update Storage Location Information | FE-04 | ACTIVE | Update permitted existing location metadata and eligibility without moving stock or bypassing freeze. |
+| UC-40 | Create Storage Location | FE-04 | ACTIVE | Owner creates a warehouse (immutable code) or a unique location code/type with usable length/width within an existing warehouse; height comes from the warehouse clear height. Only STORAGE can be pickable. |
+| UC-41 | Update Storage Location Information | FE-04 | ACTIVE | Update permitted warehouse or location metadata, dimensions and eligibility with the current version; capacity is rechecked and code/size cannot change while tasks are open. Warehouse 2D/3D layout drafts (zones, slots, pallets) are saved and applied separately and never move stock or bypass freeze. |
 | UC-42 | Change Storage Location Status | FE-04 | ACTIVE | Change active status after checking actual stock/open references. A nonempty location cannot deactivate. Preserve historical references. |
 | UC-43 | View stock by lot, location, and quality status | FE-04 | ACTIVE | Show stock by warehouse/location/lot/quality/ownership, with reserved, available and in-transit quantities separated and restricted by data scope. |
 | UC-44 | View inventory balance details | FE-04 | ACTIVE | Display physical, usable, reserved, available, custody and transit balances with source movements; do not double count staging/reservations. |
-| UC-45 | Create Put-away Task | FE-04 | ACTIVE | Create or accept a suggested internal put-away task from a posted receipt; no second receiving or approval document. |
+| UC-45 | Create Put-away Task | FE-04 | ACTIVE | Create an internal put-away task from a posted receipt within its unplanned quantity; each line moves whole cartons, optionally plus the entire loose remainder, validated at creation. No second receiving or approval document. |
 | UC-46 | Confirm Put-away Task | FE-04 | ACTIVE | Warehouse Staff confirms actual placement, preserving total owned quantity and quality. Make accepted stock allocatable only in a suitable location. |
 | UC-47 | View location movement list | FE-04 | ACTIVE | Search same-warehouse movements by lot and status. |
 | UC-48 | View location movement details | FE-04 | ACTIVE | Display source, destination, and actual transferred quantities. |
-| UC-49 | Create location movement | FE-04 | ACTIVE | Warehouse Staff selects compatible source/destination locations in the same warehouse and checks quantity, reservations and stocktake locks; no Owner approval or inter-warehouse TR. |
-| UC-50 | Confirm actual location movement | FE-04 | ACTIVE | Confirm actual relocation atomically: source minus q, destination plus q, same lot/quality/owner and total. Carry reservations and block locked locations. |
+| UC-49 | Create location movement | FE-04 | ACTIVE | Warehouse Staff selects source balances (or the whole source location) and one destination in the same warehouse, enters whole cartons/pieces and checks quantity after open tasks, packaging split, reservations and stocktake locks; the creator may edit or cancel the OPEN order. No Owner approval or inter-warehouse TR. |
+| UC-50 | Confirm actual location movement | FE-04 | ACTIVE | The creator confirms the whole order once with actual quantities equal to plan: source minus q, destination plus q, same lot/quality/owner and total. Carry reservations, check capacity and block locked locations; no partial confirmation. |
 | UC-51 | View warehouse transfer list | FE-05 | ACTIVE | View transfers between the configured warehouses; D4 confirms inter-warehouse movements. Sales sees progress related to its issue requests. |
 | UC-52 | View warehouse transfer details | FE-05 | ACTIVE | Show requested/approved, dispatched, received by quality, in-transit and unresolved quantities with separate dispatch and receipt documents. |
-| UC-53 | Create Transfer Request | FE-05 | ACTIVE | Warehouse Staff requests physical movement between distinct warehouses after considering direct customer dispatch or other compatible sources. Same-warehouse relocation uses UC-49/50. |
-| UC-54 | Review Transfer Request | FE-05 | ACTIVE | Store Owner approves/rejects/returns the TR version; requester differs from approver. Approved TR authorizes execution and controlled source reservation; no extra inter-warehouse TO approval. |
-| UC-55 | Record Transfer Dispatch | FE-05 | ACTIVE | Warehouse drafts TD from approved TR before picking; confirms actual picking TO when staging applies, then posts TD/HO only at handover. No second GI or Owner task approval. |
-| UC-56 | Review Transfer Difference Resolution | FE-05 | ACTIVE | Store Owner reviews inter-warehouse discrepancies from UC-55/120. Resolve through linked documents without editing posted quantities; keep unmatched amounts open. |
+| UC-53 | Create Transfer Request | FE-05 | ACTIVE | Warehouse Staff requests physical movement between distinct warehouses after considering direct customer dispatch or other compatible sources; the TR is saved PENDING_APPROVAL and a returned TR is edited and resubmitted by its creator. Same-warehouse relocation uses UC-49/50. |
+| UC-54 | Review Transfer Request | FE-05 | ACTIVE | Store Owner approves/rejects/returns the TR version; requester differs from approver. Approved TR authorizes dispatch; source stock is reserved when the draft dispatch is created, not at approval. No extra inter-warehouse TO approval. |
+| UC-55 | Record Transfer Dispatch | FE-05 | ACTIVE | Warehouse drafts TD from approved TR lines, reserving the chosen source balances, generates one PICK TO and confirms the PICK with recipient/vehicle handover in one posting source→staging→transit that sets the TD to POSTED. A draft TD may be cancelled, releasing its reservation. No second GI or Owner task approval. |
+| UC-56 | Review Transfer Difference Resolution | FE-05 | ACTIVE | Destination Warehouse reports unreceived dispatch quantity as a transfer difference record; a different Owner approves it against a later posted receipt of the same dispatch, or rejects/returns it. Posted quantities are never edited, unmatched amounts stay open and no loss is written off automatically. |
 | UC-57 | View Copied Sales Order List | FE-06 | ACTIVE | Read scoped SO source, customer, issued/delivered/outstanding quantities and DELIVERED/COMPLETED progress. |
-| UC-58 | View Copied Sales Order Details | FE-06 | ACTIVE | Read copied source lines, WIR/OD/GI/POD/PAY-CFM history and cancellations; no pricing, invoice or payment calculation. |
+| UC-58 | View Copied Sales Order Details | FE-06 | ACTIVE | Read copied source lines, WIR/OD/GI/POD/PAY-CFM history and cancellations; prices only for permitted roles; no invoice or payment calculation. |
 | UC-59 | Create Copied Sales Order | FE-06 | ACTIVE | Sales manually copies a verified external order with source line identity and evidence. Reject duplicate source orders/lines; entry changes no stock. |
 | UC-60 | Update Eligible Sales Order Remainder | FE-06 | ACTIVE | Update only unexecuted or GR-FD-received-back not-redelivered quantities after resolving current dependent tasks/commitments. Preserve verified source/gross ledger and recompute version. |
 | UC-61 | Cancel Eligible Sales Order Remainder | FE-06 | ACTIVE | Cancel only eligible remainder after resolving OD/WIR tasks/holds and append cancellation history. Off-site unresolved stock cannot cancel. Recompute SO/version and invalidate stale PAY-CFM authority. |
 | UC-62 | View Outbound Delivery List | FE-06 | ACTIVE | Read-only outbound delivery search and listing. |
 | UC-63 | View Outbound Delivery Details | FE-06 | ACTIVE | Read-only outbound delivery details. |
-| UC-64 | Create Outbound Delivery | FE-06 | ACTIVE | Sales plans OD within net WIR allowance; redelivery reuses original OD or traceably transfers reopened commitment to replacement OD without new demand. |
+| UC-64 | Create Outbound Delivery | FE-06 | ACTIVE | Sales creates a RELEASED OD for one warehouse within net WIR allowance with planned date, recipient and address, reserving selected eligible balances atomically; redelivery reuses original OD or traceably transfers reopened commitment to replacement OD without new demand. |
 | UC-65 | View Picking Task List | FE-06 | ACTIVE | Read authorized warehouse picking tasks associated with outbound delivery releases. |
 | UC-66 | View Picking Task Details | FE-06 | ACTIVE | Read required lot/location, assigned quantities, reservations, actual picks and shortage/defect evidence. |
-| UC-67 | Create Picking Task | FE-06 | ACTIVE | Warehouse creates picking TO against existing draft GI-S/OD, with compatible stock and FIFO within compatibility; task is execution, not Owner approval. |
-| UC-68 | Confirm Picking Task | FE-06 | ACTIVE | Warehouse Staff confirms actual BOX/PIECE quantities into staging and preserves reservations and total stock. Shortage/damage routes to BF-02/05 or replanning; no silent stock correction. |
+| UC-67 | Create Picking Task | FE-06 | ACTIVE | Warehouse creates a picking task from OD reservations; the system creates the draft GI-S and a PICK TO to staging and moves the reservation to the task, with FIFO within compatibility; task is execution, not Owner approval. |
+| UC-68 | Confirm Picking Task | FE-06 | ACTIVE | Warehouse Staff confirms actual carton/piece quantities into staging, possibly partially, and preserves reservations and total stock; the GI-S becomes PICKED, not POSTED. Shortage/damage routes to BF-02/05 or replanning; no silent stock correction. |
 | UC-69 | View goods issue list | FE-06 | ACTIVE | Search by source request, issue date, and status. |
 | UC-70 | View goods issue details | FE-06 | ACTIVE | Display lot, location, prepared quantity, and actual issued quantity by line. |
 | UC-71 | Post Actual Goods Issue | FE-06 | ACTIVE | Require draft GI-S/OD and confirmed picking/actual handover evidence. Recheck net allowance/version/reservation/freeze and commit PGI ledger/balance/progress once. Print committed snapshot. PGI is not POD or completion. |
-| UC-72 | Prepare Goods Issue Draft | FE-06 | ACTIVE | Create/update GI-S DRAFT from current OD before picking. Save without stock deduction and route picking to UC-67/68. Do not post on draft save. |
+| UC-72 | Prepare Goods Issue Draft | FE-06 | ACTIVE | The GI-S DRAFT is created together with the picking task (UC-67) from current OD reservations and becomes PICKED after picking confirmation (UC-68). Save without stock deduction. Do not post on draft save. |
 | UC-73 | View defective goods list | FE-07 | ACTIVE | Filter defect cases by source, product/lot/location, ownership, evidence, unresolved quantity and disposition. |
 | UC-74 | View defective goods details | FE-07 | ACTIVE | Show affected quantity, ownership/custody, inspector, evidence, approval and related outcomes; no duplicate deduction across cases. |
 | UC-75 | Record Defect Inspection and Immediate Hold | FE-07 | ACTIVE | Record affected lot/location/owner/quantity and evidence and immediately block allocation. Under B1 freeze save balance-neutral hold without quality/location/quantity changes. |
@@ -693,7 +693,7 @@ The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. I
 | UC-94 | View stocktake details | FE-08 | ACTIVE | View included lots/locations, system snapshot, counted quantities, and variances. |
 | UC-95 | Create Stocktake Session | FE-08 | ACTIVE | Store Owner plans monthly or targeted stocktakes, scope and counters. Planning does not take a snapshot or post stock; no new automatic scheduling job. |
 | UC-96 | Activate Stocktake Session | FE-08 | ACTIVE | Require Owner-planned scope and resolved open tasks/no overlap. Atomically freeze and save immutable snapshot. Export snapshot sheet through UC-121. Do not post stock. |
-| UC-97 | Record Stocktake Count Attempt | FE-08 | ACTIVE | Require activated locked scope. Append actual count/recount with BOX/PIECE/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting. |
+| UC-97 | Record Stocktake Count Attempt | FE-08 | ACTIVE | Require activated locked scope. Append actual count/recount with carton/piece/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting. |
 | UC-98 | Reconcile Stocktake Results | FE-08 | ACTIVE | Compare selected count attempts to immutable snapshot by total/quality/location and substantiate causes. Direct substantiated plan or recount via count UC. Do not unlock in reconciliation. |
 | UC-99 | Close Stocktake Without Variance | FE-08 | ACTIVE | Require zero quantity/quality/location variance and no unresolved hold/task in locked scope. Atomically close eligible scope/unlock without ADJ0 or inventory posting. Quality-only mismatch must use resolution approval/closure. |
 | UC-100 | View inventory adjustment request list | FE-08 | ACTIVE | Search by stocktake, lot, location, variance reason, and approval status. |
@@ -707,8 +707,8 @@ The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. I
 | UC-108 | View account details | FE-09 | ACTIVE | Display the selected account's information, assigned role, and status. |
 | UC-109 | Create Staff Account | FE-09 | ACTIVE | Create unique staff identity/protected credentials with exactly one existing role including inactive accounts. Role/operation/warehouse assignment remains UC-112. |
 | UC-110 | Update Staff Account Information | FE-09 | ACTIVE | Update permitted account profile/credentials with audit and historical actor references. Exclude status and access assignment UC-112. |
-| UC-111 | Change Staff Account Status | FE-09 | ACTIVE | Activate/deactivate existing account with audit. Inactive cannot sign in and historical actors remain unchanged. This grants no business posting rights. |
-| UC-112 | Assign roles and operation permissions | FE-09 | ACTIVE | Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change. |
+| UC-111 | Change Staff Account Status | FE-09 | ACTIVE | Lock (with a mandatory reason stored as lockReason) or unlock an existing account with audit; self-lock is rejected and ordinary profile updates cannot change status. Locked accounts cannot sign in and historical actors remain unchanged. This grants no business posting rights. |
+| UC-112 | Assign roles and operation permissions | FE-09 | ACTIVE | Maintain the five default roles and Administrator-created custom roles by selecting existing permissions from the fixed catalogue (no new permission codes), and assign exactly one role and multiple warehouses per user. Custom roles are evaluated by permissions, not by name. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Owner approvals still require a different requester, including after a role change. |
 | UC-113 | View Operational Reports | FE-09 | ACTIVE | Run authorized physical/available/reserved/custody/transit, outstanding receipt/issue, customer-received quantities, DELIVERED pending receipt, COMPLETED/cancelled orders, defect, transfer, return and stocktake reports; no revenue/profit reports. |
 | UC-114 | View stock movement log | FE-09 | ACTIVE | Filter movements by product, lot, location, transaction type, and time. |
 | UC-115 | View stock movement details | FE-09 | ACTIVE | Display source document, before/after quantity, operator, time, and reason. |
@@ -730,8 +730,8 @@ The use-case inventory contains 130 ACTIVE use cases. UC-121 remains separate. I
 
 4.3 Use Case Actor Associations
 Derived from current operation rights; view never implies confirmation.
-Store Owner: UC-01, UC-02, UC-06, UC-07, UC-08, UC-14, UC-15, UC-17, UC-18, UC-19, UC-24, UC-25, UC-26, UC-28, UC-29, UC-33, UC-34, UC-38, UC-39, UC-40, UC-43, UC-44, UC-47, UC-48, UC-51, UC-52, UC-54, UC-56, UC-57, UC-58, UC-62, UC-63, UC-65, UC-66, UC-69, UC-70, UC-73, UC-74, UC-77, UC-79, UC-80, UC-88, UC-89, UC-92, UC-93, UC-94, UC-95, UC-100, UC-101, UC-104, UC-105, UC-106, UC-113, UC-114, UC-115, UC-116, UC-117, UC-121, UC-124, UC-129, UC-130, UC-20, UC-21, UC-22, UC-23, UC-27, UC-32, UC-41, UC-42, UC-83, UC-125.
-Accountant: UC-01, UC-02, UC-07, UC-08, UC-09, UC-14, UC-15, UC-17, UC-18, UC-28, UC-29, UC-30, UC-33, UC-34, UC-43, UC-44, UC-51, UC-52, UC-57, UC-58, UC-62, UC-63, UC-65, UC-66, UC-69, UC-70, UC-79, UC-80, UC-88, UC-89, UC-92, UC-106, UC-113, UC-114, UC-115, UC-116, UC-122, UC-124, UC-129, UC-130, UC-10, UC-11, UC-12, UC-13, UC-31, , UC-123, UC-125.
+Store Owner: UC-01, UC-02, UC-06, UC-07, UC-08, UC-14, UC-15, UC-17, UC-18, UC-19, UC-24, UC-25, UC-26, UC-28, UC-29, UC-33, UC-34, UC-38, UC-39, UC-40, UC-43, UC-44, UC-47, UC-48, UC-51, UC-52, UC-54, UC-56, UC-57, UC-58, UC-62, UC-63, UC-65, UC-66, UC-69, UC-70, UC-73, UC-74, UC-77, UC-79, UC-80, UC-88, UC-89, UC-92, UC-93, UC-94, UC-95, UC-100, UC-101, UC-104, UC-105, UC-106, UC-113, UC-114, UC-115, UC-116, UC-117, UC-121, UC-124, UC-129, UC-130, UC-20, UC-21, UC-22, UC-23, UC-27, UC-32, UC-41, UC-42, UC-83, UC-125, UC-12.
+Accountant: UC-01, UC-02, UC-07, UC-08, UC-09, UC-14, UC-15, UC-17, UC-18, UC-28, UC-29, UC-30, UC-33, UC-34, UC-43, UC-44, UC-51, UC-52, UC-57, UC-58, UC-62, UC-63, UC-65, UC-66, UC-69, UC-70, UC-79, UC-80, UC-88, UC-89, UC-92, UC-106, UC-113, UC-114, UC-115, UC-116, UC-122, UC-124, UC-129, UC-130, UC-10, UC-12, UC-13, UC-31, , UC-123, UC-125.
 Warehouse Staff: UC-01, UC-02, UC-03, UC-07, UC-08, UC-14, UC-15, UC-16, UC-17, UC-18, UC-24, UC-25, UC-26, UC-33, UC-34, UC-37, UC-38, UC-39, UC-43, UC-44, UC-45, UC-46, UC-47, UC-48, UC-49, UC-50, UC-51, UC-52, UC-53, UC-55, UC-57, UC-58, UC-62, UC-63, UC-65, UC-66, UC-67, UC-68, UC-69, UC-70, UC-71, UC-73, UC-74, UC-75, UC-78, UC-79, UC-80, UC-84, UC-86, UC-88, UC-89, UC-90, UC-91, UC-93, UC-94, UC-96, UC-98, UC-100, UC-101, UC-102, UC-106, UC-113, UC-114, UC-115, UC-116, UC-117, UC-120, UC-121, UC-124, UC-129, UC-130, UC-04, UC-05, UC-72, UC-76, UC-85, UC-87, UC-97, UC-99, UC-103, UC-118, UC-125.
 Sales Staff: UC-01, UC-02, UC-03, UC-17, UC-18, UC-33, UC-34, UC-35, UC-43, UC-44, UC-51, UC-52, UC-57, UC-58, UC-59, UC-60, UC-62, UC-63, UC-64, UC-65, UC-66, UC-69, UC-70, UC-79, UC-80, UC-81, UC-82, UC-106, UC-117, UC-124, UC-129, UC-130, UC-04, UC-05, UC-36, UC-61, UC-119, UC-125, UC-126, UC-127, UC-128.
 Administrator: UC-106, UC-107, UC-108, UC-109, UC-112, UC-110, UC-111.
@@ -749,9 +749,9 @@ Operation/sub-operation rights require assigned warehouse, document state/versio
 | UC-07 | View purchase order list | View | View | Receiving scope only | — | — |
 | UC-08 | View purchase order details | View | View | Receiving scope only | — | — |
 | UC-09 | Create Purchase Order | — | Perform within existing scope | — | — | — |
-| UC-10 | Update Unreceived PO Remainder | — | Perform within existing scope | — | — | — |
-| UC-11 | Record Supplier Order Confirmation | — | Perform within existing scope | — | — | — |
-| UC-12 | Cancel Unreceived PO Remainder | — | Perform within existing scope | — | — | — |
+| UC-10 | Reschedule Open PO Expected Date | — | Perform within existing scope | — | — | — |
+| UC-11 | Record Supplier Order Confirmation [RETIRED] | — | — | — | — | — |
+| UC-12 | Cancel Unreceived PO Remainder | Approve closure request; not requester | Request and execute within existing scope | — | — | — |
 | UC-13 | Close Purchase Order | — | Perform within existing scope | — | — | — |
 | UC-14 | View goods receipt list | View | View | View | — | — |
 | UC-15 | View goods receipt details | View | View | View | — | — |
@@ -851,7 +851,7 @@ Operation/sub-operation rights require assigned warehouse, document state/versio
 | UC-109 | Create Staff Account | — | — | — | — | Perform within existing scope |
 | UC-110 | Update Staff Account Information | — | — | — | — | Perform within existing scope |
 | UC-111 | Change Staff Account Status | — | — | — | — | Perform within existing scope |
-| UC-112 | Assign roles and operation permissions | — | — | — | — | Maintain existing role / operation / warehouse scope |
+| UC-112 | Assign roles and operation permissions | — | — | — | — | Maintain default/custom roles, permissions and warehouse scope |
 | UC-113 | View Operational Reports | All report groups | Movement; purchase/receipt | Movement; stock; transfer; stocktake | — | — |
 | UC-114 | View stock movement log | View | Purchase / supplier scope | View | — | — |
 | UC-115 | View stock movement details | View | Purchase / supplier scope | View | — | — |
@@ -882,9 +882,9 @@ Sign in→scoped worklists. RR→PO→inspection/GR→put-away; copied SO→link
 | SC-04 | Product Lots | ACTIVE | UC-24, UC-25, UC-26, UC-27 |
 | SC-05 | Suppliers | ACTIVE | UC-28, UC-29, UC-30, UC-31, UC-32 |
 | SC-06 | Replenishment Requests | ACTIVE | UC-01, UC-02, UC-03, UC-04, UC-05, UC-06 |
-| SC-07 | Purchase Orders | ACTIVE | UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13 |
+| SC-07 | Purchase Orders | ACTIVE | UC-07, UC-08, UC-09, UC-10, UC-12, UC-13 |
 | SC-08 | Goods Receipt, Inspection and Put-away | ACTIVE | UC-14, UC-15, UC-16, UC-37, UC-45, UC-46 |
-| SC-09 | Warehouse Locations | ACTIVE | UC-38, UC-39, UC-40, UC-41, UC-42 |
+| SC-09 | Warehouses, Locations and Layout | ACTIVE | UC-38, UC-39, UC-40, UC-41, UC-42 |
 | SC-10 | Inventory and Shortage Options | ACTIVE | UC-43, UC-44, UC-117, UC-118, UC-119 |
 | SC-11 | Defective Goods and Disposition | ACTIVE | UC-73, UC-74, UC-75, UC-76, UC-77, UC-78 |
 | SC-12 | Location Movements | ACTIVE | UC-47, UC-48, UC-49, UC-50 |
@@ -912,7 +912,7 @@ Sign in→scoped worklists. RR→PO→inspection/GR→put-away; copied SO→link
 | ID | Interface | Contract |
 |---|---|---|
 | API-01 | Server-side SMTP | Queued warehouse status→delivery/failure after commit; no invoice/refund workflow email. |
-| API-02 | Controlled evidence storage | Authorized upload/fetch→private asset reference/hash/result; document/warehouse scope and server-side credentials. Provider not fixed. Missing mandatory evidence blocks confirmation. |
+| API-02 | Controlled evidence storage | Authorized upload/fetch→private asset reference/hash/result; document/warehouse scope and server-side credentials. Implemented with authenticated Cloudinary assets and short-lived signed download URLs. Missing mandatory evidence blocks confirmation. |
 No MISA, Zalo, payment or tax-authority API in selected scope.
 
 5.3 Background Job Inventory
@@ -961,43 +961,43 @@ UC-03: Create Replenishment Draft
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Warehouse Staff — Perform; Sales Staff — Perform.
 Screen(s): SC-06; the same prefilled form is opened from warnings, the menu and saved SO details.
-Description: Open the common form and save DRAFT with warehouse/date and typed source lines. MANUAL_OTHER requires a request-level reason; line-level reasonNote is optional on the backend API without invented source refs.
+Description: Open the common form and save DRAFT with warehouse/date and typed source lines (MANUAL_OTHER, STOCK_THRESHOLD, SALES_SHORTAGE, STOCKTAKE_LOW_STOCK). The request-level reason is mandatory and line reasonNote is optional, without invented source refs. Lines with server warnings require a confirmed independent-need explanation.
 Trigger: Authorized actor starts create replenishment draft on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Open the common form and save DRAFT with warehouse/date and typed source lines. MANUAL_OTHER requires a request-level reason; line-level reasonNote is optional on the backend API without invented source refs.
+2. Open the common form and save DRAFT with warehouse/date and typed source lines (MANUAL_OTHER, STOCK_THRESHOLD, SALES_SHORTAGE, STOCKTAKE_LOW_STOCK). The request-level reason is mandatory and line reasonNote is optional, without invented source refs. Lines with server warnings require a confirmed independent-need explanation.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Open the common form and save DRAFT with warehouse/date and typed source lines. MANUAL_OTHER requires a request-level reason; line-level reasonNote is optional on the backend API without invented source refs. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Open the common form and save DRAFT with warehouse/date and typed source lines (MANUAL_OTHER, STOCK_THRESHOLD, SALES_SHORTAGE, STOCKTAKE_LOW_STOCK). The request-level reason is mandatory and line reasonNote is optional, without invented source refs. Lines with server warnings require a confirmed independent-need explanation. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-04: Update Replenishment Draft or Returned Request
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Warehouse Staff — Perform; Sales Staff — Perform.
 Screen(s): SC-06; the same prefilled form is opened from warnings, the menu and saved SO details.
-Description: Select saved DRAFT or returned version and edit permitted lines with current source/coverage checks. Preserve IDs and entered fields on conflict.
+Description: Select saved DRAFT or returned version and edit permitted lines with the current warning evaluation. A source-backed line cannot change its source document. Preserve IDs and entered fields on conflict.
 Trigger: Authorized actor starts update replenishment draft or returned request on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Select saved DRAFT or returned version and edit permitted lines with current source/coverage checks. Preserve IDs and entered fields on conflict.
+2. Select saved DRAFT or returned version and edit permitted lines with the current warning evaluation. A source-backed line cannot change its source document. Preserve IDs and entered fields on conflict.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Select saved DRAFT or returned version and edit permitted lines with current source/coverage checks. Preserve IDs and entered fields on conflict. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Select saved DRAFT or returned version and edit permitted lines with the current warning evaluation. A source-backed line cannot change its source document. Preserve IDs and entered fields on conflict. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-05: Submit Replenishment Request
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Warehouse Staff — Perform; Sales Staff — Perform.
 Screen(s): SC-06; the same prefilled form is opened from warnings, the menu and saved SO details.
-Description: Submit a new or saved valid request atomically as SUBMITTED with actual sender/time and source snapshots. Different Owner reviews in UC-06. Opening or Later persists nothing.
+Description: Submit a new or saved valid request atomically as SUBMITTED with actual sender/time, source references and per-line warning snapshots; unconfirmed warnings are rejected. Different Owner reviews in UC-06. Opening or Later persists nothing.
 Trigger: Authorized actor starts submit replenishment request on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Submit a new or saved valid request atomically as SUBMITTED with actual sender/time and source snapshots. Different Owner reviews in UC-06. Opening or Later persists nothing.
+2. Submit a new or saved valid request atomically as SUBMITTED with actual sender/time, source references and per-line warning snapshots; unconfirmed warnings are rejected. Different Owner reviews in UC-06. Opening or Later persists nothing.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Submit a new or saved valid request atomically as SUBMITTED with actual sender/time and source snapshots. Different Owner reviews in UC-06. Opening or Later persists nothing. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Submit a new or saved valid request atomically as SUBMITTED with actual sender/time, source references and per-line warning snapshots; unconfirmed warnings are rejected. Different Owner reviews in UC-06. Opening or Later persists nothing. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-06: Approve or reject replenishment request
 Status: ACTIVE. Feature: FE-01.
@@ -1006,8 +1006,8 @@ Screen(s): SC-06.
 Description: Store Owner approves, rejects or returns the exact request version for revision. Requester and approver must be different userIds; no PO before approval.
 Preconditions / required inputs: Pending RR/version; Owner differs from requester.
 Normal flow:
-1. Review shortage and covered supply.
-2. Approve exact lines/quantities, reject or return for revision with reason.
+1. Review the submitted warning snapshots and, if needed, the current evaluation.
+2. Approve each line in base units within the requested quantity, reject or return for revision with reason.
 3. Record decision/version/actor/time and PO eligibility.
 Alternate/exception flows: Rejection blocks PO; revision needs new version/review; self-approval denied.
 Business branch coverage: BF-01-A2.
@@ -1022,12 +1022,12 @@ Description: Filter orders by supplier, date, status, and outstanding quantity.
 Preconditions / input: Authorized scoped records; optional list/date/status/identity filters or required selected ID for detail. Historical/inactive references remain readable within scope.
 Record-specific input/display contract:
 Optional search/filter inputs: Supplier, order date, status, outstanding qty. No filters are mandatory; the actor may run an unfiltered list/report within permission scope.
-Display fields: Order number, supplier, confirmed/received/outstanding. Values are retrieved from saved records; any displayed quantity is reconciled from the corresponding business transactions.
-Operation scope: Warehouse Staff may view only the PO information needed for assigned-warehouse receiving: supplier/order reference, products, units, confirmed/outstanding quantities and delivery schedule. Purchase prices, financial information and PO modification are not granted by this view.
+Display fields: Order number, supplier, status, expected date, received/outstanding, receiving-in-progress flag. Values are retrieved from saved records; any displayed quantity is reconciled from the corresponding business transactions.
+Operation scope: Warehouse Staff may view only the PO information needed for assigned-warehouse receiving: supplier/order reference, products, units, ordered/outstanding quantities and common expected date. Purchase prices, financial information and PO modification are not granted by this view.
 Normal flow:
 1. Open permitted screen and filter/select record.
 2. Server applies operation/warehouse/record/evidence scope and validates filters/date order.
-3. Retrieve Order number, supplier, confirmed/received/outstanding; display persisted source links and current derived quantities within the exact rights above.
+3. Retrieve Order number, supplier, status, expected date, received/outstanding, receiving-in-progress flag; display persisted source links and current derived quantities within the exact rights above.
 4. Apply same scope to detail/export/evidence links.
 Alternate flows: empty→MSG-01; invalid filter→MSG-02 and no mutation; unauthorized→MSG-04 without disclosure; unavailable historical link retains identity without fabricated record.
 Postconditions: Information displayed; no creation, decision, reservation, status transition or inventory movement.
@@ -1036,16 +1036,16 @@ UC-08: View purchase order details
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Store Owner — View; Accountant — View; Warehouse Staff — Receiving scope only.
 Screen(s): SC-07.
-Description: Display order lines, supplier confirmations, and partial receipt history. Display ordered, confirmed, received, accepted and outstanding quantities with source receipts. This is read-only, not a separate outstanding-quantity UC.
+Description: Display order lines with notes, the common expected date and partial receipt history (inspections, purchase GRs, custody receipts, put-away). Display ordered, received, cancelled and outstanding quantities with source documents. This is read-only, not a separate outstanding-quantity UC.
 Preconditions / input: Authorized scoped records; optional list/date/status/identity filters or required selected ID for detail. Historical/inactive references remain readable within scope.
 Record-specific input/display contract:
 Required navigation input: Order number. A specific record must be selected before its details can be displayed.
-Display fields: Product lines, ordered, confirmed, received, outstanding, receipt links. Values are retrieved from saved records; any displayed quantity is reconciled from the corresponding business transactions.
+Display fields: Product lines, ordered, received, cancelled, outstanding, receiving document links. Values are retrieved from saved records; any displayed quantity is reconciled from the corresponding business transactions.
 Operation scope: Warehouse Staff may view receiving-related PO detail only within assigned warehouses; direct detail/evidence access enforces the same restriction as the list. It cannot modify the PO or view purchasing financial data.
 Normal flow:
 1. Open permitted screen and filter/select record.
 2. Server applies operation/warehouse/record/evidence scope and validates filters/date order.
-3. Retrieve Product lines, ordered, confirmed, received, outstanding, receipt links; display persisted source links and current derived quantities within the exact rights above.
+3. Retrieve Product lines, ordered, received, cancelled, outstanding, receiving document links; display persisted source links and current derived quantities within the exact rights above.
 4. Apply same scope to detail/export/evidence links.
 Alternate flows: empty→MSG-01; invalid filter→MSG-02 and no mutation; unauthorized→MSG-04 without disclosure; unavailable historical link retains identity without fabricated record.
 Postconditions: Information displayed; no creation, decision, reservation, status transition or inventory movement.
@@ -1054,71 +1054,71 @@ UC-09: Create Purchase Order
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Accountant — Perform.
 Screen(s): SC-07.
-Description: Select approved RR lines with remaining allowance and supplier/warehouse. Save PO without inventory or payment posting.
+Description: After agreeing terms with the supplier outside WMSD, select an APPROVED RR without PO, one supplier and the RR warehouse; each RR line appears once with base quantity within the approved quantity, purchase price and optional note. Save DRAFT, edit only while DRAFT, then issue as OPEN with a common expected date. No inventory or payment posting.
 Trigger: Authorized actor starts create purchase order on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Select approved RR lines with remaining allowance and supplier/warehouse. Save PO without inventory or payment posting.
+2. After agreeing terms with the supplier outside WMSD, select an APPROVED RR without PO, one supplier and the RR warehouse; each RR line appears once with base quantity within the approved quantity, purchase price and optional note. Save DRAFT, edit only while DRAFT, then issue as OPEN with a common expected date. No inventory or payment posting.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Select approved RR lines with remaining allowance and supplier/warehouse. Save PO without inventory or payment posting. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: After agreeing terms with the supplier outside WMSD, select an APPROVED RR without PO, one supplier and the RR warehouse; each RR line appears once with base quantity within the approved quantity, purchase price and optional note. Save DRAFT, edit only while DRAFT, then issue as OPEN with a common expected date. No inventory or payment posting. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
-UC-10: Update Unreceived PO Remainder
+UC-10: Reschedule Open PO Expected Date
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Accountant — Perform.
 Screen(s): SC-07.
-Description: Select current PO version and unreceived quantities. Changes beyond approved authority require renewed approval and never overwrite receipts.
-Trigger: Authorized actor starts update unreceived po remainder on the permitted screen.
+Description: For an OPEN or PARTIAL PO, change the common expected date of the unreceived remainder with a mandatory reason and the current version; audit keeps before/after values. Content and quantities cannot be edited after issue and posted receipts are never overwritten.
+Trigger: Authorized actor starts reschedule open po expected date on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Select current PO version and unreceived quantities. Changes beyond approved authority require renewed approval and never overwrite receipts.
+2. For an OPEN or PARTIAL PO, change the common expected date of the unreceived remainder with a mandatory reason and the current version; audit keeps before/after values. Content and quantities cannot be edited after issue and posted receipts are never overwritten.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Select current PO version and unreceived quantities. Changes beyond approved authority require renewed approval and never overwrite receipts. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: For an OPEN or PARTIAL PO, change the common expected date of the unreceived remainder with a mandatory reason and the current version; audit keeps before/after values. Content and quantities cannot be edited after issue and posted receipts are never overwritten. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-11: Record Supplier Order Confirmation
-Status: ACTIVE. Feature: FE-01.
+Status: RETIRED (11/11/2026). Feature: FE-01.
 Primary actors and operations: Accountant — Perform.
 Screen(s): SC-07.
-Description: Record supplier confirmed quantities/dates/evidence against saved PO lines. Preserve earlier confirmations and actual receipts.
+Description: Retired: the Accountant agrees quantities/dates with the supplier before creating the PO, so no supplier confirmation is recorded against PO lines. Earlier receipts are unaffected.
 Trigger: Authorized actor starts record supplier order confirmation on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Record supplier confirmed quantities/dates/evidence against saved PO lines. Preserve earlier confirmations and actual receipts.
+2. Retired: the Accountant agrees quantities/dates with the supplier before creating the PO, so no supplier confirmation is recorded against PO lines. Earlier receipts are unaffected.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Record supplier confirmed quantities/dates/evidence against saved PO lines. Preserve earlier confirmations and actual receipts. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Retired: the Accountant agrees quantities/dates with the supplier before creating the PO, so no supplier confirmation is recorded against PO lines. Earlier receipts are unaffected. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-12: Cancel Unreceived PO Remainder
 Status: ACTIVE. Feature: FE-01.
-Primary actors and operations: Accountant — Perform.
+Primary actors and operations: Accountant — Request and execute; Store Owner — Approve; not requester.
 Screen(s): SC-07.
-Description: Cancel only eligible unreceived remainder with reason and appropriate authority after resolving linked commitments. Preserve received history.
+Description: Accountant requests closure of the unreceived remainder with reason/evidence after checking posted receipts and open draft receiving work; a different Owner approves the exact request; Accountant executes it. Cancelled quantity is stored separately from ordered quantity and received history is preserved.
 Trigger: Authorized actor starts cancel unreceived po remainder on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Cancel only eligible unreceived remainder with reason and appropriate authority after resolving linked commitments. Preserve received history.
+2. Accountant requests closure of the unreceived remainder with reason/evidence after checking posted receipts and open draft receiving work; a different Owner approves the exact request; Accountant executes it. Cancelled quantity is stored separately from ordered quantity and received history is preserved.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Cancel only eligible unreceived remainder with reason and appropriate authority after resolving linked commitments. Preserve received history. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Accountant requests closure of the unreceived remainder with reason/evidence after checking posted receipts and open draft receiving work; a different Owner approves the exact request; Accountant executes it. Cancelled quantity is stored separately from ordered quantity and received history is preserved. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-13: Close Purchase Order
 Status: ACTIVE. Feature: FE-01.
 Primary actors and operations: Accountant — Perform.
 Screen(s): SC-07.
-Description: Reconcile ordered/received/outstanding quantities and external references. Short closure needs appropriate authorization. Keep unresolved quantities open.
+Description: The PO becomes COMPLETED when fully received, or CLOSED when the approved remainder closure is executed. Reversing a GR recalculates OPEN/PARTIAL except for a CLOSED PO, which stays CLOSED. Keep unresolved quantities open.
 Trigger: Authorized actor starts close purchase order on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Reconcile ordered/received/outstanding quantities and external references. Short closure needs appropriate authorization. Keep unresolved quantities open.
+2. The PO becomes COMPLETED when fully received, or CLOSED when the approved remainder closure is executed. Reversing a GR recalculates OPEN/PARTIAL except for a CLOSED PO, which stays CLOSED. Keep unresolved quantities open.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Reconcile ordered/received/outstanding quantities and external references. Short closure needs appropriate authorization. Keep unresolved quantities open. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: The PO becomes COMPLETED when fully received, or CLOSED when the approved remainder closure is executed. Reversing a GR recalculates OPEN/PARTIAL except for a CLOSED PO, which stays CLOSED. Keep unresolved quantities open. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-14: View goods receipt list
 Status: ACTIVE. Feature: FE-01.
@@ -1161,8 +1161,8 @@ Screen(s): SC-08.
 Description: Warehouse Staff records each delivery against PO lines, including actual quantities, discrepancies and evidence; creating the draft does not post inventory.
 Preconditions / required inputs: Open PO and receiving warehouse; assigned Warehouse Staff.
 Normal flow:
-1. Record separate arrival/draft for each delivery.
-2. Enter PO lines, actual units/pieces, packaging, lot/tone/calibre and discrepancy evidence.
+1. Record a separate arrival and draft inspection for each delivery (arrival time, deliverer, reference).
+2. Enter PO lines, actual verified lot, counted cartons or pieces converted with the lot conversion, packaging, quality, ownership decision and discrepancy evidence.
 3. Save draft for UC-37 inspection.
 Alternate/exception flows: Zero acceptance still retains arrival evidence; wrong/excess goods stay separate pending decision.
 Business branch coverage: BF-01-E2.
@@ -1250,15 +1250,15 @@ UC-22: Define Packaging Conversion Version
 Status: ACTIVE. Feature: FE-02.
 Primary actors and operations: Store Owner — Perform.
 Screen(s): SC-03.
-Description: Save positive verified BOX/PIECE/m2 conversion version. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional and calibre is not a conversion factor.
+Description: Save a positive Conversion version per product and optional lot for an active UOM with a later validFrom; a verified lot's carton factor equals its pieces per carton and m² factors derive from tile length × width. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional; area quantities round up to whole pieces.
 Trigger: Authorized actor starts define packaging conversion version on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Save positive verified BOX/PIECE/m2 conversion version. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional and calibre is not a conversion factor.
+2. Save a positive Conversion version per product and optional lot for an active UOM with a later validFrom; a verified lot's carton factor equals its pieces per carton and m² factors derive from tile length × width. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional; area quantities round up to whole pieces.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Save positive verified BOX/PIECE/m2 conversion version. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional and calibre is not a conversion factor. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Save a positive Conversion version per product and optional lot for an active UOM with a later validFrom; a verified lot's carton factor equals its pieces per carton and m² factors derive from tile length × width. Used versions are immutable and transaction snapshots unchanged. Whole pieces cannot be fractional; area quantities round up to whole pieces. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-23: Configure Warehouse Stock Policy
 Status: ACTIVE. Feature: FE-02.
@@ -1278,15 +1278,15 @@ UC-24: View lot list
 Status: ACTIVE. Feature: FE-02.
 Primary actors and operations: Store Owner — View; Warehouse Staff — View.
 Screen(s): SC-04.
-Description: Search lots by product, lot number, tone, and actual calibre.
+Description: Search lots by product, manufacturer lot number and identification status.
 Preconditions / input: Authorized scoped records; optional list/date/status/identity filters or required selected ID for detail. Historical/inactive references remain readable within scope.
 Record-specific input/display contract:
-Optional search/filter inputs: Product, lot number, tone, actual calibre. No filters are mandatory; the actor may run an unfiltered list/report within permission scope.
-Display fields: Product, lot, tone, calibre, quantity presence. Values are retrieved from saved records; any displayed quantity is reconciled from the corresponding business transactions.
+Optional search/filter inputs: Product, manufacturer lot, identification status. No filters are mandatory; the actor may run an unfiltered list/report within permission scope.
+Display fields: Product, lot, pieces per carton, status, quantity presence. Values are retrieved from saved records; any displayed quantity is reconciled from the corresponding business transactions.
 Normal flow:
 1. Open permitted screen and filter/select record.
 2. Server applies operation/warehouse/record/evidence scope and validates filters/date order.
-3. Retrieve Product, lot, tone, calibre, quantity presence; display persisted source links and current derived quantities within the exact rights above.
+3. Retrieve Product, lot, pieces per carton, status, quantity presence; display persisted source links and current derived quantities within the exact rights above.
 4. Apply same scope to detail/export/evidence links.
 Alternate flows: empty→MSG-01; invalid filter→MSG-02 and no mutation; unauthorized→MSG-04 without disclosure; unavailable historical link retains identity without fabricated record.
 Postconditions: Information displayed; no creation, decision, reservation, status transition or inventory movement.
@@ -1295,7 +1295,7 @@ UC-25: View lot details
 Status: ACTIVE. Feature: FE-02.
 Primary actors and operations: Store Owner — View; Warehouse Staff — View.
 Screen(s): SC-04.
-Description: Display production date, tone, actual calibre, and related transaction history.
+Description: Display manufacturer lot, pieces per carton, outer carton dimensions, identification status and related transaction history.
 Preconditions / input: Authorized scoped records; optional list/date/status/identity filters or required selected ID for detail. Historical/inactive references remain readable within scope.
 Record-specific input/display contract:
 Required navigation input: Product, lot number. A specific record must be selected before its details can be displayed.
@@ -1312,15 +1312,15 @@ UC-26: Create Product Lot
 Status: ACTIVE. Feature: FE-02.
 Primary actors and operations: Store Owner — Perform; Warehouse Staff — Perform.
 Screen(s): SC-04.
-Description: Create unique product/manufacturer lot/tone/calibre identity with evidence or explicit UNKNOWN. UNKNOWN is not allocatable.
+Description: Create unique product/manufacturer lot identity with fixed pieces per carton and measured carton dimensions, VERIFIED with evidence or explicit UNKNOWN. UNKNOWN is not allocatable; verifying the lot synchronizes its carton conversion.
 Trigger: Authorized actor starts create product lot on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Create unique product/manufacturer lot/tone/calibre identity with evidence or explicit UNKNOWN. UNKNOWN is not allocatable.
+2. Create unique product/manufacturer lot identity with fixed pieces per carton and measured carton dimensions, VERIFIED with evidence or explicit UNKNOWN. UNKNOWN is not allocatable; verifying the lot synchronizes its carton conversion.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Create unique product/manufacturer lot/tone/calibre identity with evidence or explicit UNKNOWN. UNKNOWN is not allocatable. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Create unique product/manufacturer lot identity with fixed pieces per carton and measured carton dimensions, VERIFIED with evidence or explicit UNKNOWN. UNKNOWN is not allocatable; verifying the lot synchronizes its carton conversion. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-27: Update Product Lot Information
 Status: ACTIVE. Feature: FE-02.
@@ -1421,7 +1421,7 @@ Preconditions / input: Authorized scoped records; optional list/date/status/iden
 Normal flow:
 1. Open permitted screen and filter/select record.
 2. Server applies operation/warehouse/record/evidence scope and validates filters/date order.
-3. Retrieve SKU/packaging/conversion versions, lot/tone/calibre, supplier/customer delivery references and status; display persisted source links and derived quantities.
+3. Retrieve SKU/packaging/conversion versions, lot, supplier/customer delivery references and status; display persisted source links and derived quantities.
 4. Apply same scope to detail/export/evidence links.
 Alternate flows: empty→MSG-01; invalid filter→MSG-02 and no mutation; unauthorized→MSG-04 without disclosure; unavailable historical link retains identity without fabricated record.
 Postconditions: Information displayed; no creation, decision, reservation, status transition or inventory movement.
@@ -1435,7 +1435,7 @@ Preconditions / input: Authorized scoped records; optional list/date/status/iden
 Normal flow:
 1. Open permitted screen and filter/select record.
 2. Server applies operation/warehouse/record/evidence scope and validates filters/date order.
-3. Retrieve SKU/packaging/conversion versions, lot/tone/calibre, supplier/customer delivery references and status; display persisted source links and derived quantities.
+3. Retrieve SKU/packaging/conversion versions, lot, supplier/customer delivery references and status; display persisted source links and derived quantities.
 4. Apply same scope to detail/export/evidence links.
 Alternate flows: empty→MSG-01; invalid filter→MSG-02 and no mutation; unauthorized→MSG-04 without disclosure; unavailable historical link retains identity without fabricated record.
 Postconditions: Information displayed; no creation, decision, reservation, status transition or inventory movement.
@@ -1490,7 +1490,7 @@ UC-38: View warehouse and location list
 Status: ACTIVE. Feature: FE-04.
 Primary actors and operations: Store Owner — View; Warehouse Staff — View.
 Screen(s): SC-09.
-Description: Search by warehouse, area, aisle, rack, and location code.
+Description: List store warehouses with location counts, then one warehouse's locations filtered by code/name/area, type and status (no aisle/rack fields).
 Preconditions / input: Authorized scoped records; optional list/date/status/identity filters or required selected ID for detail. Historical/inactive references remain readable within scope.
 Record-specific input/display contract:
 Optional search/filter inputs: Warehouse, area, location code, status. No filters are mandatory; the actor may run an unfiltered list/report within permission scope.
@@ -1524,29 +1524,29 @@ UC-40: Create Storage Location
 Status: ACTIVE. Feature: FE-04.
 Primary actors and operations: Store Owner — Perform.
 Screen(s): SC-09.
-Description: Create unique location code/kind within existing warehouse. Only STORAGE can be allocatable.
+Description: Owner creates a warehouse (immutable code) or a unique location code/type with usable length/width within an existing warehouse; height comes from the warehouse clear height. Only STORAGE can be pickable.
 Trigger: Authorized actor starts create storage location on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Create unique location code/kind within existing warehouse. Only STORAGE can be allocatable.
+2. Owner creates a warehouse (immutable code) or a unique location code/type with usable length/width within an existing warehouse; height comes from the warehouse clear height. Only STORAGE can be pickable.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Create unique location code/kind within existing warehouse. Only STORAGE can be allocatable. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Owner creates a warehouse (immutable code) or a unique location code/type with usable length/width within an existing warehouse; height comes from the warehouse clear height. Only STORAGE can be pickable. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-41: Update Storage Location Information
 Status: ACTIVE. Feature: FE-04.
 Primary actors and operations: Store Owner — Perform.
 Screen(s): SC-09.
-Description: Update permitted existing location metadata and eligibility without moving stock or bypassing freeze.
+Description: Update permitted warehouse or location metadata, dimensions and eligibility with the current version; capacity is rechecked and code/size cannot change while tasks are open. Warehouse 2D/3D layout drafts (zones, slots, pallets) are saved and applied separately and never move stock or bypass freeze.
 Trigger: Authorized actor starts update storage location information on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Update permitted existing location metadata and eligibility without moving stock or bypassing freeze.
+2. Update permitted warehouse or location metadata, dimensions and eligibility with the current version; capacity is rechecked and code/size cannot change while tasks are open. Warehouse 2D/3D layout drafts (zones, slots, pallets) are saved and applied separately and never move stock or bypass freeze.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Update permitted existing location metadata and eligibility without moving stock or bypassing freeze. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Update permitted warehouse or location metadata, dimensions and eligibility with the current version; capacity is rechecked and code/size cannot change while tasks are open. Warehouse 2D/3D layout drafts (zones, slots, pallets) are saved and applied separately and never move stock or bypass freeze. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-42: Change Storage Location Status
 Status: ACTIVE. Feature: FE-04.
@@ -1602,7 +1602,7 @@ UC-45: Create Put-away Task
 Status: ACTIVE. Feature: FE-04.
 Primary actors and operations: Warehouse Staff — Perform in assigned warehouse.
 Screen(s): SC-08.
-Description: Create or accept a suggested internal put-away task from a posted receipt; no second receiving or approval document.
+Description: Create an internal put-away task from a posted receipt within its unplanned quantity; each line moves whole cartons, optionally plus the entire loose remainder, validated at creation. No second receiving or approval document.
 Preconditions / required inputs: Accepted receipt has unplaced quantity and Warehouse assignment.
 Normal flow:
 1. Select receipt lines, quality and suitable storage.
@@ -1665,7 +1665,7 @@ UC-49: Create location movement
 Status: ACTIVE. Feature: FE-04.
 Primary actors and operations: Warehouse Staff — Perform in assigned warehouse.
 Screen(s): SC-12.
-Description: Warehouse Staff selects compatible source/destination locations in the same warehouse and checks quantity, reservations and stocktake locks; no Owner approval or inter-warehouse TR.
+Description: Warehouse Staff selects source balances (or the whole source location) and one destination in the same warehouse, enters whole cartons/pieces and checks quantity after open tasks, packaging split, reservations and stocktake locks; the creator may edit or cancel the OPEN order. No Owner approval or inter-warehouse TR.
 Preconditions / required inputs: Movable quantity in assigned warehouse and suitable locations.
 Normal flow:
 1. Select same-warehouse source/destination, lot/quality/owner/quantity.
@@ -1680,13 +1680,13 @@ UC-50: Confirm actual location movement
 Status: ACTIVE. Feature: FE-04.
 Primary actors and operations: Warehouse Staff — Perform in assigned warehouse.
 Screen(s): SC-12.
-Description: Confirm actual relocation atomically: source minus q, destination plus q, same lot/quality/owner and total. Carry reservations and block locked locations.
+Description: The creator confirms the whole order once with actual quantities equal to plan: source minus q, destination plus q, same lot/quality/owner and total. Carry reservations, check capacity and block locked locations; no partial confirmation.
 Preconditions / required inputs: Open relocation; actual movement; both locations in same assigned unfrozen warehouse.
 Normal flow:
 1. Verify actual lot/quality/owner/quantity.
 2. Post equal source decrease and destination increase, moving reservations with stock.
 3. Save position/actor/time/history.
-Alternate/exception flows: Partial move retains remainder; do not silently change lot/quality/owner or free reserved stock.
+Alternate/exception flows: A partial quantity is rejected; edit the OPEN order or cancel it. Do not silently change lot/quality/owner or free reserved stock.
 Business branch coverage: BF-03-A1, BF-03-E1.
 Shared failures: applicable EX-01 permission/identity, EX-02 version/source concurrency, EX-03 unknown-commit retry, EX-04 freeze, EX-05 evidence/output failure use I.2.9 state/recovery. Read-only export does not itself require posting key.
 Postconditions / exact inventory effect: Warehouse total unchanged; location/reservation updated once.
@@ -1732,7 +1732,7 @@ UC-53: Create Transfer Request
 Status: ACTIVE. Feature: FE-05.
 Primary actors and operations: Warehouse Staff — Create.
 Screen(s): SC-13.
-Description: Warehouse Staff requests physical movement between distinct warehouses after considering direct customer dispatch or other compatible sources. Same-warehouse relocation uses UC-49/50.
+Description: Warehouse Staff requests physical movement between distinct warehouses after considering direct customer dispatch or other compatible sources; the TR is saved PENDING_APPROVAL and a returned TR is edited and resubmitted by its creator. Same-warehouse relocation uses UC-49/50.
 Preconditions / required inputs: Physical transfer need between distinct warehouses; compatible source reviewed.
 Normal flow:
 1. Review UC-117 options and customer fulfilment choice if related.
@@ -1746,42 +1746,42 @@ UC-54: Review Transfer Request
 Status: ACTIVE. Feature: FE-05.
 Primary actors and operations: Store Owner — Approve / reject / return; not requester.
 Screen(s): SC-13.
-Description: Store Owner approves/rejects/returns the TR version; requester differs from approver. Approved TR authorizes execution and controlled source reservation; no extra inter-warehouse TO approval.
+Description: Store Owner approves/rejects/returns the TR version; requester differs from approver. Approved TR authorizes dispatch; source stock is reserved when the draft dispatch is created, not at approval. No extra inter-warehouse TO approval.
 Preconditions / required inputs: Pending TR; Owner differs from requester.
 Normal flow:
 1. Review source, destination need/date and independent receiver arrangement.
-2. Approve quantity/version and atomically reserve eligible source, or reject/return with reason.
+2. Approve quantity/version, or reject/return (REVISION_REQUIRED) with reason.
 3. Release approved TR directly for UC-55.
 Alternate/exception flows: Recheck changed stock/freeze; no independent receiver means wait; no redundant TO approval.
 Business branch coverage: BF-04-E1.
 Shared failures: applicable EX-01 permission/identity, EX-02 version/source concurrency, EX-03 unknown-commit retry, EX-04 freeze, EX-05 evidence/output failure use I.2.9 state/recovery. Read-only export does not itself require posting key.
-Postconditions / exact inventory effect: Approved hold reduces availability only; total unchanged.
+Postconditions / exact inventory effect: Decision only; no reservation or stock effect.
 
 UC-55: Record Transfer Dispatch
 Status: ACTIVE. Feature: FE-05.
 Primary actors and operations: Warehouse Staff — Draft TD before picking; confirm TO execution; post actual handover.
 Screen(s): SC-13.
-Description: Warehouse drafts TD from approved TR before picking; confirms actual picking TO when staging applies, then posts TD/HO only at handover. No second GI or Owner task approval.
+Description: Warehouse drafts TD from approved TR lines, reserving the chosen source balances, generates one PICK TO and confirms the PICK with recipient/vehicle handover in one posting source→staging→transit that sets the TD to POSTED. A draft TD may be cancelled, releasing its reservation. No second GI or Owner task approval.
 Preconditions / required inputs: Approved TR/source version, sufficient unfrozen stock, actual handover for posting.
 Normal flow:
-1. Create/update TD draft before picking; draft changes no stock.
-2. Confirm actual lot/quantity/staging TO if used; otherwise record picked quantity on TD.
-3. At handover post TD once: source to transit, preserving demand allocation.
+1. Create the TD draft from the approved remainder with source balance and staging location; the draft reserves source stock but changes no balance.
+2. Generate one internal requirement and one PICK TO; the reservation moves to the task.
+3. The creator confirms the PICK with recipient name and optional vehicle plate: source → staging → transit posts once, preserving demand allocation, and the TD becomes POSTED.
 4. Continue partial TD/MWTR cycles; close TR only after request remainder, transit, variances and all TOs resolve.
 Alternate/exception flows: Reject wrong role/scope/source/version, excess quantity or missing mandatory evidence; retain valid draft/pending state. Recount/revision keeps freeze. Unknown commit requires lookup before same-key retry.
 Business branch coverage: BF-04-E1, BF-04-E3.
 Shared failures: EX-01–05 in I.2.9; see process section 4 for CR/FD branches and B1 direct/recount alternatives.
-Postconditions / exact inventory effect: Draft no stock; posting transfers source to transit once, never destination receipt.
+Postconditions / exact inventory effect: Draft reserves only; posting transfers source to transit once, never destination receipt.
 
 UC-56: Review Transfer Difference Resolution
 Status: ACTIVE. Feature: FE-05.
 Primary actors and operations: Store Owner — Review transfer variance.
 Screen(s): SC-13.
-Description: Store Owner reviews inter-warehouse discrepancies from UC-55/120. Resolve through linked documents without editing posted quantities; keep unmatched amounts open.
+Description: Destination Warehouse reports unreceived dispatch quantity as a transfer difference record; a different Owner approves it against a later posted receipt of the same dispatch, or rejects/returns it. Posted quantities are never edited, unmatched amounts stay open and no loss is written off automatically.
 Preconditions / required inputs: Transfer discrepancy/TD/MWTR evidence; Owner not resolution requester.
 Normal flow:
 1. Review short/over/damaged/wrong-lot amounts.
-2. Record versioned approval/rejection/revision for recovery, receipt, return-source or evidenced loss.
+2. Record versioned approval linked to a posted receipt, rejection or revision.
 3. Warehouse executes linked authorized documents; close fully accounted quantities only.
 Alternate/exception flows: Physically received damaged goods are not also lost transit; rejected decision remains open; preserve original TD/MWTR.
 Business branch coverage: BF-04-E3.
@@ -1798,7 +1798,7 @@ Normal flow:
 1. Inspect actual quantity/lot/packaging/quality/evidence.
 2. Split receipt by quality; validate transit ceiling.
 3. Post MWTR transit→destination receiving/quarantine once; retain demand allocation.
-4. Put away eligible stock and report discrepancy UC-56.
+4. Generate one PUTAWAY TO for GOOD lines (none for an all-DAMAGED receipt), confirm receiving→storage and report unreceived quantity through UC-56.
 Alternate/exception flows: TD100/receive95GOOD+3DAMAGED leaves transit2; over-receipt cannot make negative transit; dispatcher user cannot receive.
 Business branch coverage: BF-04-E1, BF-04-E2, BF-04-E3.
 Shared failures: applicable EX-01 permission/identity, EX-02 version/source concurrency, EX-03 unknown-commit retry, EX-04 freeze, EX-05 evidence/output failure use I.2.9 state/recovery. Read-only export does not itself require posting key.
@@ -1824,7 +1824,7 @@ UC-58: View Copied Sales Order Details
 Status: ACTIVE. Feature: FE-06.
 Primary actors and operations: Store Owner — View; Accountant — Reconciliation scope; Warehouse Staff — Related execution; Sales Staff — Own / assigned demand.
 Screen(s): SC-16.
-Description: Read copied source lines, WIR/OD/GI/POD/PAY-CFM history and cancellations; no pricing, invoice or payment calculation.
+Description: Read copied source lines, WIR/OD/GI/POD/PAY-CFM history and cancellations; prices only for permitted roles; no invoice or payment calculation.
 Preconditions / required inputs: Authenticated user with authorized order/customer/evidence scope.
 Normal flow:
 1. Apply order/source/customer/date/state filters server-side.
@@ -1842,7 +1842,7 @@ Screen(s): SC-16.
 Description: Sales manually copies a verified external order with source line identity and evidence. Reject duplicate source orders/lines; entry changes no stock.
 Preconditions / required inputs: Verified external system/document/line and source evidence; phone/Zalo instructions require a recorded source order.
 Normal flow:
-1. Capture customer/address/date, product/quantity/UoM/conversion version, tone/calibre requirement and source identity.
+1. Capture customer/address/date, product/quantity/UoM/conversion version, optional lot, unit selling price/currency and source identity.
 2. Check unique source order and lines; verify source/version/quantity without fabricating an external revision.
 3. Commit SO/lines, real creator/time/version, business operation, audit and SALES_ORDER_SAVED/version outbox event.
 4. Evaluate compatible timely local/other-warehouse/incoming supply and pending RRs. If uncovered quantity remains, ask whether to create an RR for selected shortage lines. Display feasible unselected options before declaring no source; covered demand links to its source/RR. Pending/failed evaluation is shown separately and does not fail the saved SO.
@@ -1912,7 +1912,7 @@ UC-64: Create Outbound Delivery
 Status: ACTIVE. Feature: FE-06.
 Primary actors and operations: Sales Staff — Plan OD/reuse or transfer reopened commitment without duplicate demand.
 Screen(s): SC-22.
-Description: Sales plans OD within net WIR allowance; redelivery reuses original OD or traceably transfers reopened commitment to replacement OD without new demand.
+Description: Sales creates a RELEASED OD for one warehouse within net WIR allowance with planned date, recipient and address, reserving selected eligible balances atomically; redelivery reuses original OD or traceably transfers reopened commitment to replacement OD without new demand.
 Preconditions / required inputs: Saved SO/WIR lines, current versions and available net fulfilment allowance.
 Normal flow:
 1. Create release for one warehouse from exact WIR line.
@@ -1956,10 +1956,10 @@ UC-67: Create Picking Task
 Status: ACTIVE. Feature: FE-06.
 Primary actors and operations: Warehouse Staff — Perform; PGI only on actual handover.
 Screen(s): SC-23.
-Description: Warehouse creates picking TO against existing draft GI-S/OD, with compatible stock and FIFO within compatibility; task is execution, not Owner approval.
-Preconditions / required inputs: Existing OD and draft GI-S, assigned warehouse and eligible stock/reservation.
+Description: Warehouse creates a picking task from OD reservations; the system creates the draft GI-S and a PICK TO to staging and moves the reservation to the task, with FIFO within compatibility; task is execution, not Owner approval.
+Preconditions / required inputs: RELEASED OD with reservations, assigned warehouse and eligible stock.
 Normal flow:
-1. Validate draft GI-S/OD source and current version.
+1. Validate OD reservations and current version; create the draft GI-S.
 2. Suggest compatible lot/location then FIFO; create picking TO with reservation/staging.
 3. Record permitted substitution consent/reason and partial quantity.
 Alternate/exception flows: Reject wrong role/scope/source/version, excess quantity or missing mandatory evidence; retain valid draft/pending state. Recount/revision keeps freeze. Unknown commit requires lookup before same-key retry.
@@ -1970,7 +1970,7 @@ UC-68: Confirm Picking Task
 Status: ACTIVE. Feature: FE-06.
 Primary actors and operations: Warehouse Staff — Perform; PGI only on actual handover.
 Screen(s): SC-23.
-Description: Warehouse Staff confirms actual BOX/PIECE quantities into staging and preserves reservations and total stock. Shortage/damage routes to BF-02/05 or replanning; no silent stock correction.
+Description: Warehouse Staff confirms actual carton/piece quantities into staging, possibly partially, and preserves reservations and total stock; the GI-S becomes PICKED, not POSTED. Shortage/damage routes to BF-02/05 or replanning; no silent stock correction.
 Preconditions / required inputs: Open picking task and actual staged goods in assigned unfrozen warehouse.
 Normal flow:
 1. Count lot/pieces/quality; split partial/defective quantities.
@@ -2036,15 +2036,15 @@ UC-72: Prepare Goods Issue Draft
 Status: ACTIVE. Feature: FE-06.
 Primary actors and operations: Warehouse Staff — Perform.
 Screen(s): SC-17.
-Description: Create/update GI-S DRAFT from current OD before picking. Save without stock deduction and route picking to UC-67/68. Do not post on draft save.
+Description: The GI-S DRAFT is created together with the picking task (UC-67) from current OD reservations and becomes PICKED after picking confirmation (UC-68). Save without stock deduction. Do not post on draft save.
 Trigger: Authorized actor starts prepare goods issue draft on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Create/update GI-S DRAFT from current OD before picking. Save without stock deduction and route picking to UC-67/68. Do not post on draft save.
+2. The GI-S DRAFT is created together with the picking task (UC-67) from current OD reservations and becomes PICKED after picking confirmation (UC-68). Save without stock deduction. Do not post on draft save.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Create/update GI-S DRAFT from current OD before picking. Save without stock deduction and route picking to UC-67/68. Do not post on draft save. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: The GI-S DRAFT is created together with the picking task (UC-67) from current OD reservations and becomes PICKED after picking confirmation (UC-68). Save without stock deduction. Do not post on draft save. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-117: Compare Shortage Fulfilment Options
 Status: ACTIVE. Feature: FE-06.
@@ -2566,15 +2566,15 @@ UC-97: Record Stocktake Count Attempt
 Status: ACTIVE. Feature: FE-08.
 Primary actors and operations: Warehouse Staff — Perform.
 Screen(s): SC-14.
-Description: Require activated locked scope. Append actual count/recount with BOX/PIECE/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting.
+Description: Require activated locked scope. Append actual count/recount with carton/piece/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting.
 Trigger: Authorized actor starts record stocktake count attempt on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Require activated locked scope. Append actual count/recount with BOX/PIECE/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting.
+2. Require activated locked scope. Append actual count/recount with carton/piece/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Require activated locked scope. Append actual count/recount with BOX/PIECE/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Require activated locked scope. Append actual count/recount with carton/piece/quality/owner and actor/time. Blank differs from zero. Add found rows without rewriting snapshot and record immediate B1 holds. No balance posting. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-98: Reconcile Stocktake Results
 Status: ACTIVE. Feature: FE-08.
@@ -2792,27 +2792,27 @@ UC-111: Change Staff Account Status
 Status: ACTIVE. Feature: FE-09.
 Primary actors and operations: Administrator — Perform.
 Screen(s): SC-02.
-Description: Activate/deactivate existing account with audit. Inactive cannot sign in and historical actors remain unchanged. This grants no business posting rights.
+Description: Lock (with a mandatory reason stored as lockReason) or unlock an existing account with audit; self-lock is rejected and ordinary profile updates cannot change status. Locked accounts cannot sign in and historical actors remain unchanged. This grants no business posting rights.
 Trigger: Authorized actor starts change staff account status on the permitted screen.
 Preconditions / required inputs: Active account with exactly one authorized role; operation, warehouse/record/evidence scope and current source/document version. The state/source-specific conditions stated below are mandatory.
 Normal flow:
 1. Select the scoped record/source and enter the operation-specific fields and evidence.
-2. Activate/deactivate existing account with audit. Inactive cannot sign in and historical actors remain unchanged. This grants no business posting rights.
+2. Lock (with a mandatory reason stored as lockReason) or unlock an existing account with audit; self-lock is rejected and ordinary profile updates cannot change status. Locked accounts cannot sign in and historical actors remain unchanged. This grants no business posting rights.
 3. Validate required state/source/quantity and commit only this authorized operation with actor/time/version/history; display the saved result.
 Alternate/exception flows: EX-01 permission/identity/scope rejects without disclosure; EX-02 stale version/source or quantity conflict preserves input for review; EX-03 unknown commit requires same-key lookup before retry; EX-04 freeze blocks unauthorized mutation; EX-05 evidence/output failure preserves valid state and retries output only. No direct editing of posted history.
-Postconditions / exact inventory effect: Activate/deactivate existing account with audit. Inactive cannot sign in and historical actors remain unchanged. This grants no business posting rights. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
+Postconditions / exact inventory effect: Lock (with a mandatory reason stored as lockReason) or unlock an existing account with audit; self-lock is rejected and ordinary profile updates cannot change status. Locked accounts cannot sign in and historical actors remain unchanged. This grants no business posting rights. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 UC-112: Assign roles and operation permissions
 Status: ACTIVE. Feature: FE-09.
-Primary actors and operations: Administrator — Maintain existing role / operation / warehouse scope.
+Primary actors and operations: Administrator — Maintain default/custom roles, permissions and warehouse scope.
 Screen(s): SC-02.
-Description: Maintain exactly the existing five roles, operation rights and assigned warehouse scope. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Each user has exactly one role. Owner approvals still require a different requester, including after a role change.
+Description: Maintain the five default roles and Administrator-created custom roles by selecting existing permissions from the fixed catalogue (no new permission codes), and assign exactly one role and multiple warehouses per user. Custom roles are evaluated by permissions, not by name. No purchasing/delivery role, proxy entry or dynamic delegation workflow is introduced. Owner approvals still require a different requester, including after a role change.
 Preconditions / required inputs: Administrator role/operation/warehouse assignment right.
 Normal flow:
-1. Assign exactly one of OWNER/SALES/WAREHOUSE/ACCOUNTANT/ADMIN per user; replacing a role removes the previous assignment.
-2. Select fixed permitted operations and warehouses.
+1. Assign exactly one default or custom role per user; replacing a role removes the previous assignment.
+2. Tick permissions per function (view/create/update/other) from the fixed catalogue and assign warehouses.
 3. Audit changes and enforce on later requests.
-Alternate/exception flows: No out-of-scope function/new role/arbitrary policy; a user cannot approve their own Owner decision, including after reassignment to OWNER.
+Alternate/exception flows: No out-of-scope function, new permission code or arbitrary policy; a user cannot approve their own Owner decision, including after reassignment to OWNER.
 Shared failures: applicable EX-01 permission/identity, EX-02 version/source concurrency, EX-03 unknown-commit retry, EX-04 freeze, EX-05 evidence/output failure use I.2.9 state/recovery. Read-only export does not itself require posting key.
 Postconditions / exact inventory effect: Access configuration saved; no business/stock posting.
 
@@ -2913,7 +2913,7 @@ Alternate/exception flows: EX-01 permission/identity/scope rejects without discl
 Postconditions / exact inventory effect: Record verified external kind/number/date/line/source/matched quantity/evidence and NOT_RECORDED/PENDING_EXTERNAL/RECORDED_EXTERNAL status. Financial follow-up is independent of warehouse closure and does not execute payment/refund or replace UC-130. Related business rules and source guards remain mandatory; no authority is inherited from a sibling UC.
 
 III. Functional Requirements
-The screen layouts and field contracts below support responsive phone use for actual BOX/PIECE/m², location references and photos. Native mobile applications, offline use and automatic barcode capture are outside scope.
+The screen layouts and field contracts below support responsive phone use for actual carton/piece/m² quantities, location references and photos. Native mobile applications, offline use and automatic barcode capture are outside scope.
 Shared field contract: external provider version is optional if unavailable; internal document/verification version and stable nonblank correlation are retained without inventing a provider revision. ObjectId references, Decimal128 quantities/factors, whole actual pieces for whole-base-unit products, immutable conversion snapshots, UTC Date events displayed in Vietnam time. Required fields are those at the linked UC stage. No invented quantity/factor/deadline/warehouse defaults. Filters optional/nonpersistent; derived balances/approval actor/time/before-after read-only. Positive execution quantity, zero count allowed, blank uncounted, signed nonzero adjustment. Finite states use String enums; version/attempt uses positive Int32, active/found flags Boolean, identifiers/text are trimmed nonblank String where required, evidence uses controlled object-key/hash references.
 
 SC-01: Sign In
@@ -2927,7 +2927,7 @@ Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze gu
 SC-02: Accounts and Permissions
 State: ACTIVE. Linked UCs: UC-107, UC-108, UC-109, UC-110, UC-111, UC-112.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: userId/warehouseIds references; username unique; displayName; active; five role codes; fixed operation permissions; audit actor/time.
+Field contract: userId/warehouseIds references; username/email unique; fullName/phone; active and lockReason (required when locking); one default or custom role; permissions ticked from the fixed catalogue; audit actor/time.
 Actions/outcomes:
 - UC-107: Read-only scoped list/detail; no state or stock effect.
 - UC-108: Read-only scoped list/detail; no state or stock effect.
@@ -2938,7 +2938,7 @@ Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze gu
 SC-03: Products and Packaging
 State: ACTIVE. Linked UCs: UC-17, UC-18, UC-19, UC-20, UC-21, UC-22, UC-23.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: sku/name/material/nominalSize; optional brand/category; baseUom/wholeBaseUnits; positive conversionVersion/piecesPerBox/m2PerPiece; warehouse minimum≥0, target≥minimum, policyVersion/updatedBy; active. No guessed SKU factors.
+Field contract: manufacturerCode/sku/color/name; categoryId; lengthMm/widthMm/heightMm; baseUnit (UOM code)/wholeBaseUnits; imageUrls (≤5 HTTPS); UOM code/name/isCarton/areaMm2; Conversion uom/basePerUnit/validFrom per product or lot; warehouse minimum≥0, target≥minimum, policyVersion/updatedBy; active. No guessed SKU factors.
 Actions/outcomes:
 - UC-17: Read-only scoped list/detail; no state or stock effect.
 - UC-18: Read-only scoped list/detail; no state or stock effect.
@@ -2948,7 +2948,7 @@ Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze gu
 SC-04: Product Lots
 State: ACTIVE. Linked UCs: UC-24, UC-25, UC-26, UC-27.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: product/manufacturerLot/tone/calibre; identificationStatus VERIFIED/UNKNOWN; optional productionDate/evidence. No nominal-size substitution for calibre.
+Field contract: product/manufacturerLot; identificationStatus VERIFIED/UNKNOWN; piecesPerCarton; cartonLengthMm/cartonWidthMm/cartonHeightMm; optional evidence. No tone/calibre fields.
 Actions/outcomes:
 - UC-24: Read-only scoped list/detail; no state or stock effect.
 - UC-25: Read-only scoped list/detail; no state or stock effect.
@@ -2968,7 +2968,7 @@ Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze gu
 SC-06: Replenishment Requests
 State: ACTIVE. Linked UCs: UC-01, UC-02, UC-03, UC-04, UC-05, UC-06.
 Layout: scoped list/warning selections or chosen menu source → prefilled editable form → Save draft/Submit → versioned decision. Opening/cancelling the form creates no request. Direct menu entry is available without a warning or source document and supports an RR containing only MANUAL_OTHER lines.
-Field contract: receiving warehouse and need date; selected product/source refs and versions; requested quantity/unit/conversion, suggested quantity, current coverage and evaluatedAt; header/line textual reasons and quantity-adjustment explanation; creator/submission/decision. Source product/warehouse stays fixed until context is reselected and reevaluated. Added products require their own source or other-need reason; never attach them to an unrelated SO line. Each MANUAL_OTHER line requires a request-level reason; line-level reasonNote is optional on the backend API while the frontend form currently prompts for it, and no SO/stocktake source reference is required; source refs/snapshots are required only for actual source-backed lines.
+Field contract: receiving warehouse and need date; request-level triggerReason; per line product, optional lot, enteredUnit/enteredQty/conversion snapshot, requested and approved base quantity, optional reasonNote (≤2,000 characters), source type and SO/WIR/stocktake reference with version; warning evaluation (available, minimum/target, open RR, incoming PO with expected date, other-warehouse quantities, warnings) with evaluatedAt; independentNeedConfirmed and independentNeedReason for warned lines; creator/submission/decision. A saved source-backed line keeps its source document; never attach a product to an unrelated SO line.
 Actions/outcomes:
 - UC-01: Read-only scoped list/detail; no state or stock effect.
 - UC-02: Read-only scoped list/detail; no state or stock effect.
@@ -2977,19 +2977,19 @@ Actions/outcomes:
 Validation/recovery: one warehouse/need date per request; compatible current coverage/source/permission/version checks. Changed evaluations show old/new values while preserving entered quantity/date/reasons for reconfirmation. Invalid sources require correction/removal; identical source lines require merge/correction. Source/quantity above a sales shortage is a separate other-need line. New creation uses creationKey/payloadHash; saved drafts use documentVersion and a stable update operation key. Unknown commit is resolved before retry. A fully MANUAL_OTHER request with valid warehouse/date/positive quantities and a request-level reason can be submitted even with stock above minimum and no shortage/alert/count. Blank request-level reasons block saving/submission; line-level reasonNote is optional on the backend API; do not fabricate source evidence to pass validation.
 
 SC-07: Purchase Orders
-State: ACTIVE. Linked UCs: UC-07, UC-08, UC-09, UC-10, UC-11, UC-12, UC-13.
+State: ACTIVE. Linked UCs: UC-07, UC-08, UC-09, UC-10, UC-12, UC-13.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: supplier/warehouse/RR lines; ordered/confirmed qty/dates; supplier evidence; accepted/outstanding/cancelled derived/history; short-closure authorization.
+Field contract: supplier/warehouse/RR lines (one PO line per RR line); ordered qty/unit/conversion, purchase price, optional line note; common expectedOn and reschedule reason; DRAFT/OPEN/PARTIAL/COMPLETED/CLOSED; received/outstanding/cancelled derived/history; hasOpenReceivingWork; closure request/approval/execution.
 Actions/outcomes:
 - UC-07: Read-only scoped list/detail; no state or stock effect.
 - UC-08: Read-only scoped list/detail; no state or stock effect.
-- UC-09, UC-10, UC-11, UC-12, UC-13: PO/confirmation/outstanding history saved; no inventory or supplier-payment posting.
+- UC-09, UC-10, UC-12, UC-13: PO/expected date/closure history saved; no inventory or supplier-payment posting.
 Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze guards. Keep valid draft inputs on validation failure; unknown commit looks up existing result before retry. Private evidence, mandatory evidence before confirmation.
 
 SC-08: Goods Receipt, Inspection and Put-away
 State: ACTIVE. Linked UCs: UC-14, UC-15, UC-16, UC-37, UC-45, UC-46.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: PO/arrival/sourceLine; delivered/accepted/custody/rejected qty by homogeneous line; actual pieces/unit/conversion snapshot; lot/tone/calibre; packaging SEALED/OPENED/TORN/UNKNOWN; quality PENDING/GOOD/DAMAGED/BLOCKED; owner; inspector/time/evidence; put-away task/from/to/actualQty.
+Field contract: PO/arrival/sourceLine; delivered/accepted/custody/rejected qty by homogeneous line; counted unit (carton or piece) with conversion snapshot and base quantity; verified lot; ownership ACCEPT/CUSTODY/REJECT; packaging SEALED/OPENED/TORN/UNKNOWN; measured packaging portions for opened/loose goods; quality PENDING/GOOD/DAMAGED/BLOCKED; owner; inspector/time/evidence; put-away task/from/to/actualQty.
 Actions/outcomes:
 - UC-14: Read-only scoped list/detail; no state or stock effect.
 - UC-15: Read-only scoped list/detail; no state or stock effect.
@@ -2999,10 +2999,10 @@ Actions/outcomes:
 - UC-46: Equal source/destination quantity; total unchanged; eligible GOOD stock becomes available.
 Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze guards. Keep valid draft inputs on validation failure; unknown commit looks up existing result before retry. Private evidence, mandatory evidence before confirmation.
 
-SC-09: Warehouse Locations
+SC-09: Warehouses, Locations and Layout
 State: ACTIVE. Linked UCs: UC-38, UC-39, UC-40, UC-41, UC-42.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: warehouse/code unique; kind RECEIVING/STORAGE/STAGING/QUARANTINE/CUSTODY; allocatable only STORAGE; active; nonempty deactivation prohibited.
+Field contract: warehouse code (immutable)/name/address/dimensions/clearHeightMm/status; location code unique per warehouse, name, areaCode, type RECEIVING/STORAGE/STAGING/QUARANTINE/CUSTODY, usableLengthMm/usableWidthMm, isPickable only for STORAGE; active; nonempty deactivation prohibited; layout3d draft/applied snapshot with zones, slots and pallets.
 Actions/outcomes:
 - UC-38: Read-only scoped list/detail; no state or stock effect.
 - UC-39: Read-only scoped list/detail; no state or stock effect.
@@ -3033,7 +3033,7 @@ Validation/recovery: proper role/sub-operation/kind/version, source caps, scope,
 SC-12: Location Movements
 State: ACTIVE. Linked UCs: UC-47, UC-48, UC-49, UC-50.
 Layout: scoped worklist/filter→source-linked detail→authorized entry/review/confirmation→committed result/history. Distinguish Save, approval, physical posting and Print.
-Field contract: task/from/to in same warehouse; lot/quality/owner; requested/actual qty; reservations; actor/time/freeze. No Owner approval.
+Field contract: task/from/to in same warehouse; source balance and version; lot/quality/owner; whole cartons/pieces requested and actual qty (equal at confirmation); OPEN/CONFIRMED/CANCELLED; reservations; actor/time/freeze. No Owner approval.
 Actions/outcomes:
 - UC-47: Read-only scoped list/detail; no state or stock effect.
 - UC-48: Read-only scoped list/detail; no state or stock effect.
@@ -3044,9 +3044,9 @@ Validation/recovery: exact linked UC source/version/qty/identity/scope/freeze gu
 SC-13: Warehouse Transfers, Dispatch and Receipt
 State: ACTIVE. Linked UCs: UC-51, UC-52, UC-53, UC-54, UC-55, UC-56, UC-120.
 Layout: scoped list → source-linked detail → authorized draft/inspection/decision/execution/post → committed result/history; show only permitted actions.
-Field contract: TR/current Owner approval/source/destination/qty; TD DRAFT before picking; actual picking TO confirmation if staging, HO/post; independent MWTR/quality and put-away TO; request remainder/transit/variance/TO unresolved closure guards.
+Field contract: TR/current Owner approval/source/destination/qty and REVISION_REQUIRED resubmission; TD DRAFT with source balance/staging and reservation; one ITR and PICK TO; PICK confirmation with recipientName/vehiclePlate posting to transit; independent receipts GOOD/DAMAGED with damage reason; PUTAWAY TO; difference records and Owner review; line progress dispatched/received/transit/unresolved; close and partial-close guards.
 Actions/outcomes:
-- UC-55: Draft no stock; posting transfers source to transit once, never destination receipt.
+- UC-55: Draft reserves only; posting transfers source to transit once, never destination receipt.
 - UC-56: Execution/read-only outcome remains defined in UC-56.
 - UC-120: Execution/read-only outcome remains defined in UC-120.
 Other linked UCs retain their defined scoped read/execution behavior.
@@ -3146,7 +3146,7 @@ Validation/recovery: proper role/sub-operation/kind/version, source caps, scope,
 SC-23: Picking Tasks
 State: ACTIVE. Linked UCs: UC-65, UC-66, UC-67, UC-68.
 Layout: scoped list → source-linked detail → authorized draft/inspection/decision/execution/post → committed result/history; show only permitted actions.
-Field contract: existing draft GI-S/OD or draft TD before picking; task source/staging/lot/quality/owner/reservation, actual partial/unpick qty, TO execution actor/time/evidence, immutable units. No Owner task approval or total deduction.
+Field contract: OD reservations (sales) or TD reservation (transfer); system-created draft GI-S for sales picking; task source/staging/lot/quality/owner/reservation, actual partial/unpick qty, TO execution actor/time/evidence, immutable units. No Owner task approval or total deduction.
 Actions/outcomes:
 - UC-67: Instruction/hold only; no total deduction.
 - UC-68: Execution/read-only outcome remains defined in UC-68.
@@ -3211,34 +3211,34 @@ IV. Non-Functional Requirements
 Responsive internal web application including phone. MongoDB runtime requires supported atomic multi-document transactions. SQL Server/T-SQL is reference DDL only. Server-side SMTP API-01 and controlled evidence API-02; no MISA/payment/tax integration. Warehouse outputs derive from committed snapshots and scoped evidence access.
 2. Quality Attributes
 2.1 Usability
-Actual boxes/loose pieces, visible conversion, warehouse/location/lot identity, phone camera/file attachments and per-quantity return/quality review. Failed/missing POD photo retains a draft; retry returns to POD without repicking/PGI. Show copied SO/WIR, PGI, DELIVERED and COMPLETED as distinct milestones. Show physical/available/reserved/custody/transit separately. Distinguish draft, review, physical post, print and external finance status. Errors identify correction without losing valid input or exposing protected data. RR forms distinguish suggested and entered quantities, retain quantity/date/reasons when evaluation changes, and show source links per line. In-app notifications show read/unread per recipient; reading is distinct from resolving a shortage.
+Actual boxes/loose pieces, visible conversion, warehouse/location/lot identity, phone camera/file attachments and per-quantity return/quality review. Failed/missing POD photo retains a draft; retry returns to POD without repicking/PGI. Show copied SO/WIR, PGI, DELIVERED and COMPLETED as distinct milestones. Show physical/available/reserved/custody/transit separately. Distinguish draft, review, physical post, print and external finance status. Errors identify correction without losing valid input or exposing protected data. RR forms show per-line warnings (open RR, incoming PO, sufficient stock) with related documents, require an explanation for warned lines, retain quantity/date/reasons when evaluation changes, and show source links per line. In-app notifications show read/unread per recipient; reading is distinct from resolving a shortage.
 2.2 Performance
 No signed-off numeric response SLA, concurrency count, volume or availability percentage supplied. Verify scoped list/report behavior on representative store-approved datasets; agree numeric targets before acceptance.
 2.3 Security
-Active personal accounts, exactly one of five fixed roles per user and server-side operation/warehouse/record/evidence scope, including direct requests/exports. Distinct requester for Owner approvals and independent transfer dispatcher/receiver; C2 Sales own ordinary CR acceptance is explicitly allowed, BF-08 Owner approval is absent. Administrator no default business rights. Protect credentials/server secrets, private evidence retrieval and administrative audit; changed access never rewrites past decisions.
+Active personal accounts, exactly one role per user (five default roles or Administrator-created custom roles built from the fixed permission catalogue) and server-side operation/warehouse/record/evidence scope, including direct requests/exports. Distinct requester for Owner approvals and independent transfer dispatcher/receiver; C2 Sales own ordinary CR acceptance is explicitly allowed, BF-08 Owner approval is absent. Administrator no default business rights. Protect credentials/server secrets, private evidence retrieval and administrative audit; changed access never rewrites past decisions.
 2.4 Reliability and Data Integrity
 Integrity controls include a shared source guard across POD/FD/CR claims and receipts; atomic GR-FD stock/net reopening/version and replacement OD commitment; B1 balance-neutral holds, current approved plan plus Warehouse execution, delta/RECLASS batch and no early unlock. No Owner supplier-return approval route is in scope.
-Atomically commit source/version, batch, movements, balance, reservations, status, audit and outbox. Stable operation/idempotency key and hash prevent duplicate stock effects; changed payload conflicts. Unknown commit resolved by lookup; transient retry uses same identity. Concurrent holds/receipts/returns respect eligible source ceilings. All in-scope quantity/quality/ownership/location changes and backdated corrections coordinate with stocktake activation/freeze; only authorized clearing changes counted balance before unlock. Interrupted session retains freeze/history. Snapshot, count attempts, posted documents/assessments remain immutable; corrections append links.
+Atomically commit source/version, batch, movements, balance, reservations, status, audit and outbox. Stable operation/idempotency key and hash prevent duplicate stock effects; changed payload conflicts. Unknown commit resolved by lookup; transient retry uses same identity. Concurrent holds/receipts/returns respect eligible source ceilings. All in-scope quantity/quality/ownership/location changes and backdated corrections coordinate with stocktake activation/freeze; only authorized clearing changes counted balance before unlock. Interrupted session retains freeze/history. Snapshot, count attempts, posted documents/assessments remain immutable; corrections append links. New documents receive _id = documentNo ([type]-[warehouse/department]-[YYMMDD]-[6-digit sequence]) inside the same transaction, retrying on collision; IDs never change after save.
 POD/PAY-CFM use stable business-operation IDs/hash, not posting_batch/movement. Atomically commit confirmation/VOIDED correction with SO version/progress, audit/outbox. Competing PODs contend on shared source/SO guards, not merely snapshot sums. PAY-CFM binds current delivered SO version; correction invalidates stale completion conditions.
-RR saves use shared coverage guards and stable command identities; stored pending RR coverage transfers to incoming supply once. Form opening/cancellation has no persistence effect. Post-commit Notification retries preserve existing readAt and deduplicate event/type/recipient/warehouse without creating RR. Output/notification retry never repeats stock posting. SMTP uncertain timeout requires delivery reconciliation, not a claim of exactly-once email. Transit/received/resolved reconcile; custody never silently becomes owned stock.
+RR saves re-evaluate advisory warnings inside the transaction and use stable command identities; the shared coverage guard was removed on 11/11/2026 and duplicate purchasing is controlled by confirmed explanations and independent Owner review. Form opening/cancellation has no persistence effect. Post-commit Notification retries preserve existing readAt and deduplicate event/type/recipient/warehouse without creating RR. Output/notification retry never repeats stock posting. SMTP uncertain timeout requires delivery reconciliation, not a claim of exactly-once email. Transit/received/resolved reconcile; custody never silently becomes owned stock.
 2.5 Maintainability and Traceability
-130 active UCs map to feature/permission/screen/inputs/alternates/exact inventory effect. SC-25–27 are historical screens only. Trace external system/document/line/version→SO→WIR→OD→GI-S→POD→PAY-CFM and PO→GR/transfer→return/disposition/adjustment, with actor/time/evidence. Reconcile closing=opening+ledger delta in consistent dimensions including OPENING; no silent balance initialization/overwrite. Business branches and EX-01–05 define acceptance cases for source validity, permissions, retries and inventory consistency.
+129 active UCs (UC-11 retired) map to feature/permission/screen/inputs/alternates/exact inventory effect. SC-25–27 are historical screens only. Trace external system/document/line/version→SO→WIR→OD→GI-S→POD→PAY-CFM and PO→GR/transfer→return/disposition/adjustment, with actor/time/evidence. Reconcile closing=opening+ledger delta in consistent dimensions including OPENING; no silent balance initialization/overwrite. Business branches and EX-01–05 define acceptance cases for source validity, permissions, retries and inventory consistency.
 
 V. Requirement Appendix
 1. Business Rules
-BR-01–33 are the single current catalogue shared with process VI/EN. Historical DR/GB IDs alias these statements. GB-NEW-04 internal invoice and GB-NEW-05 refund eligibility are RETIRED. GB-POLICY retains no-general-policy-editor boundary; finite minimums/conversion versions are allowed.
+BR-01–34 are the single current catalogue shared with process VI/EN. Historical DR/GB IDs alias these statements. GB-NEW-04 internal invoice and GB-NEW-05 refund eligibility are RETIRED. GB-POLICY retains no-general-policy-editor boundary; finite minimums/conversion versions are allowed.
 | BR | Rule statement | Traceability |
 |---|---|---|
-| BR-01 | Lot identity distinguishes product/lot/tone/calibre; do not pool different tones to fill demand. | DR-01, UC-19, UC-20, UC-21, UC-22, UC-23, UC-26, UC-27, UC-37, UC-43, UC-67, UC-68, UC-84, UC-85 |
-| BR-02 | Version product/packaging conversions and snapshot them on lines. Whole tiles cannot be fractional pieces. Use product area specifications; calibre does not determine m² factors. | DR-02, GB-03 |
-| BR-03 | Evaluate sources after SO save/count closure; an uncovered need prompts or warns. Sales/Warehouse may also open the same form directly from the menu and create the entire RR using MANUAL_OTHER with a request-level reason and optional line notes, without shortage/low-stock/count prerequisites. Only valid Save draft/Submit persists RR; validate warehouse/date/positive quantities and duplicate coverage. Source-backed lines retain actual refs/snapshots; MANUAL_OTHER requires no fabricated source. A different Owner approves before Accountant creates a PO; no automatic PO. | UC-03, UC-04, UC-05, UC-06, UC-19, UC-20, UC-21, UC-22, UC-23, UC-59, UC-60, UC-61, UC-105, UC-117, UC-118, UC-119 |
+| BR-01 | Lot identity is product + manufacturer lot with fixed pieces per carton; one physical carton holds one product from one lot; do not pool different lots to fill lot-specific demand. | DR-01, UC-19, UC-20, UC-21, UC-22, UC-23, UC-26, UC-27, UC-37, UC-43, UC-67, UC-68, UC-84, UC-85 |
+| BR-02 | Version UOM conversions per product and optional lot and snapshot them on lines. Whole tiles cannot be fractional pieces; m² factors derive from tile length × width and area quantities round up to whole pieces. Cartons are never opened automatically. | DR-02, GB-03 |
+| BR-03 | Evaluate sources after SO save/count closure; an uncovered need prompts or warns. Sales/Warehouse may also open the same form directly from the menu and create the entire RR using MANUAL_OTHER with a request-level reason and optional line notes, without shortage/low-stock/count prerequisites. Only valid Save draft/Submit persists RR; validate warehouse/date/positive quantities and require a confirmed explanation for lines warned about open RR, incoming PO or sufficient stock. Source-backed lines retain actual refs/snapshots; MANUAL_OTHER requires no fabricated source. A different Owner approves before Accountant creates a PO; no automatic PO. | UC-03, UC-04, UC-05, UC-06, UC-19, UC-20, UC-21, UC-22, UC-23, UC-59, UC-60, UC-61, UC-105, UC-117, UC-118, UC-119 |
 | BR-04 | Do not double-count demand already covered by PO/transfer/allocation. Planned receipts are not current availability. | BF-01/04/06 |
 | BR-05 | Same-user approval prohibited for RR/TR, CR exceptions, destruction/regrade and stocktake plans. C2 permits Sales ordinary acceptance of own CR after Warehouse inspection, never exception/Owner approval. BF-08 has no Owner approval. | UC-06, UC-54, UC-77, UC-82, UC-83, UC-104 |
 | BR-06 | Post receipt/issue/return/adjustment once, atomically with ledger/balance. No negative availability; retry returns prior result. | DR-09/10/13, GB-09/10/13 |
 | BR-07 | Separate actual delivery, accepted ownership, custody and rejection. Uninspected/not-ready stock is unavailable. | DR-04, GB-04, UC-37, UC-46, UC-86, UC-87 |
-| BR-08 | PO supports multiple receipts; posted parts are immutable. Short closure/excess change requires reasons and authorization. | DR-03, GB-05, UC-09, UC-10, UC-11, UC-12, UC-13, UC-16, UC-37 |
-| BR-09 | Local relocation preserves total/lot/quality and reservations; no Owner approval. | DR-06, GB-06, UC-49/50 |
-| BR-10 | Approved TR → draft TD before picking → execution confirmation → TD/HO post at handover → MWTR → confirmed put-away TO. No Owner TO approval or additional GI for the same TD. | UC-54/55/120 |
+| BR-08 | PO content is edited only while DRAFT; once OPEN/PARTIAL only the common expected date may be rescheduled with a reason. PO supports multiple receipts; posted parts are immutable. Remainder closure requires Accountant request, independent Owner approval and Accountant execution. | DR-03, GB-05, UC-09, UC-10, UC-12, UC-13, UC-16, UC-37 |
+| BR-09 | Local relocation preserves total/lot/quality and reservations, moves whole cartons/pieces only and is confirmed once in full by its creator; no Owner approval. | DR-06, GB-06, UC-49/50 |
+| BR-10 | Approved TR → draft TD reserving source → PICK TO → PICK confirmation with handover posts source→transit (TD POSTED) → independent receipt GOOD/DAMAGED → PUTAWAY TO for GOOD lines → close. No Owner TO approval or additional GI for the same TD. | UC-54/55/120 |
 | BR-11 | Posted TD cannot exceed approved TR after cancellation. Dispatch = valid receipt + transit/unresolved + documented other outcomes. TR closes only after demand, dispatched quantities and related TOs are resolved; a matched release alone is insufficient. | UC-55/56/120 |
 | BR-12 | Destination confirmation is independent of source dispatch under verified staffing; one confirm cannot update both ends. | UC-55/120, permissions |
 | BR-13 | Compatibility precedes FIFO. Record exception reasons/consent; do not assume LIFO without evidence. | UC-67, UC-68, UC-117, UC-118, UC-119 |
@@ -3258,10 +3258,11 @@ BR-01–33 are the single current catalogue shared with process VI/EN. Historica
 | BR-27 | Only evidence-authorized users retrieve files; URLs are not public by default. | API-02 evidence storage, GB-NEW-02 |
 | BR-28 | Source system/document/line, version and correlation ID prevent duplicate WMS/MISA recording across SO, WIR, OD, GI-S, `CR` and `EXT-REF`. | UC-59, UC-124, UC-125, UC-126, UC-127, UC-128, UC-64, UC-71, UC-72, UC-81, UC-122, UC-123 |
 | BR-29 | CR sealed/unused goods are individually assessed; installed/customer-damaged/verified overdue is rejected and unknown waits. C2 Sales decides eligible ordinary cases; Owner only substantiated exceptions, never excluded conditions. D6 does not apply to FD never received by customer. | BF-07, UC-81, UC-82, UC-83, UC-84, UC-85, UC-86, UC-87 |
-| BR-30 | Torn/opened packaging alone is not tile damage. Count actual pieces and inspect quality. BOX/PIECE/m² conversions follow product/version, not inferred calibre. | D7, BF-01/05/06/07, UC-19, UC-20, UC-21, UC-22, UC-23, UC-37, UC-68, UC-84, UC-85, UC-96, UC-97 |
+| BR-30 | Torn/opened packaging alone is not tile damage. Count actual pieces and inspect quality. Carton/piece/m² conversions follow the product/lot conversion version. | D7, BF-01/05/06/07, UC-19, UC-20, UC-21, UC-22, UC-23, UC-37, UC-68, UC-84, UC-85, UC-96, UC-97 |
 | BR-31 | Verified SO and line-linked WIR/OD commitments stay within SO after cancellation. Execution caps use valid PGI less posted GR-FD; redelivery reuses original SO/WIR demand without adding replacement OD as new demand. | UC-57, UC-58, UC-59, UC-60, UC-61, UC-64, UC-71, UC-72, UC-86, UC-87, UC-124, UC-125, UC-126, UC-127, UC-128 |
 | BR-32 | POD requires POSTED GI-S, recipient/time/quantity/photo. Effective POD + posted GR-FD + open FD ≤ valid PGI per line. DELIVERED requires full active quantity > 0; full cancellation at zero delivery → CANCELLED. | UC-71, UC-72, UC-86, UC-87, UC-129 |
 | BR-33 | Only Sales confirms full external receipt after DELIVERED to set COMPLETED. Partial payment or prepayment before full delivery cannot complete SO. POD/PAY-CFM change no stock; corrections preserve history and recalculate order progress. | BF-06, UC-60, UC-61, UC-129, UC-130, UC-122, UC-123 |
+| BR-34 | New documents use _id = documentNo in the form [type]-[warehouse/department]-[YYMMDD]-[sequence], allocated inside the creating transaction; IDs are immutable, catalogue and embedded line IDs stay ObjectId and historical ObjectId documents remain readable. | All document-creating UCs |
 
 Historical GB mapping: GB-01/GB-NEW-01→BR-05 and I.4.4; GB-02→BR-24; GB-03→BR-02/30; GB-04→BR-07; GB-05→BR-08; GB-06→BR-09; GB-07→BR-10–12; GB-08/GB-NEW-07→BR-21–22; GB-09/GB-NEW-06→BR-23; GB-10/GB-NEW-03→BR-14–15; GB-11→BR-16–18/29; GB-12→BR-19–20; GB-13→BR-06/24; GB-NEW-02→BR-27 and warehouse scope. GB-AUTH preserves lot/supplier/report sub-operation rights in UC-26, UC-27, UC-30, UC-31, UC-32, UC-113 without broadening matrix.
 
@@ -3277,7 +3278,7 @@ Historical GB mapping: GB-01/GB-NEW-01→BR-05 and I.4.4; GB-02→BR-24; GB-03�
 | MSG-07 | Notification | Business committed; notification failed/pending retry without stock change. |
 | MSG-08 | Separation | Owner approval requires distinct requester; cannot confirm own transfer at destination. Sales ordinary CR acceptance follows the explicit C2 exception. |
 | MSG-09 | Frozen scope | Location under stocktake; wait for authorized resolution/unlock. |
-| MSG-10 | Identity | Wrong/unverified lot/tone/calibre; no allocation as eligible stock. |
+| MSG-10 | Identity | Wrong/unverified lot; no allocation as eligible stock. |
 | MSG-11 | Return conditions | Pending/ineligible conditions; no GR-CR, held quantity stays custody. |
 | MSG-12 | External source | Unverified source/duplicate release; resolve before execution. |
 | MSG-13 | Supplier return | Verified agreement/source or quantity reconciliation incomplete; block the affected dispatch/closure. No Owner approval prerequisite. |
@@ -3285,8 +3286,9 @@ Historical GB mapping: GB-01/GB-NEW-01→BR-05 and I.4.4; GB-02→BR-24; GB-03�
 | MSG-15 | Evidence | Mandatory evidence unavailable; complete upload before confirmation. |
 | MSG-16 | Delivery photo/source | Valid posted GI-S and stored POD photo required; effective POD plus posted GR-FD and OPEN FD claims cannot exceed valid PGI. |
 | MSG-17 | Completion | Current full delivery and Sales full external receipt required; cancelled/partially paid orders cannot complete. |
+| MSG-18 | Replenishment warning | Open RR, incoming PO or sufficient stock detected; confirm the independent need with an explanation before saving or submitting. |
 
 3. Other Requirements
-Independent commercial selling/prices/internal-tax invoices/refund workflows, payment execution/debt/accounting, live MISA, dynamic delegation and arbitrary policy editors excluded. D1–D8/five roles retained. Do not invent warehouse names/staffing, SKU factors, actual calibre or return-day values.
+Independent commercial price-list management, internal-tax invoices/refund workflows, payment execution/debt/accounting, live MISA, dynamic delegation and arbitrary policy editors excluded. D1–D8 and the five default roles retained; custom roles only select existing permissions. Do not invent warehouse names/staffing, SKU factors, lot carton specifications or return-day values.
 
 Report 3 (SRS Document)

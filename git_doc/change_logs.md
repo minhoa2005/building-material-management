@@ -1,3 +1,11 @@
+## 14/11/2026 - Đồng bộ Report 3 theo code và lập bản nháp Report 4
+
+- Theo yêu cầu người dùng, đối chiếu [Report 3](docs/01_bao_cao/WMSD_Report3_Fix.docx.txt) với template SEP490 trên Drive và code BE/FE hiện hành, ưu tiên code. Sửa trong các mục có sẵn, không thêm dòng vào Change Log của report.
+- Nội dung chính đã sửa: BF-01 (cảnh báo RR thay guard, PO chỉ sửa khi nháp, đổi ngày dự kiến, đóng phần còn lại qua đề nghị–duyệt–thực hiện, kiểm nhận theo lô/thùng/viên, GR/hàng giữ hộ nháp, cất hàng nguyên thùng, Warehouse đảo nhập trực tiếp); BF-03 (số nguyên thùng/viên, xác nhận trọn lệnh một lần); BF-04 (giữ hàng khi lập phiếu xuất nháp, PICK + bàn giao, nhận GOOD/DAMAGED, hồ sơ chênh lệch, đóng/đóng một phần); BF-06 (giá bán trên SO, OD giữ hàng, picking tạo GI nháp → PICKED); bỏ tone/calibre; UOM/Conversion; role tùy chỉnh và lockReason; định danh chứng từ (BR-34); MSG-18; UC-11 RETIRED (129 active), UC-10 đổi thành đổi ngày dự kiến PO, UC-12 có Owner duyệt.
+- Không sửa quyết định chưa có trong code: PGI/POD/PAY-CFM, lập/kích hoạt/đếm kiểm kê và gửi SMTP vẫn giữ là yêu cầu; trạng thái chưa có API ghi ở Report 4 mục IV.6.
+- Thêm [Report 4 bản nháp](docs/01_bao_cao/WMSD_Report4_Draft.md) theo template SDS: kiến trúc, package, ERD, danh mục 58 collection và bảng trường 34 collection sinh từ schema Mongoose hiện hành, sequence/class diagram cho BF-01–BF-08 (tách nhỏ), thiết kế bảo mật/RBAC/hiệu năng theo code.
+- Kiểm tra: 35 sơ đồ Mermaid (31 Report 4, 4 Report 3) parse đạt bằng mermaid 11.4.1. Không đổi code, model, API hay dữ liệu DB. Bản Word trên Drive chưa được cập nhật.
+
 ## 14/11/2026 - Việt hóa mã và tên đơn vị tính
 
 - Seed mẫu v11 dùng `Viên`, `Thùng` và `Mét vuông` cho cả mã và tên. `Mét vuông` có `areaMm2` Decimal128 bằng 1000000.
