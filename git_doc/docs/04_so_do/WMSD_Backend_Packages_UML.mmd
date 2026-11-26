@@ -1,0 +1,61 @@
+---
+title: WMSD Backend Package Diagram
+config:
+  theme: base
+  look: classic
+  fontFamily: Arial, Helvetica, sans-serif
+  themeVariables:
+    fontSize: 18px
+    primaryColor: '#d1fae5'
+    primaryTextColor: '#064e3b'
+    primaryBorderColor: '#059669'
+    secondaryColor: '#fff2cc'
+    secondaryTextColor: '#78350f'
+    secondaryBorderColor: '#d97706'
+    tertiaryColor: '#eef2f7'
+    tertiaryTextColor: '#1f2937'
+    tertiaryBorderColor: '#94a3b8'
+    lineColor: '#475569'
+    clusterBkg: '#ffffff'
+    clusterBorder: '#94a3b8'
+  flowchart:
+    curve: basis
+    nodeSpacing: 52
+    rankSpacing: 70
+    padding: 18
+---
+flowchart TB
+    SERVER@{ shape: folder, label: "server" }
+    APP@{ shape: folder, label: "app" }
+    ROUTES@{ shape: folder, label: "routes" }
+    CONFIG@{ shape: folder, label: "config" }
+    MIDDLEWARES@{ shape: folder, label: "middlewares" }
+    UTILS@{ shape: folder, label: "utils" }
+
+    subgraph MODULES["modules"]
+        direction LR
+        AUTH@{ shape: folder, label: "auth" }
+        PRODUCTS@{ shape: folder, label: "products" }
+        SALES@{ shape: folder, label: "sales-orders" }
+        MORE@{ shape: folder, label: "..." }
+    end
+
+    MODELS@{ shape: folder, label: "models" }
+
+    SERVER --> APP
+    SERVER -.-> CONFIG
+    APP --> ROUTES
+    APP -.-> MIDDLEWARES
+    ROUTES -.-> MODULES
+    MIDDLEWARES -.-> UTILS
+    MODULES -.-> UTILS
+    MODULES -.-> MODELS
+
+    classDef bootstrap fill:#d1fae5,stroke:#059669,color:#064e3b,stroke-width:1px;
+    classDef feature fill:#fff2cc,stroke:#d97706,color:#78350f,stroke-width:1px;
+    classDef infrastructure fill:#eef2f7,stroke:#94a3b8,color:#1f2937,stroke-width:1px;
+    classDef persistence fill:#f3e8ff,stroke:#8b5cf6,color:#581c87,stroke-width:1px;
+    class SERVER,APP,ROUTES bootstrap;
+    class AUTH,PRODUCTS,SALES,MORE feature;
+    class CONFIG,MIDDLEWARES,UTILS infrastructure;
+    class MODELS persistence;

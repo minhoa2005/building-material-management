@@ -1,0 +1,73 @@
+%% WMSD Software Architecture — current runtime, verified from source on 26 November 2026.
+flowchart TB
+  subgraph Access["NGƯỜI DÙNG · 5 APPLICATION ROLES"]
+    Roles["Store Owner · Warehouse Staff · Sales Staff<br/>Accountant · Administrator"]
+  end
+
+  subgraph Client["PRESENTATION · frontend/"]
+    direction TB
+    SPA["React 19 SPA · TypeScript · Vite 8"]
+    UI["React Router 7 · Ant Design 6 · Tailwind 4<br/>Feature-based UI · Warehouse 3D / Three.js"]
+    State["Redux Toolkit + RTK Query<br/>HTTP client · JWT refresh mutex · cache"]
+    SPA --> UI --> State
+  end
+
+  subgraph Server["APPLICATION · MODULAR MONOLITH · building-material-management/src/"]
+    direction TB
+    API["Express 5 REST API · /api<br/>CORS · cookies · Zod validation · error handling"]
+    Security["JWT authentication · RBAC permissions<br/>warehouse scope · separation of duties"]
+    API --> Security
+
+    subgraph Modules["BUSINESS MODULES · routes → services → Mongoose models"]
+      direction LR
+      Master["Identity & master data<br/>auth · users · roles<br/>products · lots · UOM · suppliers · warehouses"]
+      Procurement["Procurement & replenishment<br/>replenishments · purchase orders<br/>inspections · receiving · custody"]
+      Inventory["Inventory & warehouse execution<br/>stock · opening stock · location moves<br/>goods receipts / issues · transfers · Kho 3D"]
+      Fulfilment["Sales, returns & stocktake<br/>sales orders · customer / supplier returns<br/>defects · stocktake plans & reconciliation"]
+      Support["Cross-cutting features<br/>reports · dashboard · search<br/>notifications · system administration"]
+    end
+
+    Security --> Modules
+    Domain["Shared domain services<br/>stock posting · exact Decimal128 arithmetic<br/>source / version / capacity / freeze guards"]
+    Modules --> Domain
+
+    subgraph Consistency["TRANSACTIONAL STOCK PROTOCOL"]
+      direction TB
+      Command["MongoDB multi-document transaction<br/>version guards · operation / idempotency key"]
+      Ledger["Atomic stock write<br/>inventory_balances + stock_transactions.movements<br/>reservations + document + audit + system_events"]
+      Command --> Ledger
+    end
+    Domain --> Command
+    Ledger -->|"same-commit outbox event"| Jobs
+    Jobs["Background jobs: outbox worker + email / low-stock scan"]
+  end
+
+  subgraph Data["PERSISTENCE & EXTERNAL SERVICES"]
+    direction LR
+    Mongo[("MongoDB via Mongoose 9<br/>61 collections · embedded movements<br/>replica set required for DB transactions")]
+    Cloud["Cloudinary<br/>authenticated evidence storage"]
+    SMTP["SMTP service<br/>notifications & OTP email"]
+    MISA["MISA eShop / external documents<br/>manual reference only · NO LIVE API"]
+  end
+
+  Roles -->|"HTTPS · browser"| SPA
+  State -->|"REST JSON · Bearer JWT<br/>HttpOnly refresh cookie"| API
+  Ledger -->|"Mongoose · same commit"| Mongo
+  Jobs -->|"read outbox / update job state"| Mongo
+  Jobs -->|"email after commit · retry"| SMTP
+  Modules -->|"evidence: upload before transaction<br/>signed private download"| Cloud
+  Jobs ~~~ MISA
+  Fulfilment -. "local source reference only" .-> MISA
+
+  classDef actor fill:#F4F1EA,stroke:#8C6D3F,color:#292524,stroke-width:1.5px;
+  classDef frontend fill:#E8F1F8,stroke:#35709A,color:#17364D,stroke-width:1.5px;
+  classDef backend fill:#EAF4EC,stroke:#4F8060,color:#203D2B,stroke-width:1.5px;
+  classDef persistence fill:#FFF1DB,stroke:#AA7228,color:#49300F,stroke-width:1.5px;
+  classDef external fill:#F3ECF8,stroke:#80609C,color:#392749,stroke-width:1.5px;
+  classDef boundary fill:#FFFFFF,stroke:#8391A1,color:#334155,stroke-width:1.5px;
+  class Roles actor;
+  class SPA,UI,State frontend;
+  class API,Security,Master,Inventory,Procurement,Fulfilment,Support,Domain,Command,Ledger,Jobs backend;
+  class Mongo persistence;
+  class Cloud,SMTP,MISA external;
+  class Access,Client,Server,Modules,Consistency,Data boundary;

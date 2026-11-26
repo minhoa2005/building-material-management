@@ -11,16 +11,29 @@ Theo quyết định người dùng ngày 17/11/2026, bỏ danh mục khách hà
 
 Cập nhật ngày 06/11/2026. Đây là điểm bắt đầu khi phát triển backend và chuyển sang DB mới.
 
-[Quyết định gộp 10 bảng](docs/03_thiet_ke/DB_Rebuild_Review/36_Gop_10_bang.md) · [Từ điển registry hiện hành 58 collection](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md)
+[Quyết định gộp 10 bảng](docs/03_thiet_ke/DB_Rebuild_Review/36_Gop_10_bang.md) · [Từ điển snapshot 09/11 — 58 collection, lịch sử](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md)
 
 ## Đọc theo thứ tự
 
 [Merge main 06/11/2026 — model, API runtime và kiểm thử](docs/09_phat_trien/MERGE_MAIN_2026-11-06.md).
 
-Bản v8 là snapshot lịch sử có category. Registry hiện hành có 58 collection, gồm GoodsReceipt và Conversion. Xem [từ điển 58 collection](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_Data_Dictionary.md), [ERD hiện hành](docs/03_thiet_ke/DB_Current_2026-11-09_57/WMSD_ERD_Current.drawio), [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) và [sản phẩm, lô, thùng và sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md). Các snapshot trước giữ làm lịch sử.
+Bản v8 là snapshot lịch sử có category. Registry hiện hành có 61 collection (58 nghiệp vụ + 3 quản trị hệ thống). Xem [từ điển dữ liệu hiện hành](docs/03_thiet_ke/DB_Current_2026-11-12_58/WMSD_Data_Dictionary.md), [ERD hiện hành 25/11/2026 — 61 collection, 12 tab](docs/03_thiet_ke/DB_Current_2026-11-12_58/WMSD_ERD_2026-11-25.drawio), [hợp đồng Conversion](docs/08_api/CONVERSIONS.md) và [sản phẩm, lô, thùng và sức chứa](docs/03_thiet_ke/DB_Rebuild_Review/39_San_pham_va_lo_dang_chot.md). Các snapshot trước giữ làm lịch sử.
+
+Business-level ERD (26/11/2026): [draw.io source](docs/03_thiet_ke/WMSD_Main_Entities_ERD.drawio) · [PNG](docs/03_thiet_ke/WMSD_Main_Entities_ERD.png). It contains 24 main collections, chosen as accounts, master data, the stock ledger and the main document of each business flow BF-01–BF-07:
+- Accounts: users, roles, permissions.
+- Master data: warehouses, warehouse_locations, categories, products, product_batches, suppliers.
+- Stock ledger: stock_holding_points, inventory_balances, stock_transactions.
+- Documents: replenishment_requests, purchase_orders, goods_receipts, warehouse_transfer_requests, transfer_dispatches, sales_orders, sales_goods_issues, customer_returns, defect_reports, supplier_returns, stocktake_plans, stocktakes.
+
+Tables use native draw.io ER table shapes with the name and PK/FK markers only (no data types), and 35 crow's-foot relationships whose rows connect FK to PK. All references were read from the runtime Mongoose schemas. The following are not drawn as edges:
+- `items[].productId`: shown as an FK row in each document table.
+- `items[].lotId` and createdBy/approvedBy references to users: listed only in the canvas note.
+- `stock_transactions.sourceId`: polymorphic, shown without an edge.
+
+`movements[].fromBalanceId`/`toBalanceId` share one edge. `defectHoldId` and `dispatchLineId` point to embedded rows (`defect_reports.holds[]`, `transfer_dispatches.items[]`). The full 61-collection draw.io snapshot above remains available for physical-schema detail.
 
 1. [Hướng dẫn dự án và quyết định hiện hành](PROJECT_GUIDE.md).
-2. [Bản đồ toàn bộ 59 collection và nơi sửa model](MODEL_MAP.md).
+2. [Bản đồ toàn bộ 61 collection và nơi sửa model](MODEL_MAP.md).
 3. [Quy tắc tự cập nhật tài liệu khi code](DOCUMENTATION_RULES.md).
 4. [Phiếu duyệt từng bảng](docs/03_thiet_ke/DB_Rebuild_Review/00_Hien_trang_va_cach_duyet.md) và [nhật ký quyết định](docs/03_thiet_ke/DB_Rebuild_Review/04_Nhat_ky_duyet.md).
 5. [DB Diagram kiểu SQL (59 bảng, PK/FK và crow's-foot)](docs/03_thiet_ke/WMSD_SQL_Style_DB_Diagram_2026-11-05.drawio), [DB Diagram chi tiết snapshot (94 tab)](docs/03_thiet_ke/WMSD_DB_Diagram_2026-11-05.drawio), [ERD / snapshot / từ điển dữ liệu lịch sử](docs/03_thiet_ke/DB_Current_2026-11-04/README.md).

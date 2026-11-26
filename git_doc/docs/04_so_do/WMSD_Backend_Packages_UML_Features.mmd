@@ -1,0 +1,41 @@
+---
+title: WMSD Backend — Selected Feature Dependencies
+config:
+  theme: base
+  look: classic
+  fontFamily: Arial, Helvetica, sans-serif
+  themeVariables:
+    fontSize: 16px
+    primaryColor: '#fff2cc'
+    primaryTextColor: '#78350f'
+    primaryBorderColor: '#d97706'
+    lineColor: '#475569'
+    clusterBkg: '#ffffff'
+    clusterBorder: '#94a3b8'
+  flowchart:
+    curve: basis
+    nodeSpacing: 50
+    rankSpacing: 95
+    padding: 20
+---
+flowchart LR
+    subgraph MODULES["modules — selected feature package dependencies"]
+        direction TB
+        PURCHASE@{ shape: folder, label: "purchase-orders<br/>purchase-order.service.js<br/>imports purchase-core.js" }
+        RECEIVING@{ shape: folder, label: "po-receiving<br/>po-receiving.service.js<br/>imports purchase-order.service.js" }
+
+        SALES@{ shape: folder, label: "sales-orders<br/>sales-execution.service.js<br/>imports goods-issue.service.js" }
+        ISSUES@{ shape: folder, label: "goods-issues<br/>goods-issue.service.js<br/>imports sales-read.service.js" }
+
+        NOTIFICATIONS@{ shape: folder, label: "notifications<br/>background.js<br/>imports stock-alert.service.js" }
+        ALERTS@{ shape: folder, label: "stock-alerts<br/>stock-alert.service.js<br/>imports email.js" }
+
+        PURCHASE -.-> RECEIVING
+        RECEIVING -.-> PURCHASE
+        SALES -.-> ISSUES
+        ISSUES -.-> SALES
+        NOTIFICATIONS -.-> ALERTS
+        ALERTS -.-> NOTIFICATIONS
+    end
+    classDef feature fill:#fff2cc,stroke:#d97706,color:#78350f,stroke-width:1px;
+    class PURCHASE,RECEIVING,SALES,ISSUES,NOTIFICATIONS,ALERTS feature;

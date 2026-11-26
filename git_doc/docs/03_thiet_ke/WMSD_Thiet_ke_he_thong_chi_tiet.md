@@ -224,6 +224,8 @@ Chuyển trạng thái chỉ qua command hợp lệ; không API chung PATCH stat
 
 ## 7. Kiến trúc ứng dụng và transaction
 
+Sơ đồ hiện trạng 26/11/2026: [Software Architecture — PNG](WMSD_Software_Architecture.png) · [SVG](WMSD_Software_Architecture.svg) · [mô tả và nguồn Mermaid](WMSD_Software_Architecture.md).
+
 [TK] Web responsive → API xác thực/scope → command/query services theo module → repositories/validators/indexes MongoDB; outbox worker gửi SMTP và storage adapter xử lý tệp. Tách domain calculation khỏi controller; dùng chung stock-posting protocol cho mọi nghiệp vụ.
 
 ### 7.1. Command có tác động tồn

@@ -65,9 +65,11 @@ async function scopedPoints(user, warehouseId) {
     locationId: { $in: locations.map((row) => row._id) },
   }).distinct("_id");
 }
-export async function listLots(user, query) {
+// `scopeFilter` lets server-side callers (e.g. a stocktake's product/lot filter) narrow the list
+// beyond what the public query accepts; it is never read from the request.
+export async function listLots(user, query, scopeFilter = {}) {
   requirePermission(user, "product_lot:read");
-  const filter = {};
+  const filter = { ...scopeFilter };
   if (query.productId) filter.productId = query.productId;
   if (query.identificationStatus)
     filter.identificationStatus = query.identificationStatus;

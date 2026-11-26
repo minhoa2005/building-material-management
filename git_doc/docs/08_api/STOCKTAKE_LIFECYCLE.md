@@ -28,6 +28,7 @@ Decision source: **User decision 22 Nov 2026 following lecturer feedback (separa
 |---|---|---|
 | `GET /` | `stocktake:read` | New optional query `planId`. No redaction of any field. |
 | `GET /:id` | `stocktake:read` | Same document as before, **no field is redacted while `COUNTING`**, plus `lines[]` (reconciliation view), `uomCode/uomName` on `snapshots[]` and `counts[]`, `lookups.units`, `uomCode/uomName` on `lookups.products[]`. `header` additionally exposes `planId?`, `planPeriodNo?`, `planPeriodDueAt?`, `settledLines[]`, `recountLines[]`. |
+| `GET /:id/lots` | `stocktake:read` + `product_lot:read`, warehouse access | **New 26 Nov 2026.** Verified lots that may be recorded as found stock in this session: limited to `header.scope.batchIds` / `header.scope.productIds` when set (all verified lots when neither is set), the same filter `POST /:id/counts` enforces. Query `manufacturerLot?`, `page`, `limit` (≤ 100); response has the same shape as `GET /api/lots`. Read-only. |
 | `GET /:id/count-sheet` | `stocktake:export` | Each row now also has `uomCode`, `uomName` and `bookQtyBase` (`baseUnit` kept). Still read-only and no counts, locks or balances are read. |
 | `POST /:id/count-reason` | `stocktake:update` (assigned counter) | **New 23 Nov 2026.** Counter's reason for a differing line; see below. |
 | `POST /:id/recount` | `stocktake:create` (Owner) | **New.** Replaces `reopen-counting`. |

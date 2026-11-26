@@ -4,8 +4,21 @@ import { dto, page, serialize } from '../../shared/utils/persistence.js';
 import { requirePermission, requireWarehouseAccess } from '../../shared/utils/access.js';
 import { notFoundError } from '../../shared/utils/ApiError.js';
 import { buildStocktakeListFilter } from './stocktake-list.query.js';
+import { listLots } from '../lots/lot.service.js';
 async function scoped(user, id, session) { const document = await m.Stocktake.findById(id).session(session); if (!document)
     throw notFoundError(); requireWarehouseAccess(user, document.header.warehouseId); return document; }
+
+// Verified lots a counter may record as found stock: only lots inside the session's optional
+// product/lot filter (the same guard recordCount applies), so the picker never offers a lot the
+// command would reject. With no filter every verified lot is allowed.
+export async function listStocktakeLots(user, id, query) {
+    requirePermission(user, 'stocktake:read');
+    const { header } = await scoped(user, id);
+    const scopeFilter = {};
+    if (header.scope?.batchIds?.length) scopeFilter._id = { $in: header.scope.batchIds };
+    if (header.scope?.productIds?.length) scopeFilter.productId = { $in: header.scope.productIds };
+    return listLots(user, { ...query, identificationStatus: 'VERIFIED' }, scopeFilter);
+}
 
 // Blind count was removed on 22 Nov 2026 (user decision following lecturer feedback): every authorized reader
 // receives the frozen book quantity as soon as the session is COUNTING. Slips and their lines are returned as stored.

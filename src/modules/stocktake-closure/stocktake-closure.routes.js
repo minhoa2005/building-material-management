@@ -47,6 +47,7 @@ const discovered = z.object({ locationId: oid, batchId: oid, ownerType: z.enum([
 const correctionBody = operation.extend({ emptyCountId: oid, discovered, countedQtyBase: nonnegative, quantityEntries: z.array(entry).max(100).optional(), correctionReason: text, conditionNote: z.string().max(2000).optional(), evidenceIds: z.array(oid).min(1).max(50) }).strict();
 const countBody = operation.extend({ targetType: z.enum(['STOCK', 'EMPTY_LOCATION']), snapshotId: oid.optional(), discovered: discovered.optional(), locationId: oid.optional(), countedQtyBase: nonnegative, quantityEntries: z.array(entry).max(100).optional(), previousCountId: oid.optional(), recountReason: text.optional(), conditionNote: z.string().max(2000).optional(), evidenceIds: z.array(oid).max(50).optional() }).strict()
     .refine(v => v.targetType === 'STOCK' ? !!v.snapshotId !== !!v.discovered && !v.locationId : !!v.locationId && !v.snapshotId && !v.discovered, 'Chọn mốc tồn, hàng phát hiện ngoài sổ hoặc vị trí trống');
+const stocktakeLotsQuery = z.object({ manufacturerLot: z.string().trim().max(100).optional(), page: z.coerce.number().int().min(1).max(100000).default(1), limit: z.coerce.number().int().min(1).max(100).default(20) }).strict();
 const router = Router();
 router.use(authenticate);
 router.get('/options', catchAsync(async (req, res) => formatApiResponse(res, { data: await commands.stocktakeOptions(req.user) })));
@@ -70,6 +71,7 @@ const multipart = multer({ storage: multer.memoryStorage(), limits: { fileSize: 
 router.post('/:id/evidence', (req, res, next) => multipart(req, res, e => next(e ? new ApiError(e.code === 'LIMIT_FILE_SIZE' ? 413 : 400, 'Một tệp JPEG/PNG/PDF tối đa 5 MB') : undefined)),
     catchAsync(async (req, res) => formatApiResponse(res, { data: await evidence.uploadStocktakeEvidence(req.user, parse(documentIdentifier, req.params.id), req.file) })));
 router.get('/:id/evidence/:evidenceId', catchAsync(async (req, res) => formatApiResponse(res, { data: await evidence.downloadStocktakeEvidence(req.user, parse(documentIdentifier, req.params.id), parse(oid, req.params.evidenceId)) })));
+router.get('/:id/lots', catchAsync(async (req, res) => formatApiResponse(res, { data: await service.listStocktakeLots(req.user, parse(documentIdentifier, req.params.id), parse(stocktakeLotsQuery, req.query)) })));
 router.get('/:id/count-sheet', catchAsync(async (req, res) => formatApiResponse(res, { data: await getCountSheet(req.user, parse(documentIdentifier, req.params.id)) })));
 router.get('/:id', catchAsync(async (req, res) => formatApiResponse(res, { data: await service.getStocktake(req.user, parse(documentIdentifier, req.params.id)) })));
 export default router;
