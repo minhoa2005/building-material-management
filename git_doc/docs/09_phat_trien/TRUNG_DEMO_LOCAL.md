@@ -1,5 +1,45 @@
 # Trungph — usable local demo data, 12 November 2026
 
+## Demo local đã chạy đủ ba luồng trả hàng
+
+Mở [bản demo local](http://127.0.0.1:3335/) và chọn kho `K-GACH-01`. Đăng nhập theo vai trò ở [phần tài khoản local](#bản-diễn-tập-ngày-12112026). Dữ liệu diễn tập nằm trong `wmsd_demo_trung_20261112`.
+
+| Luồng | Chứng từ có thể dùng để tạo đề nghị mới | Hồ sơ đã chạy đến hoàn tất |
+|---|---|---|
+| Khách trả hàng | Chọn yêu cầu `ĐBH-KD-261127-000002`, sau đó chọn các dòng trên `PXB-K-GACH-01-261127-000003` và `PXB-K-GACH-01-261127-000004`. Mỗi phiếu còn 4 viên sau lần chạy. | `ĐTK-K-GACH-01-261127-000002`. Kiểm và duyệt 8 viên. Hai phiếu nhập tăng tồn lần lượt 4 và 4 viên. |
+| Trả NCC từ tồn cửa hàng | Phiếu nhập mua `PNM-K-GACH-01-261127-000002`, lô `AP6601-261001-A`, vị trí `TRUNG-RECEIVE`. Còn 4 viên trên nguồn sau lần chạy. | `ĐTNCC-K-GACH-01-261127-000003`. Bàn giao 3 rồi 1 viên, ghi phản hồi sau mỗi lần. Tồn cửa hàng giảm 4 viên. |
+| Trả NCC từ hàng tạm giữ | [Phiếu tạm giữ PNGH-K-GACH-01-261127-000002](http://127.0.0.1:3335/custody-receipts/PNGH-K-GACH-01-261127-000002). Mở **Trả NCC** trên dòng có 4 viên còn đủ điều kiện sau lần chạy. | `ĐTNCC-K-GACH-01-261127-000004`. Bàn giao tạo `PXGH-K-GACH-01-261127-000002`. Số dư giữ hộ giảm 4 viên, mức thay đổi tồn cửa hàng là 0. |
+
+Trong màn tạo khách trả, chọn **Yêu cầu mua hàng của khách (trong hệ thống)** trước khi chọn phiếu xuất thuộc yêu cầu. Khi để trống yêu cầu, bộ chọn chỉ hiện phiếu xuất độc lập và chứng từ giao ngoài đã xác minh. Kiểm tra số lượng còn lại trước mỗi lượt diễn tập.
+
+Trong lần kiểm chứng ngày 27/11/2026, Chrome mở các màn nguồn và ba hồ sơ hoàn tất. Các lệnh ghi ở từng bước chạy qua API local với tài khoản đúng vai trò và minh chứng PNG tổng hợp. Đối chiếu số dư trong MongoDB sau từng lần ghi. Phạm vi kiểm chứng là local.
+
+Nếu cần chạy lại hai máy chủ, dùng các checkout `return-demo-ready-be` và `return-demo-ready-fe`. Sau khi MongoDB local `rs0` chạy, mở một cửa sổ PowerShell tại backend và chạy:
+
+```powershell
+$env:EVIDENCE_STORAGE_PROVIDER='local'
+node scripts/start-trung-demo.mjs
+```
+
+Mở cửa sổ PowerShell khác tại frontend và chạy:
+
+```powershell
+$env:VITE_API_URL='/api'
+$env:VITE_API_PROXY_TARGET='http://127.0.0.1:3333'
+npm run dev -- --host 127.0.0.1 --port 3335 --strictPort
+```
+
+### Kết quả rà soát logic
+
+Lượt kiểm tra bổ sung dùng các chứng từ diễn tập mới trong cùng cơ sở dữ liệu local.
+
+| Hồ sơ hoàn tất | Ca đã chạy |
+|---|---|
+| `ĐTK-K-GACH-01-261127-000003` | Hai phiếu xuất cùng yêu cầu. Nhập hai đợt, tổng tăng 8 viên. |
+| `ĐTNCC-K-GACH-01-261127-000005` | Bàn giao 3 rồi 1 viên từ tồn cửa hàng. Hệ thống chặn thỏa thuận và phản hồi theo số viên lẻ. |
+| `ĐTNCC-K-GACH-01-261127-000006` | Bàn giao và xác nhận 3 viên giữ hộ. Kế toán giảm thỏa thuận từ 4 xuống 3 rồi đóng phiếu. Tồn cửa hàng thay đổi 0 viên. |
+| `ĐTK-K-GACH-01-261127-000004` | Owner duyệt một dòng lỗi do NCC. Kho nhập 1 viên vào khu hàng lỗi, trả lại 1 viên đã lắp và ghi nhận dòng còn lại thực đến bằng 0. Chrome kiểm tra màn duyệt ở 1440 px và 390 px. Tài khoản Sales không có thao tác duyệt ngoại lệ. |
+
 ## Nghiệm thu kế hoạch xuất bán và trả hàng — 25/11/2026
 
 Ma trận này là tiêu chí và kết quả kiểm chứng tự động của implementation. Bài backend dùng fixture cô lập; không sửa chứng từ demo gốc hoặc ghi DB dùng chung.

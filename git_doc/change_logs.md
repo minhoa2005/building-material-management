@@ -1,3 +1,17 @@
+## 27/11/2026 - Sửa lỗi logic khi diễn tập trả hàng
+
+Khách trả kiểm lại hạn mức theo lô khi duyệt lại phần đã nhả hạn mức. Phiếu có nhiều dòng áp dụng điều kiện duyệt theo từng dòng. Màn kiểm hàng bỏ phần quy cách khi lượng thực đến bằng 0, và API chuẩn hóa số 0 thập phân.
+
+Trả NCC kiểm số nguyên ở thỏa thuận và phản hồi nếu sản phẩm dùng đơn vị nguyên. Phiếu còn dòng chưa có thỏa thuận tiếp tục ở trạng thái xử lý từng phần. Giảm thỏa thuận xuống lượng đã bàn giao và được xác nhận có thể đưa phiếu đến bước đóng. Phiếu cũ vẫn được đối chiếu theo thỏa thuận, lượng bàn giao và phản hồi thực tế.
+
+Kiểm thử giao diện đạt 45 ca, bộ backend trả hàng đạt 32 ca và hai bài kiểm thử tích hợp xuất bán đạt. Build, kiểm tra lint trên các tệp sửa và kiểm tra tài liệu đạt. Chạy ba luồng qua API local và kiểm tra ca duyệt ngoại lệ trên Chrome desktop và mobile. Xem [mã phiếu và kết quả](docs/09_phat_trien/TRUNG_DEMO_LOCAL.md#kết-quả-rà-soát-logic). Chưa triển khai lên hosted.
+
+## 27/11/2026 - Chọn yêu cầu mua hàng trước phiếu xuất liên kết
+
+Bộ chọn khách trả yêu cầu chọn yêu cầu mua hàng gốc trước khi hiện các phiếu xuất liên kết. Khi chưa chọn yêu cầu, bộ lọc `withoutSalesOrder=true` chỉ lấy phiếu xuất bán độc lập và chứng từ giao ngoài đã xác minh. Payload tạo phiếu của các tích hợp cũ vẫn dùng hợp đồng hiện có. Frontend sửa dữ liệu mẫu thiếu mã sản phẩm để build TypeScript.
+
+Kiểm thử giao diện tập trung đạt 43 ca. Kiểm thử backend cho liên kết, hợp đồng và nguồn độc lập đạt 10 ca. Chrome xác nhận nguồn liên kết xuất hiện sau khi chọn yêu cầu. Cả ba luồng chạy từ tạo đến hoàn tất qua API local và đối chiếu tồn trong MongoDB. Xem mã hồ sơ và cách mở bản demo trong [hướng dẫn local](docs/09_phat_trien/TRUNG_DEMO_LOCAL.md). Chưa triển khai bản sửa lên hosted.
+
 ## 27/11/2026 - Mark all notifications as read
 
 Added **Đánh dấu tất cả đã đọc** to the notification bell at the user's request. The frontend refreshes the inbox and unread badge after the bulk operation. The [notification inbox contract](docs/08_api/NOTIFICATIONS.md) records the endpoint, permissions, and scope. The change uses the existing `readAt` field and requires no migration.

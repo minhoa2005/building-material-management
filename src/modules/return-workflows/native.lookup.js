@@ -68,6 +68,7 @@ async function sourceLookup(user, query) {
       return page(Model, stages, query, ['documentNo', 'name']);
     }
     if (query.salesOrderId) stages.push({ $match: { salesOrderId: oid(query.salesOrderId) } });
+    if (query.withoutSalesOrder) stages.push({ $match: { salesOrderId: null, 'header.issueKind': 'SALE', 'header.referenceNo': { $exists: true, $ne: '' }, 'header.salesOrderId': null, 'header.fulfillmentMode': null } });
     if (purpose === 'customer-returns' && !query.salesOrderId) stages.push({ $unionWith: { coll: m.ExternalReference.collection.name, pipeline: [
       { $match: { ...scope(user, query, 'warehouseId'), referenceKind: 'HISTORICAL_DELIVERY', status: 'VERIFIED', 'evidenceIds.0': { $exists: true }, ...(query.documentId && { _id: oid(query.documentId) }) } },
       { $unwind: '$items' }, { $set: { documentNo: '$referenceNo', documentKind: 'HISTORICAL_DELIVERY', header: { warehouseId: '$warehouseId' }, 'items.qtyBase': '$items.eligibleQty', 'items.baseUnitSnapshot': '$items.baseUnitSnapshot', sourceKind: 'HISTORICAL' } },

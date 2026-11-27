@@ -231,9 +231,53 @@ run('one supplier handover can post store stock and supplier custody without key
  await s.transaction(async session=>{custodyReceipt=await s.envelope(m.CustodyReceipt,users.WAREHOUSE,{warehouseId:warehouse._id,ownerType:'SUPPLIER',ownerId:supplier._id},[s.copy(receipt.items[0],'4')],'DRAFT','Mixed handover source');const posting=s.beginStock(custodyReceipt,users.WAREHOUSE,'TEST_CUSTODY',input());await s.postIn(custodyReceipt,custodyReceipt.items[0],users.WAREHOUSE,session,posting,{locationId:custody._id,qualityCode:'PENDING',ownerType:'SUPPLIER',ownerId:supplier._id});await s.savePosted(custodyReceipt,posting,users.WAREHOUSE,session);});
  const point=await m.StockHoldingPoint.findOne({locationId:custody._id}),supplierBalance=await m.InventoryBalance.findOne({holdingPointId:point._id,ownerType:'SUPPLIER',ownerId:supplier._id,batchId:batch._id});
  const result=await service.createSupplierReturn(users.WAREHOUSE,{...input(),warehouseId:warehouse.id,supplierId:supplier.id,lines:[{originLineId:sid(receipt.items[0]),balanceId:balance.id,qtyBase:'4'},{originLineId:sid(custodyReceipt.items[0]),balanceId:supplierBalance.id,qtyBase:'4'}]});let doc=await m.SupplierReturn.findById(result.id);const ev=await attachment(doc,users.ACCOUNTANT);
- await service.supplierAgreement(users.ACCOUNTANT,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],reference:'Both owners agreed',lines:doc.items.map(i=>({lineId:sid(i),qtyBase:'4'}))});doc=await m.SupplierReturn.findById(doc.id);
- const body={...input(),expectedVersion:doc.version,evidenceIds:[ev.id],recipientName:'Carrier received both',lines:doc.items.map(i=>({lineId:sid(i),qtyBase:'4'}))};await service.dispatchSupplierReturn(users.WAREHOUSE,doc.id,body);await service.dispatchSupplierReturn(users.WAREHOUSE,doc.id,body);
- const issue=await m.SupplierReturnIssue.findOne({'header.supplierReturnId':doc._id}),release=await m.CustodyRelease.findOne({'sources.documentId':doc._id});assert.ok(issue);assert.ok(release);assert.equal(await m.StockTransaction.countDocuments({sourceId:{$in:[issue._id,release._id]}}),2);
+ const storeLine=sid(doc.items[0]), custodyLine=sid(doc.items[1]);
+ await service.supplierAgreement(users.ACCOUNTANT,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],reference:'First line agreed',lines:[{lineId:storeLine,qtyBase:'2'}]});
+ doc=await m.SupplierReturn.findById(doc.id);
+ await service.dispatchSupplierReturn(users.WAREHOUSE,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],recipientName:'First carrier',lines:[{lineId:storeLine,qtyBase:'2'}]});
+ doc=await m.SupplierReturn.findById(doc.id);
+ assert.equal(doc.workflowStatus,'PARTIAL');
+ await service.supplierAgreement(users.ACCOUNTANT,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],reference:'Both owners agreed',lines:[{lineId:storeLine,qtyBase:'4'},{lineId:custodyLine,qtyBase:'4'}]});
+ doc=await m.SupplierReturn.findById(doc.id);
+ const body={...input(),expectedVersion:doc.version,evidenceIds:[ev.id],recipientName:'Carrier received both',lines:[{lineId:storeLine,qtyBase:'2'},{lineId:custodyLine,qtyBase:'4'}]};
+ const sent=await service.dispatchSupplierReturn(users.WAREHOUSE,doc.id,body);
+ assert.equal((await service.dispatchSupplierReturn(users.WAREHOUSE,doc.id,body)).replayed,true);
+ const refs=sent.resultRefs.map(row=>row.documentId);
+ assert.equal(await m.SupplierReturnIssue.countDocuments({_id:{$in:refs}}),1);
+ assert.equal(await m.CustodyRelease.countDocuments({_id:{$in:refs}}),1);
+ assert.equal(await m.StockTransaction.countDocuments({sourceId:{$in:refs}}),2);
+});
+run('supplier agreements and acknowledgements keep whole units and allow closing after a reduction to accepted dispatch',async()=>{
+ const testLocation=await m.WarehouseLocation.create({warehouseId:warehouse._id,code:'RET-WHOLE-UNITS',locationType:'STORAGE',usableLengthMm:5000,usableWidthMm:5000});
+ const point=await m.StockHoldingPoint.create({type:'LOCATION',locationId:testLocation._id});
+ const testBalance=await m.InventoryBalance.create({holdingPointId:point._id,batchId:batch._id,qualityStatus:'GOOD',ownerType:'STORE',quantityBase:'4',version:0,packagingPortions:[{packagingState:'LOOSE',quantityBase:'4',measuredVolumeMm3:'100000',createdBy:users.WAREHOUSE._id}]});
+ const created=await service.createSupplierReturn(users.WAREHOUSE,{...input(),warehouseId:warehouse.id,supplierId:supplier.id,lines:[{originLineId:sid(receipt.items[0]),balanceId:testBalance.id,qtyBase:'4'}]});
+ const load=()=>m.SupplierReturn.findById(created.id);
+ const initial=await load();
+ const ev=await attachment(initial,users.ACCOUNTANT);
+ const agreement=async qtyBase=>{
+  const doc=await load();
+  return service.supplierAgreement(users.ACCOUNTANT,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],reference:'Agreed quantity',lines:[{lineId:sid(doc.items[0]),qtyBase}]});
+ };
+ await assert.rejects(agreement('3.5'),/Số lượng phải nguyên/);
+ assert.equal((await load()).version,initial.version);
+ await agreement('4');
+ const ready=await load();
+ await service.dispatchSupplierReturn(users.WAREHOUSE,ready.id,{...input(),expectedVersion:ready.version,evidenceIds:[ev.id],recipientName:'Supplier',lines:[{lineId:sid(ready.items[0]),qtyBase:'2'}]});
+ const issue=await m.SupplierReturnIssue.findOne({'header.supplierReturnId':created.id});
+ const acknowledge=async qtyBase=>{
+  const doc=await load();
+  return service.acknowledgeSupplierReturn(users.ACCOUNTANT,doc.id,{...input(),expectedVersion:doc.version,evidenceIds:[ev.id],lines:[{lineId:sid(issue.items[0]),qtyBase,outcome:'ACCEPTED'}]});
+ };
+ const partial=await load();
+ await assert.rejects(acknowledge('0.5'),/Số lượng phải nguyên/);
+ assert.equal((await load()).version,partial.version);
+ await acknowledge('2');
+ await agreement('2');
+ const settled=await load();
+ assert.equal(settled.workflowStatus,'ACKNOWLEDGED');
+ await service.closeSupplierReturn(users.ACCOUNTANT,settled.id,{...input(),expectedVersion:settled.version});
+ assert.equal((await load()).workflowStatus,'COMPLETED');
 });
 run('whole-unit source claims reject fractional quantities before reserving',async(t)=>{
  const verified=await reads.createHistoricalSource(users.ACCOUNTANT,{...input(),sourceSystem:'WHOLE-UNIT',referenceNo:key(),referenceDate:new Date().toISOString(),correlationId:key(),customerName:'Historical customer',warehouseId:warehouse.id,lines:[{productId:sid(batch.productId),lotId:batch.id,qtyBase:'4',enteredUnit:'PIECE',baseUnitsPerUnit:'1'}]},stored);const external=await m.ExternalReference.findById(verified.id);

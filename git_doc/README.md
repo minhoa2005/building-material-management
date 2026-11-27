@@ -49,6 +49,7 @@ Bản v8 là snapshot lịch sử có category. Registry hiện hành có 58 col
 | [SO / giao hàng](docs/08_api/sales-orders/README.md) | Hợp đồng API bán hàng hiện có |
 | [Goods Issue UC-69–72](docs/08_api/GOODS_ISSUES.md) | Phiếu bán theo lịch đơn bán hoặc mã ngoài độc lập; picking/PGI, điều chuyển và các lệnh xuất native |
 | [Gói test FE06](docs/08_api/test_packs/fe06-iteration1/README.md) | Cách gọi API và nguồn test lịch sử |
+| [Demo trả hàng local](docs/09_phat_trien/TRUNG_DEMO_LOCAL.md#demo-local-đã-chạy-đủ-ba-luồng-trả-hàng) | Nguồn và kết quả chạy đủ ba luồng trả hàng |
 | [Return workflows native](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) / [kết quả kiểm chứng](docs/08_api/RETURN_WORKFLOWS_VERIFICATION.md) | Khách trả theo phiếu xuất/lô nguồn, trả NCC theo thỏa thuận, ACK và đối chiếu riêng |
 | [Nhật ký thay đổi](change_logs.md) | Mỗi lượt thay đổi cùng kiểm chứng và phần còn mở |
 | [Nhật ký model](../src/models/CHANGELOG.md) | Thay đổi schema và ảnh hưởng dữ liệu |

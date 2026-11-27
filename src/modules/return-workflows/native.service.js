@@ -159,6 +159,11 @@ export const decideCustomerReturn=(user,id,input,exception=false)=>operation(m.C
   const source=await returnSource({historicalExternalLineId:current.details.historicalExternalLineId,salesIssueLineId:current.details.originalIssueLineId},actor,session);
   if(!same(source.item._id,claim.sourceLineId)||needed.plus(await s.claimTotal(source.item._id,'CR',session)).gt(source.allowance))
    throw validationError('Lượng duyệt vượt hạn mức nguồn trả còn hiệu lực');
+  if(source.sourceLots){
+   const lot=source.sourceLots.find(row=>same(row.lotId,current.lotId));
+   if(!lot||needed.plus(await s.committedCustomerReturnLot(source.item._id,current.lotId,session)).gt(lot.quantityBase))
+    throw validationError('Lượng duyệt vượt hạn mức còn lại của lô đã xuất');
+  }
   await s.reacquireClaim(item._id,needed,doc,actor,session);
  }
  const approval=await decision(doc,exception?'EXCEPTION_APPROVAL':'STANDARD_ACCEPTANCE',{items:decisions},actor,session,input);
@@ -257,17 +262,23 @@ async function supplierDispatches(doc,session){
 function dispatchedFor(item,documents){
  return sum(documents.flatMap(d=>d.items).filter(line=>line.sources.some(src=>same(src.itemId,item._id))));
 }
-function dispatchState(doc,documents){
+function acknowledgementsFor(document,item){
+ return document.acknowledgements.filter(ack=>ack.workflowStatus!=='SUPERSEDED').flatMap(ack=>ack.items).filter(row=>same(row.details.dispatchLineId,item._id));
+}
+function supplierReturnState(doc,documents){
  if(!documents.length)return doc.items.some(i=>exact(i.details.agreedQty??'0').gt(0))?'READY':'AGREEMENT_PENDING';
- return doc.items.every(i=>dispatchedFor(i,documents).eq(String(i.details.agreedQty??'0')))?'DISPATCHED':'PARTIAL';
+ if(doc.items.some(i=>i.details.agreedQty==null||!dispatchedFor(i,documents).eq(String(i.details.agreedQty))))return 'PARTIAL';
+ return documents.every(document=>document.items.every(item=>sum(acknowledgementsFor(document,item)).eq(String(item.qtyBase))))?'ACKNOWLEDGED':'DISPATCHED';
 }
 export const supplierAgreement=(user,id,input)=>operation(m.SupplierReturn,user,id,input,'AGREEMENT_SR','supplier_return:record_agreement',async(doc,session,actor)=>{
- requireState(doc,['AGREEMENT_PENDING','READY','PARTIAL']);await evidence(doc,input.evidenceIds,session);const issues=await supplierDispatches(doc,session);
- for(const row of input.lines){const item=rowOf(doc,row.lineId);const dispatched=dispatchedFor(item,issues);if(exact(row.qtyBase).gt(String(item.qtyBase))||exact(row.qtyBase).lt(dispatched))throw validationError('Thỏa thuận ngoài lượng đề nghị hoặc thấp hơn lượng đã giao');
+ const states=['AGREEMENT_PENDING','READY','PARTIAL'];
+ if(doc.items.some(item=>item.details.agreedQty==null))states.push('DISPATCHED','ACKNOWLEDGED');
+ requireState(doc,states);await evidence(doc,input.evidenceIds,session);const issues=await supplierDispatches(doc,session);
+ for(const row of input.lines){const item=rowOf(doc,row.lineId);await s.assertWholeQuantity(item.productId,row.qtyBase,session);const dispatched=dispatchedFor(item,issues);if(exact(row.qtyBase).gt(String(item.qtyBase))||exact(row.qtyBase).lt(dispatched))throw validationError('Thỏa thuận ngoài lượng đề nghị hoặc thấp hơn lượng đã giao');
   const version=(doc.agreements.filter(a=>same(a.itemId,item._id)).at(-1)?.version??0)+1;doc.agreements.push({itemId:item._id,agreedQtyBase:row.qtyBase,verifiedBy:actor._id,verifiedAt:new Date(),version,evidenceIds:input.evidenceIds});
   Object.assign(item.details,{phase:'VERIFIED',agreedQty:row.qtyBase,agreementVersion:version,agreementVerifiedBy:actor._id,agreementVerifiedAt:new Date(),agreementEvidenceId:input.evidenceIds[0]});
  }
- doc.header.agreementReference=input.reference;doc.header.agreedAt=new Date();doc.workflowStatus=dispatchState(doc,issues);attached(doc,input.evidenceIds);return {};
+ doc.header.agreementReference=input.reference;doc.header.agreedAt=new Date();doc.workflowStatus=supplierReturnState(doc,issues);attached(doc,input.evidenceIds);return {};
 });
 export const dispatchSupplierReturn=(user,id,input)=>operation(m.SupplierReturn,user,id,input,'DISPATCH_SR','supplier_return:dispatch',async(doc,session,actor)=>{
  requireState(doc,['READY','PARTIAL','ACKNOWLEDGED']);await evidence(doc,input.evidenceIds,session);if(!input.recipientName)throw validationError('Cần tên người thực nhận bàn giao');
@@ -285,7 +296,7 @@ export const dispatchSupplierReturn=(user,id,input)=>operation(m.SupplierReturn,
    if(hold){const remaining=sum(hold.allocations,'quantityBase').minus(sum(hold.events,'quantityBase'));if(exact(row.qtyBase).gt(remaining))throw validationError('Vượt lượng lỗi đang chặn');hold.events.push({kind:'CONSUMED',quantityBase:row.qtyBase,sourceRef:ref(issue,r),performedBy:actor._id,performedAt:new Date()});hold.version++;if(exact(row.qtyBase).eq(remaining))hold.status='RESOLVED';defect.workflowStatus=defect.holds.some(h=>h.status==='ACTIVE')?'PARTIAL':'CLOSED';await saveVersion(defect,defect.version,session);}
   }issue.evidenceIds=input.evidenceIds;await savePosted(issue,posting,actor,session);created.push(issue);
  }
- doc.workflowStatus=dispatchState(doc,[...issues,...created]);return {resultRefs:created.map(d=>ref(d))};
+ doc.workflowStatus=supplierReturnState(doc,[...issues,...created]);return {resultRefs:created.map(d=>ref(d))};
 });
 export const acknowledgeSupplierReturn=(user,id,input)=>operation(m.SupplierReturn,user,id,input,'ACK_SR','supplier_return:record_agreement',async(doc,session,actor)=>{
  requireState(doc,['PARTIAL','DISPATCHED','ACKNOWLEDGED']);await evidence(doc,input.evidenceIds,session);
@@ -295,17 +306,18 @@ export const acknowledgeSupplierReturn=(user,id,input)=>operation(m.SupplierRetu
   if(!issue)issue=await m.CustodyRelease.findOne({'sources.documentId':doc._id,'items._id':row.lineId,workflowStatus:'POSTED'}).session(session);if(!issue)throw validationError('Sai dòng thực giao');
   // Custody releases retain the same embedded acknowledgement shape.
   const item=rowOf(issue,row.lineId);
+  await s.assertWholeQuantity(item.productId,row.qtyBase,session);
   let superseded;
   if(input.supersedesAcknowledgementId){superseded=issue.acknowledgements.id(input.supersedesAcknowledgementId);if(input.lines.length!==1||!superseded||superseded.workflowStatus==='SUPERSEDED'||superseded.items.length!==1||!same(superseded.items[0].details.dispatchLineId,item._id)||!exact(row.qtyBase).eq(String(superseded.items[0].qtyBase)))throw validationError('Correction must replace the same acknowledged source quantity');superseded.workflowStatus='SUPERSEDED';superseded.version++;superseded.reconciliations.push({itemId:superseded.items[0]._id,performedBy:actor._id,performedAt:new Date(),quantityBase:row.qtyBase,evidenceIds:input.evidenceIds,note:input.note});}
   const prior=sum((issue.acknowledgements??[]).filter(a=>a.workflowStatus!=='SUPERSEDED').flatMap(a=>a.items).filter(i=>same(i.details?.dispatchLineId,item._id)));if(exact(row.qtyBase).plus(prior).gt(String(item.qtyBase)))throw validationError('Vượt lượng đã giao');
   const ack={...await nextDocumentFields(m.SupplierReturnIssue,'ACK',doc.header.warehouseId,session,undefined,'acknowledgements'),documentKind:'SUPPLIER_ACK',workflowStatus:'RECORDED',version:1,createdBy:actor._id,occurredAt:new Date(),note:input.note,header:{supplierReturnId:doc._id,supplierId:doc.header.supplierId,acknowledgedAt:new Date(),recordedBy:actor._id,recordedAt:new Date()},evidenceIds:input.evidenceIds,items:[copy(item,row.qtyBase,1,{lineKind:'SUPPLIER_ACK',details:{dispatchLineId:item._id,outcome:row.outcome,acknowledgedAt:new Date()},sources:[source(issue,item,'ACK',row.qtyBase)]})]};if(superseded)ack.sources=[{subjectCollection:issue.constructor.collection.name,documentId:issue._id,itemId:superseded.items[0]._id,relationCode:'CORRECTS_ACK',linkedQty:row.qtyBase}];issue.acknowledgements.push(ack);await saveVersion(issue,issue.version,session);
  }
- doc.workflowStatus=dispatchState(doc,await supplierDispatches(doc,session))==='PARTIAL'?'PARTIAL':'ACKNOWLEDGED';return {};
+ doc.workflowStatus=supplierReturnState(doc,await supplierDispatches(doc,session));return {};
 });
 export const closeSupplierReturn=(user,id,input)=>operation(m.SupplierReturn,user,id,input,'CLOSE_SR','supplier_return:close',async(doc,session,actor)=>{
- requireState(doc,['ACKNOWLEDGED','AGREEMENT_PENDING','READY','PARTIAL']);const issues=await supplierDispatches(doc,session);
+ requireState(doc,['ACKNOWLEDGED','DISPATCHED','AGREEMENT_PENDING','READY','PARTIAL']);const issues=await supplierDispatches(doc,session);
  for(const item of doc.items){const dispatched=sum(issues.flatMap(d=>d.items).filter(i=>i.sources.some(src=>same(src.itemId,item._id))));const agreement=doc.agreements.filter(a=>same(a.itemId,item._id)).at(-1);if(!agreement||!dispatched.eq(String(agreement.agreedQtyBase)))throw validationError('Còn lượng đã thỏa thuận chưa giao hoặc chưa có phản hồi');}
- for(const issue of issues)for(const item of issue.items){const acks=issue.acknowledgements.filter(a=>a.workflowStatus!=='SUPERSEDED').flatMap(a=>a.items).filter(i=>same(i.details.dispatchLineId,item._id));if(!sum(acks.filter(i=>i.details.outcome==='ACCEPTED')).eq(String(item.qtyBase))||acks.some(i=>i.details.outcome!=='ACCEPTED'))throw validationError('Còn lượng chưa đối chiếu hoặc tranh chấp');}
+ for(const issue of issues)for(const item of issue.items){const acks=acknowledgementsFor(issue,item);if(!sum(acks.filter(i=>i.details.outcome==='ACCEPTED')).eq(String(item.qtyBase))||acks.some(i=>i.details.outcome!=='ACCEPTED'))throw validationError('Còn lượng chưa đối chiếu hoặc tranh chấp');}
  for(const reservation of await m.StockReservation.find({'demandRef.documentId':doc._id}).session(session)){const remaining=s.remainingReservation(reservation);if(remaining.gt(0)){reservation.releasedQty=exact(reservation.releasedQty).plus(remaining).toFixed();reservation.version++;await reservation.save({session});}}
  doc.closure={closedBy:actor._id,closedAt:new Date(),reason:input.note};doc.workflowStatus='COMPLETED';return {};
 });
