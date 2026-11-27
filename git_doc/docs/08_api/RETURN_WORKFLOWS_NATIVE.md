@@ -180,7 +180,7 @@ Large choices open searchable, paginated record tables. Changing warehouse, part
 
 `GET /return-workflows/:id/context` returns only the currently authorized parent identity, version, warehouse and evidence-upload permission for external-reference creation. Existing parent evidence is searchable without granting upload permission. After evidence upload, the reference form waits for this version before submitting. External-reference lists now include pagination totals and bounded search. No payment or stock action is added.
 
-`GET /lots/:id/trace/records?section=documents|movements|reservations|evidence|history&page=1&limit=10` loads one bounded trace section. It uses the same warehouse and Accountant purchasing restrictions as the existing trace route, scanning only source identities before fetching the selected page. Private storage fields and financial snapshots are excluded. The older full trace endpoint remains compatible. See the [UX review and verification record](RETURN_WORKFLOWS_UX_REVIEW_2026-11-07.md).
+`GET /lots/:id/trace/records?section=documents|movements|reservations|evidence|history&page=1&limit=10` loads one bounded trace section. It uses the same warehouse and Accountant purchasing restrictions as the existing trace route, scanning only source identities before fetching the selected page. In the `documents` section, `recordType` distinguishes `CUSTOMER_RETURN_REQUEST` from `CUSTOMER_RETURN_RECEIPT`, whose `documentKind` is the same. Private storage fields and financial snapshots are excluded. The older full trace endpoint remains compatible. See the [UX review and verification record](RETURN_WORKFLOWS_UX_REVIEW_2026-11-07.md).
 
 ## Packaging, locks and stock
 

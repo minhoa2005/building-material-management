@@ -40,8 +40,13 @@ export async function traceRecords(user, id, query) {
     if (!entries.length) result = { items: [], total: 0, page: query.page, limit: query.limit };
     else {
       const projection = { documentNo: 1, documentKind: 1, workflowStatus: 1, createdAt: 1, occurredAt: 1 };
+      const projectionFor = model => {
+        const recordType = model === m.CustomerReturn ? 'CUSTOMER_RETURN_REQUEST'
+          : model === m.CustomerReturnReceipt ? 'CUSTOMER_RETURN_RECEIPT' : undefined;
+        return { ...projection, ...(recordType && { recordType: { $literal: recordType } }) };
+      };
       const [Model, rows] = entries[0];
-      result = await paginate(Model, [{ $match: { _id: { $in: rows.map(row => row._id) } } }, { $project: projection }, ...entries.slice(1).map(([model, docs]) => ({ $unionWith: { coll: model.collection.name, pipeline: [{ $match: { _id: { $in: docs.map(row => row._id) } } }, { $project: projection }] } }))], query);
+      result = await paginate(Model, [{ $match: { _id: { $in: rows.map(row => row._id) } } }, { $project: projectionFor(Model) }, ...entries.slice(1).map(([model, docs]) => ({ $unionWith: { coll: model.collection.name, pipeline: [{ $match: { _id: { $in: docs.map(row => row._id) } } }, { $project: projectionFor(model) }] } }))], query);
     }
   } else if (query.section === 'movements') {
     result = await paginate(m.StockTransaction, [{ $match: { sourceId: { $in: ids } } }, { $unwind: '$movements' }, { $match: { 'movements.sourceLineId': { $in: itemIds } } },
