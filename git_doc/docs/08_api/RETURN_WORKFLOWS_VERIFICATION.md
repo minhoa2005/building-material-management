@@ -23,26 +23,7 @@ Verification run 25 November 2026; workflow contract and repository status recon
 | Frontend | Focused ESLint, `pnpm typecheck`, `pnpm build` | Passed. |
 | Frontend | `pnpm test` | 760 passed, 9 failed across 5 files (769 total). The failures are the same unrelated baseline failures: 4 Create Account tests, 1 profile email-OTP timeout, 1 replenishment table test, 1 transfer-receipt test and 2 transfer-flow tests. |
 
-
 The 60-test feature run above and the demo-specific FE run of 27/32 in [TRUNG_DEMO_LOCAL](../09_phat_trien/TRUNG_DEMO_LOCAL.md#nghi%E1%BB%87m-thu-k%E1%BA%BF-ho%E1%BA%A1ch-xu%E1%BA%A5t-b%C3%A1n-v%C3%A0-tr%E1%BA%A3-h%C3%A0ng--25112026) are separate results. In the demo-specific run, five jsdom/Ant Design interaction cases failed; no visual layout review was completed for that acceptance run.
-
-## Report 5 return coverage
-
-The shared [Report 5.0 test plan](https://docs.google.com/document/d/1VpuBZGJqY8K5yOliMDJfWNKhDUyDztGlm94jZh6yVXg/edit) links the test cases for customer returns, supplier returns, defect disposition, undelivered intake, lot trace and external references. Use the [Report 3 catalogue](https://docs.google.com/document/d/1zXQlY6GgDUF1i519aKDfxMrgX1emym3GEW9T9Os1RhI/edit) for UC identifiers. Its detailed sections 10.3 and 10.4 describe the intake and receipt steps behind catalogue UC-106. The catalogue groups defects under UC-107 to UC-112, returns under UC-113 to UC-128, and lot trace and external references under UC-172 to UC-174.
-
-| Report | Added cases | Coverage |
-|---|---:|---|
-| [5.1 Unit](https://drive.google.com/open?id=1JS-658XcH9k3e7BJgXAEeTBNfzuk6uFy) | 12 | Source bounds, eligibility, acknowledgements, defect holds and intake validation |
-| [5.2 Integration](https://drive.google.com/open?id=12AafXxFbJv08R5Koze_Laq8FGzgjiKNu) | 10 | Stock effects, evidence, linked documents and transaction rollback |
-| [5.3 Functional system](https://drive.google.com/open?id=1BGG7vvX_KTz5aZkbwtg9id-Qd--rtdOt) | 19 | Role handoffs and document or stock outcomes in the deployed application |
-| [5.4 Nonfunctional system](https://drive.google.com/open?id=1D-qWINsNN3cYlbi6trddEx6sHsIVogdJ) | 10 | Access scope, evidence, response time, usability, reliability and trace |
-
-The 27 November run recorded results or evidence notes against 118 return-flow cases. Report 5.1 has 25 passed and 20 pending. Report 5.2 has 20 passed and 24 pending, including the authorization cases. Report 5.3 retains the original Round 1 failure for `ST_RT_01` as history; its Round 2 rerun passes, with 17 cases still pending. Report 5.4 records local observations on all 10 cases and retains their Not Run status.
-
-`npm run test:returns` passed 29 checks on the isolated MongoDB replica set. The return lookup and standalone suites passed 10 with the lookup fixture enabled. Focused frontend Vitest passed 62 and failed five. Four failures were in the return form and one was in the Goods Issue form. The direct-sales fixture ran from a temporary copy with its test import redirected to the current evidence-storage module. That copy passed. A separate Goods Issue fixture failed its warehouse assignment assertion. Local browser and case-level transaction checks used synthetic data.
-
-The initial Warehouse browser run reproduced WMSD-QA-RET-01 on lot `AP6601-261001-A`: posted receipt `PNKT-K-GACH-01-261127-000001` opened `/returns/PNKT-K-GACH-01-261127-000001`, and the customer-return API returned 404. The trace response now identifies request and receipt records separately; the FE opens a customer-return receipt at `/receipts/:id?kind=CUSTOMER_RETURN` and leaves return requests at `/returns/:id`. The Round 2 rerun passed the FE Lot Trace route regression and the Mongo-backed trace-record integration check. The original Round 1 failure remains visible in Report 5.3 history. A deployed browser retest and the proposed performance workload in Report 3 remain pending.
-
 
 ## Browser rehearsal and isolated fixtures
 

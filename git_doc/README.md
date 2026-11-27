@@ -34,8 +34,6 @@ Bản v8 là snapshot lịch sử có category. Registry hiện hành có 58 col
 
 | Tài liệu | Nội dung |
 |---|---|
-| [Return defense guide](docs/09_phat_trien/TRUNG_RETURN_DEFENSE_GUIDE.md) | Khách trả, trả NCC từ tồn cửa hàng và hàng tạm giữ, với mã chứng từ đã đối chiếu trên Atlas |
-| [Ôn nhanh bảo vệ phần trả hàng](docs/09_phat_trien/TRUNG_RETURN_DEFENSE_QUICK_VI.md) | Ba luồng trả hàng, vai trò, thời điểm ghi tồn và câu hỏi luyện nói bằng tiếng Việt |
 | [GitHub Actions CI](docs/09_phat_trien/GITHUB_ACTIONS_CI.md) | Trigger và lệnh kiểm tra cho hai repo FE và BE |
 | [Hướng dẫn sử dụng kiểm kho (Word)](docs/02_nghiep_vu/HUONG_DAN_SU_DUNG_KIEM_KHO.docx) | Tài liệu người dùng cuối: lập kế hoạch, tạo phiếu, đếm, đếm lại, duyệt chênh lệch; 29 ảnh nhúng trong một file (22/11/2026) |
 | [Stocktake end-to-end walkthrough](docs/09_phat_trien/STOCKTAKE_E2E_WALKTHROUGH.md) | Luồng kế hoạch → phiếu → đếm → đếm lại → duyệt, có ảnh từng bước (22/11/2026) |
@@ -51,7 +49,6 @@ Bản v8 là snapshot lịch sử có category. Registry hiện hành có 58 col
 | [SO / giao hàng](docs/08_api/sales-orders/README.md) | Hợp đồng API bán hàng hiện có |
 | [Goods Issue UC-69–72](docs/08_api/GOODS_ISSUES.md) | Phiếu bán theo lịch đơn bán hoặc mã ngoài độc lập; picking/PGI, điều chuyển và các lệnh xuất native |
 | [Gói test FE06](docs/08_api/test_packs/fe06-iteration1/README.md) | Cách gọi API và nguồn test lịch sử |
-| [Demo trả hàng local](docs/09_phat_trien/TRUNG_DEMO_LOCAL.md#demo-local-đã-chạy-đủ-ba-luồng-trả-hàng) | Nguồn và kết quả chạy đủ ba luồng trả hàng |
 | [Return workflows native](docs/08_api/RETURN_WORKFLOWS_NATIVE.md) / [kết quả kiểm chứng](docs/08_api/RETURN_WORKFLOWS_VERIFICATION.md) | Khách trả theo phiếu xuất/lô nguồn, trả NCC theo thỏa thuận, ACK và đối chiếu riêng |
 | [Nhật ký thay đổi](change_logs.md) | Mỗi lượt thay đổi cùng kiểm chứng và phần còn mở |
 | [Nhật ký model](../src/models/CHANGELOG.md) | Thay đổi schema và ảnh hưởng dữ liệu |

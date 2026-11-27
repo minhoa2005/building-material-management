@@ -1,21 +1,10 @@
+## 27/11/2026 - Sửa luồng khách trả và trả NCC
 
-## 27/11/2026 - Gộp sửa lỗi trả hàng và hướng dẫn demo
+Bộ chọn khách trả lọc phiếu xuất theo yêu cầu mua hàng. Khi chưa chọn yêu cầu, danh sách chỉ hiện các nguồn độc lập đủ điều kiện. Duyệt lại kiểm tra hạn mức theo lô. Phiếu nhiều dòng xét điều kiện duyệt theo từng dòng, và kiểm số lượng 0 không gửi quy cách bao bì. Lot Trace mở đúng chi tiết phiếu nhập khách trả.
 
-Gộp sửa lỗi Lot Trace với bản kiểm tra nghiệp vụ mới nhất. Cập nhật hai hướng dẫn để trỏ tới bản demo local cổng 3335 và phản ánh ca ghi phản hồi NCC giữa hai đợt bàn giao. Kiểm tra tài liệu và bộ kiểm thử Lot Trace có MongoDB local.
+Trả NCC kiểm số nguyên theo đơn vị gốc khi sản phẩm yêu cầu. Tiến độ đối chiếu dựa trên số lượng đã thỏa thuận, bàn giao và nhận phản hồi. Phiếu còn dòng chưa thỏa thuận vẫn có thể xử lý tiếp.
 
-## 27/11/2026 - Sửa lỗi logic khi diễn tập trả hàng
-
-Khách trả kiểm lại hạn mức theo lô khi duyệt lại phần đã nhả hạn mức. Phiếu có nhiều dòng áp dụng điều kiện duyệt theo từng dòng. Màn kiểm hàng bỏ phần quy cách khi lượng thực đến bằng 0, và API chuẩn hóa số 0 thập phân.
-
-Trả NCC kiểm số nguyên ở thỏa thuận và phản hồi nếu sản phẩm dùng đơn vị nguyên. Phiếu còn dòng chưa có thỏa thuận tiếp tục ở trạng thái xử lý từng phần. Giảm thỏa thuận xuống lượng đã bàn giao và được xác nhận có thể đưa phiếu đến bước đóng. Phiếu cũ vẫn được đối chiếu theo thỏa thuận, lượng bàn giao và phản hồi thực tế.
-
-Kiểm thử giao diện đạt 45 ca, bộ backend trả hàng đạt 32 ca và hai bài kiểm thử tích hợp xuất bán đạt. Build, kiểm tra lint trên các tệp sửa và kiểm tra tài liệu đạt. Chạy ba luồng qua API local và kiểm tra ca duyệt ngoại lệ trên Chrome desktop và mobile. Xem [mã phiếu và kết quả](docs/09_phat_trien/TRUNG_DEMO_LOCAL.md#kết-quả-rà-soát-logic). Chưa triển khai lên hosted.
-
-## 27/11/2026 - Chọn yêu cầu mua hàng trước phiếu xuất liên kết
-
-Bộ chọn khách trả yêu cầu chọn yêu cầu mua hàng gốc trước khi hiện các phiếu xuất liên kết. Khi chưa chọn yêu cầu, bộ lọc `withoutSalesOrder=true` chỉ lấy phiếu xuất bán độc lập và chứng từ giao ngoài đã xác minh. Payload tạo phiếu của các tích hợp cũ vẫn dùng hợp đồng hiện có. Frontend sửa dữ liệu mẫu thiếu mã sản phẩm để build TypeScript.
-
-Kiểm thử giao diện tập trung đạt 43 ca. Kiểm thử backend cho liên kết, hợp đồng và nguồn độc lập đạt 10 ca. Chrome xác nhận nguồn liên kết xuất hiện sau khi chọn yêu cầu. Cả ba luồng chạy từ tạo đến hoàn tất qua API local và đối chiếu tồn trong MongoDB. Xem mã hồ sơ và cách mở bản demo trong [hướng dẫn local](docs/09_phat_trien/TRUNG_DEMO_LOCAL.md). Chưa triển khai bản sửa lên hosted.
+Kiểm tra 45 ca frontend, 32 ca backend trả hàng, 2 bài tích hợp xuất bán và 8 ca lookup có MongoDB local. Cả ba luồng chạy đến hoàn tất qua API local. Kiểm tra kiểu và tài liệu đạt.
 
 ## 27/11/2026 - Mark all notifications as read
 
@@ -148,23 +137,6 @@ User decision (26/11/2026): the document formerly shown as "Đơn bán" / "Đơn
 - **Dữ liệu:** Không đổi model/migration. Bản ghi `stock_reservations` có thể được tạo thêm hoặc nhả bớt khi xác nhận.
 - **Tài liệu:** `git_doc/docs/08_api/transfers/BF04_API.md` (mục "Bin (ô) re-allocation at pick").
 - **Kiểm chứng:** BE `node --test test/transfer-pick-allocation.test.js` đạt 5/5; FE `vitest` cho `TransferPickConfirm.test.tsx`, `tsc --noEmit`, eslint các file đổi đạt. Chưa chạy test tích hợp với MongoDB (không có mongod cục bộ) nên đường ghi DB của `reallocatePick` chưa được kiểm chứng end-to-end. `TransferFlowPage.test.tsx` có 2 test đang fail ("labels request and operational quantities…", "allows reporting only from the assigned destination warehouse") ở phần không thuộc thay đổi này.
-
-## 27/11/2026 - Bổ sung ca luyện bảo vệ nghiệp vụ trả hàng
-
-Mở rộng [bản ôn nhanh](docs/09_phat_trien/TRUNG_RETURN_DEFENSE_QUICK_VI.md) theo yêu cầu. Bổ sung ca xử lý từng phần, nguồn thay thế, ngoại lệ, điều kiện đóng phiếu và câu hỏi về tồn kho. Đối chiếu với hướng dẫn bảo vệ, hợp đồng và mã nghiệp vụ liên quan. Chạy `npm run docs:check`. Phạm vi cập nhật là tài liệu, chưa chạy lại demo.
-
-## 27/11/2026 - Làm rõ bước chọn chứng từ khi khách trả hàng
-
-Sửa [bản ôn nhanh](docs/09_phat_trien/TRUNG_RETURN_DEFENSE_QUICK_VI.md) theo phản hồi người dùng. Trên bản demo hosted, Kinh doanh chọn yêu cầu mua hàng của khách trước, rồi chọn dòng phiếu xuất bán thuộc yêu cầu đó. Đối chiếu với hướng dẫn gốc và chạy `npm run docs:check`. Phạm vi sửa là tài liệu, chưa chạy lại demo.
-
-## 27/11/2026 - Bản ôn nhanh bảo vệ phần trả hàng
-
-Thêm [bản ôn nhanh tiếng Việt](docs/09_phat_trien/TRUNG_RETURN_DEFENSE_QUICK_VI.md) theo yêu cầu, gồm ba luồng trả hàng, vai trò, thời điểm thay đổi tồn và câu hỏi luyện nói. Thêm liên kết trong `git_doc/README.md`. Đối chiếu nội dung với hướng dẫn bảo vệ gốc và kiểm tra liên kết bằng `npm run docs:check`. Phạm vi cập nhật là tài liệu học, chưa chạy lại thao tác demo.
-
-## 27/11/2026 — Atlas demo guide verification
-
-Updated the [return defense guide](docs/09_phat_trien/TRUNG_RETURN_DEFENSE_GUIDE.md) with the current purchase-request picker, store-owned stock and purchase custody paths, and Atlas source codes. Verified the hosted frontend's API target, four role logins, scoped source and custody reads, and a direct read-only Atlas connection. The published code passed 29 backend checks on disposable local databases and six frontend demo tests. An end-to-end hosted write rehearsal remains unverified.
-
 
 ## 26/11/2026 — Sửa khoảng cách và căn chỉnh các biểu mẫu (FE)
 
@@ -2882,7 +2854,6 @@ Theo yêu cầu người dùng, gỡ Dockerfile của BE và cập nhật hướ
 - **Kiểm chứng:** FE `npm run typecheck` đạt. Bộ test tập trung vẫn ghi nhận 5 lỗi jsdom/Ant Design/fixture bắt buộc tên khách; không đánh dấu chúng là pass. Backend full-flow 8 → 4 → supplier 4 giữ nguyên bằng chứng trong test hiện hành.
 - **Tài liệu chính:** cập nhật `git_doc/docs/09_phat_trien/TRUNG_SALES_RETURNS_IMPLEMENTATION_PLAN.md` cùng mục này.
 
-
 ## 26/11/2026 — Đồng bộ tài liệu luồng bán, trả khách và trả NCC (BE + FE)
 
 - **Lý do & phạm vi:** Đối chiếu tài liệu với `main` mới nhất của BE và FE sau khi hoàn tất demo và các sửa lỗi biểu mẫu. Cập nhật mô tả hiện hành; giữ quyết định 16–17/11 dưới dạng lịch sử có ngày rõ ràng. Không đổi code runtime, API, model, quyền, database hay migration.
@@ -2893,28 +2864,4 @@ Theo yêu cầu người dùng, gỡ Dockerfile của BE và cập nhật hướ
 - **Pull request:** BE #40–#44 và FE #36–#39 được merge riêng từng file. Không có thay đổi dữ liệu hoặc triển khai production.
 - **Kiểm chứng:** BE `npm run docs:check` đạt với 1.235 liên kết nội bộ; `git diff --check` đạt. Không chạy FE tests hoặc kiểm tra trình duyệt cho các thay đổi tài liệu. Kết quả demo FE ngày 25/11 vẫn là 27/32, còn 5 lỗi tương tác jsdom/Ant Design; không có visual review cho acceptance run đó.
 - **Giới hạn CI:** Backend CI trên các PR tài liệu báo lỗi ở test/fixture hiện có (thiếu export `evidenceStorage` và kỳ vọng cũ rằng SALE phải có Sales Order). Các thay đổi ở đây chỉ là tài liệu; không sửa code hoặc test để che các lỗi đó.
-
-
-
-## 2026-11-27 — return defense guide
-
-Added docs/09_phat_trien/TRUNG_RETURN_DEFENSE_GUIDE.md with current Customer Return and Supplier Return demo steps, field meanings, prepared inputs, supplier custody alternate entry, retry/quantity/error cases, and defense questions. Verified against the native return validation/routes, current return contract, prepared local demo data, API health, login, and return-workflow options.
-
-## 2026-11-27 - Report 5 return workflow tests
-
-- Added Phạm Hải Trung's return, defect, undelivered intake and traceability coverage to the original shared Reports 5.0-5.4. Reports 5.1-5.4 contain 51 new cases. Existing direct customer-return inspection cases now use the fact-only intake contract.
-- Mapped cases to the current Report 3 use-case catalogue and used named detailed sections where the tracker numbering differs. The [return verification reference](docs/08_api/RETURN_WORKFLOWS_VERIFICATION.md#report-5-return-coverage) links the shared reports.
-- Verified all four workbook packages open and retain their original comments, drawing and media parts. The isolated return suite passed 29 checks. The overlapping focused run passed 10 checks and skipped seven. Formal system and performance executions remain pending.
-
-## 2026-11-27 - Report 5 return run evidence
-
-- Recorded 46 local passes, one local failure and evidence notes on 71 pending cases in the shared Report 5 workbooks. The local return suite passed 29 and lookup/standalone checks passed 10. Focused frontend Vitest passed 62 and failed five.
-- Reproduced the Lot Trace receipt link opening a customer-return request route and returning HTTP 404. Report 5.3 records WMSD-QA-RET-01 with the synthetic receipt identifier and route.
-- See the [return verification reference](docs/08_api/RETURN_WORKFLOWS_VERIFICATION.md#report-5-return-coverage) for the report breakdown. Deployed browser execution and reference-load performance remain pending.
-
-## 2026-11-27 — Lot Trace customer receipt link
-
-- Lot trace document rows now include a record type that distinguishes customer return requests from posted customer return receipts, even though both use `documentKind=CUSTOMER_RETURN`.
-- The frontend routes return receipts to their goods receipt detail page and keeps request links on the return workflow page.
-- Verification: FE Flow 5 route regression and the Mongo-backed trace integration test pass. Report 5.3 records the Round 2 pass for `ST_RT_01`; the initial failure remains in Round 1 history. A deployed browser retest remains pending.
 
