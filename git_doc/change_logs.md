@@ -1,4 +1,8 @@
 
+## 27/11/2026 - Gộp sửa lỗi trả hàng và hướng dẫn demo
+
+Gộp sửa lỗi Lot Trace với bản kiểm tra nghiệp vụ mới nhất. Cập nhật hai hướng dẫn để trỏ tới bản demo local cổng 3335 và phản ánh ca ghi phản hồi NCC giữa hai đợt bàn giao. Kiểm tra tài liệu và bộ kiểm thử Lot Trace có MongoDB local.
+
 ## 27/11/2026 - Sửa lỗi logic khi diễn tập trả hàng
 
 Khách trả kiểm lại hạn mức theo lô khi duyệt lại phần đã nhả hạn mức. Phiếu có nhiều dòng áp dụng điều kiện duyệt theo từng dòng. Màn kiểm hàng bỏ phần quy cách khi lượng thực đến bằng 0, và API chuẩn hóa số 0 thập phân.

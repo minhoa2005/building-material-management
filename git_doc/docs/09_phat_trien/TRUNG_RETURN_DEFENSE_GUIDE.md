@@ -16,7 +16,7 @@ For a standalone customer source, leave the internal purchase request blank and 
 
 ## Start the local demo
 
-The running [local app](http://127.0.0.1:3334/) uses API port 3000 and replica-set database `wmsd_demo_trung_20261112`. Use the [local rehearsal reference](TRUNG_DEMO_LOCAL.md) for the prepared case list. The running local API lacks the hosted purchase-request picker.
+The [local rehearsal app](http://127.0.0.1:3335/) uses API port 3333 and replica-set database `wmsd_demo_trung_20261112`. The purchase-request picker is available there. Use the [local rehearsal reference](TRUNG_DEMO_LOCAL.md) for the prepared cases and the results of the local run.
 
 Use these synthetic local accounts.
 

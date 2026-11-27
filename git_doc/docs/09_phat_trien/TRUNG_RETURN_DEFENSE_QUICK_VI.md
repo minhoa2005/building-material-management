@@ -26,7 +26,7 @@
 
 Các ca trên giả sử số lượng có thể tách theo quy cách thực tế. Ví dụ, hàng kiểm là thùng nguyên niêm phong thì lượng kiểm, duyệt và nhập phải theo số thùng nguyên.
 
-Khi diễn tập trả NCC nhiều đợt, hãy bàn giao đủ lượng thỏa thuận rồi mới ghi phản hồi. Trong mã backend của checkout đang rà soát, ghi phản hồi chuyển phiếu sang `ACKNOWLEDGED`, còn thao tác bàn giao yêu cầu `READY` hoặc `PARTIAL`. Ca ghi phản hồi xen giữa các đợt chưa được kiểm tra trên bản hosted. [Mã xử lý bàn giao và phản hồi](../../../src/modules/return-workflows/native.service.js).
+Kế toán có thể ghi phản hồi sau từng đợt bàn giao. Phiếu còn ở trạng thái xử lý từng phần nếu còn dòng chưa có thỏa thuận hoặc chưa bàn giao đủ lượng thỏa thuận. Ca giao 3 rồi 1 viên và ghi phản hồi xen giữa đã chạy trên [bản demo local](TRUNG_DEMO_LOCAL.md).
 
 ## Luồng thay thế và ngoại lệ
 
