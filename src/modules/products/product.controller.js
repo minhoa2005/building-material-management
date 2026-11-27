@@ -1,8 +1,9 @@
-import { catchAsync } from "../../shared/utils/catchAsync.js";
+import { catchAsync, respondWithData } from "../../shared/utils/catchAsync.js";
 import { formatApiResponse } from "../../shared/utils/ApiResponse.js";
 import { validationError } from "../../shared/utils/ApiError.js";
 import { uploadImageBuffer } from "../upload/upload.service.js";
 import * as service from "./product.service.js";
+import { previewImport, importCatalogue as saveImport } from "./product-import.service.js";
 
 export const list = catchAsync(async (req, res) => {
   const data = await service.listProducts(req.user, req.validated.query);
@@ -105,3 +106,6 @@ export const createConversion = catchAsync(async (req, res) => {
     data,
   });
 });
+
+export const importPreview = respondWithData((req) => previewImport(req.user, req.validated.body));
+export const importCatalogue = respondWithData((req) => saveImport(req.user, req.validated.body));

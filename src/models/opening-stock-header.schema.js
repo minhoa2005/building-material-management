@@ -6,7 +6,7 @@ export function createOpeningStockHeaderSchema() {
   const schema = new Schema({}, embeddedOptions);
   schema.add({
     warehouseId: ref("Warehouse", false),
-    openingImportSource: code(["FILE"], { required: false }),
+    openingImportSource: code(["FILE", "MANUAL"], { required: false }),
     cutoverKey: opt(160),
     openingAt: date(false),
     coveredLocationIds: refs("WarehouseLocation"),

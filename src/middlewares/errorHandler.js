@@ -9,7 +9,11 @@ export const errorHandler = (err, req, res, next) => {
   let error = err;
   if (!(error instanceof ApiError)) {
     if (err?.type === "entity.too.large" || err?.status === 413) {
-      error = new ApiError(413, "Dữ liệu gửi lên vượt quá giới hạn 1 MiB", {
+      // body-parser reports the limit in bytes; only the import routes allow more than 1 MiB.
+      const message = err.limit > 1024 * 1024
+        ? "Dữ liệu gửi lên vượt quá giới hạn 8 MB, hãy tách file"
+        : "Dữ liệu gửi lên vượt quá giới hạn 1 MiB";
+      error = new ApiError(413, message, {
         code: ERROR_CODES.PAYLOAD_TOO_LARGE,
       });
     } else if (err instanceof SyntaxError && err.status === 400) {

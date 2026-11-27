@@ -28,7 +28,12 @@ export const AREA_REFERENCE = 'Tự tính từ kích thước sản phẩm';
 // Pieces per 1 area unit. Null when the product has no size or its base unit is a carton/area unit.
 export async function areaFactor(uom, product, session) {
   if (uom.areaMm2 == null || !product.lengthMm || !product.widthMm || uom.code === product.baseUnit) return null;
-  const base = await Uom.findOne({ code: product.baseUnit }).session(session);
+  return areaFactorFor(uom, product, await Uom.findOne({ code: product.baseUnit }).session(session));
+}
+
+// Same factor with the product's base Uom already loaded (bulk catalogue import).
+export function areaFactorFor(uom, product, base) {
+  if (uom.areaMm2 == null || !product.lengthMm || !product.widthMm || uom.code === product.baseUnit) return null;
   if (!base || base.isCarton || base.areaMm2 != null) return null;
   return exact(uom.areaMm2).div(exact(product.lengthMm).mul(exact(product.widthMm)))
     .toDecimalPlaces(12, ExactDecimal.ROUND_HALF_UP);

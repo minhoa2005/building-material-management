@@ -12,3 +12,9 @@ Job BE tạm dùng runner `ubuntu-22.04` vì MongoDB 8.0 từ chối khởi đ�
 Chạy các lệnh trong thư mục gốc của repo tương ứng để tái hiện một lỗi CI. Job BE khởi tạo MongoDB 8.0 dạng replica set một node tên `rs0`. Job đặt `RUN_NATIVE_API_TESTS=1`, `RUN_GOODS_RECEIPT_TESTS=1` và `RUN_RETURNS_NATIVE_TESTS=1` khi chạy `npm run test:coverage`. Các suite tích hợp tạo database thử nghiệm riêng, gồm `returns_test_*` cho nghiệp vụ trả hàng, rồi tự xóa sau khi chạy. Để chạy local, dùng replica set `rs0` trên loopback và đặt cả ba biến môi trường. Các test cần cấu hình database cục bộ riêng hoặc dịch vụ lưu bằng chứng được bật theo hướng dẫn tương ứng. Workflow không cần secret hoặc kết nối database ứng dụng.
 
 Lint FE hiện có lỗi tồn đọng. Bước lint vẫn ghi kết quả vào log Actions và chạy ở chế độ tham khảo. Build và test FE quyết định trạng thái CI.
+
+## Chạy Jest trên máy phát triển
+
+Chạy `npm run test:jest` trong repo BE để chạy các tệp `test/jest/**/*.jest.js`. Chạy `pnpm test:jest` trong repo FE để chạy các tệp `.jest.ts` và `.jest.tsx` trong `test/jest/`. Cả hai lệnh dùng cờ `--experimental-vm-modules` của Node.js để nạp module ESM. [Hướng dẫn Jest về ESM](https://jestjs.io/docs/ecmascript-modules).
+
+Các lệnh test trong CI tiếp tục dùng `node:test` cho BE và Vitest cho FE.

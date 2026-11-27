@@ -32,7 +32,7 @@ Chứng từ và chứng từ nhúng không còn `tenLoaiPhieu`, `maDonVi`, `kyD
 
 ## Excel and opening stock — 16 November 2026
 
-[Current contract](docs/08_api/EXCEL_AND_OPENING_STOCK.md): opening_stocks uses its existing document/item relationships. New optional item packagingState and measuredVolumeMm3 preserve physical packaging for opening imports; a unique partial index on header.warehouseId for POSTED enforces one initialization per warehouse. warehouses.stockOperationVersion (integer, default zero) serializes shared stock commands and location edits against opening posting without changing catalogue updatedAt. No collection or relationship was added. Legacy data needs the additive [local setup](docs/09_phat_trien/EXCEL_OPENING_SETUP.md) before exposing the feature. No remote rollout was performed.
+[Current contract](docs/08_api/EXCEL_AND_OPENING_STOCK.md): opening_stocks uses its existing document/item relationships. New optional item packagingState and measuredVolumeMm3 preserve physical packaging for opening imports; the one-initialization index was removed on 27/11/2026: a warehouse takes several opening documents for one cut-off (`warehouses.openingCutoffAt`) until the Owner closes it (`openingClosedAt`, `openingClosedBy`); `header.openingImportSource` accepts FILE or MANUAL. warehouses.stockOperationVersion (integer, default zero) serializes shared stock commands and location edits against opening posting without changing catalogue updatedAt. No collection or relationship was added. Legacy data needs the additive [local setup](docs/09_phat_trien/EXCEL_OPENING_SETUP.md) before exposing the feature. No remote rollout was performed.
 
 ## Registry và các file cùng tác động
 
@@ -66,7 +66,7 @@ receipts without an ITR use the explicit legacy open-task command. See [BF04 API
 | `users` | Tài khoản nhân viên: một vai trò, nhiều kho được phân công; mật khẩu được băm, lý do khoá hiện tại lưu ở `lockReason`; `lastLoginAt` ghi lần đăng nhập thành công gần nhất (23/11/2026). | [user.model.js](../src/models/user.model.js) |
 | `roles` | Vai trò có sẵn hoặc do Administrator tạo; giữ danh sách quyền được chọn. | [role.model.js](../src/models/role.model.js) |
 | `permissions` | Danh mục quyền thao tác có sẵn, phân nhóm theo chức năng. | [permission.model.js](../src/models/permission.model.js) |
-| `warehouses` | Kho vật lý, kích thước; `layout3d` nháp gồm mặt bằng/khu vực/ô, `layout3dApplied` snapshot áp dụng và `layout3dAppliedAt`. Ô thiết kế có thể giữ `locationId` của vị trí nghiệp vụ cùng kho; [hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md), [lớp hàng pallet](docs/10_Kho3D/STAGE3_PALLET_LAYERS.md) chỉ là phương án, không ghi tồn. | [warehouse.model.js](../src/models/warehouse.model.js) |
+| `warehouses` | Kho vật lý, kích thước; `layout3d` nháp gồm mặt bằng/khu vực/ô, `layout3dApplied` snapshot áp dụng và `layout3dAppliedAt`; `openingCutoffAt`/`openingClosedAt`/`openingClosedBy` là mốc và trạng thái chốt tồn đầu ([hợp đồng](docs/08_api/EXCEL_AND_OPENING_STOCK.md)). Ô thiết kế có thể giữ `locationId` của vị trí nghiệp vụ cùng kho; [hợp đồng chặng 2](docs/10_Kho3D/STAGE2_ZONES.md), [lớp hàng pallet](docs/10_Kho3D/STAGE3_PALLET_LAYERS.md) chỉ là phương án, không ghi tồn. | [warehouse.model.js](../src/models/warehouse.model.js) |
 | `warehouse_locations` | Ô/vị trí thuộc một kho, loại ô và kích thước phục vụ kiểm sức chứa. | [warehouse-location.model.js](../src/models/warehouse-location.model.js) |
 | `categories` | Nhóm phân loại sản phẩm: 5 nhóm đã duyệt, mỗi sản phẩm thuộc một category. | [category.model.js](../src/models/category.model.js) |
 | `uoms` | Danh mục đơn vị. Mã bất biến và `isCarton` đánh dấu đơn vị thùng. `areaMm2` (mm² của một đơn vị, bất biến, null = không phải đơn vị diện tích; M2 = 1000000) bật quy đổi tự sinh và làm tròn lên tới viên. `Product.baseUnit` tham chiếu mã qua service. | [uom.model.js](../src/models/uom.model.js) |
@@ -123,7 +123,7 @@ receipts without an ITR use the explicit legacy open-task command. See [BF04 API
 | `custody_receipts` | Nhận vật lý hàng thuộc khách/NCC; chiếm chỗ nhưng chưa thuộc cửa hàng. | [custody-receipt.model.js](../src/models/custody-receipt.model.js) |
 | `custody_releases` | Bàn giao lại hàng giữ hộ chưa chuyển sang sở hữu cửa hàng. | [custody-release.model.js](../src/models/custody-release.model.js) |
 | `stock_reversals` | Phiếu đề nghị/duyệt đảo toàn bộ lần ghi tồn sai đủ điều kiện, giữ liên kết giao dịch gốc. | [stock-reversal.model.js](../src/models/stock-reversal.model.js) |
-| `opening_stocks` | Phiếu số dư ban đầu đã đối chiếu/xác minh theo ô, lô, chất lượng và chủ hàng. | [opening-stock.model.js](../src/models/opening-stock.model.js) |
+| `opening_stocks` | Phiếu số dư ban đầu đã đối chiếu/xác minh theo ô, lô, chất lượng và chủ hàng; mỗi kho nhiều phiếu (nhập từng phần) cho một mốc cho tới khi chốt. | [opening-stock.model.js](../src/models/opening-stock.model.js) |
 | `sales_invoices` | Hóa đơn tổng hợp một SO: từng dòng có phiếu/ngày xuất, lượng xuất, lượng nhận và giá tính tiền. | [sales-invoice.model.js](../src/models/sales-invoice.model.js) |
 
 ## Khi thay một model

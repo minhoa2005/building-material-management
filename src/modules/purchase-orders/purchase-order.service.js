@@ -48,6 +48,11 @@ export async function openReceivingWorkIds(orders){
   const drafts=owner.size?await GoodsInspection.find({'header.arrivalId':{$in:[...owner.keys()]},workflowStatus:'DRAFT'}).select('header.arrivalId').lean():[];
   return new Set([...receipts.map(r=>String(r.header.purchaseOrderId)),...drafts.map(d=>owner.get(String(d.header.arrivalId)))]);
 }
+// A draft inspection holds counted goods but no PO quantity until it is confirmed.
+export async function hasDraftInspection(po,session){
+  const arrivalIds=await GoodsArrival.find({'header.purchaseOrderId':po._id}).session(session).distinct('_id');
+  return arrivalIds.length>0&&!!(await GoodsInspection.exists({'header.arrivalId':{$in:arrivalIds},workflowStatus:'DRAFT'}).session(session));
+}
 const financial=user=>['OWNER','ACCOUNTANT'].includes(currentRole(user)?.code);
 export async function getPurchaseOrder(user,id){
   requirePermission(user,'purchase_order:read');const po=await findPurchase(id,user,null,{kind:'PO',readOnly:true});
@@ -97,7 +102,7 @@ export async function getPurchaseOrder(user,id){
   }
 
   const cancellable=['DRAFT','OPEN'].includes(po.workflowStatus)&&!(await cancelBlocker(po));
-  const result={...dto(po),warehouse:mappedWarehouse,draftEdit,cancellable,reopenable:reopenable(po,quantities),hasOpenReceivingWork:(await openReceivingWorkIds([po])).has(String(po._id)),quantities,arrivals:arrivals.map(dto),receipts:receipts.map(dto),
+  const result={...dto(po),warehouse:mappedWarehouse,draftEdit,cancellable,reopenable:reopenable(po,quantities),hasOpenReceivingWork:(await openReceivingWorkIds([po])).has(String(po._id)),hasDraftInspection:await hasDraftInspection(po,null),quantities,arrivals:arrivals.map(dto),receipts:receipts.map(dto),
     ...(financial(user)&&{history:history.map(dto),approvals:approvals.map(dto)})};
   await enrichLineItems(result.items);
   return financial(user)?result:redactPrices(result);
