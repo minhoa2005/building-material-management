@@ -809,7 +809,7 @@ Chưa kiểm: không thấy test HTTP gọi `POST /evaluate` hoặc `POST /:id/c
   for (const balance of balances) available = available.plus(positive(await freeQuantity(balance, session)));
   ```
 
-  Tồn khả dụng chỉ tính lô `VERIFIED`, số dư `GOOD/STORE` ở ô `STORAGE` đang hoạt động, `isPickable` và không bị khóa kiểm kê. `freeQuantity` lấy tồn vật lý trừ lượng giữ còn lại, lượng lệnh chuyển đang chờ chưa được bao bởi phiếu giữ và lượng bị chặn do báo lỗi còn hiệu lực. Từng số dư chỉ góp phần dương vào tổng. RR đánh giá từng sản phẩm hoặc lô bằng `availableStock`. Cảnh báo tồn thấp và dashboard Owner áp dụng cùng cách tính theo lô đủ điều kiện qua truy vấn theo lô dữ liệu `availableStocks` (2B.11). [stock.js](../../../src/shared/utils/stock.js)
+  Tồn khả dụng chỉ tính lô `VERIFIED`, số dư `GOOD/STORE` ở ô `STORAGE` đang hoạt động, `isPickable` và không bị khóa kiểm kê. `freeQuantity` lấy tồn vật lý trừ lượng giữ còn lại, lượng chờ chuyển chưa có giữ hàng và lượng bị chặn do báo lỗi còn hiệu lực. Từng số dư chỉ góp phần dương vào tổng. RR đánh giá từng sản phẩm hoặc lô bằng `availableStock`. Cảnh báo tồn thấp và dashboard Owner dùng cùng cách tính qua `availableStocks`, gom nhiều cặp sản phẩm và kho trong một lượt đọc. Xem 2B.11. [stock.js](../../../src/shared/utils/stock.js)
 - **`openRequests(...)`** ([evaluation.js:149](../../../src/modules/replenishments/replenishment.evaluation.js)): tìm RR `DRAFT/SUBMITTED/APPROVED` cùng kho, cùng sản phẩm (trừ phiếu đang sửa). `pendingRequestQuantity()` (dòng 15) lấy `approvedQtyBase` nếu đã duyệt, ngược lại `qtyBase`; nếu RR đã có PO `OPEN/PARTIAL` thì trừ phần đã lên PO; PO kết thúc ⇒ 0. Chỉ Owner/Kế toán hoặc chính người lập mới thấy chi tiết từng RR (`relatedRequests`).
 - **`incomingPurchaseOrders(...)`** ([evaluation.js:181](../../../src/modules/replenishments/replenishment.evaluation.js)): PO `OPEN/PARTIAL` cùng kho, còn lại = `qtyBase − cancelledRemainderQtyBase − đã nhập (GR POSTED)`.
 - **`otherWarehouseOptions(...)`** ([evaluation.js:283](../../../src/modules/replenishments/replenishment.evaluation.js#L283)): chạy `availableStock` cho từng kho khác; kho người dùng không được vào chỉ cộng vào `restrictedOtherWarehouseQtyBase`, không lộ chi tiết.
@@ -2917,6 +2917,41 @@ Ghi ngày 25/11/2026, chưa sửa. Giải thích đầy đủ ở [2.0, mục Ki
 ---
 
 # Phần 4 — Kiểm thử đã chạy
+
+### Kiểm chứng backend tại `c8474b7` ngày 28/11/2026
+
+| Bộ kiểm thử | Môi trường | Kết quả và phạm vi |
+|---|---|---|
+| Jest RR và PO | MongoDB local `127.0.0.1:27017`, replica set `rs0` | **64/64 đạt**. Bao gồm `UTC-PO-024`, chặn chốt thiếu khi còn kiểm nhận nháp. |
+| Node test cho luồng và các module liên quan | Cùng replica set `rs0` | **93/93 đạt**. Gồm kiểm nhận, phiếu nhập gộp, đảo phiếu, giữ hộ, BF03, bằng chứng, truy vấn tồn khả dụng, import danh mục và tồn đầu. Ca tích hợp RR xác nhận danh sách và chi tiết trả thông tin người hủy. |
+| Node test xác nhận từng phần BF03 | MongoDB tạm `127.0.0.1:27018`, replica set `hieudt-test` | **1/1 đạt**. Kiểm giữ lịch sử chuyến đã chuyển, hủy phần còn lại và hai lệnh xác nhận chạy đồng thời. |
+
+```powershell
+$env:RUN_NATIVE_API_TESTS='1'
+$env:RUN_GOODS_RECEIPT_TESTS='1'
+$env:RUN_OPENING_TESTS='1'
+$env:MONGODB_TEST_PORT='27017'
+$env:MONGODB_TEST_REPLICA_SET='rs0'
+
+npm run test:jest -- --runInBand --runTestsByPath test/jest/Replenishment/replenishment.jest.js test/jest/PurchaseOrder/purchase-order.jest.js
+
+node --test --test-concurrency=1 `
+  test/native-api.integration.test.js test/refactor-regression.integration.test.js `
+  test/goods-receipt.integration.test.js test/replenishment-evaluation.integration.test.js `
+  test/replenishment-warnings.integration.test.js test/replenishment-review-decision.test.js `
+  test/receiving-custody-policy.test.js test/location-movements.test.js `
+  test/purchase-evidence.test.js test/stock-receipt-volume.test.js `
+  test/stock-availability-bulk.test.js test/product-import.test.js test/product-lookup.test.js `
+  test/opening-stock.test.js test/opening-stock-setup.test.js
+
+# Khi replica set hieudt-test đã sẵn sàng tại 127.0.0.1:27018
+$env:RUN_RELOCATION_PARTIAL_TESTS='1'
+node --test test/location-movement-partial.integration.test.js
+```
+
+Đối chiếu với route Express đang gắn trong app cho thấy khớp toàn bộ 50 route của năm bảng RR, PO, kiểm nhận, nhập mua và BF03 ở 2B.1. Phạm vi kiểm chứng của lượt này là backend local và các bộ test trong bảng. Các kết quả bên dưới thuộc các lượt chạy trước.
+
+### Lượt chạy 24/11/2026
 
 Ngày 24/11/2026, máy local, MongoDB replica set `rs0` cổng 27017. Mỗi file test integration tự tạo database tạm tên ngẫu nhiên và xóa khi xong; không dùng database của ứng dụng.
 
