@@ -1,14 +1,14 @@
 # Hướng dẫn đọc code: từ Yêu cầu bổ sung (RR) đến Nhập hàng và Cất hàng
 
-> RR duyệt theo đơn vị gốc. PO đối chiếu lượng duyệt theo đơn vị gốc và chỉ áp dụng ngoại lệ vượt trần cho thùng. Sau khi ghi nhập, kho đưa hàng lên kệ qua Chuyển vị trí BF03. Tên hàm trong hướng dẫn dùng để tra code trong `be/src`. Phần 2 đi theo luồng chính; [Phần 2B](#phần-2b--luồng-phụ-và-luồng-liên-quan) giải thích từng luồng phụ theo cùng khuôn của luồng chính (vai trò, route và quyền, từ điển biến, tương tác DB, logic kèm code và lý do): hủy/rút, sửa, đổi ngày, chốt thiếu, mở lại PO, sửa kết quả kiểm, đảo phiếu, giữ hộ NCC, bằng chứng, màn hình đọc, đối soát và module liên quan.
+> RR duyệt theo đơn vị gốc. PO đối chiếu lượng duyệt theo đơn vị gốc và chỉ áp dụng ngoại lệ vượt trần cho thùng. Phiếu nhập mua ghi tồn vào bãi tiếp nhận. Kho dùng Chuyển vị trí BF03 để đưa hàng lên kệ lưu trữ.
 >
-> **Đối chiếu code ngày 25/11/2026** (nhánh `minhtd`, commit `5105f36` — đã hoàn tất cả hai đợt refactor trong ngày: chuẩn hóa `routes → controller → service` và **tách module `po-receiving` theo loại chứng từ** sang `goods-inspections`, `goods-receipts/purchase-receipt.*`, `custody`, `stock-reversals` cùng 4 tiện ích dùng chung ở `src/shared/utils/`; xem [change_logs.md](../../change_logs.md) mục "25/11/2026 — Tách module `po-receiving` theo loại chứng từ (BE + FE)"). Module RR và BF03 không đổi so với lần đối chiếu 24/11/2026 (commit `e251fb0`). Số dòng trong liên kết lấy theo code tại commit `5105f36`. Kết quả chạy test ở [Phần 4](#phần-4--kiểm-thử-đã-chạy).
+> Bản hướng dẫn bám mã nguồn BE ở commit `c8474b7`. [Phần 2](#phần-2--giải-phẫu-chi-tiết-từng-hàm-theo-thứ-tự-thực-thi) mô tả luồng chính theo thứ tự gọi. [Phần 2B](#phần-2b--luồng-phụ-và-luồng-liên-quan) tra cứu sửa, hủy, chốt thiếu, mở lại PO, giữ hộ, đảo phiếu, bằng chứng và các module liên quan. [Phần 4](#phần-4--kiểm-thử-đã-chạy) ghi kết quả theo từng lượt chạy.
 
 ## 1. Thông tin quy trình nghiệp vụ
 
 - **Tên quy trình:** Bổ sung hàng qua mua hàng — RR → PO → Hàng đến & Kiểm nhận → Phiếu nhập mua (ghi tồn). Kho dùng Chuyển vị trí để đưa hàng lên kệ.
 - **Bối cảnh:** Kho (hoặc Sales) thấy thiếu hàng, lập **Yêu cầu bổ sung** (RR, mã `YCBS-...`). Owner duyệt số lượng. Kế toán lập **Đơn mua hàng** (PO, `ĐMH-...`) gửi nhà cung cấp. Khi xe hàng đến, thủ kho ghi **Hàng đến kho** (`HĐK-...`) và **Phiếu kiểm nhận** (`PKN-...`), đếm theo lô, chấm chất lượng. Hàng đạt được lập **Phiếu nhập mua** (`PNM-...`), ghi tồn vào **bãi tiếp nhận** (vị trí `RECEIVING`). Sau đó thủ kho lập **Lệnh chuyển vị trí** (`LCV-...`, `TransferOrder` loại `RELOCATE`) và chuyển hàng từ bãi tiếp nhận lên **kệ lưu trữ** (vị trí `STORAGE`).
-- **Mục tiêu kỹ thuật:** mỗi bước là một lệnh (command) chạy trong **một MongoDB transaction**, có chống gửi trùng (idempotency), khóa lạc quan theo `version`, ghi `audit_logs`, và mọi thay đổi tồn kho đi qua **sổ cái** `stock_transactions.movements`.
+- **Lệnh thay đổi chứng từ:** các lệnh RR, PO, kiểm nhận, nhập mua và BF03 dùng `command()` để chạy trong MongoDB transaction, xử lý gửi lại, kiểm `version` khi sửa chứng từ và ghi `audit_logs`. Bút toán thay đổi tồn nằm trong `stock_transactions.movements`.
 
 ### Mã chứng từ
 
@@ -56,7 +56,7 @@ Tất cả có tiền tố `/api` ([app.js](../../../src/app.js), [routes.js](..
 - **Giữ hộ NCC & Đảo phiếu:** tách sang [custody/](../../../src/modules/custody/) (`custodyRouter` ở `/custody-receipts`, `custodyReleaseRouter` ở `/custody-releases`) và [stock-reversals/](../../../src/modules/stock-reversals/) (`reversalRouter` ở `/stock-reversals`).
 - **Bước 9–10 (Chuyển vị trí BF03):** [location-movement.routes.js](../../../src/modules/location-movements/location-movement.routes.js) với `checkPermission` riêng (`stock_relocation:read/create/confirm`); controller ([location-movement.controller.js](../../../src/modules/location-movements/location-movement.controller.js)) gọi trực tiếp [location-movement.service.js](../../../src/modules/location-movements/location-movement.service.js) (đã bỏ `location-movement.lifecycle.js`).
 
-Mỗi route đi qua `authenticate → checkPermission (quyền tĩnh) → validate → controller → service`; riêng bốn route bằng chứng `/purchase-documents/:id/evidence*` không có `checkPermission` vì quyền phụ thuộc loại chứng từ (2B.7). Vì `/purchase-orders` gắn tới 3 router nối tiếp (`purchaseOrdersRouter` → `purchaseReceivingRouter` → `purchaseOrderInspectionRouter`), hàm `authenticate` gắn cờ `Symbol` `AUTHENTICATED` để mỗi request chỉ nạp `User` từ DB đúng một lần ở tầng route (2.0).
+Các route có quyền cố định thường đi qua `authenticate → checkPermission → validate → controller → service`. Service chọn quyền theo từng trường hợp cho route RR có quyền động, route bằng chứng và route đọc phiếu nhập gộp. Ba router gắn dưới `/purchase-orders` dùng cùng cờ `AUTHENTICATED` để tránh nạp lại `User` trong tầng route. Xem 2.0 và 2B.7.
 
 Vai trò thực hiện theo seed quyền ([permissions.data.js](../../../src/seeds/data/permissions.data.js)): Sales và Thủ kho lập/sửa/gửi RR; Owner duyệt RR; Kế toán lập, phát hành, đổi ngày, chốt thiếu, mở lại, hủy PO và quyết định xử lý hàng giữ hộ (`purchase_custody:decide`); Thủ kho kiểm nhận, ghi nhập, đảo phiếu, thực hiện xử lý giữ hộ (`purchase_custody:execute`) và chuyển vị trí.
 
@@ -85,7 +85,9 @@ Vai trò thực hiện theo seed quyền ([permissions.data.js](../../../src/see
 
 ```text
 RR : DRAFT ─submit─► SUBMITTED ─review─► APPROVED │ REJECTED   (cancel khi chưa có PO ─► CANCELLED)
-PO : DRAFT ─confirm─► OPEN ─post GR một phần─► PARTIAL ─post GR đủ─► COMPLETED   (close-remainder ─► CLOSED; post GR đủ khi có dòng đã chốt thiếu ─► CLOSED; cancel khi chưa có chứng từ nhận ─► CANCELLED)
+PO : DRAFT ─confirm─► OPEN ─post GR một phần─► PARTIAL ─post GR đủ─► COMPLETED
+     OPEN/PARTIAL ─hết lượng phải giao và có lượng chốt thiếu─► CLOSED
+     DRAFT/OPEN ─cancel nếu đủ điều kiện─► CANCELLED
 PO CLOSED còn lượng chưa nhận (sau đảo GR) ─reopen─► PARTIAL │ OPEN
 ARR: DRAFT ─confirm INS─► RECORDED   (hủy INS nháp ─► CANCELLED)
 INS: DRAFT ─confirm─► CONFIRMED      (hủy nháp ─► CANCELLED)
@@ -106,7 +108,7 @@ Lập RR ──► Gửi ──► Duyệt ──► Lập PO ──► Phát h�
   ├─ sửa (2.2)       │         ├─ sửa PO (2B.3.1)         ├─ sửa (2.8)    ├─ CUSTODY ─► PNGH ─► nhánh giữ hộ (2B.8)
   ├─ rút / hủy RR (2B.2.5)     ├─ hủy PO (2B.3.5) ──► RR lập được PO mới    ├─ REJECT ─► chỉ còn trên phiếu kiểm
   │                  │         │           ├─ đổi ngày giao (2B.3.2)        │                 │
-  │                  └─ REJECT ─► REJECTED  ├─ chốt thiếu (2B.3.3) ──► CLOSED  ├─ hủy kiểm nháp (2B.4.3)
+  │                  └─ REJECT ─► REJECTED  ├─ chốt thiếu (2B.3.3)            ├─ hủy kiểm nháp (2B.4.3)
   │                            │           │                                 ├─ sửa kết quả kiểm đã xác nhận (2B.5)
   │                            │           │                                 │                 ├─ hủy phiếu nhập nháp / đổi bãi (2B.4.3, 2B.4.4)
   │                            │           │                                 │                 └─ đảo phiếu nhập (2B.6) ──► PO CLOSED? ─► mở lại (2B.3.4)
@@ -116,17 +118,20 @@ Lập RR ──► Gửi ──► Duyệt ──► Lập PO ──► Phát h�
 ### Chuỗi liên kết chứng từ (`sources[]`)
 
 ```text
-RR.items[i] ◄─requestItemId── PO.items[j] ◄─purchaseOrderItemId── ARR.items[k]
-                                                                    ▲ inspectedSourceLineId
-                                         INS.items[k] ──inspectionResultId──► GR.items[m]
-                                                                                │ movement.toBalanceId
-                                                                                ▼ (= receivingBalanceId)
-                                                      TO(RELOCATE).items[n].details.sourceBalanceId
+PO.items[j]  ──requestItemId─────────────────────► RR.items[i]
+ARR.items[k] ──purchaseOrderItemId───────────────► PO.items[j]
+INS.items[k] ──details.inspectedSourceLineId─────► ARR.items[k]
+GR.items[m]  ──inspectionResultId────────────────► INS.items[k]
+GR.items[m]  ──purchaseOrderItemId───────────────► PO.items[j]
+
+PURCHASE_RECEIPT movement ──sourceLineId─────────► GR.items[m]
+PURCHASE_RECEIPT movement ──toBalanceId──────────► InventoryBalance tại RECEIVING
+TO(RELOCATE).items[n] ──details.sourceBalanceId──► InventoryBalance tại RECEIVING
 ```
 
-Lệnh chuyển vị trí **không** có `sources[]` trỏ về phiếu nhập; nó chỉ trỏ tới **số dư** (`sourceBalanceId`). Số dư ở bãi tiếp nhận có thể chứa hàng của nhiều phiếu nhập cùng lô, nên sau bước 8 không còn liên kết dòng-với-dòng từ phiếu nhập tới lệnh chuyển.
+Lệnh chuyển vị trí lấy hàng theo `sourceBalanceId`. Cùng bãi tiếp nhận, lô, chất lượng và chủ hàng có thể gộp nhiều phiếu nhập vào một số dư. Vì vậy, gặp một lệnh BF03 trên cùng số dư chỉ xác định được nguồn tồn dùng chung. Khi cần kiểm tra đảo một phiếu cụ thể, xem các kiện của bút toán gốc ở 2B.6.
 
-Mỗi document còn có mảng `sources[]` (`{ documentId, subjectCollection, itemId, linkedQty, relationCode }`) ghi nguồn gốc theo cả header và dòng.
+Các phiếu mua và nhận hàng lưu `sources[]` cấp chứng từ và cấp dòng ở những nơi cần liên kết nghiệp vụ. `sourceLink` ghi `documentId`, `subjectCollection`, `relationCode` và thêm `itemId`, `linkedQty` khi có dòng và lượng nguồn. [document-copy.js](../../../src/shared/utils/document-copy.js)
 
 ## 1.2. Các MongoDB Models tham gia
 
@@ -390,7 +395,7 @@ const line = z.object({ id: oid.optional(), poLineId: oid, lotId: oid, enteredQt
 
   *Tại sao:* đọc cả `operation_records` để một phiếu đã bị xóa không bị cấp lại số (biên nhận vẫn giữ mã cũ). `session.documentNumbers` giúp một giao dịch cấp nhiều phiếu cùng loại (vd hai phiếu) không trùng số nhau. Với chứng từ **nhúng** (`embeddedPath`, vd phương án xử lý) hàm quét cả `_id` lẫn `documentNo` của phần tử nhúng; chứng từ gốc trong luồng này (RR, PO, HĐK, PKN, PNM, LCV) vẫn chỉ quét `_id`.
 
-- `newBusinessDocument(Model, user, header, items, status)` ([document-number.js:73](../../../src/shared/utils/document-number.js)) gói lại: lấy `warehouseId` từ header, gọi `nextDocumentFields`, tạo `new Model({ ..., workflowStatus: status, version: 1, createdBy, occurredAt, header, items })`. `newDocument()` trong [purchase-core.js:29](../../../src/shared/utils/purchase-core.js) là bí danh cho các chứng từ mua hàng.
+- `newBusinessDocument(Model, user, header, items, status)` ([document-number.js:78](../../../src/shared/utils/document-number.js#L78)) gói lại: lấy `warehouseId` từ header, gọi `nextDocumentFields`, tạo `new Model({ ..., workflowStatus: status, version: 1, createdBy, occurredAt, header, items })`. `newDocument()` trong [purchase-core.js:29](../../../src/shared/utils/purchase-core.js) là bí danh cho các chứng từ mua hàng.
 
 ### Hàm: `checkVersion(document, expectedVersion)` và `saveVersion(document, previousVersion, session)`
 
@@ -510,7 +515,7 @@ requirePermission(actor, permission);
 
 **Lý do 3 — service được gọi từ nhiều nơi, không chỉ qua HTTP.**
 
-- `evaluateLines` ([replenishment.evaluation.js:286](../../../src/modules/replenishments/replenishment.evaluation.js)) phục vụ ba lời gọi với ba quyền khác nhau, truyền qua `options.permission`:
+- `evaluateLines` ([replenishment.evaluation.js:325](../../../src/modules/replenishments/replenishment.evaluation.js#L325)) phục vụ ba lời gọi với ba quyền khác nhau, truyền qua `options.permission`:
   - `evaluateReplenishment` (xem trước): `:read` hoặc `:create`.
   - `items()` ([:136](../../../src/modules/replenishments/replenishment.commands.js)) khi lập/sửa RR: `:update` nếu có `requestId`, ngược lại `:create`.
   - `assessSavedRequest` ([:202](../../../src/modules/replenishments/replenishment.commands.js)) khi gửi duyệt: `:update`, kèm `strictSourceVersion: true`.
@@ -537,8 +542,8 @@ Ký hiệu: **R** = `checkPermission` ở route, **S** = `requirePermission` tro
 | `evaluateReplenishment` | — | S: `:read` / `:create`; `evaluateLines` kiểm lại cùng quyền | `readRequest` khi có `requestId`. `evaluateLines` gọi `requireWarehouseAccess(input.warehouseId)` và yêu cầu RR đang sửa thuộc kho được gán và do người gọi lập (Owner/Kế toán được qua), sai thì 400 "Phiếu đang sửa không thuộc phạm vi". | Xem trước không ghi DB nên không đi qua `command()`; kiểm trong service là lớp duy nhất. |
 | `cancelReplenishment` | — | C: Owner `:approve`, người khác `:update` | Chưa có PO. `APPROVED` ⇒ chỉ Owner. `DRAFT`/`SUBMITTED` ⇒ chỉ người lập. Bắt buộc lý do. | Hai vai trò khác quyền dùng cùng một endpoint. |
 | `listReplenishments` ([service:55](../../../src/modules/replenishments/replenishment.service.js)) | `:read` | S: `:read` | `replenishmentScope`: Owner mọi kho; vai trò khác kho được gán; Sales/Thủ kho chỉ RR mình lập. | Route chặn sớm; service tự bảo vệ khi bị gọi trực tiếp. |
-| `getReplenishment` ([service:139](../../../src/modules/replenishments/replenishment.service.js)) | `:read` | S: `:read` | `readRequest`. | Route chặn sớm; service tự bảo vệ khi bị gọi trực tiếp. |
-| `listReplenishmentSubmissions`, `getReplenishmentSubmission` ([service:303](../../../src/modules/replenishments/replenishment.service.js), [:321](../../../src/modules/replenishments/replenishment.service.js)) | `:read` | S: `:read` | `readRequest`. | Như trên. |
+| `getReplenishment` ([service:152](../../../src/modules/replenishments/replenishment.service.js#L152)) | `:read` | S: `:read` | `readRequest`. | Route chặn sớm; service tự bảo vệ khi bị gọi trực tiếp. |
+| `listReplenishmentSubmissions`, `getReplenishmentSubmission` ([service:326](../../../src/modules/replenishments/replenishment.service.js#L326), [:344](../../../src/modules/replenishments/replenishment.service.js#L344)) | `:read` | S: `:read` | `readRequest`. | Như trên. |
 | `createReplenishment` ([:379](../../../src/modules/replenishments/replenishment.commands.js)) | `:create` | C: `:create`; `items()` gọi `evaluateLines` với `:create` | `header()` gọi `requireWarehouseAccess`. Mỗi dòng có nguồn đi qua `resolveSource`, nơi `canReadRelated` ([replenishment.access.js:41](../../../src/modules/replenishments/replenishment.access.js)) đòi người lập đọc được chứng từ nguồn (đơn bán, yêu cầu xuất, kiểm kê) theo quyền module đó và phạm vi kho; không đọc được ⇒ 403. | Quyền cố định ⇒ có cả R và C. Gắn nguồn không được trở thành đường đọc chứng từ của module khác. |
 | `updateReplenishment` ([:406](../../../src/modules/replenishments/replenishment.commands.js)) | `:update` | C: `:update`; `items()` gọi `evaluateLines` với `:update` | `readRequest`, `checkVersion`, người lập, `DRAFT`, chưa có PO; nguồn kiểm như khi lập. | Có quyền `:update` chưa đủ; chỉ sửa được RR của chính mình. |
 | `submitReplenishment` ([:438](../../../src/modules/replenishments/replenishment.commands.js)) | `:update` | C: `:update`; `evaluateLines` kiểm lại `:update` | Người lập, `DRAFT`, `assessSavedRequest` với `strictSourceVersion`. | Như trên, thêm chặn nguồn đã đổi. |
@@ -740,7 +745,7 @@ Chưa kiểm: không thấy test HTTP gọi `POST /evaluate` hoặc `POST /:id/c
 
 ### Hàm: `resolveConversion(product, batch, enteredUnit, session, opts)` và `toBaseQuantity(enteredQty, factor, product, uom)`
 
-[conversions.js:8](../../../src/shared/utils/conversions.js), [conversions.js:41](../../../src/shared/utils/conversions.js)
+[conversions.js:8](../../../src/shared/utils/conversions.js), [conversions.js:46](../../../src/shared/utils/conversions.js#L46)
 
 - **Thứ tự tìm hệ số:** đơn vị = đơn vị gốc ⇒ `1`; nếu có lô ⇒ quy đổi riêng của lô (mới nhất có `validFrom ≤ now`); nếu không có và (không có lô hoặc đơn vị không phải thùng) ⇒ quy đổi chung của sản phẩm (`productBatchId: null`); không có ⇒ lỗi "Thiếu quy đổi…".
 
@@ -756,7 +761,7 @@ Chưa kiểm: không thấy test HTTP gọi `POST /evaluate` hoặc `POST /:id/c
 
 ### Hàm: `evaluateLines(user, input, session, options)`
 
-[replenishment.evaluation.js:286](../../../src/modules/replenishments/replenishment.evaluation.js). Cũng được gọi trực tiếp qua `POST /replenishments/evaluate` để màn hình xem trước.
+[replenishment.evaluation.js:325](../../../src/modules/replenishments/replenishment.evaluation.js#L325). Cũng được gọi trực tiếp qua `POST /replenishments/evaluate` để màn hình xem trước.
 
 - **Vai trò nghiệp vụ:** "trợ lý" giúp người lập/duyệt thấy có thật sự cần mua không. Nó **không chặn** mà sinh cảnh báo; việc chặn do `checkWarnings` làm.
 - **Từ điển biến:**
@@ -804,10 +809,10 @@ Chưa kiểm: không thấy test HTTP gọi `POST /evaluate` hoặc `POST /:id/c
   for (const balance of balances) available = available.plus(positive(await freeQuantity(balance, session)));
   ```
 
-  Chỉ tính hàng **đã lên kệ lưu trữ lấy được**, không khóa kiểm kê, chất lượng `GOOD`, thuộc cửa hàng. Hàng còn ở bãi tiếp nhận **chưa** được tính. `freeQuantity` ([stock.js:67](../../../src/shared/utils/stock.js)) = `quantityBase − giữ cho đơn bán − lệnh chuyển đang chờ chưa có giữ hàng (unreservedPendingTaskQuantity) − hàng bị chặn do lỗi`. Từ 23/11/2026 hàm được export và dùng lại cho cảnh báo tồn thấp và dashboard Owner (2B.11), nên đổi định nghĩa "tồn khả dụng" ở đây cũng đổi hai màn hình đó.
+  Tồn khả dụng chỉ tính lô `VERIFIED`, số dư `GOOD/STORE` ở ô `STORAGE` đang hoạt động, `isPickable` và không bị khóa kiểm kê. `freeQuantity` lấy tồn vật lý trừ lượng giữ còn lại, lượng lệnh chuyển đang chờ chưa được bao bởi phiếu giữ và lượng bị chặn do báo lỗi còn hiệu lực. Từng số dư chỉ góp phần dương vào tổng. RR đánh giá từng sản phẩm hoặc lô bằng `availableStock`. Cảnh báo tồn thấp và dashboard Owner áp dụng cùng cách tính theo lô đủ điều kiện qua truy vấn theo lô dữ liệu `availableStocks` (2B.11). [stock.js](../../../src/shared/utils/stock.js)
 - **`openRequests(...)`** ([evaluation.js:149](../../../src/modules/replenishments/replenishment.evaluation.js)): tìm RR `DRAFT/SUBMITTED/APPROVED` cùng kho, cùng sản phẩm (trừ phiếu đang sửa). `pendingRequestQuantity()` (dòng 15) lấy `approvedQtyBase` nếu đã duyệt, ngược lại `qtyBase`; nếu RR đã có PO `OPEN/PARTIAL` thì trừ phần đã lên PO; PO kết thúc ⇒ 0. Chỉ Owner/Kế toán hoặc chính người lập mới thấy chi tiết từng RR (`relatedRequests`).
 - **`incomingPurchaseOrders(...)`** ([evaluation.js:181](../../../src/modules/replenishments/replenishment.evaluation.js)): PO `OPEN/PARTIAL` cùng kho, còn lại = `qtyBase − cancelledRemainderQtyBase − đã nhập (GR POSTED)`.
-- **`otherWarehouseOptions(...)`** ([evaluation.js:244](../../../src/modules/replenishments/replenishment.evaluation.js)): chạy `availableStock` cho từng kho khác; kho người dùng không được vào chỉ cộng vào `restrictedOtherWarehouseQtyBase`, không lộ chi tiết.
+- **`otherWarehouseOptions(...)`** ([evaluation.js:283](../../../src/modules/replenishments/replenishment.evaluation.js#L283)): chạy `availableStock` cho từng kho khác; kho người dùng không được vào chỉ cộng vào `restrictedOtherWarehouseQtyBase`, không lộ chi tiết.
 
 ### Hàm: `checkWarnings(lines, evaluated)` và `evaluatedDetails(line, evaluation)`
 
@@ -1039,7 +1044,7 @@ if (invalidLines.length) throw reviewRequired(evaluated, undefined, invalidLines
 
 ### Hàm: `withinApproved(qtyBase, enteredQty, factor, approvedBase, isPackage)`
 
-[conversions.js:60](../../../src/shared/utils/conversions.js) — dùng ở `draftItems`, `confirmPurchaseOrder` và đối soát `reconcilePurchasing`.
+[conversions.js:65](../../../src/shared/utils/conversions.js#L65) — dùng ở `draftItems`, `confirmPurchaseOrder` và đối soát `reconcilePurchasing`.
 
 ```js
 export function withinApproved(qtyBase, enteredQty, factor, approvedBase, isPackage) {
@@ -1422,7 +1427,7 @@ for (const locationId of [...new Set(ids.filter(Boolean).map(String))].sort()) {
 
 ### Hàm: `beginStock(document, user, operation, input)`
 
-[stock.js:93](../../../src/shared/utils/stock.js)
+[stock.js:131](../../../src/shared/utils/stock.js#L131)
 
 ```js
 const requestHash = hash({ document: String(document._id), operation, input });
@@ -1467,7 +1472,7 @@ return await InventoryBalance.findOne(fields).session(session) ??
 
 ### Hàm: `receiveStock(balance, item, portions, posting, user, session, condition)`
 
-[stock.js:237](../../../src/shared/utils/stock.js)
+[stock.js:275](../../../src/shared/utils/stock.js#L275)
 
 - **Vai trò:** cộng tồn vào balance, gắn kiện, ghi movement.
 - **Từ điển biến:** `batch`, `product`, `amount` (= `item.qtyBase`), `packaging` (kiện cuối cùng), `cartonDims`, `hasCartonSize`, `perCarton`, `fullCartons`, `looseQty`, `received` (kiện có `_id` mới, `createdBy`, thể tích ước tính), `before`.
@@ -1487,7 +1492,7 @@ return await InventoryBalance.findOne(fields).session(session) ??
   }
   ```
 
-  *Tại sao:* sức chứa ô kệ tính theo **thể tích**; thùng nguyên tính theo kích thước thùng của lô. Kiện `LOOSE`/`OPEN` không khai thể tích được gán `measuredVolumeMm3 = estimateVolume(...)` ([stock.js:226](../../../src/shared/utils/stock.js)): kiện mở theo số thùng làm tròn lên × kích thước thùng, hàng rời theo số viên × kích thước sản phẩm; thiếu kích thước ⇒ lỗi "Thiếu kích thước lô/sản phẩm, cần nhập thể tích thực đo". Nhờ có thể tích này, dòng BF03 `LOOSE` sau đó tách được kiện rời (xem `splitPortions`).
+  *Tại sao:* sức chứa ô kệ tính theo **thể tích**; thùng nguyên tính theo kích thước thùng của lô. Kiện `LOOSE`/`OPEN` không khai thể tích được gán `measuredVolumeMm3 = estimateVolume(...)` ([stock.js:264](../../../src/shared/utils/stock.js#L264)): kiện mở theo số thùng làm tròn lên × kích thước thùng, hàng rời theo số viên × kích thước sản phẩm; thiếu kích thước ⇒ lỗi "Thiếu kích thước lô/sản phẩm, cần nhập thể tích thực đo". Nhờ có thể tích này, dòng BF03 `LOOSE` sau đó tách được kiện rời (xem `splitPortions`).
 
   3. Tổng kiện phải bằng lượng nhập; cộng tồn có khóa version; ghi movement chỉ có đầu `to`:
 
@@ -1504,11 +1509,11 @@ return await InventoryBalance.findOne(fields).session(session) ??
 
 ### Hàm: `saveBalance(balance, beforeVersion, session)`
 
-[stock.js:156](../../../src/shared/utils/stock.js) — `updateOne({ _id, version: beforeVersion }, { $set: { quantityBase, packagingPortions }, $inc: { version: 1 } })`; không khớp ⇒ 409 "Tồn đã thay đổi".
+[stock.js:194](../../../src/shared/utils/stock.js#L194) — `updateOne({ _id, version: beforeVersion }, { $set: { quantityBase, packagingPortions }, $inc: { version: 1 } })`; không khớp ⇒ 409 "Tồn đã thay đổi".
 
 ### Hàm: `verifyCapacity(locationIds, session)`
 
-[stock.js:210](../../../src/shared/utils/stock.js) — nạp mọi điểm giữ hàng, balance, vị trí, kho, lô của các vị trí liên quan rồi gọi `checkBinCapacity` ([capacity.js](../../../src/models/capacity.js)): ô phải có kích thước, kho phải có `clearHeightMm`; mỗi kiện `SEALED` phải đúng quy cách lô và **thùng vừa ô** (`estimateCartonCapacity`); thể tích = thùng nguyên theo kích thước ngoài, kiện mở/lẻ theo `measuredVolumeMm3` hoặc (mới) `volumeUpperBoundMm3`; tổng không vượt dài × rộng × cao. Chạy **sau** khi cộng tồn (vẫn trong transaction) nên vượt sức chứa ⇒ toàn bộ giao dịch rollback.
+[stock.js:248](../../../src/shared/utils/stock.js#L248) — nạp mọi điểm giữ hàng, balance, vị trí, kho, lô của các vị trí liên quan rồi gọi `checkBinCapacity` ([capacity.js](../../../src/models/capacity.js)): ô phải có kích thước, kho phải có `clearHeightMm`; mỗi kiện `SEALED` phải đúng quy cách lô và **thùng vừa ô** (`estimateCartonCapacity`); thể tích = thùng nguyên theo kích thước ngoài, kiện mở/lẻ theo `measuredVolumeMm3` hoặc (mới) `volumeUpperBoundMm3`; tổng không vượt dài × rộng × cao. Chạy **sau** khi cộng tồn (vẫn trong transaction) nên vượt sức chứa ⇒ toàn bộ giao dịch rollback.
 
 ---
 
@@ -1689,7 +1694,7 @@ return await InventoryBalance.findOne(fields).session(session) ??
 
 ### Hàm: `splitPortions(portions, quantity, actorId, { allowOpening = false, allowLooseSplit = false })`
 
-[stock.js:102](../../../src/shared/utils/stock.js)
+[stock.js:140](../../../src/shared/utils/stock.js#L140)
 
 - Chế độ mặc định (`allowOpening: false`, `allowLooseSplit: false`) — dùng ở lập và xác nhận dòng chuyển `SEALED` hoặc dòng không có loại:
 
@@ -1820,7 +1825,7 @@ return await InventoryBalance.findOne(fields).session(session) ??
 
 ### Hàm: `moveStock(sourceId, destinationId, quantity, itemId, stockTransaction, user, session, opts)`
 
-[stock.js:162](../../../src/shared/utils/stock.js)
+[stock.js:200](../../../src/shared/utils/stock.js#L200)
 
 - **Vai trò:** chuyển một lượng giữa hai balance **cùng lô, cùng chủ hàng**, kèm kiện và (tùy chọn) giữ hàng.
 - **Từ điển biến:** `source`, `destination` (InventoryBalance), `amount`, `from`, `to` (số dư trước), `reservations`, `reserved`, `pending` (lệnh khác chưa có giữ hàng), `inPool` (lọc kiện theo `portionIds` và `packagingState`; chuyển vị trí không truyền `portionIds`, chỉ truyền `packagingState` của dòng nếu có), `allowOpening` (chỉ luồng xuất bật), `allowLooseSplit` (bật khi `packagingState === 'LOOSE'`), `split`, `kept`, `taken`, `movementId`.
@@ -1851,7 +1856,7 @@ return await InventoryBalance.findOne(fields).session(session) ??
 
   Khi `preserveReservations`, phần giữ hàng vượt quá lượng tự do được "dời" sang balance đích: tăng `movedQty` của giữ hàng cũ, tạo `StockReservation` mới ở đích có `previousReservationId`. Schema `stock_movements` có rule `before ± quantity = after`, nên sổ cái luôn tự cân.
 
-  `retainPortions(balance, kept)` ([stock.js:147](../../../src/shared/utils/stock.js)) là phần tách riêng từ `moveStock`: xóa kiện đã lấy khỏi số dư nguồn, cập nhật kiện còn lại tại chỗ (giữ nguyên subdocument để không ghi lại `createdAt`), và nay chép thêm `packagingState`, `measuredVolumeMm3`, `volumeUpperBoundMm3`, `extraOccupiedVolumeMm3` — cần cho trường hợp thùng bị mở ở luồng xuất.
+  `retainPortions(balance, kept)` ([stock.js:185](../../../src/shared/utils/stock.js#L185)) là phần tách riêng từ `moveStock`: xóa kiện đã lấy khỏi số dư nguồn, cập nhật kiện còn lại tại chỗ (giữ nguyên subdocument để không ghi lại `createdAt`), và nay chép thêm `packagingState`, `measuredVolumeMm3`, `volumeUpperBoundMm3`, `extraOccupiedVolumeMm3` — cần cho trường hợp thùng bị mở ở luồng xuất.
 
 ## 2.16. Dữ liệu biến đổi qua toàn quy trình — ví dụ số
 
@@ -1885,7 +1890,7 @@ Phần 2 đi theo đường thẳng RR → PO → kiểm nhận → phiếu nh�
 | Loại phiếu | Sửa (Update) | Hủy (Cancel) | Đảo (Reverse) |
 |---|---|---|---|
 | **RR (`YCBS`)** | `PUT /:id` (`DRAFT`, người lập) — 2.2 | `POST /:id/cancel` (chưa có PO; Owner hủy được cả `APPROVED`) — 2B.2.5 | Không có (chưa ghi tồn) |
-| **PO (`ĐMH`)** | `PUT /:id` (`DRAFT`); `expected-on`, `close-remainder`, `reopen` (`OPEN`/`PARTIAL`/`CLOSED`) — 2B.3.1–3.4 | `POST /:id/cancel` (chưa có chứng từ nhận; giải phóng RR) — 2B.3.5 | Không có (chưa ghi tồn) |
+| **PO (`ĐMH`)** | `PUT /:id` khi `DRAFT`. `expected-on` và `close-remainder` khi `OPEN/PARTIAL`. Chốt thiếu yêu cầu xử lý hết kiểm nhận nháp. `reopen` khi `CLOSED` và còn lượng phải nhận sau đảo phiếu. Xem 2B.3.1–2B.3.4. | `POST /:id/cancel` (chưa có chứng từ nhận; giải phóng RR) — 2B.3.5 | Không có (chưa ghi tồn) |
 | **Hàng đến (`HĐK`)** | Không có route riêng; sửa theo `PUT /goods-inspections/:id` — 2.8 | Tự hủy kèm `POST /goods-inspections/:id/cancel` — 2B.4.3 | Tạo bản thay thế kèm `replaceInspection` — 2B.5 |
 | **Kiểm nhận (`PKN`)** | `PUT /:id` (`DRAFT`); `POST /:id/corrections` (tạo bản thay thế khi đã `CONFIRMED`) — 2.8, 2B.5 | `POST /:id/cancel` (`DRAFT`, hủy kèm `HĐK`) — 2B.4.3 | Không có (chưa ghi tồn) |
 | **Phiếu nhập mua (`PNM`)** | `PATCH /:id/destinations` (chỉ đổi bãi khi `DRAFT`; không sửa dòng/lượng) — 2B.4.4 | `POST /:id/cancel` (`DRAFT`, trả hạn mức PO) — 2B.4.3 | `POST /:id/reverse` + `reversal-preflight` (`POSTED` → `REVERSED`, sinh `PĐN`) — 2B.6 |
@@ -2079,7 +2084,7 @@ Dòng "theo loại chứng từ" là route **không** có `checkPermission`; quy
 
 ### 2B.2.4. Danh sách, chi tiết và ảnh gửi duyệt
 
-[replenishment.service.js](../../../src/modules/replenishments/replenishment.service.js): `listReplenishments` [dòng 55](../../../src/modules/replenishments/replenishment.service.js), `getReplenishment` [dòng 139](../../../src/modules/replenishments/replenishment.service.js), `listReplenishmentSubmissions` [dòng 303](../../../src/modules/replenishments/replenishment.service.js), `getReplenishmentSubmission` [dòng 321](../../../src/modules/replenishments/replenishment.service.js). Chỉ đọc.
+[replenishment.service.js](../../../src/modules/replenishments/replenishment.service.js): `listReplenishments` [dòng 55](../../../src/modules/replenishments/replenishment.service.js), `getReplenishment` [dòng 152](../../../src/modules/replenishments/replenishment.service.js#L152), `listReplenishmentSubmissions` [dòng 326](../../../src/modules/replenishments/replenishment.service.js#L326), `getReplenishmentSubmission` [dòng 344](../../../src/modules/replenishments/replenishment.service.js#L344). Chỉ đọc.
 
 - **Vai trò nghiệp vụ:** màn hình danh sách RR, chi tiết RR và lịch sử từng lần gửi duyệt.
 - **Từ điển biến:**
@@ -2090,6 +2095,7 @@ Dòng "theo loại chứng từ" là route **không** có `checkPermission`; quy
 | `query.hasPurchaseOrder` / `query.poCreated` | Lọc RR đã/chưa có PO (`pageWithPurchaseOrders`, [dòng 24](../../../src/modules/replenishments/replenishment.service.js)). |
 | `query.approvalDecision` | Lọc theo quyết định; `NONE` = chưa có quyết định. |
 | `approvals` | `approval_history` của RR, kèm tên người yêu cầu/người quyết định. |
+| `cancelledByUser` | Danh sách và chi tiết trả `{ id, fullName }` khi tra được tài khoản từ `cancelledBy`. |
 | `purchaseOrders` | PO liên kết qua `replenishmentRequestId` **hoặc** `sources[]`, nên PO đã hủy (đã `$unset replenishmentRequestId`) vẫn hiện. |
 | `enteredUomAreaMm2` | Diện tích đơn vị nhập nếu là đơn vị m², để FE hiện quy đổi. |
 
@@ -2215,10 +2221,12 @@ Mọi lệnh ở mục này dùng quyền `purchase_order:update` trong `command
 | `quantities` | `purchaseOrderQuantities` | `outstandingQtyBase`, `openDraftCommitmentQtyBase` từng dòng. |
 | `item.cancelledRemainderQtyBase` | Decimal | Lượng đã chốt thiếu, cộng dồn. |
 
-- **Tương tác DB:** `Attachment` (qua `evidenceFor`), `PurchaseReceipt.find` (qua `purchaseOrderQuantities`), `Product.findById`, `saveVersion(PO)`.
+- **Tương tác DB:** `GoodsArrival.distinct('_id')` tìm các lượt hàng đến của PO, `GoodsInspection.exists` tìm bản `DRAFT` của các lượt đó. Sau đó service kiểm `Attachment`, `PurchaseReceipt` và `Product` trước khi lưu phiên bản PO.
 - **Logic:**
 
-  1. Kiểm từng dòng chốt:
+  1. Kiểm `expectedVersion` và trạng thái `OPEN/PARTIAL`. Nếu `hasDraftInspection(po, session)` trả `true`, lệnh trả HTTP 400. Kho phải xác nhận hoặc hủy phiếu kiểm nhận nháp trước. Điều kiện áp dụng trên toàn PO, kể cả phiếu kiểm thay thế còn nháp.
+
+  2. Kiểm bằng chứng nếu có, rồi kiểm từng dòng chốt:
 
   ```js
   if (product?.wholeBaseUnits && !exact(row.qtyBase).isInteger()) throw validationError("Lượng chốt thiếu phải đúng đơn vị gốc của sản phẩm");
@@ -2227,7 +2235,7 @@ Mọi lệnh ở mục này dùng quyền `purchase_order:update` trong `command
     throw validationError("Lượng chốt thiếu vượt phần chưa cam kết");
   ```
 
-  2. Cộng dồn và đóng PO khi hết lượng phải giao:
+  3. Cộng dồn và đóng PO khi hết lượng phải giao:
 
   ```js
   item.cancelledRemainderQtyBase = exact(item.cancelledRemainderQtyBase ?? "0").plus(row.qtyBase).toFixed();
@@ -2236,11 +2244,11 @@ Mọi lệnh ở mục này dùng quyền `purchase_order:update` trong `command
   po.header.closureReason = input.reason;
   ```
 
-  *Tại sao:* phần đang nằm trên phiếu nhập nháp là hàng đã kiểm và sắp ghi tồn, nên không được chốt thiếu (`outstanding − openDraftCommitment`). Chốt thiếu không hoàn tác; nếu còn dòng chưa hết, PO vẫn `OPEN/PARTIAL` và khi phiếu nhập cuối ghi tồn thì PO thành `CLOSED` (2.10). `auditChanges` ghi `{ field: "closure", after: { lines, evidenceIds } }`.
+  Phiếu kiểm nhận nháp có thể đã ghi số đếm nhưng chưa giữ hạn mức PO. Điều kiện ở bước 1 ngăn đóng PO khi kho còn phải xác nhận kết quả kiểm. Sau xác nhận, phiếu nhập nháp giữ đúng lượng theo dòng qua `openDraftCommitmentQtyBase`. Lệnh chốt thiếu chỉ được dùng phần còn phải giao sau khi trừ lượng đó. Nếu vẫn còn lượng phải giao, PO giữ trạng thái `OPEN/PARTIAL`. Khi xử lý hết, PO vào `CLOSED` và giữ lượng đã chốt. `auditChanges` lưu các dòng, số lượng chốt và bằng chứng.
 
 ### 2B.3.4. Mở lại PO đã đóng: `reopenPurchaseOrder(user, id, input)`, `reopenable`, `receivingStatus`
 
-[purchase-order.commands.js:410](../../../src/modules/purchase-orders/purchase-order.commands.js), [purchase-order.service.js:22](../../../src/modules/purchase-orders/purchase-order.service.js), [:24](../../../src/modules/purchase-orders/purchase-order.service.js). Route `POST /api/purchase-orders/:id/reopen`, body `{ expectedVersion, operationKey, reason }`. Thêm ngày 23/11/2026.
+[purchase-order.commands.js:413](../../../src/modules/purchase-orders/purchase-order.commands.js#L413), [purchase-order.service.js:22](../../../src/modules/purchase-orders/purchase-order.service.js), [:24](../../../src/modules/purchase-orders/purchase-order.service.js). Route `POST /api/purchase-orders/:id/reopen`, body `{ expectedVersion, operationKey, reason }`. Thêm ngày 23/11/2026.
 
 - **Vai trò nghiệp vụ:** PO đã `CLOSED` (do chốt thiếu) mà sau đó một phiếu nhập bị đảo thì phần bị đảo trở thành "chưa nhận" nhưng PO đóng nên kho không kiểm/nhập lại được. Kế toán mở lại PO để kho nhận tiếp đúng phần đó.
 - **Từ điển biến:**
@@ -2267,7 +2275,7 @@ Mọi lệnh ở mục này dùng quyền `purchase_order:update` trong `command
 
 ### 2B.3.5. Hủy PO: `cancelPurchaseOrder(user, id, input)` và `cancelBlocker(po, session)`
 
-[purchase-order.commands.js:437](../../../src/modules/purchase-orders/purchase-order.commands.js), [purchase-order.service.js:27](../../../src/modules/purchase-orders/purchase-order.service.js). Route `POST /api/purchase-orders/:id/cancel`, body `{ expectedVersion, operationKey, reason }`.
+[purchase-order.commands.js:440](../../../src/modules/purchase-orders/purchase-order.commands.js#L440), [purchase-order.service.js:27](../../../src/modules/purchase-orders/purchase-order.service.js). Route `POST /api/purchase-orders/:id/cancel`, body `{ expectedVersion, operationKey, reason }`.
 
 - **Vai trò nghiệp vụ:** bỏ PO khi chưa có gì thực tế hay tài chính gắn vào, và trả RR về để lập PO khác.
 - **Từ điển biến:**
@@ -2299,7 +2307,7 @@ Mọi lệnh ở mục này dùng quyền `purchase_order:update` trong `command
 
 ### 2B.3.6. Đọc PO: `getPurchaseOrder`, `listPurchaseOrders`, `listPurchaseOrderSupplierOptions`, `openReceivingWorkIds`
 
-[purchase-order.service.js](../../../src/modules/purchase-orders/purchase-order.service.js): `getPurchaseOrder` [dòng 52](../../../src/modules/purchase-orders/purchase-order.service.js), `listPurchaseOrders` [dòng 128](../../../src/modules/purchase-orders/purchase-order.service.js), `listPurchaseOrderSupplierOptions` [dòng 113](../../../src/modules/purchase-orders/purchase-order.service.js), `openReceivingWorkIds` [dòng 41](../../../src/modules/purchase-orders/purchase-order.service.js). Chỉ đọc.
+[purchase-order.service.js](../../../src/modules/purchase-orders/purchase-order.service.js): `getPurchaseOrder` [dòng 57](../../../src/modules/purchase-orders/purchase-order.service.js#L57), `listPurchaseOrders` [dòng 133](../../../src/modules/purchase-orders/purchase-order.service.js#L133), `listPurchaseOrderSupplierOptions` [dòng 118](../../../src/modules/purchase-orders/purchase-order.service.js#L118), `openReceivingWorkIds` [dòng 41](../../../src/modules/purchase-orders/purchase-order.service.js). Chỉ đọc.
 
 - **Vai trò nghiệp vụ:** chi tiết và danh sách PO cho Kế toán, Owner và kho.
 - **Từ điển biến (chi tiết PO):**
@@ -2310,13 +2318,14 @@ Mọi lệnh ở mục này dùng quyền `purchase_order:update` trong `command
 | `arrivals`, `receipts` | `GoodsArrival` và `PurchaseReceipt` của PO. |
 | `cancellable` | `DRAFT/OPEN` và `cancelBlocker` trả `null`. |
 | `reopenable` | `reopenable(po, quantities)` (2B.3.4). |
-| `hasOpenReceivingWork` | Còn kiểm nhận nháp hoặc phiếu nhập nháp. Trạng thái PO không đổi vì các nháp này. |
+| `hasOpenReceivingWork` | Trả trên danh sách và chi tiết. Cờ bật khi PO `OPEN/PARTIAL` còn kiểm nhận nháp hoặc phiếu nhập nháp. |
+| `hasDraftInspection` | Chi tiết PO trả cờ riêng cho phiếu kiểm nhận `DRAFT`. Lệnh chốt thiếu kiểm lại cờ theo dữ liệu trong transaction. |
 | `draftEdit` | Chỉ khi PO `DRAFT`: dòng sẵn cho form sửa (`rrLineId`, `approvalId` = `latestDecisionId` của RR, `enteredQty`, `enteredUomCode`, giá, ghi chú). |
 | `history`, `approvals` | Chỉ Owner/Kế toán (`financial(user)`). |
 
 - **Logic:** sau `findPurchase`, bốn truy vấn `GoodsArrival`, `PurchaseReceipt`, `AuditLog`, `ApprovalHistory` lọc theo `po._id` (trước 25/11/2026 lọc theo `id` thô từ URL). Vai trò không phải Owner/Kế toán nhận kết quả qua `redactPrices` (ẩn giá). Dòng PO được gắn `productSpec`, `lotSpec` qua `enrichLineItems` (2.11). `purchaseOrderScope` cho Owner/Kế toán đọc mọi kho, vai trò khác chỉ kho được gán. `listPurchaseOrders` tính `quantities` cho **từng** PO trong bộ lọc để lọc `outstanding=YES/NO`, rồi phân trang trong bộ nhớ. `listPurchaseOrderSupplierOptions` lấy NCC từ `supplierSnapshot` của các PO trong phạm vi, sắp theo tên tiếng Việt.
 
-  *Tại sao `hasOpenReceivingWork` tách khỏi trạng thái:* trạng thái PO chỉ đi theo tồn đã ghi; một kiểm nhận nháp chưa phải là nhận hàng. Cờ này cho FE cảnh báo "đang có hàng đang kiểm" mà không làm sai `OPEN/PARTIAL`.
+  `hasOpenReceivingWork` dùng cho cả hai loại nháp. `hasDraftInspection` chỉ báo phiếu kiểm nhận nháp. Một PO có thể có phiếu nhập nháp và trả `hasOpenReceivingWork: true`, `hasDraftInspection: false`. Khi đó chốt thiếu vẫn bị giới hạn theo lượng cam kết của từng dòng.
 
 ## 2B.4. Luồng phụ của kiểm nhận và phiếu nhập
 
@@ -2808,25 +2817,33 @@ PNGH DRAFT ─post (2B.8.1)─► PNGH POSTED ─┬─ tái kiểm (2B.8.2, tù
 |---|---|---|
 | `MANUAL_OTHER` | Người lập tự nhập | Không kiểm. |
 | `STOCK_THRESHOLD` | Định mức tồn của sản phẩm theo kho (`product.stockThresholds`) | Không kiểm chứng từ; định mức dùng trong cảnh báo `STOCK_SUFFICIENT`. |
-| `SALES_SHORTAGE` | Đơn bán (`sales_orders`) hoặc yêu cầu xuất kho (`warehouse_issue_requests`) thiếu hàng | Chứng từ còn hiệu lực, cùng sản phẩm, đúng `version` khi gửi duyệt. |
-| `STOCKTAKE_LOW_STOCK` | Đợt kiểm kê `COMPLETED/CLOSED` cùng kho | Sản phẩm nằm trong phạm vi kiểm kê. |
+| `SALES_SHORTAGE` | Yêu cầu mua hàng của khách (`SalesOrder`, collection `sales_orders`) hoặc yêu cầu xuất kho (`warehouse_issue_requests`) | Kiểm quyền đọc, trạng thái và sản phẩm. Nguồn yêu cầu xuất phải lần được về dòng `SalesOrder`. Khi gửi duyệt, đối chiếu phiên bản nguồn. |
+| `STOCKTAKE_LOW_STOCK` | Đợt kiểm kê `COMPLETED/CLOSED` cùng kho | Có `header.completedAt` và sản phẩm thuộc dòng kiểm kê hoặc snapshot kiểm kê. |
 
-Không có lệnh nào tự tạo RR: chỉ `createReplenishment` ghi vào `replenishment_requests`. Hàng nhập về theo RR nguồn `SALES_SHORTAGE` **không** tự giữ cho đơn bán đó; liên kết chỉ nằm ở `sources[]` (`REPLENISHES_DEMAND`).
+**Thiếu hàng theo yêu cầu của khách.** Khi lập yêu cầu hoặc sửa lịch giao, backend có thể giữ phần tồn khả dụng và ghi chú phần thiếu. `notifySalesShortage` tạo thông báo trong ứng dụng cho Owner và Kế toán đang hoạt động. Màn chi tiết tính tiến độ theo dòng từ lượng xuất đã ghi, lượng giao thất bại đã nhập lại, lượng đã hủy, lượng giữ còn lại và tồn khả dụng theo lô. Nhân viên vẫn lập RR bằng `createReplenishment`. Dòng RR lưu tham chiếu nguồn trong `details.source` và `sources[]` với `REPLENISHES_DEMAND`. Khi PO về, phiếu nhập cộng vào tồn chung ở bãi tiếp nhận. Lệnh nhập và BF03 không tạo phiếu giữ mới cho yêu cầu khách gắn nguồn. [Tạo yêu cầu](../../../src/modules/sales-orders/sales-create.service.js), [sửa lịch giao](../../../src/modules/sales-orders/sales-schedule.service.js), [tiến độ và thông báo](../../../src/modules/sales-orders/sales-progress.service.js).
 
-**Cảnh báo tồn thấp (từ 23/11/2026, mở rộng 25/11/2026)** — [stock-alert.service.js](../../../src/modules/stock-alerts/stock-alert.service.js): `evaluateThresholds` duyệt mọi `product.stockThresholds` (và từ 25/11/2026 cả các cặp sản phẩm × kho đang có tồn cửa hàng chưa khai định mức riêng, dùng mức tối thiểu mặc định và ngưỡng gần chạm `NEAR` cấu hình trong [system-settings.service.js](../../../src/modules/settings/system-settings.service.js)), gọi `availableStock` của RR (2.1) và đánh dấu `BELOW` khi tồn khả dụng < `minimumQty`, kèm `shortageQty = targetQty − available`. Route `GET /api/stock-alerts`, `POST /api/stock-alerts/scan` (cần `product:update`; `/settings/sales-policy` và quyền `sales_policy:update` đã gỡ ngày 25/11/2026) trong [dashboard.routes.js:34-40](../../../src/modules/dashboard/dashboard.routes.js); job nền quét định kỳ. Cảnh báo **không** tự tạo RR; người dùng lập RR với nguồn `STOCK_THRESHOLD`. Dashboard Owner dùng cùng `evaluateThresholds`.
+**Cảnh báo tồn thấp.** `evaluateThresholds` lấy định mức riêng từ `product.stockThresholds`. Khi mức tối thiểu mặc định lớn hơn 0, hàm bổ sung các cặp sản phẩm và kho đã có bản ghi số dư của cửa hàng tại một vị trí trong kho và chưa có định mức riêng. `availableStocks` tính tồn cho cả danh sách và trả Map theo `productId:warehouseId`. `freeQuantities` gom truy vấn phiếu giữ, lệnh chuyển, bút toán thực chuyển và báo cáo lỗi để khấu trừ tồn. Kết quả dùng cho dashboard Owner và danh sách cảnh báo. `BELOW` khi tồn khả dụng dưới `minimumQty`, với `shortageQty = targetQty − availableQty`. `NEAR` hiển thị ngưỡng gần chạm theo cấu hình. Job quét chỉ gửi thông báo cho `BELOW`. `GET /api/stock-alerts` cần `inventory:read`. `POST /api/stock-alerts/scan` cần `product:update`. Người dùng lập RR với nguồn `STOCK_THRESHOLD` khi cần mua thêm. [Cảnh báo](../../../src/modules/stock-alerts/stock-alert.service.js), [truy vấn tồn](../../../src/modules/replenishments/replenishment.evaluation.js#L248), [route](../../../src/modules/dashboard/dashboard.routes.js), [cấu hình](../../../src/modules/settings/system-settings.service.js).
+
+**Danh mục và tồn đầu.** `POST /api/products/import/preview` và `POST /api/products/import` dùng chung cơ chế đối chiếu sản phẩm theo hãng, SKU và màu. Lượt lưu tạo sản phẩm, lô và hệ số quy đổi mới trong cùng transaction. Kiểm nhận dùng lô `VERIFIED` theo sản phẩm và lưu quy cách thực tế của lô trên dòng. Tồn đầu tham chiếu danh mục có sẵn. Khi ghi phiếu tồn đầu, service cộng hàng `GOOD/STORE` vào ô `STORAGE` hợp lệ của kho đã chọn, ghi bút toán `OPENING` tại mốc chốt của kho và kiểm sức chứa. Một kho có thể có nhiều phiếu trước khi chốt. Các dòng cùng lô và ô được cộng tồn khi ghi từng phiếu. Phiếu tồn đầu dùng chung số dư và sổ cái với nhập mua, nên hàng trong ô đủ điều kiện góp vào tồn khả dụng của RR tại 2.1. [Import danh mục](../../../src/modules/products/product-import.service.js), [ghi tồn đầu](../../../src/modules/opening-stock/service.js), [hợp đồng import và tồn đầu](../08_api/EXCEL_AND_OPENING_STOCK.md#catalogue-import-and-partial-opening-stock-27112026).
+
+**Vị trí và sức chứa.** Lưu sơ đồ kho có thể tạo `WarehouseLocation` từ ô mới nếu người thao tác có `warehouse_location:create`. Backend gán loại vị trí từ chức năng khu, chẳng hạn `RECEIVING` cho khu nhận và `STORAGE` cho khu lưu trữ, rồi bật `isPickable` cho ô lưu trữ mới. Khi đồng bộ kích thước một ô đã gắn với vị trí, backend kiểm khóa kiểm kê, lệnh chuyển đang mở và sức chứa của hàng hiện có. Phiếu nhập mua, BF03 và RR đọc dữ liệu vị trí từ danh mục kho. [Lưu sơ đồ](../../../src/modules/warehouse-stock/layout.js), [đồng bộ vị trí](../../../src/modules/warehouse-stock/service.js#L153).
 
 **Các module khác dùng chứng từ của quy trình:**
 
 | Module | Dùng gì | Ghi chú |
 |---|---|---|
 | Chuyển vị trí BF03 | Số dư ở bãi tiếp nhận do phiếu nhập tạo | Phần 2.11–2.15, 2B.9. |
-| Báo cáo hàng lỗi ([native.service.js:18](../../../src/modules/return-workflows/native.service.js) `createDefect`) | Dòng phiếu nhập mua `POSTED` (`sourceKind: 'RECEIPT'`) | Lập báo cáo lỗi trên hàng đã nhập; giữ hàng làm giảm `freeQuantity` và chặn đảo phiếu. |
-| Trả nhà cung cấp ([native.service.js:227](../../../src/modules/return-workflows/native.service.js) `createSupplierReturn`) | Dòng `PurchaseReceipt` `POSTED` hoặc `CustodyReceipt` NCC `POSTED` | `supplierOrigin` lần ngược GR → kiểm nhận → hàng đến → PO để xác định NCC. Phiếu giữ hộ có `capabilities.createSupplierReturn`. Dòng trả NCC có `sources` trỏ về phiếu nhập và tạo `StockReservation`, nên phiếu trả chưa hủy chặn đảo phiếu nhập, qua đó chặn cả sửa kết quả kiểm. |
-| Cảnh báo tồn thấp, dashboard Owner | `availableStock` | Xem đoạn trên. |
+| Báo cáo hàng lỗi ([`createDefect`](../../../src/modules/return-workflows/native.service.js#L19)) | Dòng phiếu nhập mua (`sourceKind: 'RECEIPT'`) và số dư vật lý cùng kho, cùng lô | Lệnh kiểm dòng nguồn có tồn tại và số dư có lượng chưa bị chặn. `itemById` kiểm kho, còn nhánh `RECEIPT` chưa có bộ lọc riêng theo trạng thái của phiếu nguồn. Hàng bị giữ làm giảm `freeQuantity` và có thể chặn đảo phiếu. |
+| Trả nhà cung cấp ([`createSupplierReturn`](../../../src/modules/return-workflows/native.service.js#L238)) | Dòng `PurchaseReceipt` `POSTED` hoặc `CustodyReceipt` NCC `POSTED` | Phiếu nhập mua lần về PO để kiểm NCC. Với phiếu giữ hộ, kiểm chủ hàng NCC. Đề nghị giữ riêng hạn mức theo chứng từ nguồn và lượng vật lý theo số dư cùng lô. |
+| Cảnh báo tồn thấp, dashboard Owner | `availableStocks` | Dùng cùng điều kiện tồn khả dụng của RR ở 2.1. |
 | Báo cáo vận hành ([operational-reports.service.js](../../../src/modules/operational-reports/operational-reports.service.js)) | Nhóm `purchases` (PO + phiếu nhập `POSTED`), `receipts` | Owner và Kế toán. Từ 23/11/2026 lượng chưa nhận trừ thêm lượng chốt thiếu và không ép PO `CLOSED` về 0 ([OPERATIONAL_REPORTS](../08_api/OPERATIONAL_REPORTS.md)). |
 | Nhà cung cấp ([supplier.service.js](../../../src/modules/suppliers/supplier.service.js)) | Danh sách PO, phiếu nhập mua, trả NCC của một NCC | |
 | Tồn kho và lịch sử movement ([warehouse-stock/service.js](../../../src/modules/warehouse-stock/service.js)) | Mọi `stock_transactions` của kho, gồm bút toán luồng này sinh ra: `PURCHASE_RECEIPT`, `CUSTODY_RECEIPT`, `CUSTODY_RELEASE`, `REVERSAL`, `RELOCATE` | Liên kết ngược về chứng từ nguồn khi người xem có quyền đọc loại chứng từ đó. |
+| Chuyển liên kho BF04 ([transfer.service.js](../../../src/modules/transfers/transfer.service.js)) | Tồn theo lô tại kho nguồn, các phần giữ hàng và vị trí khả dụng | Có hồ sơ điều chuyển và luồng nhận riêng. Dùng chung số dư, sổ cái và điều kiện khóa kiểm kê với luồng nhập mua. |
+| Truy vết theo lô ([native.trace.js](../../../src/modules/return-workflows/native.trace.js)) | Phiếu có `items.lotId` trùng và bút toán có dòng nguồn tương ứng | `GET /api/lots/:id/trace/records` kiểm `stock_movement:read` và phạm vi dữ liệu. Với Kế toán, danh sách model chỉ gồm chứng từ mua, nhập, giữ hộ và trả NCC. Kết quả theo lô có thể gồm nhiều phiếu cùng lô. |
 | Đánh giá RR | `incomingPurchaseOrders`, `openRequests` đọc PO và phiếu nhập `POSTED` | Mục 2.1. |
+
+Khi bàn giao trả NCC, lệnh ghi lượng thực xuất bằng `SupplierReturnIssue` cho hàng của cửa hàng hoặc `CustodyRelease` cho hàng giữ hộ. Kế toán ghi ACK trên dòng đã giao. Tiền tố `XNNCC` lấy chung một dãy số từ cả hai loại phiếu và thao tác cấp mã giữ khóa kho trong transaction. ACK ghi nhận phản hồi. Bước đóng kiểm lượng đã giao khớp thỏa thuận và toàn bộ số đã giao có phản hồi `ACCEPTED` còn hiệu lực. [Xử lý trả NCC](../../../src/modules/return-workflows/native.service.js), [cấp số ACK](../../../src/shared/utils/document-number.js), [hợp đồng trả hàng](../08_api/RETURN_WORKFLOWS_NATIVE.md).
 
 **Thông báo:** mỗi lệnh qua `command()` ghi một `SystemEvent` `handlerCode: 'BUSINESS_NOTIFICATION'` `PENDING`. [Notification worker](../../../src/modules/notifications/worker.js) chỉ xử lý mã lệnh có trong [quy tắc thông báo](../../../src/modules/notifications/rules.js), từ thời điểm bắt đầu được cấu hình và bỏ qua sự kiện demo. Các quy tắc của luồng này: `CREATE_REPLENISHMENT`/`SUBMIT_REPLENISHMENT` (khi `SUBMITTED` ⇒ người có `replenishment_request:approve`), `REVIEW_REPLENISHMENT` (người lập; khi `APPROVED` thêm `purchase_order:create`), `CONFIRM_PURCHASE_ORDER`, `RESCHEDULE_PO_EXPECTED_ON`, `REOPEN_PURCHASE_ORDER` (người có `goods_receipt_inspection:create`), `POST_PURCHASE_CUSTODY` (`purchase_custody:decide`), `DECIDE_PURCHASE_CUSTODY` (`purchase_custody:execute`). Kiểm nhận, ghi nhập, đảo phiếu, chốt thiếu và chuyển vị trí không có quy tắc nên không sinh thông báo.
 
@@ -2841,18 +2858,18 @@ Các điểm dưới đây rút ra từ đọc code. Lượt cập nhật 24/11/
 
 ### 3.1. Giao dịch và đồng thời
 
-1. **Mọi lệnh ghi đều trong một transaction** (`command → transaction`), kể cả cập nhật nhiều collection (chứng từ, tồn, sổ cái, biên nhận, audit). Không phát hiện chỗ nào ghi DB mà quên `session` trong các hàm của luồng này. Ngược lại, các hàm **đọc** như `locationMovementOptions`, `inspectionContext`, `requireEditableRequest` chạy không có session — chỉ phục vụ hiển thị, số liệu có thể cũ ngay sau khi trả về; lệnh ghi luôn kiểm lại.
+1. **Lệnh nghiệp vụ ghi cùng transaction.** `command` gom chứng từ, tồn, sổ cái, biên nhận và audit của thao tác trong MongoDB. Upload bằng chứng là request riêng, tải file lên storage trước khi gắn vào chứng từ. Dữ liệu từ các màn đọc như `locationMovementOptions` và `inspectionContext` có thể thay đổi trước khi người dùng gửi lệnh. Service kiểm lại điều kiện ghi khi xử lý lệnh.
 2. **`withTransaction` có thể chạy lại `work` nhiều lần** khi xung đột ghi. Code trong `work` hiện không có tác dụng phụ ngoài DB, nhưng nếu sau này thêm gửi email/gọi API bên ngoài vào trong `work` thì sẽ bị gửi trùng. Dùng `SystemEvent` (outbox) thay vì gọi trực tiếp.
 3. **Vòng `for` trong `command()` không bao giờ lặp lại** ([document-command.js:88](../../../src/shared/utils/document-command.js)): nhánh `catch` hoặc `return` replay hoặc `throw`. Biến `attempt` vô tác dụng; việc thử lại thật sự nằm trong `transaction()`. Không sai, nhưng dễ gây hiểu nhầm khi đọc.
 4. **Tạo `StockHoldingPoint`/`InventoryBalance` lần đầu đồng thời**: hai giao dịch cùng ghi tồn lần đầu vào cùng (vị trí, lô) có thể cùng `new ...().save()` ⇒ một bên lỗi 11000 trên unique index của balance. `transaction()` chỉ tự thử lại 11000 khi khóa là **mã phiếu**; `command()` chỉ cứu 11000 khi đã có biên nhận. Trong luồng này, `postReceipt` và `confirmLocationMovement` đều gọi `guardLocations` (nay kèm `guardWarehouses`) **trước** `balanceAt`, nên hai giao dịch cùng kho đã xung đột ghi ở bản ghi kho và được `withTransaction` chạy lại trước khi tới bước tạo balance. Rủi ro chỉ còn ở luồng nào tạo balance mà không khóa kho/vị trí trước. Đổi lại, khóa theo kho làm **mọi lệnh ghi tồn trong cùng kho** (nhập, chuyển, xuất, kiểm kê) chạy tuần tự; kho bận có thể thấy nhiều lượt thử lại hơn.
 5. **Khóa lạc quan theo `version` có ở mọi chứng từ và mọi balance**; FE bắt buộc gửi `expectedVersion`, `expectedPoVersion`, `sourceBalanceVersion`. Một thao tác bị 409 phải tải lại dữ liệu; gửi lại cùng `operationKey`/`idempotencyKey` sau khi tải lại sẽ bị coi là **payload khác** (vì `expectedVersion` đổi) ⇒ cần sinh khóa mới.
-6. **Lệnh chuyển vị trí dễ bị "kẹt" khi bãi tiếp nhận dùng chung số dư.** `confirmLocationMovement` đòi số dư nguồn còn đúng `sourceBalanceVersion` đã chụp lúc lập lệnh. Số dư ở R-01 là chung cho mọi phiếu nhập cùng lô; chỉ cần một phiếu nhập khác ghi tồn cùng lô vào R-01, hoặc một lệnh chuyển/xuất khác chạm số dư đó, thì mọi lệnh `OPEN` đang lấy từ số dư này đều báo "Tồn đã thay đổi; hủy phần còn lại và lập lại lệnh". Người dùng phải hủy và lập lại.
+6. **Xác nhận chuyển vị trí có thể gặp xung đột phiên bản khi dùng chung số dư.** Phiếu nhập khác ghi cùng lô, chất lượng và chủ hàng tại cùng bãi có thể tăng `sourceBalanceVersion`. Khi xác nhận dòng dùng số dư đó, backend trả 409. Người lập có thể tải dữ liệu nguồn mới và sửa lệnh ở `OPEN`. Khi lệnh đã `PARTIAL`, người lập có thể hủy phần còn lại và lập lệnh mới cho lượng chưa chuyển. [Lệnh sửa, hủy và xác nhận BF03](../../../src/modules/location-movements/location-movement.service.js#L120).
 
 ### 3.2. Toàn vẹn số liệu
 
-7. **Kiểm nhận nháp không giữ hạn mức PO.** Nhiều phiếu kiểm nháp có thể cùng vượt lượng PO; chỉ phiếu xác nhận sau mới bị chặn "Tổng nhận vượt phần PO còn được nhận". Đây là thiết kế có chủ đích (nháp không cam kết), nhưng thủ kho có thể đếm xong mới biết bị vượt.
+7. **Hạn mức nhận được trừ khi xác nhận kiểm nhận.** Tổng số đếm của nhiều bản kiểm nháp có thể vượt phần PO còn được nhận. Lệnh xác nhận kiểm lại lượng `ACCEPT` và tạo phiếu nhập nháp để giữ hạn mức. Trong thời gian còn bản kiểm nháp, lệnh chốt thiếu bị chặn theo 2B.3.3.
 8. **Dòng `GOOD` + `REJECT`** được chấp nhận ở `prepare()` nhưng ở `confirmInspection()` không đi vào phiếu nhập hay giữ hộ. Nếu hàng bị từ chối nhưng thực tế vẫn nằm trong kho (chờ NCC lấy), nó **không có trong tồn**, không chiếm sức chứa và không ai theo dõi được ngoài phiếu kiểm.
-9. **Hàng ở bãi tiếp nhận không được tính "tồn khả dụng"** cho đánh giá RR (`availableStock` chỉ lấy `STORAGE` + `isPickable`). Trong khoảng từ ghi tồn đến khi chuyển lên kệ, hệ thống có thể cảnh báo thiếu hàng dù hàng đã về — nhưng cảnh báo `INCOMING_PO` cũng biến mất khi PO `COMPLETED` hoặc `CLOSED`. Cảnh báo tồn thấp (2B.11) dùng cùng `availableStock` nên cũng báo `BELOW` trong khoảng này. Hệ quả: một RR mới lập trong khoảng này có thể không nhận cảnh báo nào.
+9. **Hàng mới ghi nhập vẫn nằm ngoài tồn khả dụng để bán.** Trong khoảng từ ghi nhập đến chuyển lên ô `STORAGE` đủ điều kiện, lượng đó nằm ngoài kết quả đánh giá RR và cảnh báo tồn thấp. Cảnh báo `INCOMING_PO` cũng chỉ tính lượng chưa nhập trên PO `OPEN/PARTIAL`. Vì thế hệ thống có thể báo tồn dưới ngưỡng ngay sau khi PO vừa nhận đủ. Xem 2.1 và 2B.11.
 10. **Không còn gì theo dõi "hàng nhập chưa lên kệ".** Sau khi gỡ lệnh cất mua, phiếu nhập kết thúc ở `POSTED`; `receivingSummary` bỏ `unplacedReceiptLines/unplacedQtyBase`, hàng đợi bỏ `AWAITING_PUTAWAY`, đối soát bỏ `PLACEMENT_CAP`. Lệnh `RELOCATE` chỉ trỏ tới số dư, không trỏ tới phiếu nhập, nên hệ thống không trả lời được "phiếu PNM-... đã lên kệ bao nhiêu". Hàng có thể nằm ở bãi tiếp nhận vô thời hạn mà không có cảnh báo.
 11. **Thùng không vừa ô kệ chỉ bị phát hiện lúc xác nhận.** Lệnh cất mua cũ gọi `estimateCartonCapacity` ngay khi **lập** lệnh. BF03 không kiểm lúc lập; việc kiểm nằm trong `verifyCapacity → checkBinCapacity` khi **xác nhận** (thùng nguyên phải vừa kích thước ô, tổng thể tích không vượt). Thủ kho có thể lập lệnh, mang hàng tới ô rồi mới bị từ chối.
 12. **BF03 không ràng buộc loại vị trí hay chất lượng như lệnh cất cũ.** Đích có thể là `RECEIVING`, `STORAGE`, `STAGING`, `QUARANTINE` hoặc `CUSTODY`; nguồn có thể là số dư bất kỳ chất lượng/chủ hàng (kể cả hàng giữ hộ NCC). `moveStock` giữ nguyên lô, chất lượng và chủ hàng, nên tồn không bị đổi bản chất, nhưng hàng `GOOD` của cửa hàng có thể bị đặt vào ô `CUSTODY` mà không có cảnh báo.
@@ -2879,12 +2896,12 @@ Các điểm dưới đây rút ra từ đọc code. Lượt cập nhật 24/11/
 24. **Thông báo phụ thuộc loại sự kiện.** Worker chỉ nhận các loại có quy tắc gửi và bỏ qua sự kiện trước mốc bắt đầu.
 25. **Hủy phiếu nhập nháp giải phóng hạn mức PO.** Phiếu kiểm vẫn `CONFIRMED`. Để nhận lại phần đó, dùng sửa kết quả kiểm (2B.5).
 26. **Đảo phiếu kiểm phần đóng gói theo giao dịch gốc.** Các phiếu cùng số dư có thể đảo độc lập nếu phần hàng còn nguyên và đủ lượng khả dụng. Lệnh chuyển đang mở, lượt đếm kiểm kê và phần giữ do báo lỗi vẫn có thể chặn trên số dư hoặc vị trí chung (2B.6).
-27. **Chốt thiếu PO không hoàn tác được**, không cần Owner duyệt và bằng chứng tùy chọn (quyết định 16/11/2026). PO đã chốt thiếu một phần thì không hủy được nữa.
+27. **Chốt thiếu giữ lại lượng đã chốt.** PO có lượng chốt thiếu bị chặn hủy. Lệnh mở lại chỉ cho xử lý lượng cần nhận sau đảo phiếu nhập. Xem 2B.3.3–2B.3.5.
 28. **Hủy PO giải phóng RR** (`$unset replenishmentRequestId`): RR `APPROVED` đó lập được PO mới với cùng quyết định duyệt. PO đã hủy không còn tính trong `incomingPurchaseOrders`; vì RR không còn PO liên kết, `openRequests` lại tính **toàn bộ** `approvedQtyBase` của RR là "đang đề nghị" cho tới khi có PO mới hoặc Owner hủy RR.
 29. **RR nguồn thiếu hàng bán không gắn hàng về cho đơn bán.** Nhập về xong, đơn bán vẫn phải giữ hàng theo luồng bán thông thường.
 30. **Đảo phiếu nhập sinh từ giữ hộ trả hàng về số dư NCC.** Muốn nhận lại phần đó phải đi lại luồng quyết định giữ hộ (2B.8.3–2B.8.5), không lập phiếu kiểm mới (giới hạn ghi ngày 23/11/2026, chưa sửa).
 31. **`pendingRequestQuantity` phụ thuộc trạng thái PO.** PO `CLOSED/COMPLETED/CANCELLED` ⇒ phần duyệt của RR tính 0; PO `OPEN/PARTIAL` ⇒ tính `approvedQtyBase − qtyBase của PO`. Sau khi Kế toán mở lại một PO đặt ít hơn lượng duyệt, phần duyệt chưa dùng lại hiện thành "RR đang mở" và có thể bật cảnh báo `OPEN_REQUEST`, dù RR không lập được PO thứ hai (giới hạn ghi ngày 23/11/2026, chưa sửa).
-32. **Sửa kết quả kiểm không khóa PO.** `replaceInspection` gọi `activePo` (kiểm version) nhưng không tăng version hay "chạm" PO như `createInspection`, nên có thể chạy chồng với chốt thiếu (giới hạn ghi ngày 23/11/2026, chưa sửa). Hậu quả bị giới hạn vì kiểm nhận nháp không giữ hạn mức (điểm 7) và xác nhận kiểm vẫn kiểm `acceptanceHeadroomQtyBase`.
+32. **Sửa kết quả kiểm có thể chạy chồng với chốt thiếu.** Lệnh chốt thiếu chặn khi đã thấy bản kiểm `DRAFT`. `replaceInspection` đọc phiên bản PO qua `activePo` và lưu phiên bản phiếu kiểm gốc. Lệnh thay thế không ghi PO để tạo xung đột với lần chốt thiếu đồng thời. Theo luồng ghi hiện tại, hai transaction có thể cùng qua điều kiện nếu lệnh chốt thiếu chưa thấy bản thay thế khi đọc. Lúc xác nhận bản thay thế, service kiểm lại PO còn mở và còn hạn mức. [Thay kết quả kiểm](../../../src/modules/goods-inspections/goods-inspection.correction.js), [chốt thiếu PO](../../../src/modules/purchase-orders/purchase-order.commands.js).
 33. **Sửa kết quả kiểm cần PO đang mở.** PO `CLOSED` (kể cả do chốt thiếu rồi nhận đủ phần còn lại) phải được mở lại trước; mà mở lại chỉ được khi có phiếu nhập bị đảo (`reopenable`). Kết quả: kiểm nhận của PO đã `CLOSED`/`COMPLETED` chỉ sửa được sau khi đảo phiếu nhập liên quan.
 34. **Màn hình đọc tính trong bộ nhớ.** `listPurchaseOrders` gọi `purchaseOrderQuantities` cho mọi PO khớp bộ lọc rồi mới phân trang; `receivingQueue` với `stage=CORRECTION` đọc mọi kiểm nhận nháp rồi lọc. Dữ liệu lớn sẽ chậm.
 
