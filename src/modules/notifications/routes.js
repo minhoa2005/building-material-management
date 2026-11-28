@@ -50,6 +50,17 @@ router.get('/unread-count', checkPermission('notification:read'), catchAsync(asy
   return send(res, { count });
 }));
 
+router.post('/read-all', checkPermission('notification:read'), checkPermission('notification:mark_read'), catchAsync(async (req, res) => {
+  const ids = [];
+  for await (const item of visible(req.user, true)) ids.push(item._id);
+  if (!ids.length) return send(res, { markedCount: 0 });
+  const result = await Notification.updateMany(
+    { ...own(req.user), readAt: null, _id: { $in: ids } },
+    { $set: { readAt: new Date() } },
+  );
+  return send(res, { markedCount: result.modifiedCount });
+}));
+
 router.post('/:id/read', checkPermission('notification:read'), checkPermission('notification:mark_read'), catchAsync(async (req, res) => {
   if (!/^[a-f\d]{24}$/i.test(req.params.id)) throw notFoundError();
   const filter = { ...own(req.user), _id: req.params.id };

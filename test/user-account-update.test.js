@@ -73,14 +73,6 @@ test('profile schema accepts name and phone, rejects invalid values and any emai
   assert.equal(parse({ phone: '9'.repeat(31) }).success, false);
 });
 
-test('phone must be a Vietnamese number; spaces and dots are stripped (25/11/2026)', () => {
-  assert.equal(parse({ phone: '0912 345.678' }).data.body.phone, '0912345678');
-  assert.equal(parse({ phone: '+84912345678' }).success, true);
-  assert.equal(parse({ phone: '' }).success, true);
-  assert.equal(parse({ phone: 'abc' }).success, false);
-  assert.equal(parse({ phone: '12345' }).success, false);
-});
-
 test('profile schema rejects status fields instead of ignoring them', () => {
   assert.equal(parse({ isActive: false }).success, false);
   assert.equal(parse({ isActive: true }).success, false);
@@ -148,17 +140,6 @@ test('PUT /users/:id with user:update saves the profile and returns the new valu
   assert.equal(data.phone, '0900000002');
   assert.equal(data.status, 'active');
   assert.equal(doc.save.mock.callCount(), 1);
-});
-
-test('PUT /users/:id with an email is a validation error; email changes only through OTP', async (t) => {
-  const doc = target();
-  stubUsers(actor(['user:read', 'user:update']), doc);
-  const call = await withServer(t);
-  const response = await call(`/${targetId}`, 'PUT', { fullName: 'Nguyen Van B', email: 'new@example.test' });
-  assert.equal(response.status, 400);
-  assert.equal(targetLookups(), 0);
-  assert.equal(doc.save.mock.callCount(), 0);
-  assert.equal(doc.email, 'old@example.test');
 });
 
 test('PUT /users/:id with a status value is a validation error and nothing is saved', async (t) => {

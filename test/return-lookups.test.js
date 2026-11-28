@@ -112,6 +112,11 @@ integration('trace loads one bounded section at a time and never returns private
     assert.equal(JSON.stringify(result).includes('storageKey'),false);
     assert.equal(JSON.stringify(result).includes('unitSellingPrice'),false);
   }
+  const customerReceipt = await m.CustomerReturnReceipt.findOne({ documentNo: 'GR_CUSTOMER_RETURN-202610-001' });
+  assert.ok(customerReceipt);
+  const returnTrace = await traceRecords(actors.thukho01, String(customerReceipt.items[0].lotId), { section: 'documents', page: 1, limit: 25 });
+  assert.equal(returnTrace.items.find(row => row._id === String(customerReceipt._id))?.recordType, 'CUSTOMER_RETURN_RECEIPT');
+  assert.equal(returnTrace.items.find(row => row._id === String(customerReceipt.header.returnId))?.recordType, 'CUSTOMER_RETURN_REQUEST');
   await assert.rejects(traceRecords(actors.admin,id,{section:'documents',page:1,limit:10}),error=>error.statusCode===403);
   const accountant = await traceRecords(actors.ketoan01,id,{section:'documents',page:1,limit:25});
   assert.ok(accountant.items.every(row=>!['GI_SALE','CUSTOMER_RETURN','FAILED_DELIVERY','SO'].includes(row.documentKind)));

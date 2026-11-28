@@ -45,6 +45,7 @@ Bản v8 là snapshot lịch sử có category. Registry hiện hành có 58 col
 | [BF03](docs/08_api/location-movements/README.md) | API chuyển vị trí cùng kho trên runtime hiện có |
 | [BF04](docs/08_api/transfers/BF04_API.md) / [quyền đọc TR](docs/08_api/transfers/README.md) | API chuyển giữa kho và phạm vi xem |
 | [RR](docs/08_api/replenishments/README.md) | Bổ sung hàng |
+| [Notification inbox](docs/08_api/NOTIFICATIONS.md) | Notification bell and bulk read API |
 | [SO / giao hàng](docs/08_api/sales-orders/README.md) | Hợp đồng API bán hàng hiện có |
 | [Goods Issue UC-69–72](docs/08_api/GOODS_ISSUES.md) | Phiếu bán theo lịch đơn bán hoặc mã ngoài độc lập; picking/PGI, điều chuyển và các lệnh xuất native |
 | [Gói test FE06](docs/08_api/test_packs/fe06-iteration1/README.md) | Cách gọi API và nguồn test lịch sử |

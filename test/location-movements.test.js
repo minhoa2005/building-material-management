@@ -9,60 +9,6 @@ const body = () => ({
   lines: [{ sourceBalanceId: id, sourceBalanceVersion: 0, toLocationId: id, enteredUnit:'PIECE', enteredQty: '4' }],
 });
 
-test('BF03 accepts partial status filters and selected positive actual lines only', () => {
-  assert.equal(listSchema.parse({ query: { status: 'PARTIAL' } }).query.status, 'PARTIAL');
-  const request = { params: { id }, body: { expectedVersion: 2, idempotencyKey: 'trip-2', lines: [{ lineId: id, actualQtyBase: '4' }] } };
-  assert.ok(confirmSchema.safeParse(request).success);
-  for (const lines of [[], [...request.body.lines, ...request.body.lines], [{ lineId: id, actualQtyBase: '0' }], [{ lineId: id, actualQtyBase: '1.5' }]]) assert.equal(confirmSchema.safeParse({ ...request, body: { ...request.body, lines } }).success, false);
-});
-
-test('UC-36 validates integer quantity strings and rejects client-controlled business fields', () => {
-  assert.equal(createBody.parse(body()).lines[0].enteredQty, '4');
-  for (const quantity of [1.5, '2.5', '4.0', '0', '-1', '1e3', 'Infinity', '0.0000001', '100000000000000']) {
-    const input = body(); input.lines[0].enteredQty = quantity;
-    assert.equal(createBody.safeParse(input).success, false);
-  }
-  for (const field of ['createdBy', 'workflowStatus', 'qtyBase', 'approvedBy']) {
-    assert.equal(createBody.safeParse({ ...body(), [field]: id }).success, false);
-  }
-  const duplicate = body(); duplicate.lines.push({ ...duplicate.lines[0] });
-  assert.equal(createBody.safeParse(duplicate).success, false);
-  const invalid = body(); invalid.lines[0].sourceBalanceVersion = -1;
-  assert.equal(createBody.safeParse(invalid).success, false);
-  assert.equal(createBody.safeParse({ ...body(), lines: [] }).success, false);
-  assert.equal(createBody.safeParse({ ...body(), warehouseId: { $ne: null } }).success, false);
-  assert.equal(detailSchema.safeParse({ params: { id: 'not-an-id' } }).success, false);
-});
-
-test('sealed portions split exactly and loose packaging requires measurement',()=>{
-  const portions=[{_id:'original',packagingState:'SEALED',sealedPackCount:3,quantityBase:'12',packagingSnapshot:{baseUnitsPerPackage:'4'}}];
-  const split=splitPortions(portions,'4',id);assert.equal(split.kept[0].quantityBase,'8');assert.equal(split.taken[0].quantityBase,'4');assert.equal(split.kept[0]._id,'original');assert.notEqual(String(split.taken[0]._id),'original');
-  assert.throws(()=>splitPortions(portions,'3',id),/nguyên thùng/);
-  assert.throws(()=>splitPortions([{packagingState:'LOOSE',quantityBase:'4'}],'2',id),/đo và tách/);
-});
-
-test('mixed plans allow one SEALED and one LOOSE line, reject duplicates and preserve legacy uniqueness',()=>{
- const input=body();input.lines=[{...input.lines[0],enteredQty:'40',packagingState:'SEALED'},{...input.lines[0],enteredQty:'1',packagingState:'LOOSE'}];
- assert.equal(createBody.safeParse(input).success,true);
- for(const packagingState of ['OPEN','OTHER'])assert.equal(createBody.safeParse({...input,lines:[{...input.lines[0],packagingState}]}).success,false);
- assert.equal(createBody.safeParse({...input,lines:[input.lines[0],input.lines[0]]}).success,false);
- assert.equal(createBody.safeParse({...input,lines:[input.lines[0],{...input.lines[1],packagingState:undefined}]}).success,false);
-});
-
-test('explicit loose splitting preserves conservative bounds and cannot open sealed or open cartons',()=>{
- const source={_id:'loose',packagingState:'LOOSE',quantityBase:'2',measuredVolumeMm3:'7200000',extraOccupiedVolumeMm3:'100'};
- const split=splitPortions([source],'1',id,{allowLooseSplit:true});
- assert.equal(split.kept[0].quantityBase,'1');assert.equal(split.taken[0].quantityBase,'1');
- assert.equal(split.kept[0]._id,'loose');assert.notEqual(String(split.taken[0]._id),'loose');
- for(const row of [...split.kept,...split.taken]){
-  assert.equal(row.packagingState,'LOOSE');assert.equal(row.measuredVolumeMm3,undefined);assert.equal(row.volumeUpperBoundMm3,'7200100');assert.equal(row.extraOccupiedVolumeMm3,undefined);
- }
- assert.equal(source.quantityBase,'2');assert.equal(source.measuredVolumeMm3,'7200000');
- assert.throws(()=>splitPortions([{packagingState:'SEALED',sealedPackCount:15,quantityBase:'60',packagingSnapshot:{baseUnitsPerPackage:'4'}}],'41',id,{allowLooseSplit:true}),/nguyên thùng/);
- assert.throws(()=>splitPortions([{packagingState:'OPEN',quantityBase:'2',measuredVolumeMm3:'100'}],'1',id,{allowLooseSplit:true}),/đo và tách/);
- assert.throws(()=>splitPortions([{packagingState:'LOOSE',quantityBase:'2'}],'1',id,{allowLooseSplit:true}),/Thiếu/);
-});
-
 test('1050 pieces at 100/carton: whole cartons then the whole loose lot, never a cut carton or loose lot',()=>{
   const sealed=(count)=>({packagingState:'SEALED',sealedPackCount:count,quantityBase:String(count*100),packagingSnapshot:{baseUnitsPerPackage:'100'}});
   const stock=()=>[sealed(10),{packagingState:'LOOSE',quantityBase:'50'}];

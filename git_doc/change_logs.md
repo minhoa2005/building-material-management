@@ -1,3 +1,25 @@
+## 28/11/2026 - Unit Test Round 1 của BachHM
+
+Người thực hiện: BachHM. Chia lại 38 UC của BachHM trong Project_Tracking thành Iteration 1/2/3 (13/13/12), Iteration 1 ưu tiên View và Create: UC-129, 130, 131, 141, 142, 143, 153, 154, 155, 158, 159, 167, 168. Thêm `test/bachhm-iter1-round1.test.js` gồm 41 ca Normal/Abnormal/Boundary (UTC-BH-001 đến UTC-BH-041) cho danh sách, chi tiết, tạo đợt kiểm kê và kế hoạch kiểm kê, tài khoản, vai trò và nhật ký kiểm toán. Dữ liệu MongoDB được giả lập, không cần database. Kết quả 41/41 đạt. Không sửa code nghiệp vụ. Trước đó không có test riêng của BachHM để xoá.
+
+## 28/11/2026 - Unit Test Round 1 của HieuDT
+
+Đối chiếu 15 UC Iteration 1 với ba loại ca Normal, Abnormal và Boundary. Bổ sung kiểm tra service kho, vị trí, số dư, lệnh chuyển vị trí và yêu cầu chuyển kho bằng dữ liệu giả lập trong `test/hieudt-round1.test.js`. Bộ backend đạt 43/43 ca. Frontend đạt 6/6 ca kiểm tra hàm trình bày danh sách và chi tiết.
+
+## 27/11/2026 - Sửa luồng khách trả và trả NCC
+
+Bộ chọn khách trả lọc phiếu xuất theo yêu cầu mua hàng. Khi chưa chọn yêu cầu, danh sách chỉ hiện các nguồn độc lập đủ điều kiện. Duyệt lại kiểm tra hạn mức theo lô. Phiếu nhiều dòng xét điều kiện duyệt theo từng dòng, và kiểm số lượng 0 không gửi quy cách bao bì. Lot Trace mở đúng chi tiết phiếu nhập khách trả.
+
+Trả NCC kiểm số nguyên theo đơn vị gốc khi sản phẩm yêu cầu. Tiến độ đối chiếu dựa trên số lượng đã thỏa thuận, bàn giao và nhận phản hồi. Phiếu còn dòng chưa thỏa thuận vẫn có thể xử lý tiếp.
+
+Kiểm tra 45 ca frontend, 32 ca backend trả hàng, 2 bài tích hợp xuất bán và 8 ca lookup có MongoDB local. Cả ba luồng chạy đến hoàn tất qua API local. Kiểm tra kiểu và tài liệu đạt.
+
+## 27/11/2026 - Mark all notifications as read
+
+Added **Đánh dấu tất cả đã đọc** to the notification bell at the user's request. The frontend refreshes the inbox and unread badge after the bulk operation. The [notification inbox contract](docs/08_api/NOTIFICATIONS.md) records the endpoint, permissions, and scope. The change uses the existing `readAt` field and requires no migration.
+
+Both notification component tests passed. A local MongoDB integration test covered 16 eligible notifications, a repeated request, an existing read timestamp, and recipient, archive, warehouse, source, and permission exclusions. Browser checks with mocked API responses passed at 1440 px and 390 px, including keyboard operation, failure and retry, and a read-only account. Targeted lint passed. Repository lint and typecheck reported existing failures outside the notification files. The checkout lacks the UI check and cleanup scripts, so the browser and local server were closed directly.
+
 ## 27/11/2026 - Import danh mục sản phẩm + lô và nhập tồn đầu kỳ từng phần (BE)
 
 Làm Giai đoạn 1–2 của plan `PLAN_import_san_pham_va_ton_dau_ky.md` (thay `PLAN_ton_dau_khu_tiep_nhan.md`), theo nhận xét của cô: file tồn đầu chỉ tham chiếu mã có sẵn, không đẩy hàng vào vị trí ảo, nhập được nhiều lần.

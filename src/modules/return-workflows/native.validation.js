@@ -5,7 +5,7 @@ import { PACKAGING_CONDITIONS } from '../../models/constants.js';
 export const id=z.string().regex(/^[a-f\d]{24}$/i);
 export const qty=z.string().regex(/^(?:0|[1-9]\d*)(?:\.\d{1,6})?$/).refine(v=>exact(v).gt(0)&&exact(v).lt('100000000000000'));
 const factor=z.string().regex(/^(?:0|[1-9]\d*)(?:\.\d{1,12})?$/).refine(v=>exact(v).gt(0)&&exact(v).lt('1000000000000'));
-const zero=qty.or(z.literal('0'));
+const zero=qty.or(z.string().regex(/^0(?:\.0{1,6})?$/).transform(()=> '0'));
 const note=z.string().trim().min(1).max(2000),key=z.string().trim().min(16).max(120);
 const evidenceIds=z.array(id).min(1).max(20).refine(v=>new Set(v).size===v.length);
 const base={expectedVersion:z.number().int().min(1),idempotencyKey:key,note};
@@ -20,9 +20,10 @@ export const lookupSchema=z.object({query:z.object({
  kind:z.enum(['customers','suppliers','parties','lots','locations','balances','sources','documents','document-lines','evidence','stocktakes','holds','return-orders']),
  page:z.coerce.number().int().min(1).max(10000).default(1),limit:z.coerce.number().int().min(1).max(25).default(10),
  search:z.string().trim().max(100).optional(),warehouseId:id.optional(),customerId:id.optional(),supplierId:id.optional(),lotId:id.optional(),balanceId:id.optional(),documentId:documentIdentifier.optional(),salesOrderId:documentIdentifier.optional(),
+ withoutSalesOrder:z.literal('true').optional(),
  purpose:z.enum(['customer-returns','failed-deliveries','supplier-returns','defects','external-references']).optional(),
  sourceKind:z.enum(['RECEIPT','ISSUE','TRANSFER','CUSTOMER_RETURN']).optional(),locationKinds:z.string().regex(/^(RECEIVING|STORAGE|QUARANTINE|CUSTODY)(,(RECEIVING|STORAGE|QUARANTINE|CUSTODY))*$/).optional(),
-}).strict().refine(q=>q.kind!=='return-orders'||Boolean(q.warehouseId),'Chọn kho trước').refine(q=>!q.salesOrderId||(q.kind==='sources'&&q.purpose==='customer-returns'&&!q.sourceKind),'Bộ lọc yêu cầu mua chỉ dành cho khách trả hàng').refine(query=>query.kind!=='sources'||Boolean(query.purpose&&query.purpose!=='external-references'&&(query.purpose!=='defects'||query.sourceKind)),'Chọn mục đích và loại nguồn hợp lệ')});
+}).strict().refine(q=>q.kind!=='return-orders'||Boolean(q.warehouseId),'Chọn kho trước').refine(q=>!(q.salesOrderId||q.withoutSalesOrder)||(q.kind==='sources'&&q.purpose==='customer-returns'&&!q.sourceKind&&!(q.salesOrderId&&q.withoutSalesOrder)),'Chọn bộ lọc yêu cầu mua phù hợp cho khách trả hàng').refine(query=>query.kind!=='sources'||Boolean(query.purpose&&query.purpose!=='external-references'&&(query.purpose!=='defects'||query.sourceKind)),'Chọn mục đích và loại nguồn hợp lệ')});
 const mutation=body=>z.object({params,body:z.object(body).strict()});
 export const supplierCreateSchema=z.object({body:z.object({idempotencyKey:key,warehouseId:id,supplierId:id,note,lines:unique({originLineId:id,balanceId:id,defectHoldId:id.optional(),qtyBase:qty})}).strict()});
 export const agreementSchema=mutation({...base,evidenceIds,reference:note,lines:unique({lineId:id,qtyBase:zero})});

@@ -58,6 +58,8 @@ test('two shipments of one purchase request supply one return with independent r
   assert.equal((await lookup(otherSeller, { ...filters, kind: 'return-orders' })).total, 0);
   const sources = await lookup(sales, { ...filters, kind: 'sources', purpose: 'customer-returns', salesOrderId: order.id });
   assert.deepEqual(sources.items.map(r => r.documentId).sort(), [first.id, second.id].sort());
+  const independent = await lookup(sales, { ...filters, kind: 'sources', purpose: 'customer-returns', withoutSalesOrder: 'true' });
+  assert.equal(independent.total, 0);
   const line = issue => ({ salesIssueLineId: String(issue.items[0]._id), lotId: batch.id, qtyBase: '2', reason: 'Returned' });
   const input = { warehouseId: warehouse.id, salesOrderId: order.id, lines: [line(first), line(second)], idempotencyKey: key() };
   await assert.rejects(createCustomerReturn(sales, { ...input, lines: [line(first), line(unrelated)] }), /không thuộc yêu cầu/);

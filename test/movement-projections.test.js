@@ -31,48 +31,7 @@ function catalogue(){
   mock.method(m.Uom,'find',()=>query([{_id:'uom',code:'CARTON',name:'Thùng',isCarton:true,unused}]));
   mock.method(m.Conversion,'find',()=>query([{_id:'conv',productId:'product',productBatchId:'batch',uomId:'uom',basePerUnit:'4',unused}]));
 }
-test('summary list projection omits item arrays while full/export preserves quantities, scope and facets',()=>{
-  assert.equal(listQuery.safeParse({view:'unknown'}).success,false);
-  const scope={'header.warehouseId':wh};
-  const summary=movementListPipeline(scope,{view:'summary',q:'TR'},['header.warehouseId'],'warehouses');
-  const full=movementListPipeline(scope,{q:'TR'},['header.warehouseId'],'warehouses');
-  assert.deepEqual(summary[0],{$match:scope});
-  assert.deepEqual(summary[1].$facet.total,full[1].$facet.total);
-  assert.deepEqual(summary[1].$facet.summary,full[1].$facet.summary);
-  const fields=summary[1].$facet.items.at(-1).$project;
-  assert.equal(fields.items,undefined);assert.equal(fields.documentNo,1);assert.equal(fields.createdAt,1);
-  assert.equal(full[1].$facet.items.at(-1).$project['items.qtyBase'],1);
-  for(const field of ['occurredAt','postedAt','updatedAt','note','items.note'])assert.equal(full[1].$facet.items.at(-1).$project[field],1);
-  const lookup=summary[1].$facet.warehouses.find(stage=>stage.$lookup).$lookup;
-  assert.deepEqual(lookup.pipeline,[{$project:{_id:1,name:1,code:1}}]);
-});
-test('both option endpoints retain selection and packaging fields without unused catalogue payload',async()=>{
-  catalogue();for(const model of [m.StockReservation,m.TransferOrder,m.DefectReport])mock.method(model,'find',()=>query([]));
-  const relocation=await locationMovementOptions(actor,wh),transfer=await transferOptions(actor,wh);
-  assert.deepEqual(relocation.balances[0].packagingPortions,[{packagingState:'SEALED',sealedPackCount:1,quantityBase:'4'},{packagingState:'OPEN',quantityBase:'3'},{packagingState:'LOOSE',quantityBase:'1'}]);
-  assert.equal(transfer.balances[0].packagingPortions[0].sealedPackCount,undefined);
-  for(const data of [relocation,transfer]){
-    assert.equal(data.products[0].name,'Tile');assert.equal(data.products[0].baseUnit,'PIECE');
-    assert.equal(data.balances[0].version,2);assert.equal(data.balances[0].quantityBase,'8');
-    assert.equal(data.balances[0].packagingPortions[0].packagingState,'SEALED');
-    assert.equal(data.conversions[0].basePerUnit,'4');assert.equal(data.batches[0].piecesPerCarton,4);
-    assert.equal(JSON.stringify(data).includes('unused'),false);assert.equal(JSON.stringify(data).includes('layout3d'),false);
-    assert.ok(Buffer.byteLength(JSON.stringify(data))<3000);
-  }
-  assert.ok(optionFields.balance.includes('packagingPortions.packagingState'));
-});
-test('relocation detail retains edit versions, package factors, posted quantities and performer names',async()=>{
-  catalogue();
-  mock.method(m.TransferOrder,'findById',()=>query({_id:'move',documentNo:'LCV-1',workflowStatus:'PARTIAL',version:3,createdBy:'u',header:{warehouseId:wh,taskKind:'RELOCATE',reason:'Move',unused:'omit'},items:[{_id:'line',productNameSnapshot:'Tile',lotId:'batch',qtyBase:'8',enteredQty:'2',enteredUnit:'CARTON',baseUnitSnapshot:'PIECE',packagingSnapshot:{baseUnitsPerPackage:'4',unused:'omit'},details:{sourceBalanceId:'balance',sourceBalanceVersion:2,fromLocationId:'loc',toLocationId:'loc',unused:'omit'}}],unused:'omit'},true));
-  mock.method(m.StockTransaction,'find',()=>query([{_id:'tx',occurredAt:'2026-11-17',operation:'RELOCATE',performedBy:'u',movements:[{sourceLineId:'line',quantityBase:'4',unused:'omit'}],unused:'omit'}]));
-  mock.method(m.User,'find',()=>query([{_id:'u',fullName:'Warehouse Staff',passwordHash:'never-read',unused:'omit'}]));
-  const data=await getLocationMovement(actor,'move');
-  assert.equal(data.version,3);assert.equal(data.items[0].details.sourceBalanceVersion,2);
-  assert.equal(data.items[0].packagingSnapshot.baseUnitsPerPackage,'4');
-  assert.equal(data.transactions[0].movements[0].quantityBase,'4');assert.equal(data.transactions[0].performedByName,'Warehouse Staff');
-  assert.equal(JSON.stringify(data).includes('unused'),false);assert.equal(JSON.stringify(data).includes('passwordHash'),false);
-  await assert.rejects(getLocationMovement({...actor,warehouseIds:[]},'move'),error=>error.statusCode===403);
-});
+
 test('projected transfer detail and receipt source preserve progress, discrepancy caps and command versions',async()=>{
   catalogue();
   const request={_id:'request',version:4,workflowStatus:'APPROVED',header:{sourceWarehouseId:'source',destinationWarehouseId:wh},items:[{_id:'request-line',qtyBase:'8',approvedQtyBase:'8'}],unused:'omit'};

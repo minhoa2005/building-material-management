@@ -18,6 +18,10 @@ test('customer returns can select a purchase request and scope the source lookup
  const query={kind:'sources',purpose:'customer-returns',warehouseId:id,salesOrderId};
  assert.ok(v.lookupSchema.safeParse({query}).success);
  assert.ok(v.lookupSchema.safeParse({query:{kind:'return-orders',warehouseId:id}}).success);
+ const independent={kind:'sources',purpose:'customer-returns',warehouseId:id,withoutSalesOrder:'true'};
+ assert.ok(v.lookupSchema.safeParse({query:independent}).success);
+ assert.equal(v.lookupSchema.safeParse({query:{...independent,salesOrderId}}).success,false);
+ assert.equal(v.lookupSchema.safeParse({query:{...independent,purpose:'supplier-returns'}}).success,false);
  assert.equal(v.lookupSchema.safeParse({query:{...query,purpose:'supplier-returns'}}).success,false);
  assert.ok(v.customerCreateSchema.safeParse({body:{idempotencyKey:base.idempotencyKey,warehouseId:id,salesOrderId,lines:[{salesIssueLineId:id,qtyBase:'1',reason:'Return'}]}}).success);
 });
@@ -25,6 +29,10 @@ test('customer request parts and defect outcomes can share a source while suppli
  const part={salesIssueLineId:id,qtyBase:'2',reason:'Inspect separately'};
  assert.equal(v.customerCreateSchema.safeParse({body:{idempotencyKey:base.idempotencyKey,warehouseId:id,lines:[part,part]}}).success,true);
  assert.equal(v.proposalSchema.safeParse({params:{id},body:{...base,evidenceIds:[id],lines:[{lineId:id,qtyBase:'2',outcome:'SCRAP'},{lineId:id,qtyBase:'2',outcome:'RELEASE',targetQuality:'GOOD'}]}}).success,true);
+});
+test('an inspection canonicalizes an exact decimal zero and accepts no packaging portions',()=>{
+ const command={params:{id},body:{...base,evidenceIds:[id],lines:[{returnLineId:id,qtyReceived:'0.0',packagingCondition:'OPENED',installationStatus:'UNKNOWN',damageCause:'UNKNOWN',deadlineStatus:'UNKNOWN',assessmentReason:'No arrival'}]}};
+ assert.equal(v.inspectionSchema.parse(command).body.lines[0].qtyReceived,'0');
 });
 test('native commands reject numeric/negative/duplicate quantities and evidence-free posting',()=>{
  const body={idempotencyKey:base.idempotencyKey,warehouseId:id,supplierId:id,note:base.note,lines:[{originLineId:id,balanceId:id,qtyBase:'4'}]};

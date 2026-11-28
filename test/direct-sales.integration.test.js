@@ -247,6 +247,25 @@ test('direct SO issue, customer receipt, undelivered receipt and return without 
  assert.deepEqual([String((await m.InventoryBalance.findById(balance._id)).quantityBase),String((await m.InventoryBalance.findById(secondBalance._id)).quantityBase)],[String(Number(beforeMultiLotReceipt[0])+2),String(Number(beforeMultiLotReceipt[1])+1)]);
  await assert.rejects(returns.createCustomerReturn(seller,{idempotencyKey:key(),warehouseId:String(warehouse._id),customerName:'Multi lot customer',lines:[{salesIssueLineId:String(manualIssue.items[0]._id),lotId:String(batch._id),qtyBase:'3',reason:'Exceeds remaining first lot'}]}),/Vượt lượng đã xuất còn lại của lô/);
  await assert.rejects(returns.createCustomerReturn(seller,{idempotencyKey:key(),warehouseId:String(warehouse._id),customerName:'Goods issue customer',lines:[{salesIssueLineId:String(thirdIssue.items[0]._id),qtyBase:'2',reason:'Over remaining issue quantity'}]}),/Vượt lượng khách đã nhận còn được trả/);
+ // Another return can claim a released quantity on one lot even when the issue still has room on a different lot.
+ const claimForFirstLot = (qtyBase) => returns.createCustomerReturn(seller,{idempotencyKey:key(),warehouseId:String(warehouse._id),lines:[
+  {salesIssueLineId:String(manualIssue.items[0]._id),lotId:String(batch._id),qtyBase,reason:'First lot only'},
+ ]});
+ const reopened = await claimForFirstLot('2');
+ let reopenedDoc = await m.CustomerReturn.findById(reopened.id);
+ const reopenedEvidence = await attach(reopenedDoc);
+ const assessment = {evidenceIds:[reopenedEvidence.id],lines:[{returnLineId:reopenedDoc.items[0].id,qtyReceived:'2',packagingCondition:'LOOSE',installationStatus:'UNUSED',damageCause:'NONE',deadlineStatus:'WITHIN',deadlineReference:'Verified return policy',assessmentReason:'First lot confirmed'}]};
+ await returns.inspectCustomerReturn(worker,reopened.id,{...assessment,idempotencyKey:key(),expectedVersion:reopenedDoc.version});
+ reopenedDoc = await m.CustomerReturn.findById(reopened.id);
+ await returns.decideCustomerReturn(seller,reopened.id,{idempotencyKey:key(),expectedVersion:reopenedDoc.version,decision:'REJECT',reason:'Initial decision'});
+ await claimForFirstLot('1');
+ reopenedDoc = await m.CustomerReturn.findById(reopened.id);
+ await returns.inspectCustomerReturn(worker,reopened.id,{...assessment,idempotencyKey:key(),expectedVersion:reopenedDoc.version},true);
+ reopenedDoc = await m.CustomerReturn.findById(reopened.id);
+ const renewedApproval = {idempotencyKey:key(),expectedVersion:reopenedDoc.version,decision:'APPROVE',reason:'Reassessment',lines:[{lineId:reopenedDoc.items[0].id,qtyBase:'2'}]};
+ await assert.rejects(returns.decideCustomerReturn(seller,reopened.id,renewedApproval),/lô/);
+ assert.equal((await m.CustomerReturn.findById(reopened.id)).workflowStatus,'INSPECTED');
+ await returns.decideCustomerReturn(seller,reopened.id,{...renewedApproval,idempotencyKey:key(),lines:[{lineId:reopenedDoc.items[0].id,qtyBase:'1'}]});
  const availabilityProduct=await m.Product.create({sku:'GI-AVAIL',name:'Availability test tile',manufacturerCode:'TEST',categoryId:category._id,color:'White',baseUnit:'PIECE',wholeBaseUnits:true,lengthMm:'600',widthMm:'600',heightMm:'10'});
  const availabilityBatch=await m.ProductBatch.create({productId:availabilityProduct._id,manufacturerLot:'GI-AVAIL-LOT',identificationStatus:'VERIFIED',piecesPerCarton:4,cartonLengthMm:'620',cartonWidthMm:'620',cartonHeightMm:'50'});
  await m.InventoryBalance.create({holdingPointId:point._id,batchId:availabilityBatch._id,ownerType:'STORE',qualityStatus:'GOOD',quantityBase:'8',version:1,

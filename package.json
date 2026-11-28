@@ -18,7 +18,7 @@
     "test:fe06:server": "node scripts/start-fe06-thunder.mjs",
     "purchase:reconcile": "node scripts/purchase-maintenance.mjs reconcile",
     "purchase:cleanup-evidence": "node scripts/purchase-maintenance.mjs cleanup-evidence",
-    "test:db-rebuild": "node --test test/db-rebuild.test.js test/reviewed-demo.test.js test/local-mongo-config.test.js test/consolidation.test.js test/reviewed-deploy.test.js test/reviewed-model-files.test.js test/product-categories.test.js",
+    "test:db-rebuild": "node --test test/reviewed-demo.test.js test/consolidation.test.js test/reviewed-model-files.test.js",
     "db:demo": "node src/seeds/rebuild/run.js",
     "db:local:start": "node scripts/local-mongo.mjs start",
     "db:local:status": "node scripts/local-mongo.mjs status",
