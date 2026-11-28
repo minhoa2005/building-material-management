@@ -6,6 +6,7 @@ import { validate } from "../../middlewares/validate.js";
 import { validationError } from "../../shared/utils/ApiError.js";
 import * as controller from "./product.controller.js";
 import * as validation from "./product.validation.js";
+import { importCatalogueSchema } from "./product-import.validation.js";
 
 const router = Router();
 router.use(authenticate);
@@ -51,6 +52,19 @@ router.get(
   checkPermission("product:read"),
   validate(validation.productOptionsSchema),
   controller.options,
+);
+// Before the /:id routes. Lot rows additionally need product_lot:create (checked in the service).
+router.post(
+  "/import/preview",
+  checkPermission("product:create"),
+  validate(importCatalogueSchema),
+  controller.importPreview,
+);
+router.post(
+  "/import",
+  checkPermission("product:create"),
+  validate(importCatalogueSchema),
+  controller.importCatalogue,
 );
 router.get(
   "/",

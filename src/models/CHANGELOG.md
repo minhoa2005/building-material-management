@@ -1,3 +1,13 @@
+## 27/11/2026 — Nhập tồn đầu kỳ từng phần
+
+Theo plan `PLAN_import_san_pham_va_ton_dau_ky.md` đã chốt với người dùng:
+
+- `warehouses` thêm `openingCutoffAt` (mốc số đếm tồn đầu của kho), `openingClosedAt` và `openingClosedBy` (Chủ cửa hàng chốt tồn đầu). Đều tùy chọn.
+- `opening_stocks.header.openingImportSource` nhận thêm `MANUAL`.
+- Bỏ unique index `opening_stock_file_import_once` trên `opening_stocks`: một kho được nhiều phiếu POSTED.
+- Không đổi `products` (giữ unique hãng + SKU + màu) và `product_batches`.
+- DB đã chạy setup cũ phải chạy lại `scripts/setup-opening-stock.mjs --apply` (hoặc bản mongosh) trước khi deploy: xóa index và backfill `openingCutoffAt` từ phiếu POSTED cũ. Chi tiết: [hợp đồng API](../../git_doc/docs/08_api/EXCEL_AND_OPENING_STOCK.md), [setup](../../git_doc/docs/09_phat_trien/EXCEL_OPENING_SETUP.md).
+
 ## 26/11/2026 — Hoàn tất phiếu xuất bán theo yêu cầu khách
 
 Thêm vào `sales_goods_issues`: `header.completedAt`, `header.completedBy` (thời điểm và người bấm Hoàn tất; có giá trị thì phiếu khóa) và `items[].deliveredQtyBase` (Decimal tùy chọn, số lượng khách thực nhận, sửa được sau khi bàn giao cho tài xế tới khi Hoàn tất). Không đổi index, quan hệ; phiếu cũ không có các trường này coi như chưa hoàn tất, không cần migration.

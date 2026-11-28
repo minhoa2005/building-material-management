@@ -26,7 +26,7 @@ import {
   newDocument,
   evidenceFor,
 } from "../../shared/utils/purchase-core.js";
-import { purchaseOrderQuantities, cancelBlocker, receivingStatus, reopenable } from "./purchase-order.service.js";
+import { purchaseOrderQuantities, cancelBlocker, receivingStatus, reopenable, hasDraftInspection } from "./purchase-order.service.js";
 
 // A changed or new expected date may not be in the past; an unchanged saved date stays editable.
 function checkExpectedOn(next, saved) {
@@ -376,6 +376,9 @@ export function closeRemainder(user, id, input) {
       checkVersion(po, input.expectedVersion);
       if (!["OPEN", "PARTIAL"].includes(po.workflowStatus))
         throw validationError("PO không còn mở");
+      // Closing first would strand the counted goods: the draft could no longer be confirmed (user decision 27/11/2026).
+      if (await hasDraftInspection(po, session))
+        throw validationError("PO còn phiếu kiểm nhận nháp. Xác nhận hoặc hủy phiếu kiểm trước khi chốt thiếu");
       await evidenceFor(actor, po, input.evidenceIds, session);
       await validateClose(po, input.lines, session);
       for (const row of input.lines) {

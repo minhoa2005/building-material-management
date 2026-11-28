@@ -12,7 +12,12 @@ export function changedFields(before, after, fields) {
   });
 }
 
-export async function appendAudit({
+export async function appendAudit({ session, ...fields } = {}) {
+  return auditEvent(fields).save({ session });
+}
+
+// Unsaved audit event; bulk writers pass several to AuditLog.insertMany.
+export function auditEvent({
   documentId,
   actorId,
   action,
@@ -21,7 +26,6 @@ export async function appendAudit({
   changes = [],
   details,
   eventAt = new Date(),
-  session,
   warehouseIds = [],
   versionBefore,
   versionAfter,
@@ -31,7 +35,7 @@ export async function appendAudit({
   const subjectId = entityId ?? documentId;
   if (!subjectId) throw new Error("Audit requires a subject");
   const reason = typeof details === "string" ? details : details?.reason;
-  const event = new AuditLog({
+  return new AuditLog({
     eventKey: randomUUID(),
     actorType: actorId ? "USER" : "SYSTEM",
     actorId,
@@ -53,5 +57,4 @@ export async function appendAudit({
     occurredAt: eventAt,
     recordedAt: new Date(),
   });
-  return event.save({ session });
 }

@@ -225,6 +225,9 @@ Model: [warehouse.model.js](../../../../src/models/warehouse.model.js).
 | `clearHeightMm` | Number | false |  |
 | `isActive` | Boolean | true |  |
 | `stockOperationVersion` | Number | true |  |
+| `openingCutoffAt` | Date | false | Mốc tồn đầu của kho (27/11/2026) |
+| `openingClosedAt` | Date | false | Thời điểm chốt tồn đầu |
+| `openingClosedBy` | ObjectId | false | User |
 | `layout3d` | Mixed | false |  |
 | `layout3dApplied` | Mixed | false |  |
 | `layout3dAppliedAt` | Date | false |  |
@@ -6277,7 +6280,7 @@ Model: [opening-stock.model.js](../../../../src/models/opening-stock.model.js).
 | `sources[].documentId` | DocumentIdentity | true |  |
 | `header` | Embedded | true |  |
 | `header.warehouseId` | ObjectId | false | Warehouse |
-| `header.openingImportSource` | String | false |  |
+| `header.openingImportSource` | String | false | FILE hoặc MANUAL (27/11/2026) |
 | `header.cutoverKey` | String | false |  |
 | `header.openingAt` | Date | false |  |
 | `header.coveredLocationIds` | Array | false |  |
@@ -6394,19 +6397,6 @@ Indexes:
       "createdAt": -1
     },
     {}
-  ],
-  [
-    {
-      "header.warehouseId": 1
-    },
-    {
-      "name": "opening_stock_file_import_once",
-      "unique": true,
-      "partialFilterExpression": {
-        "workflowStatus": "POSTED",
-        "header.openingImportSource": "FILE"
-      }
-    }
   ]
 ]
 ```

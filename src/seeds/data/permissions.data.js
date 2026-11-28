@@ -34,7 +34,7 @@ const BUSINESS_ROLES = [OWNER, ACCOUNTANT, WAREHOUSE, SALES];
 export const PERMISSION_CATALOGUE = [
   { code: 'opening_stock:read', description: 'Xem tồn đầu kỳ', uc: [], roles: [OWNER] },
   { code: 'opening_stock:create', description: 'Nhập và lập tồn đầu kỳ', uc: [], roles: [OWNER] },
-  { code: 'opening_stock:post', description: 'Chủ cửa hàng xác nhận và ghi tồn đầu kỳ một lần', uc: [], roles: [OWNER] },
+  { code: 'opening_stock:post', description: 'Chủ cửa hàng xác nhận ghi tồn đầu kỳ và chốt kho', uc: [], roles: [OWNER] },
  ...['read','create','update','activate'].map(action=>({code:'uom:'+action,description:{read:'Xem đơn vị tính',create:'Tạo đơn vị tính',update:'Sửa đơn vị tính',activate:'Ngừng/kích hoạt đơn vị tính'}[action],uc:[],roles:action==='read'?BUSINESS_ROLES:[OWNER]})),
  {code:'purchase_custody:decide',description:'Chốt thỏa thuận hàng giữ hộ NCC',uc:[],roles:[ACCOUNTANT]},
  {code:'purchase_custody:execute',description:'Thực hiện xử lý giữ hộ NCC',uc:[],roles:[WAREHOUSE]},

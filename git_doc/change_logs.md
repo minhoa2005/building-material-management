@@ -20,6 +20,28 @@ Added **Đánh dấu tất cả đã đọc** to the notification bell at the us
 
 Both notification component tests passed. A local MongoDB integration test covered 16 eligible notifications, a repeated request, an existing read timestamp, and recipient, archive, warehouse, source, and permission exclusions. Browser checks with mocked API responses passed at 1440 px and 390 px, including keyboard operation, failure and retry, and a read-only account. Targeted lint passed. Repository lint and typecheck reported existing failures outside the notification files. The checkout lacks the UI check and cleanup scripts, so the browser and local server were closed directly.
 
+## 27/11/2026 - Import danh mục sản phẩm + lô và nhập tồn đầu kỳ từng phần (BE)
+
+Làm Giai đoạn 1–2 của plan `PLAN_import_san_pham_va_ton_dau_ky.md` (thay `PLAN_ton_dau_khu_tiep_nhan.md`), theo nhận xét của cô: file tồn đầu chỉ tham chiếu mã có sẵn, không đẩy hàng vào vị trí ảo, nhập được nhiều lần.
+
+- API mới `POST /api/products/import/preview` và `POST /api/products/import` (`product:create`, thêm `product_lot:create` khi có dòng lô): chỉ tạo mới, dòng khớp danh mục trả `EXISTS`, dòng khác báo lỗi theo cột, ghi hàng loạt trong một transaction. Helper tra sản phẩm theo SKU dùng chung `shared/utils/product-lookup.js`.
+- Tồn đầu: bỏ `TONDAU-NHAN`, `confirmEmpty`, `previewRowErrors` và phần tự tạo sản phẩm/lô. Dòng file có SKU, Hãng, Màu, Số lô, Vị trí (STORAGE của kho đã chọn), Kho (đối chiếu), Số lượng, ĐVT (đơn vị gốc hoặc thùng). Mỗi kho nhiều phiếu cho một mốc `openingCutoffAt`, mốc phải trước nghiệp vụ kho đầu tiên. Thêm `POST /api/opening-stocks/warehouses/:warehouseId/close` để chốt. Preview cảnh báo (không chặn) cặp lô + vị trí trùng; sức chứa tính cả tồn hiện có.
+- Body JSON 8 MB cho 4 route import, route khác giữ 1 MiB; thông báo 413 theo từng loại.
+- Model: `warehouses.openingCutoffAt/openingClosedAt/openingClosedBy`, `openingImportSource` thêm `MANUAL`, bỏ index `opening_stock_file_import_once`. Script setup (Node và mongosh) xóa index đó và backfill mốc; seed `tile-shop.js` đặt mốc và trạng thái đã chốt cho kho demo. Mô tả quyền `opening_stock:post` đổi thành "Chủ cửa hàng xác nhận ghi tồn đầu kỳ và chốt kho".
+- Tài liệu: [hợp đồng API](docs/08_api/EXCEL_AND_OPENING_STOCK.md), [setup](docs/09_phat_trien/EXCEL_OPENING_SETUP.md), MODEL_MAP, Data Dictionary (sửa tay phần `warehouses`, `opening_stocks`), `src/models/CHANGELOG.md`.
+
+Kiểm chứng: `opening-stock`, `product-import`, `product-lookup`, `opening-stock-setup`, `refactor-regression` chạy với `RUN_OPENING_TESTS=1` trên replica set `rs0` localhost, DB tạm `opening_test_*`: 10 đạt, 1 bỏ qua. `npm test`: 473 test, 326 đạt, 0 lỗi, 147 bỏ qua. Chưa chạy setup trên Atlas hay DB ứng dụng nào. FE (Giai đoạn 3–4) chưa làm nên màn tồn đầu hiện tại chưa khớp hợp đồng mới. Nhánh `minhtd` đang chậm 3 commit so với `origin/main`; chưa merge vì `git_doc/change_logs.md` có thay đổi chưa commit.
+
+## 27/11/2026 - Chặn chốt thiếu khi PO còn phiếu kiểm nhận nháp
+
+Theo yêu cầu người dùng, `POST /api/purchase-orders/:id/close-remainder` trả 400 khi PO còn phiếu kiểm nhận `DRAFT`. Trước đây phiếu kiểm nháp không giữ lượng trên PO, nên Kế toán chốt được hết phần chưa nhận rồi không xác nhận được phiếu kiểm đó. `GET /api/purchase-orders/:id` trả thêm `hasDraftInspection`. FE khai báo `hasOpenReceivingWork` và `hasDraftInspection`, còn hộp thoại chốt thiếu báo lỗi và khóa nút khi cờ bật. Không đổi model, không tác động dữ liệu. Sửa `purchase-order.service.js`, `purchase-order.commands.js`, test Jest UTC-PO-024, [hợp đồng API](docs/08_api/NATIVE_MODEL_RUNTIME.md) và `ClosePurchaseOrderRemainderModal.tsx` cùng test của nó.
+
+## 27/11/2026 - Cài Jest cho BE và FE
+
+Thêm Jest 30.5.2 vào `devDependencies` và cấu hình `test:jest` cho từng repo. BE cập nhật `package-lock.json` và dùng npm. FE cập nhật lockfile npm và pnpm. BE nạp JavaScript ESM, FE nạp TypeScript và JSX trong jsdom. Các lệnh test trong CI tiếp tục chạy bộ kiểm thử hiện có. [Cách chạy Jest](docs/09_phat_trien/GITHUB_ACTIONS_CI.md#chạy-jest-trên-máy-phát-triển).
+
+Hai test Jest mẫu, 3 test Node về tiến độ số lượng và 5 test Vitest về quy đổi số lượng đều đạt. `pnpm typecheck` gặp lỗi thiếu `productId` ở fixture có sẵn trong `src/features/return-workflows/pages.test.tsx` của FE. Phạm vi thay đổi là công cụ kiểm thử, không có thao tác dữ liệu.
+
 ## 27/11/2026 — BF-03 and BF-04 diagrams in Report 4
 
 Aligned the two class diagrams and four sequences in Report 4 sections II.3–4 with the current relocation, transfer, variance and completion services. BF-03 now shows per-trip postings and partial cancellation. BF-04 covers request edits and cancellation, draft dispatch cancellation and reservation release, per-receipt put-away, both RESOLVED outcomes, and a source-only transit loss. Updated the four BF-04 pages in the companion project’s WMSD_TOBE_BF03_BF04_UML.drawio. Documentation only. Rendered all six report diagrams and the four edited draw.io pages, checked XML references, and ran the relocation, transfer completion and pick-allocation unit tests (14 passed).

@@ -1,6 +1,19 @@
 # Excel and opening-stock setup
 
-16 November 2026. Source: [API contract](../08_api/EXCEL_AND_OPENING_STOCK.md). No remote rollout or application-data migration was performed.
+16 November 2026, updated 27 November 2026. Source: [API contract](../08_api/EXCEL_AND_OPENING_STOCK.md).
+
+## 27/11/2026 — partial opening stock
+
+The backend now allows several opening documents per warehouse until it is closed. Before deploying this backend on a database that ran the earlier setup, run the setup again (preview, then `--apply`). It now:
+
+- drops the unique index `opening_stock_file_import_once` (it would refuse the second POSTED document of a warehouse);
+- still drops the older `header.warehouseId_1` index when present;
+- backfills `warehouses.openingCutoffAt` with the earliest `header.openingAt` of the warehouse's POSTED opening documents, for warehouses without a cut-off;
+- keeps the Owner-only grants and updates the `opening_stock:post` description to "Chủ cửa hàng xác nhận ghi tồn đầu kỳ và chốt kho".
+
+The dry run reports `dropFileImportOnceIndex` and `cutoffBackfillWarehouses`. The duplicate-posting check was removed because duplicates are now valid. The same steps exist in `../setup-opening-stock-remote.mongosh.js`. It was **not** run on Atlas or on a local application database in this task; only the isolated test database below was used. Warehouses already initialized by the earlier version are not closed automatically: the Owner closes each one on the opening screen (or via `POST /api/opening-stocks/warehouses/:id/close`) once the counts are complete. Seed `tile-shop.js` sets the cut-off and closed state on demo warehouses that have a POSTED opening document.
+
+The sections below describe the 16/11 setup; their statements about the file-import uniqueness index are history.
 
 Frontend checkout for this task: `review-latest-fe`, branch `codex/excel-opening-stock`. Backend: `review-latest-be`, same branch name in the separate repository. Both branches started from the fetched main tips. Install frontend dependencies with `pnpm install --frozen-lockfile`; ExcelJS 4.4.0 is dynamically loaded for import/export. Backend has no new runtime dependency.
 
@@ -37,9 +50,11 @@ Set the warehouse length, width and clear height before importing stock. Keep th
 `test/opening-stock.test.js` uses an isolated `opening_test_<ObjectId>` database and checks its name before cleanup. It connects to `127.0.0.1:27119` on replica set `opening-test` by default. Set `MONGODB_TEST_PORT=27017` and `MONGODB_TEST_REPLICA_SET=rs0` to use the local development replica set when available.
 
 ```powershell
-$env:RUN_OPENING_TESTS='1'
-node --test test/opening-stock.test.js
+$env:RUN_OPENING_TESTS='1'; $env:MONGODB_TEST_PORT='27017'; $env:MONGODB_TEST_REPLICA_SET='rs0'
+node --test test/opening-stock.test.js test/product-import.test.js test/product-lookup.test.js test/opening-stock-setup.test.js test/refactor-regression.integration.test.js
 ```
+
+27/11/2026: run with the local `rs0` replica set on `127.0.0.1:27017` (isolated `opening_test_*` databases, dropped afterwards): 10 passed, 1 skipped (the MongoDB part of `refactor-regression`, which needs its own flag). `npm test`: 473 tests, 326 passed, 0 failed, 147 skipped. `product-import.test.js` uses the same flag and also imports 1,000 products in bulk.
 
 Start a dedicated local MongoDB replica set on that port before running the integration test. Without the flag, unit validation runs and the integration case reports skipped. Frontend verification commands:
 

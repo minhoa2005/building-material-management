@@ -12,6 +12,7 @@
     "seed:purchase-read-permissions": "node src/seeds/run.js --purchase-read-only",
     "seed:goods-issue-permissions": "node src/seeds/run.js --goods-issue-update-only",
     "test": "node --test test/*.test.js",
+    "test:jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:coverage": "c8 --all --include=\"src/**/*.js\" --reporter=lcov --reporter=text node --test --test-concurrency=2 \"test/*.test.js\"",
     "test:fe06:pack": "node scripts/generate-fe06-thunder.mjs",
     "test:fe06:server": "node scripts/start-fe06-thunder.mjs",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "c8": "9.1.0",
+    "jest": "^30.5.2",
     "nodemon": "^3.1.14"
   }
 }

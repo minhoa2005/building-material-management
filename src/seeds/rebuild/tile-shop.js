@@ -141,6 +141,8 @@ export function buildTileShopScenario(data) {
         sourceLineId:item._id,toBalanceId:balance._id,quantityBase:qty,toBefore:decimalValue(0),toAfter:qty,createdAt:demoDate(2),updatedAt:demoDate(2)});
     }
   }
+  // Demo warehouses were counted at demoDate(2) and have business after it: cut-off fixed and opening closed.
+  for(const w of openings.keys()) Object.assign(data.warehouses[w],{openingCutoffAt:demoDate(2),openingClosedAt:demoDate(2),openingClosedBy:owner._id});
   const ctx=dataContext(data);
   for(const {document:doc} of ctx.documents.values()) {
     for(const item of doc.items??[]) {

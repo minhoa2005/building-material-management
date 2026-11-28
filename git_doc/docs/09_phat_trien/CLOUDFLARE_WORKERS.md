@@ -2,7 +2,7 @@
 
 Kết nối repo backend trong Workers & Pages. Với repo riêng cho BE, để thư mục gốc là `/` và dùng lệnh deploy `npx wrangler@4.166.0 deploy`. Tên Worker trong `wrangler.json` là `wmsd-be`. Nếu dự án trên dashboard dùng tên khác, điền tên đó vào thuộc tính `name` trước khi deploy.
 
-API catalogue lấy `Router` từ dependency trực tiếp `express`. Cách này tương thích với cài đặt production bằng `pnpm install --frozen-lockfile`, nơi gói `router` của Express nằm trong cây dependency riêng của Express.
+Cài các dependency của backend bằng `npm ci` theo `package-lock.json`. API catalogue lấy `Router` từ dependency trực tiếp `express`.
 
 Thêm `MONGODB_URI`, `JWT_SECRET` và `REFRESH_TOKEN_SECRET` dưới dạng Worker secrets. Dùng DB Atlas thử có replica set khi kiểm tra giao dịch tồn kho. Cấu hình `CLOUDINARY_URL` cho tải ảnh và các biến `SMTP_*` / `MAIL_FROM` nếu phiên bản backend triển khai có luồng email. Biến runtime `APP_URL` của BE là `https://wmsd.tanthuong.workers.dev` để email dẫn đến đúng FE. Cấu hình Wrangler giữ các biến runtime đã đặt trên dashboard khi deploy. Vite cần `VITE_API_URL` ở thời điểm build FE trỏ tới API của cùng BE cấp mật khẩu. Đặt `NOTIFICATIONS_START_AT` theo ISO UTC để Cron Trigger xử lý tối đa 25 sự kiện mỗi phút.
 

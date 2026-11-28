@@ -82,44 +82,40 @@ test('A1/A2/contract HTTP checks without DB: auth dedupe, Symbol guard, opening-
   assert.equal((await call('POST', '/opening-stocks/abc/post', { body: {} })).status, 400);
   assert.equal((await call('POST', '/opening-stocks/abc/cancel', { body: {} })).status, 400);
 
-  // Opening-stock preview: row-only error returns 200 without DB queries; structural error returns 400 without "body:" prefix.
+  // Opening-stock preview: structural errors return 400 before any DB query; rows are checked by the service.
   const openingFind = mock.method(m.OpeningStock, 'find', () => {
-    throw new Error('OpeningStock.find should not run for Zod row errors');
+    throw new Error('OpeningStock.find should not run for structural errors');
   });
-  const basePreview = {
-    warehouseId: key(),
-    openingAt: '2026-11-16T00:00:00Z',
-    cutoverKey: 'CUT-1',
-    sourceDescription: 'Excel file',
-    confirmEmpty: false,
-  };
-  const rowErr = await call('POST', '/opening-stocks/preview', {
-    body: {
-      ...basePreview,
-      rows: [{ sku: 'SKU1', manufacturerCode: 'M1', color: 'White', manufacturerLot: 'L1', enteredQty: '-5' }],
-    },
+  const basePreview = { warehouseId: key(), openingAt: '2026-11-16T00:00:00Z' };
+  const openingRowBody = { sku: 'SKU1', manufacturerLot: 'L1', locationCode: 'A-01', enteredQty: '5', enteredUnit: 'PIECE' };
+  const structuralErr = await call('POST', '/opening-stocks/preview', { body: { ...basePreview, rows: [] } });
+  assert.equal(structuralErr.status, 400, JSON.stringify(structuralErr.body));
+  assert.equal(structuralErr.body.message, 'Nhập ít nhất một dòng hàng.');
+  const futureErr = await call('POST', '/opening-stocks/preview', {
+    body: { ...basePreview, openingAt: new Date(Date.now() + 3_600_000).toISOString(), rows: [openingRowBody] },
   });
-  assert.equal(rowErr.status, 200, JSON.stringify(rowErr.body));
-  assert.equal(rowErr.body.data.valid, false);
-  assert.equal(rowErr.body.data.errors[0].rowNumber, 2);
-  assert.match(rowErr.body.data.errors[0].message, /Số lượng tồn/);
+  assert.equal(futureErr.status, 400);
+  assert.equal(futureErr.body.message, 'Mốc tồn đầu không được ở tương lai.');
   assert.equal(openingFind.mock.callCount(), 0);
 
-  const structuralErr = await call('POST', '/opening-stocks/preview', {
-    body: { ...basePreview, rows: [] },
-  });
-  assert.equal(structuralErr.status, 400, JSON.stringify(structuralErr.body));
-  assert.equal(structuralErr.body.message, 'Xác nhận kho trống hoặc nhập ít nhất một dòng hàng.');
-
-  // Non-Owner with opening_stock:create still gets 403 on row-error preview branch.
+  // Non-Owner with opening_stock:create still gets 403.
   currentActor = makePopulatedUser('WAREHOUSE', ['opening_stock:create']);
-  const nonOwnerPreview = await call('POST', '/opening-stocks/preview', {
-    body: {
-      ...basePreview,
-      rows: [{ sku: 'SKU1', manufacturerCode: 'M1', color: 'White', manufacturerLot: 'L1', enteredQty: '-5' }],
-    },
-  });
+  const nonOwnerPreview = await call('POST', '/opening-stocks/preview', { body: { ...basePreview, rows: [openingRowBody] } });
   assert.equal(nonOwnerPreview.status, 403);
+  currentActor = makePopulatedUser('OWNER', PERMISSION_CATALOGUE.map(p => p.code));
+
+  // Import routes accept bodies up to 8 MB; every other route keeps 1 MiB, each with its own message.
+  const filler = size => ({ ...basePreview, rows: [openingRowBody], padding: 'x'.repeat(size) });
+  const importSized = await call('POST', '/opening-stocks/preview', { body: filler(2 * 1024 * 1024) });
+  assert.equal(importSized.status, 400, 'a 2 MB import body passes the parser and fails validation');
+  const importTooLarge = await call('POST', '/opening-stocks/preview/', { body: filler(9 * 1024 * 1024) });
+  assert.equal(importTooLarge.status, 413);
+  assert.equal(importTooLarge.body.message, 'Dữ liệu gửi lên vượt quá giới hạn 8 MB, hãy tách file');
+  const ordinaryTooLarge = await call('POST', '/purchase-orders', { body: filler(2 * 1024 * 1024) });
+  assert.equal(ordinaryTooLarge.status, 413);
+  assert.equal(ordinaryTooLarge.body.message, 'Dữ liệu gửi lên vượt quá giới hạn 1 MiB');
+  const productImportSized = await call('POST', '/products/import/preview', { body: { products: [], lots: [], padding: 'x'.repeat(2 * 1024 * 1024) } });
+  assert.equal(productImportSized.status, 400);
 
   // Dual-permission reversal routes return 403 when missing either permission.
   const validId = key();

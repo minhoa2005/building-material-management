@@ -527,6 +527,24 @@
         "target": ""
       },
       {
+        "path": "openingCutoffAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "openingClosedAt",
+        "type": "Date",
+        "required": false,
+        "target": ""
+      },
+      {
+        "path": "openingClosedBy",
+        "type": "ObjectId",
+        "required": false,
+        "target": "User"
+      },
+      {
         "path": "layout3d",
         "type": "Mixed",
         "required": false,
@@ -26095,19 +26113,6 @@
           "createdAt": -1
         },
         {}
-      ],
-      [
-        {
-          "header.warehouseId": 1
-        },
-        {
-          "name": "opening_stock_file_import_once",
-          "unique": true,
-          "partialFilterExpression": {
-            "workflowStatus": "POSTED",
-            "header.openingImportSource": "FILE"
-          }
-        }
       ]
     ]
   },
